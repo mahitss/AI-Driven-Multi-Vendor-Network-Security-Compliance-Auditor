@@ -10,15 +10,12 @@ import {
   Layers,
   ArrowRight,
   RefreshCw,
-  Filter,
   Search,
   Server,
   Eye,
   Wrench,
-  ChevronRight,
   Shield,
   Activity,
-  CheckCircle2,
   X,
 } from "lucide-react";
 import {
@@ -28,9 +25,6 @@ import {
   fetchAuditRiskGraph,
   fetchAudits,
   RiskItem,
-  RiskStats,
-  RiskGraph,
-  AuditItem,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +37,7 @@ export default function RiskIntelligencePage() {
   const [selectedRiskDetail, setSelectedRiskDetail] = useState<RiskItem | null>(null);
 
   // Queries
-  const { data: stats, isLoading: isStatsLoading, refetch: refetchStats } = useQuery({
+  const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ["risk-stats"],
     queryFn: () => fetchRiskStats(),
   });
@@ -89,15 +83,15 @@ export default function RiskIntelligencePage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
-            <Flame className="w-5 h-5 text-rose-500" />
+          <h1 className="text-xl font-bold text-[#F5F5F5] tracking-tight flex items-center gap-2.5 font-mono">
+            <Flame className="w-5 h-5 text-[#EF4444]" />
             <span>Risk Intelligence & Prioritization</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#A3A3A3] mt-1">
             Deterministic risk classification, multi-finding correlation, and attack surface exposure mapping across audited assets.
           </p>
         </div>
@@ -108,7 +102,7 @@ export default function RiskIntelligencePage() {
               refetchStats();
               refetchRisks();
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-[#A3A3A3] hover:text-[#F5F5F5] hover:border-[#242424] text-xs font-mono transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh</span>
@@ -118,61 +112,61 @@ export default function RiskIntelligencePage() {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono">
-        <div className="p-4 rounded-xl bg-slate-900/70 border border-white/10 flex flex-col justify-between">
-          <div className="text-[10px] text-slate-400 uppercase font-semibold">Avg NetVigil Risk</div>
-          <div className="text-2xl font-bold text-white mt-1 flex items-baseline gap-1">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col justify-between">
+          <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">Avg NetVigil Risk</div>
+          <div className="text-2xl font-bold text-[#F5F5F5] mt-1 flex items-baseline gap-1">
             <span className={cn(
-              (stats?.average_risk_score ?? 0) >= 75 ? "text-rose-400" :
-              (stats?.average_risk_score ?? 0) >= 50 ? "text-amber-400" : "text-emerald-400"
+              (stats?.average_risk_score ?? 0) >= 75 ? "text-[#EF4444]" :
+              (stats?.average_risk_score ?? 0) >= 50 ? "text-[#F59E0B]" : "text-[#22C55E]"
             )}>
               {stats?.average_risk_score?.toFixed(0) ?? 0}
             </span>
-            <span className="text-xs text-slate-500">/ 100</span>
+            <span className="text-xs text-[#666666]">/ 100</span>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-800/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/40 flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-rose-400 uppercase font-semibold">P0 Immediate</div>
-            <div className="text-2xl font-bold text-rose-300 mt-1">{stats?.p0_count ?? 0}</div>
+            <div className="text-[10px] text-[#EF4444] uppercase font-semibold">P0 Immediate</div>
+            <div className="text-2xl font-bold text-[#EF4444] mt-1">{stats?.p0_count ?? 0}</div>
           </div>
-          <ShieldAlert className="w-5 h-5 text-rose-500" />
+          <ShieldAlert className="w-5 h-5 text-[#EF4444]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-800/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#F59E0B]/40 flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-amber-400 uppercase font-semibold">P1 High</div>
-            <div className="text-2xl font-bold text-amber-300 mt-1">{stats?.p1_count ?? 0}</div>
+            <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">P1 High</div>
+            <div className="text-2xl font-bold text-[#F59E0B] mt-1">{stats?.p1_count ?? 0}</div>
           </div>
-          <AlertTriangle className="w-5 h-5 text-amber-400" />
+          <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-blue-950/30 border border-blue-800/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#3B82F6]/40 flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-blue-400 uppercase font-semibold">P2 Medium</div>
-            <div className="text-2xl font-bold text-blue-300 mt-1">{stats?.p2_count ?? 0}</div>
+            <div className="text-[10px] text-[#3B82F6] uppercase font-semibold">P2 Medium</div>
+            <div className="text-2xl font-bold text-[#3B82F6] mt-1">{stats?.p2_count ?? 0}</div>
           </div>
-          <Layers className="w-5 h-5 text-blue-400" />
+          <Layers className="w-5 h-5 text-[#3B82F6]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-semibold">P3 Low / Info</div>
-            <div className="text-2xl font-bold text-slate-300 mt-1">{stats?.p3_count ?? 0}</div>
+            <div className="text-[10px] text-[#666666] uppercase font-semibold">P3 Low / Info</div>
+            <div className="text-2xl font-bold text-[#D4D4D4] mt-1">{stats?.p3_count ?? 0}</div>
           </div>
-          <Shield className="w-5 h-5 text-slate-400" />
+          <Shield className="w-5 h-5 text-[#666666]" />
         </div>
       </div>
 
       {/* Controls & View Switcher */}
-      <div className="p-4 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
           {/* Audit & Priority Filters */}
           <div className="flex flex-wrap items-center gap-2">
             <select
               value={selectedAuditId}
               onChange={(e) => setSelectedAuditId(e.target.value)}
-              className="p-1.5 rounded-md bg-[#0b101c] border border-white/10 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"
+              className="p-1.5 rounded-md bg-[#0D0D0D] border border-[#1A1A1A] text-xs text-[#00D9FF] focus:outline-none focus:border-[#00D9FF]"
             >
               <option value="ALL">All Audited Sessions</option>
               {audits.map((a) => (
@@ -182,7 +176,7 @@ export default function RiskIntelligencePage() {
               ))}
             </select>
 
-            <div className="flex items-center gap-1 bg-[#0b101c] border border-white/10 p-1 rounded-md text-xs font-mono">
+            <div className="flex items-center gap-1 bg-[#0D0D0D] border border-[#1A1A1A] p-1 rounded-md text-xs">
               {["ALL", "P0", "P1", "P2", "P3"].map((pri) => (
                 <button
                   key={pri}
@@ -190,8 +184,8 @@ export default function RiskIntelligencePage() {
                   className={cn(
                     "px-2.5 py-0.5 rounded text-[11px] font-semibold transition-colors",
                     selectedPriority === pri
-                      ? "bg-rose-500/20 text-rose-300 border border-rose-400/30"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-[#141414] text-[#EF4444] border border-[#EF4444]/40"
+                      : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                   )}
                 >
                   {pri}
@@ -203,22 +197,22 @@ export default function RiskIntelligencePage() {
           {/* View Toggle & Search */}
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#666666] absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search risks or themes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-md bg-[#0b101c] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-rose-500/50 w-full sm:w-56 font-mono"
+                className="pl-8 pr-3 py-1.5 rounded-md bg-[#0D0D0D] border border-[#1A1A1A] text-xs text-[#F5F5F5] placeholder-[#666666] focus:outline-none focus:border-[#EF4444]/50 w-full sm:w-56"
               />
             </div>
 
-            <div className="flex items-center bg-[#0b101c] border border-white/10 p-1 rounded-md text-xs font-mono">
+            <div className="flex items-center bg-[#0D0D0D] border border-[#1A1A1A] p-1 rounded-md text-xs">
               <button
                 onClick={() => setActiveView("list")}
                 className={cn(
                   "px-3 py-1 rounded text-[11px] font-semibold transition-colors",
-                  activeView === "list" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                  activeView === "list" ? "bg-[#141414] text-[#F5F5F5] border border-[#1A1A1A]" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                 )}
               >
                 Risk List
@@ -227,7 +221,7 @@ export default function RiskIntelligencePage() {
                 onClick={() => setActiveView("graph")}
                 className={cn(
                   "px-3 py-1 rounded text-[11px] font-semibold transition-colors",
-                  activeView === "graph" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                  activeView === "graph" ? "bg-[#141414] text-[#F5F5F5] border border-[#1A1A1A]" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                 )}
               >
                 Attack Graph
@@ -240,12 +234,12 @@ export default function RiskIntelligencePage() {
         {activeView === "list" && (
           <div className="space-y-3 pt-2">
             {isRisksLoading ? (
-              <div className="py-12 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin" />
+              <div className="py-12 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-[#EF4444]" />
                 <span>Computing prioritized risk intelligence...</span>
               </div>
             ) : filteredRisks.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 font-mono text-xs">
+              <div className="py-12 text-center text-[#666666] font-mono text-xs">
                 No security risks found matching selected filters.
               </div>
             ) : (
@@ -253,38 +247,38 @@ export default function RiskIntelligencePage() {
                 {filteredRisks.map((risk) => (
                   <div
                     key={risk.id}
-                    className="p-4 rounded-xl bg-[#090d16] border border-white/5 hover:border-rose-500/30 transition-colors space-y-3 font-mono text-xs"
+                    className="p-4 rounded-xl bg-[#0D0D0D] border border-[#1A1A1A] hover:border-[#EF4444]/40 transition-colors space-y-3 font-mono text-xs"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span
                           className={cn(
                             "px-2 py-0.5 rounded text-[10px] font-bold uppercase border",
-                            risk.priority === "P0" && "bg-rose-950 text-rose-300 border-rose-800/40",
-                            risk.priority === "P1" && "bg-amber-950 text-amber-300 border-amber-800/40",
-                            risk.priority === "P2" && "bg-blue-950 text-blue-300 border-blue-800/40",
-                            risk.priority === "P3" && "bg-slate-800 text-slate-300 border-white/10"
+                            risk.priority === "P0" && "bg-[#141414] text-[#EF4444] border-[#EF4444]/40",
+                            risk.priority === "P1" && "bg-[#141414] text-[#F59E0B] border-[#F59E0B]/40",
+                            risk.priority === "P2" && "bg-[#141414] text-[#3B82F6] border-[#3B82F6]/40",
+                            risk.priority === "P3" && "bg-[#141414] text-[#A3A3A3] border-[#1A1A1A]"
                           )}
                         >
                           {risk.priority} • {risk.severity}
                         </span>
 
-                        <span className="px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-white/5 text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-[#111111] text-[#A3A3A3] border border-[#1A1A1A] text-[10px]">
                           {risk.category}
                         </span>
 
-                        <span className="px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-400 border border-cyan-800/30 text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-[#111111] text-[#00D9FF] border border-[#00D9FF]/30 text-[10px]">
                           Exposure: {risk.exposure.replace("_", " ")}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-slate-400">NetVigil Risk Score:</span>
+                        <span className="text-[11px] text-[#A3A3A3]">NetVigil Risk Score:</span>
                         <span className={cn(
                           "px-2 py-0.5 rounded font-bold text-xs border",
-                          risk.risk_score >= 90 ? "bg-rose-950/80 text-rose-300 border-rose-800/50" :
-                          risk.risk_score >= 75 ? "bg-amber-950/80 text-amber-300 border-amber-800/50" :
-                          "bg-blue-950/80 text-blue-300 border-blue-800/50"
+                          risk.risk_score >= 90 ? "bg-[#141414] text-[#EF4444] border-[#EF4444]/50" :
+                          risk.risk_score >= 75 ? "bg-[#141414] text-[#F59E0B] border-[#F59E0B]/50" :
+                          "bg-[#141414] text-[#3B82F6] border-[#3B82F6]/50"
                         )}>
                           {risk.risk_score.toFixed(0)} / 100
                         </span>
@@ -292,28 +286,28 @@ export default function RiskIntelligencePage() {
                     </div>
 
                     <div className="space-y-1">
-                      <h3 className="text-sm font-bold text-white tracking-tight">{risk.title}</h3>
-                      <p className="text-xs text-slate-300 font-sans leading-relaxed">{risk.description}</p>
+                      <h3 className="text-sm font-bold text-[#F5F5F5] tracking-tight">{risk.title}</h3>
+                      <p className="text-xs text-[#A3A3A3] font-sans leading-relaxed">{risk.description}</p>
                     </div>
 
                     {risk.evidence_summary && (
-                      <div className="p-2.5 rounded bg-[#050810] border border-white/5 text-[11px] text-slate-400 space-y-1">
-                        <div className="text-[10px] uppercase font-semibold text-slate-500">Contributing Evidence:</div>
-                        <pre className="text-cyan-300 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap">
+                      <div className="p-2.5 rounded bg-[#050505] border border-[#1A1A1A] text-[11px] text-[#A3A3A3] space-y-1">
+                        <div className="text-[10px] uppercase font-semibold text-[#666666]">Contributing Evidence:</div>
+                        <pre className="text-[#00D9FF] text-[11px] font-mono overflow-x-auto whitespace-pre-wrap">
                           {risk.evidence_summary}
                         </pre>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                      <span className="text-[10px] text-slate-500">
+                    <div className="flex items-center justify-between pt-2 border-t border-[#1A1A1A]">
+                      <span className="text-[10px] text-[#666666]">
                         Contributing Findings: <strong>{risk.finding_ids?.length ?? 1}</strong>
                       </span>
 
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setSelectedRiskDetail(risk)}
-                          className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] flex items-center gap-1 transition-colors"
+                          className="px-3 py-1 rounded bg-[#111111] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] text-[11px] flex items-center gap-1 transition-colors"
                         >
                           <Eye className="w-3 h-3" />
                           <span>Inspect</span>
@@ -321,7 +315,7 @@ export default function RiskIntelligencePage() {
 
                         <Link
                           href="/remediation"
-                          className="px-3 py-1 rounded bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800/40 text-[11px] flex items-center gap-1 transition-colors font-semibold"
+                          className="px-3 py-1 rounded bg-[#0B0B0B] border border-[#EF4444]/40 hover:border-[#EF4444] text-[#EF4444] text-[11px] flex items-center gap-1 transition-colors font-semibold"
                         >
                           <Wrench className="w-3 h-3" />
                           <span>View Remediation Fix</span>
@@ -337,24 +331,24 @@ export default function RiskIntelligencePage() {
 
         {/* View 2: Deterministic Attack / Risk Graph */}
         {activeView === "graph" && (
-          <div className="p-4 rounded-xl bg-[#070b14] border border-white/10 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 font-mono text-xs">
-              <div className="flex items-center gap-2 text-cyan-300 font-bold">
+          <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#1A1A1A] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] font-mono text-xs">
+              <div className="flex items-center gap-2 text-[#00D9FF] font-bold">
                 <Activity className="w-4 h-4" />
                 <span>Deterministic Risk Relationship Graph</span>
               </div>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-[#666666]">
                 Nodes: {graphData?.summary?.nodes_count ?? 0} • Edges: {graphData?.summary?.edges_count ?? 0}
               </span>
             </div>
 
             {isGraphLoading ? (
-              <div className="py-16 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin" />
+              <div className="py-16 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-[#00D9FF]" />
                 <span>Rendering relationship graph...</span>
               </div>
             ) : !graphData || graphData.nodes.length === 0 ? (
-              <div className="py-16 text-center text-slate-500 font-mono text-xs">
+              <div className="py-16 text-center text-[#666666] font-mono text-xs">
                 No graph data available for current audit session.
               </div>
             ) : (
@@ -363,50 +357,50 @@ export default function RiskIntelligencePage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono text-xs">
                   {/* Column 1: Asset */}
                   <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">1. Target Device</div>
+                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">1. Target Device</div>
                     {graphData.nodes.filter((n) => n.type === "DEVICE").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-slate-900 border border-white/10 space-y-1">
-                        <div className="flex items-center gap-1.5 text-cyan-300 font-bold">
+                      <div key={n.id} className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#00D9FF] font-bold">
                           <Server className="w-3.5 h-3.5" />
                           <span>{n.data.label}</span>
                         </div>
-                        <div className="text-[10px] text-slate-500">{n.data.subtitle}</div>
+                        <div className="text-[10px] text-[#666666]">{n.data.subtitle}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Column 2: Exposure */}
                   <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">2. Attack Surface</div>
+                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">2. Attack Surface</div>
                     {graphData.nodes.filter((n) => n.type === "EXPOSURE").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-indigo-950/40 border border-indigo-700/30 space-y-1">
-                        <div className="text-indigo-300 font-bold">{n.data.label}</div>
-                        <div className="text-[10px] text-slate-400">{n.data.subtitle}</div>
+                      <div key={n.id} className="p-3 rounded-lg bg-[#0A0A0A] border border-[#8B5CF6]/30 space-y-1">
+                        <div className="text-[#8B5CF6] font-bold">{n.data.label}</div>
+                        <div className="text-[10px] text-[#666666]">{n.data.subtitle}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Column 3: Correlated Risk */}
                   <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">3. Security Risk</div>
+                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">3. Security Risk</div>
                     {graphData.nodes.filter((n) => n.type === "RISK").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-rose-950/40 border border-rose-700/30 space-y-1">
+                      <div key={n.id} className="p-3 rounded-lg bg-[#0A0A0A] border border-[#EF4444]/30 space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-rose-300 font-bold">{n.data.priority}</span>
-                          <span className="text-[10px] text-rose-400">Score: {n.data.risk_score}</span>
+                          <span className="text-[#EF4444] font-bold">{n.data.priority}</span>
+                          <span className="text-[10px] text-[#EF4444]">Score: {n.data.risk_score}</span>
                         </div>
-                        <div className="text-slate-200 text-[11px] font-semibold">{n.data.label}</div>
+                        <div className="text-[#F5F5F5] text-[11px] font-semibold">{n.data.label}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Column 4: Contributing Findings */}
                   <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">4. Failed Controls</div>
+                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">4. Failed Controls</div>
                     {graphData.nodes.filter((n) => n.type === "FINDING").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-[#050810] border border-white/5 space-y-1">
-                        <div className="text-amber-300 font-bold">{n.data.label}</div>
-                        <div className="text-[10px] text-slate-400 line-clamp-1">{n.data.subtitle}</div>
+                      <div key={n.id} className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-1">
+                        <div className="text-[#F59E0B] font-bold">{n.data.label}</div>
+                        <div className="text-[10px] text-[#666666] line-clamp-1">{n.data.subtitle}</div>
                       </div>
                     ))}
                   </div>
@@ -419,14 +413,14 @@ export default function RiskIntelligencePage() {
 
       {/* Inspect Detail Modal */}
       {selectedRiskDetail && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0c121e] border border-rose-500/30 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in duration-150">
-            <div className="p-4 border-b border-white/10 bg-slate-900/80 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-rose-300 font-bold">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in duration-150">
+            <div className="p-4 border-b border-[#1A1A1A] bg-[#0B0B0B] flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[#EF4444] font-bold">
                 <Flame className="w-4 h-4" />
                 <span>Risk Intelligence Detail</span>
               </div>
-              <button onClick={() => setSelectedRiskDetail(null)} className="p-1 text-slate-400 hover:text-white">
+              <button onClick={() => setSelectedRiskDetail(null)} className="p-1 text-[#666666] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -434,52 +428,52 @@ export default function RiskIntelligencePage() {
             <div className="p-5 space-y-3.5">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/40 font-bold">
+                  <span className="px-2 py-0.5 rounded bg-[#141414] text-[#EF4444] border border-[#EF4444]/40 font-bold">
                     {selectedRiskDetail.priority} • {selectedRiskDetail.severity}
                   </span>
-                  <span className="text-slate-400">Score: <strong>{selectedRiskDetail.risk_score}</strong></span>
+                  <span className="text-[#A3A3A3]">Score: <strong>{selectedRiskDetail.risk_score}</strong></span>
                 </div>
-                <h2 className="text-sm font-bold text-white mt-1">{selectedRiskDetail.title}</h2>
+                <h2 className="text-sm font-bold text-[#F5F5F5] mt-1">{selectedRiskDetail.title}</h2>
               </div>
 
-              <div className="p-3 rounded bg-[#060911] border border-white/10 space-y-1 font-sans">
-                <div className="text-[10px] font-mono text-slate-400 uppercase font-semibold">Risk Context:</div>
-                <p className="text-slate-200 text-xs leading-relaxed">{selectedRiskDetail.description}</p>
+              <div className="p-3 rounded bg-[#050505] border border-[#1A1A1A] space-y-1 font-sans">
+                <div className="text-[10px] font-mono text-[#666666] uppercase font-semibold">Risk Context:</div>
+                <p className="text-[#D4D4D4] text-xs leading-relaxed">{selectedRiskDetail.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2 rounded bg-slate-900 border border-white/5">
-                  <span className="text-slate-500 uppercase text-[10px]">Impact:</span>
-                  <div className="text-slate-200 font-bold">{selectedRiskDetail.impact}</div>
+                <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+                  <span className="text-[#666666] uppercase text-[10px]">Impact:</span>
+                  <div className="text-[#F5F5F5] font-bold">{selectedRiskDetail.impact}</div>
                 </div>
 
-                <div className="p-2 rounded bg-slate-900 border border-white/5">
-                  <span className="text-slate-500 uppercase text-[10px]">Exposure:</span>
-                  <div className="text-cyan-300 font-bold">{selectedRiskDetail.exposure}</div>
+                <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+                  <span className="text-[#666666] uppercase text-[10px]">Exposure:</span>
+                  <div className="text-[#00D9FF] font-bold">{selectedRiskDetail.exposure}</div>
                 </div>
               </div>
 
               {selectedRiskDetail.evidence_summary && (
                 <div className="space-y-1">
-                  <span className="text-slate-400 text-[10px] uppercase font-semibold">Evidence:</span>
-                  <div className="p-2 rounded bg-[#060911] border border-white/10 text-cyan-300 text-[11px] whitespace-pre-wrap select-text">
+                  <span className="text-[#666666] text-[10px] uppercase font-semibold">Evidence:</span>
+                  <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] text-[#00D9FF] text-[11px] whitespace-pre-wrap select-text">
                     {selectedRiskDetail.evidence_summary}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-white/10 bg-slate-900/80 flex items-center justify-between">
+            <div className="p-4 border-t border-[#1A1A1A] bg-[#070707] flex items-center justify-between">
               <button
                 onClick={() => setSelectedRiskDetail(null)}
-                className="px-3.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                className="px-3.5 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#A3A3A3] border border-[#1A1A1A]"
               >
                 Close
               </button>
 
               <Link
                 href="/remediation"
-                className="px-4 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded bg-[#0B0B0B] border border-[#EF4444]/40 hover:border-[#EF4444] text-[#EF4444] font-semibold flex items-center gap-1.5"
               >
                 <Wrench className="w-3.5 h-3.5" />
                 <span>Go to Remediation Center</span>

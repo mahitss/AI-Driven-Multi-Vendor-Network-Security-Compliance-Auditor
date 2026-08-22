@@ -87,26 +87,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const categories = Array.from(new Set(navItems.map((item) => item.category)));
 
   return (
-    <div className="flex h-screen bg-[#030303] text-[#F5F5F5] overflow-hidden">
+    <div className="flex h-screen bg-[#070707] text-[#D4D4D4] overflow-hidden">
       {/* Global Search Modal */}
       <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#050505] border-r border-white/[0.07] z-20">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#080808] border-r border-[#1A1A1A] z-20">
         {/* Brand Header */}
-        <div className="p-4 border-b border-white/[0.07] flex items-center justify-between">
+        <div className="p-4 border-b border-[#1A1A1A] flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <div className="w-8 h-8 rounded-lg bg-[#0D0D0D] border border-[#00D9FF]/30 flex items-center justify-center text-[#00D9FF]">
               <Shield className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-base text-white tracking-wide">NetVigil</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/40 font-mono">
+                <span className="font-bold text-base text-[#F5F5F5] tracking-wide">NetVigil</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0D0D0D] text-[#00D9FF] border border-[#00D9FF]/30 font-mono">
                   v0.1
                 </span>
               </div>
-              <p className="text-[10px] text-[#A1A1A1] tracking-tight font-medium">NTRO • SIH26155</p>
+              <p className="text-[10px] text-[#666666] tracking-tight font-medium">NTRO • SIH26155</p>
             </div>
           </Link>
         </div>
@@ -129,17 +129,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          "flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-all group",
+                          "flex items-center justify-between px-2.5 py-1.5 text-xs font-medium transition-all group",
                           isActive
-                            ? "bg-[#0B0B0B] text-cyan-300 border border-cyan-500/30 shadow-sm"
-                            : "text-[#A1A1A1] hover:text-white hover:bg-[#090909] border border-transparent"
+                            ? "bg-[#111111] text-[#F5F5F5] border-l-2 border-[#00D9FF] rounded-r-md rounded-l-none font-semibold"
+                            : "text-[#A3A3A3] hover:text-[#F5F5F5] hover:bg-[#111111] rounded-md border-l-2 border-transparent"
                         )}
                       >
                         <div className="flex items-center gap-2.5">
                           <Icon
                             className={cn(
                               "w-4 h-4 transition-colors",
-                              isActive ? "text-cyan-400" : "text-[#666666] group-hover:text-[#A1A1A1]"
+                              isActive ? "text-[#00D9FF]" : "text-[#666666] group-hover:text-[#A3A3A3]"
                             )}
                           />
                           <span>{item.label}</span>
@@ -149,8 +149,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             className={cn(
                               "text-[10px] font-mono px-1.5 py-0.2 rounded",
                               isActive
-                                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
-                                : "bg-[#111111] text-[#A1A1A1] border border-white/[0.05]"
+                                ? "bg-[#1A1A1A] text-[#00D9FF] border border-[#00D9FF]/30"
+                                : "bg-[#111111] text-[#666666] border border-[#1A1A1A]"
                             )}
                           >
                             {item.badge}
@@ -165,11 +165,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Engine Pipeline Status */}
-        <div className="p-3 m-3 rounded-lg bg-[#080808] border border-white/[0.07] text-xs">
+        <div className="p-3 m-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] text-xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono text-[#A1A1A1]">Deterministic Core</span>
-            <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-mono text-[#A3A3A3]">Deterministic Core</span>
+            <span className="flex items-center gap-1 text-[10px] text-[#22C55E] font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
               ONLINE
             </span>
           </div>
@@ -179,13 +179,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Operator Profile */}
-        <div className="p-3 border-t border-white/[0.07] flex items-center justify-between bg-[#040404]">
+        <div className="p-3 border-t border-[#1A1A1A] flex items-center justify-between bg-[#080808]">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-[#111111] border border-white/10 flex items-center justify-center text-xs font-semibold text-slate-300">
+            <div className="w-7 h-7 rounded-full bg-[#111111] border border-[#1A1A1A] flex items-center justify-center text-xs font-semibold text-[#D4D4D4]">
               NA
             </div>
             <div>
-              <div className="text-xs font-medium text-white">NTRO Auditor</div>
+              <div className="text-xs font-medium text-[#F5F5F5]">NTRO Auditor</div>
               <div className="text-[10px] text-[#666666] font-mono">SecOps Clearance L3</div>
             </div>
           </div>
@@ -195,18 +195,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-14 bg-[#050505]/95 backdrop-blur-md border-b border-white/[0.07] px-4 lg:px-6 flex items-center justify-between z-10">
+        <header className="h-14 bg-[#070707] border-b border-[#151515] px-4 lg:px-6 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-1.5 rounded-md text-[#A1A1A1] hover:text-white hover:bg-[#111111]"
+              className="lg:hidden p-1.5 rounded-md text-[#A3A3A3] hover:text-white hover:bg-[#111111]"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <div className="flex items-center gap-2 text-xs text-[#A1A1A1] font-mono">
+            <div className="flex items-center gap-2 text-xs text-[#A3A3A3] font-mono">
               <span className="text-[#666666]">NetVigil</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#444444]" />
-              <span className="text-white font-medium capitalize">
+              <ChevronRight className="w-3.5 h-3.5 text-[#333333]" />
+              <span className="text-[#F5F5F5] font-medium capitalize">
                 {pathname === "/" ? "Overview" : pathname.replace("/", "").replace(/-/g, " ")}
               </span>
             </div>
@@ -217,38 +217,38 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Global Search Launch Button */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#080808] border border-white/[0.07] text-[#A1A1A1] hover:text-white text-xs font-mono transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-[#A3A3A3] hover:text-[#F5F5F5] hover:border-[#242424] text-xs font-mono transition-colors"
             >
               <Search className="w-3.5 h-3.5 text-[#666666]" />
               <span className="hidden sm:inline">Search entities...</span>
-              <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-[#141414] text-[10px] text-[#A1A1A1] border border-white/[0.05]">
+              <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-[#111111] text-[10px] text-[#A3A3A3] border border-[#1A1A1A]">
                 Ctrl+K
               </kbd>
             </button>
 
             {/* System Health Indicator */}
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#080808] border border-white/[0.07] text-xs font-mono">
+            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0B0B0B] border border-[#1A1A1A] text-xs font-mono">
               {isError ? (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
-                  <span className="text-rose-400 text-[11px]">API Offline</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
+                  <span className="text-[#EF4444] text-[11px]">API Offline</span>
                 </>
               ) : health?.status === "healthy" ? (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span className="text-emerald-400 text-[11px]">API v{health.version} Healthy</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+                  <span className="text-[#22C55E] text-[11px]">API v{health.version} Healthy</span>
                 </>
               ) : (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                  <span className="text-amber-400 text-[11px]">Connecting...</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
+                  <span className="text-[#F59E0B] text-[11px]">Connecting...</span>
                 </>
               )}
             </div>
 
             <Link
               href="/configurations"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium shadow-sm transition-colors font-mono"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0B0B0B] border border-[#00D9FF]/40 hover:border-[#00D9FF] hover:bg-[#111111] text-[#00D9FF] text-xs font-medium transition-all font-mono"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload Config</span>
@@ -257,7 +257,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Viewport Content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#030303]">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#070707]">
           {children}
         </main>
       </div>

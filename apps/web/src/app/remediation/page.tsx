@@ -13,13 +13,8 @@ import {
   Terminal,
   FileCode,
   ShieldCheck,
-  Layers,
-  ArrowRight,
-  Filter,
-  Search,
-  Eye,
   RotateCcw,
-  Zap,
+  Search,
 } from "lucide-react";
 import {
   fetchRemediations,
@@ -28,7 +23,6 @@ import {
   reviewRemediation,
   fetchAudits,
   RemediationProposal,
-  RemediationStats,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +37,7 @@ export default function RemediationCenterPage() {
   const [activeCardTab, setActiveCardTab] = useState<Record<string, "commands" | "diff" | "impact" | "rollback">>({});
 
   // Queries
-  const { data: stats, isLoading: isStatsLoading, refetch: refetchStats } = useQuery({
+  const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ["remediation-stats"],
     queryFn: () => fetchRemediationStats(),
   });
@@ -106,15 +100,15 @@ export default function RemediationCenterPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
-            <Wrench className="w-5 h-5 text-emerald-400" />
+          <h1 className="text-xl font-bold text-[#F5F5F5] tracking-tight flex items-center gap-2.5 font-mono">
+            <Wrench className="w-5 h-5 text-[#22C55E]" />
             <span>Vendor-Specific Remediation Center</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#A3A3A3] mt-1">
             Verified static remediation templates, configuration diffs, and post-change verification steps for Cisco, Juniper, and Fortinet.
           </p>
         </div>
@@ -125,7 +119,7 @@ export default function RemediationCenterPage() {
               refetchStats();
               refetchRemediations();
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-[#A3A3A3] hover:text-[#F5F5F5] hover:border-[#242424] text-xs font-mono transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh</span>
@@ -135,45 +129,45 @@ export default function RemediationCenterPage() {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-        <div className="p-4 rounded-xl bg-slate-900/70 border border-white/10 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-semibold">Total Fixes</div>
-            <div className="text-2xl font-bold text-white mt-1">{stats?.total_proposals ?? 0}</div>
+            <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">Total Fixes</div>
+            <div className="text-2xl font-bold text-[#F5F5F5] mt-1">{stats?.total_proposals ?? 0}</div>
           </div>
-          <FileCode className="w-5 h-5 text-slate-400" />
+          <FileCode className="w-5 h-5 text-[#666666]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-800/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#22C55E]/40 flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-emerald-400 uppercase font-semibold">Verified Templates</div>
-            <div className="text-2xl font-bold text-emerald-300 mt-1">{stats?.available_count ?? 0}</div>
+            <div className="text-[10px] text-[#22C55E] uppercase font-semibold">Verified Templates</div>
+            <div className="text-2xl font-bold text-[#22C55E] mt-1">{stats?.available_count ?? 0}</div>
           </div>
-          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          <CheckCircle2 className="w-5 h-5 text-[#22C55E]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-cyan-950/30 border border-cyan-800/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#00D9FF]/40 flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-cyan-400 uppercase font-semibold">Reviewed by Admin</div>
-            <div className="text-2xl font-bold text-cyan-300 mt-1">{stats?.reviewed_count ?? 0}</div>
+            <div className="text-[10px] text-[#00D9FF] uppercase font-semibold">Reviewed by Admin</div>
+            <div className="text-2xl font-bold text-[#00D9FF] mt-1">{stats?.reviewed_count ?? 0}</div>
           </div>
-          <ShieldCheck className="w-5 h-5 text-cyan-400" />
+          <ShieldCheck className="w-5 h-5 text-[#00D9FF]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-800/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#F59E0B]/40 flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-amber-400 uppercase font-semibold">Manual Required</div>
-            <div className="text-2xl font-bold text-amber-300 mt-1">{stats?.not_available_count ?? 0}</div>
+            <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">Manual Required</div>
+            <div className="text-2xl font-bold text-[#F59E0B] mt-1">{stats?.not_available_count ?? 0}</div>
           </div>
-          <AlertTriangle className="w-5 h-5 text-amber-400" />
+          <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="p-4 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
           <div className="flex flex-wrap items-center gap-2">
             {/* Vendor Filter */}
-            <div className="flex items-center gap-1 bg-[#0b101c] border border-white/10 p-1 rounded-md text-xs font-mono">
+            <div className="flex items-center gap-1 bg-[#0D0D0D] border border-[#1A1A1A] p-1 rounded-md text-xs">
               {["ALL", "cisco", "juniper", "fortinet"].map((v) => (
                 <button
                   key={v}
@@ -181,8 +175,8 @@ export default function RemediationCenterPage() {
                   className={cn(
                     "px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase transition-colors",
                     selectedVendorFilter === v
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-[#141414] text-[#22C55E] border border-[#22C55E]/40"
+                      : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                   )}
                 >
                   {v}
@@ -194,7 +188,7 @@ export default function RemediationCenterPage() {
             <select
               value={selectedAuditId}
               onChange={(e) => setSelectedAuditId(e.target.value)}
-              className="p-1.5 rounded-md bg-[#0b101c] border border-white/10 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"
+              className="p-1.5 rounded-md bg-[#0D0D0D] border border-[#1A1A1A] text-xs text-[#00D9FF] focus:outline-none focus:border-[#00D9FF]"
             >
               <option value="ALL">All Audited Sessions</option>
               {audits.map((a) => (
@@ -207,25 +201,25 @@ export default function RemediationCenterPage() {
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#666666] absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search remediation control..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-md bg-[#0b101c] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 w-full sm:w-64 font-mono"
+              className="pl-8 pr-3 py-1.5 rounded-md bg-[#0D0D0D] border border-[#1A1A1A] text-xs text-[#F5F5F5] placeholder-[#666666] focus:outline-none focus:border-[#22C55E]/50 w-full sm:w-64 font-mono"
             />
           </div>
         </div>
 
         {/* Remediation Cards List */}
         {isRemediationsLoading ? (
-          <div className="py-16 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-2">
-            <RefreshCw className="w-4 h-4 animate-spin" />
+          <div className="py-16 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
+            <RefreshCw className="w-4 h-4 animate-spin text-[#22C55E]" />
             <span>Loading verified remediation templates...</span>
           </div>
         ) : filteredRemediations.length === 0 ? (
-          <div className="py-16 text-center text-slate-500 font-mono text-xs">
+          <div className="py-16 text-center text-[#666666] font-mono text-xs">
             No remediation proposals found matching selected filters.
           </div>
         ) : (
@@ -236,32 +230,32 @@ export default function RemediationCenterPage() {
               return (
                 <div
                   key={proposal.id}
-                  className="p-5 rounded-xl bg-[#090d16] border border-white/10 hover:border-emerald-500/30 transition-all space-y-4 font-mono text-xs"
+                  className="p-5 rounded-xl bg-[#0D0D0D] border border-[#1A1A1A] hover:border-[#22C55E]/40 transition-all space-y-4 font-mono text-xs"
                 >
                   {/* Card Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/40 font-bold uppercase text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-[#111111] text-[#22C55E] border border-[#22C55E]/30 font-bold uppercase text-[10px]">
                         {proposal.vendor}
                       </span>
 
-                      <span className="px-2 py-0.5 rounded bg-slate-900 text-cyan-300 border border-white/5 text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-[#111111] text-[#00D9FF] border border-[#1A1A1A] text-[10px]">
                         {proposal.normalized_control}
                       </span>
 
-                      <span className="text-[10px] text-slate-400 font-sans">
+                      <span className="text-[10px] text-[#666666] font-sans">
                         Template: <strong>{proposal.template_id}</strong>
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       {proposal.is_reviewed ? (
-                        <span className="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40 text-[10px] font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                        <span className="px-2 py-0.5 rounded bg-[#111111] text-[#00D9FF] border border-[#00D9FF]/30 text-[10px] font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-[#00D9FF]" />
                           <span>Reviewed by {proposal.reviewed_by?.split("@")[0]}</span>
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-white/10 text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-[#111111] text-[#A3A3A3] border border-[#1A1A1A] text-[10px]">
                           Review Required
                         </span>
                       )}
@@ -270,17 +264,17 @@ export default function RemediationCenterPage() {
 
                   {/* Title & Description */}
                   <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-white tracking-tight">{proposal.title}</h3>
-                    <p className="text-xs text-slate-300 font-sans">{proposal.why_recommended}</p>
+                    <h3 className="text-sm font-bold text-[#F5F5F5] tracking-tight">{proposal.title}</h3>
+                    <p className="text-xs text-[#A3A3A3] font-sans">{proposal.why_recommended}</p>
                   </div>
 
                   {/* Card Inner Tabs */}
-                  <div className="flex items-center gap-1 border-b border-white/10 pb-1.5 text-[11px]">
+                  <div className="flex items-center gap-1 border-b border-[#1A1A1A] pb-1.5 text-[11px]">
                     <button
                       onClick={() => setActiveCardTab((prev) => ({ ...prev, [proposal.id]: "commands" }))}
                       className={cn(
                         "px-2.5 py-1 rounded transition-colors flex items-center gap-1",
-                        cardTab === "commands" ? "bg-emerald-950 text-emerald-300 font-bold" : "text-slate-400 hover:text-slate-200"
+                        cardTab === "commands" ? "bg-[#141414] text-[#22C55E] font-bold border border-[#22C55E]/30" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                       )}
                     >
                       <Terminal className="w-3 h-3" />
@@ -291,7 +285,7 @@ export default function RemediationCenterPage() {
                       onClick={() => setActiveCardTab((prev) => ({ ...prev, [proposal.id]: "diff" }))}
                       className={cn(
                         "px-2.5 py-1 rounded transition-colors flex items-center gap-1",
-                        cardTab === "diff" ? "bg-emerald-950 text-emerald-300 font-bold" : "text-slate-400 hover:text-slate-200"
+                        cardTab === "diff" ? "bg-[#141414] text-[#22C55E] font-bold border border-[#22C55E]/30" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                       )}
                     >
                       <FileCode className="w-3 h-3" />
@@ -302,7 +296,7 @@ export default function RemediationCenterPage() {
                       onClick={() => setActiveCardTab((prev) => ({ ...prev, [proposal.id]: "impact" }))}
                       className={cn(
                         "px-2.5 py-1 rounded transition-colors flex items-center gap-1",
-                        cardTab === "impact" ? "bg-emerald-950 text-emerald-300 font-bold" : "text-slate-400 hover:text-slate-200"
+                        cardTab === "impact" ? "bg-[#141414] text-[#22C55E] font-bold border border-[#22C55E]/30" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                       )}
                     >
                       <AlertTriangle className="w-3 h-3" />
@@ -314,7 +308,7 @@ export default function RemediationCenterPage() {
                         onClick={() => setActiveCardTab((prev) => ({ ...prev, [proposal.id]: "rollback" }))}
                         className={cn(
                           "px-2.5 py-1 rounded transition-colors flex items-center gap-1",
-                          cardTab === "rollback" ? "bg-emerald-950 text-emerald-300 font-bold" : "text-slate-400 hover:text-slate-200"
+                          cardTab === "rollback" ? "bg-[#141414] text-[#EF4444] font-bold border border-[#EF4444]/30" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
                         )}
                       >
                         <RotateCcw className="w-3 h-3" />
@@ -326,7 +320,7 @@ export default function RemediationCenterPage() {
                   {/* Tab Content 1: CLI Commands */}
                   {cardTab === "commands" && (
                     <div className="relative">
-                      <pre className="p-3.5 rounded-lg bg-[#04060c] border border-white/10 text-emerald-400 text-xs font-mono overflow-x-auto select-text leading-relaxed">
+                      <pre className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A] text-[#22C55E] text-xs font-mono overflow-x-auto select-text leading-relaxed">
                         {proposal.remediation_commands}
                       </pre>
                     </div>
@@ -334,45 +328,45 @@ export default function RemediationCenterPage() {
 
                   {/* Tab Content 2: Visual Configuration Diff */}
                   {cardTab === "diff" && (
-                    <div className="p-3.5 rounded-lg bg-[#04060c] border border-white/10 space-y-2 text-xs font-mono">
+                    <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-2 text-xs font-mono">
                       {proposal.diff_preview?.diff_lines && proposal.diff_preview.diff_lines.length > 0 ? (
                         <div className="space-y-1">
                           {proposal.diff_preview.diff_lines.map((d, idx) => (
                             <div
                               key={idx}
                               className={cn(
-                                "p-1.5 rounded flex items-center justify-between",
-                                d.type === "REMOVE" ? "bg-rose-950/40 text-rose-300 border border-rose-800/30" : "bg-emerald-950/40 text-emerald-300 border border-emerald-800/30"
+                                "p-1.5 rounded flex items-center justify-between border",
+                                d.type === "REMOVE" ? "bg-[#141414] text-[#EF4444] border-[#EF4444]/30" : "bg-[#141414] text-[#22C55E] border-[#22C55E]/30"
                               )}
                             >
                               <span className="font-semibold">{d.type === "REMOVE" ? "- " : "+ "}{d.line}</span>
-                              <span className="text-[10px] text-slate-500">{d.description}</span>
+                              <span className="text-[10px] text-[#666666]">{d.description}</span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-slate-500 py-2 text-center">Direct declarative hardening (no baseline removal required).</div>
+                        <div className="text-[#666666] py-2 text-center">Direct declarative hardening (no baseline removal required).</div>
                       )}
                     </div>
                   )}
 
                   {/* Tab Content 3: Impact & Verification */}
                   {cardTab === "impact" && (
-                    <div className="p-3.5 rounded-lg bg-[#04060c] border border-white/10 space-y-3 font-sans text-xs">
+                    <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-3 font-sans text-xs">
                       <div className="space-y-1">
-                        <div className="text-[10px] font-mono text-amber-400 uppercase font-semibold flex items-center gap-1">
+                        <div className="text-[10px] font-mono text-[#F59E0B] uppercase font-semibold flex items-center gap-1">
                           <AlertTriangle className="w-3 h-3" />
                           <span>Potential Operational Impact:</span>
                         </div>
-                        <p className="text-slate-300">{proposal.potential_impact}</p>
+                        <p className="text-[#D4D4D4]">{proposal.potential_impact}</p>
                       </div>
 
                       <div className="space-y-1">
-                        <div className="text-[10px] font-mono text-cyan-400 uppercase font-semibold flex items-center gap-1">
+                        <div className="text-[10px] font-mono text-[#00D9FF] uppercase font-semibold flex items-center gap-1">
                           <ShieldCheck className="w-3 h-3" />
                           <span>Post-Change Verification Commands:</span>
                         </div>
-                        <pre className="p-2 rounded bg-slate-900 border border-white/5 font-mono text-cyan-300 text-[11px] whitespace-pre-wrap select-text">
+                        <pre className="p-2 rounded bg-[#0A0A0A] border border-[#1A1A1A] font-mono text-[#00D9FF] text-[11px] whitespace-pre-wrap select-text">
                           {proposal.verification_steps}
                         </pre>
                       </div>
@@ -382,23 +376,23 @@ export default function RemediationCenterPage() {
                   {/* Tab Content 4: Rollback */}
                   {cardTab === "rollback" && proposal.rollback_commands && (
                     <div className="relative">
-                      <pre className="p-3.5 rounded-lg bg-[#04060c] border border-rose-900/30 text-rose-300 text-xs font-mono overflow-x-auto select-text leading-relaxed">
+                      <pre className="p-3.5 rounded-lg bg-[#050505] border border-[#EF4444]/30 text-[#EF4444] text-xs font-mono overflow-x-auto select-text leading-relaxed">
                         {proposal.rollback_commands}
                       </pre>
                     </div>
                   )}
 
                   {/* Card Actions Footer */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-white/5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-[#1A1A1A]">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleCopyCommands(proposal.id, proposal.remediation_commands)}
-                        className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono flex items-center gap-1.5 transition-colors"
+                        className="px-3 py-1.5 rounded bg-[#0B0B0B] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] text-xs font-mono flex items-center gap-1.5 transition-colors"
                       >
                         {copiedId === proposal.id ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-emerald-400 font-semibold">Copied CLI!</span>
+                            <Check className="w-3.5 h-3.5 text-[#22C55E]" />
+                            <span className="text-[#22C55E] font-semibold">Copied CLI!</span>
                           </>
                         ) : (
                           <>
@@ -410,7 +404,7 @@ export default function RemediationCenterPage() {
 
                       <button
                         onClick={() => handleDownloadScript(proposal)}
-                        className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono flex items-center gap-1.5 transition-colors"
+                        className="px-3 py-1.5 rounded bg-[#0B0B0B] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] text-xs font-mono flex items-center gap-1.5 transition-colors"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Download Script</span>
@@ -421,7 +415,7 @@ export default function RemediationCenterPage() {
                       <button
                         onClick={() => reviewMutation.mutate(proposal.id)}
                         disabled={reviewMutation.isPending}
-                        className="px-3.5 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors"
+                        className="px-3.5 py-1.5 rounded bg-[#0B0B0B] border border-[#22C55E]/50 hover:border-[#22C55E] hover:bg-[#141414] text-[#22C55E] text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors"
                       >
                         <Check className="w-3.5 h-3.5" />
                         <span>Mark Reviewed</span>
