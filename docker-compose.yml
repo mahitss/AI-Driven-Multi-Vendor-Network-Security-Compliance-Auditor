@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  # PostgreSQL 16 Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: netvigil-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword_dev_sih26155
+      POSTGRES_DB: netvigil
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d netvigil"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # NetVigil FastAPI Backend Service
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: netvigil-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword_dev_sih26155@postgres:5432/netvigil
+      SYNC_DATABASE_URL: postgresql://postgres:postgrespassword_dev_sih26155@postgres:5432/netvigil
+      STORAGE_PATH: /app/storage/uploads
+      CORS_ORIGINS: "http://localhost:3000,http://web:3000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - storage_uploads:/app/storage/uploads
+
+  # NetVigil Next.js Web UI
+  web:
+    build:
+      context: apps/web
+      dockerfile: Dockerfile
+    container_name: netvigil-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://api:8000
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+  storage_uploads:

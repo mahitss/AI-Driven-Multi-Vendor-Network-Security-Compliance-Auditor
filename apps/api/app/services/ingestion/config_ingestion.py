@@ -1,0 +1,115 @@
+"""
+NetVigil Configuration Ingestion Service
+Handles file security validation, SHA-256 cryptographic hashing, isolated disk persistence,
+automatic vendor detection, and database registration.
+"""
+from pathlib import Path
+from typing import Tuple
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
+from app.core.errors import ConfigurationUploadError
+from app.core.logging import logger
+from app.core.security import compute_sha256, validate_file_metadata
+from app.models.configuration import Configuration
+from app.services.parsing.vendor_detector import VendorDetector
+
+
+class ConfigurationIngestionService:
+    @classmethod
+    async def ingest_file(
+        cls,
+        filename: str,
+        content_bytes: bytes,
+        db: AsyncSession,
+    ) -> Configuration:
+        """
+        Processes an uploaded raw network configuration file:
+        1. Validates file metadata (size, allowed extension).
+        2. Computes SHA-256 cryptographic hash.
+        3. Checks for duplicate hash (or records new upload).
+        4. Saves sanitized file safely into storage path.
+        5. Executes deterministic vendor detection.
+        6. Persists Configuration record in database.
+        """
+        # Step 1: Validate file name and size
+        sanitized_filename, ext = validate_file_metadata(filename, len(content_bytes))
+
+        # Validate decode to UTF-8 text (with fallback to latin-1 for legacy devices)
+        try:
+            raw_text = content_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            try:
+                raw_text = content_bytes.decode("latin-1")
+            except Exception as e:
+                raise ConfigurationUploadError(
+                    message="Uploaded configuration file is not valid readable text.",
+                    details={"error": str(e)},
+                )
+
+        if not raw_text.strip():
+            raise ConfigurationUploadError(
+                message="Uploaded configuration file is empty.",
+                details={"filename": filename},
+            )
+
+        # Step 2: Calculate SHA-256 digest
+        content_hash = compute_sha256(content_bytes)
+
+        # Step 3: Determine storage path (named by hash + extension to avoid collision / path traversal)
+        storage_dir = settings.resolved_storage_path
+        storage_file_name = f"{content_hash[:16]}_{sanitized_filename}"
+        target_path = storage_dir / storage_file_name
+
+        # Write to disk safely
+        try:
+            with open(target_path, "wb") as f:
+                f.write(content_bytes)
+        except Exception as e:
+            logger.error(f"Failed to persist configuration file to disk: {e}")
+            raise ConfigurationUploadError(
+                message="Failed to securely store configuration file on server.",
+                details={"filename": sanitized_filename},
+            )
+
+        # Step 4: Execute Deterministic Vendor Detection
+        detection_result = VendorDetector.detect(raw_text, filename=sanitized_filename)
+
+        # Step 5: Check if existing configuration with identical hash exists
+        stmt = select(Configuration).where(Configuration.hash == content_hash)
+        result = await db.execute(stmt)
+        existing_config = result.scalars().first()
+
+        if existing_config:
+            # Update metadata if needed, but return existing config
+            logger.info(f"Configuration with hash {content_hash} already exists (ID: {existing_config.id}).")
+            return existing_config
+
+        # Step 6: Create database record
+        config_record = Configuration(
+            filename=storage_file_name,
+            original_filename=sanitized_filename,
+            storage_path=str(target_path),
+            file_size_bytes=len(content_bytes),
+            hash=content_hash,
+            raw_content=raw_text,
+            detected_vendor=detection_result.vendor,
+            detected_platform=detection_result.platform,
+            detection_confidence=detection_result.confidence,
+            detection_method=detection_result.method,
+            detection_details={
+                "patterns": detection_result.detected_patterns,
+                "matches": detection_result.details,
+            },
+            parser_status="pending",
+        )
+
+        db.add(config_record)
+        await db.commit()
+        await db.refresh(config_record)
+
+        logger.info(
+            f"Ingested configuration {config_record.id} ({sanitized_filename}) -> Vendor: {detection_result.vendor} (Confidence: {detection_result.confidence})"
+        )
+        return config_record
