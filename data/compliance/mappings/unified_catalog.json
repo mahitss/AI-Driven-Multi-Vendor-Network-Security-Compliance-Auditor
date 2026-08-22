@@ -1,0 +1,707 @@
+[
+  {
+    "id": "RULE-SSH-001",
+    "normalized_control_id": "NETSEC-REMOTE-SSH-V2",
+    "title": "Enforce SSH Protocol Version 2",
+    "description": "Network devices must only allow SSH Version 2 connections. SSH Version 1 is cryptographically broken and vulnerable to MITM attacks.",
+    "category": "Remote Access",
+    "severity": "HIGH",
+    "fact_path": "remote_access.ssh_version.value",
+    "operator": "equals",
+    "expected_value": 2,
+    "explanation": "SSH version 1 utilizes vulnerable CRC-32 compensation attack mitigation and weak key exchange mechanisms. SSHv2 provides robust integrity and PFS.",
+    "remediation_key": "enable_ssh_v2",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.2.1",
+        "title": "Ensure SSH Version 2 is enabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.2.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-AC-17",
+        "title": "Remote Access - Secure Management Protocols",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AC-17(2)",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0400",
+        "title": "Network Device SSHv2 Enforcement",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0400-SSH",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.4.2",
+        "title": "Secure Log-on Procedures",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.4.2",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-TELNET-001",
+    "normalized_control_id": "NETSEC-REMOTE-TELNET-DISABLE",
+    "title": "Disable Cleartext Telnet Management",
+    "description": "Unencrypted Telnet management services must be disabled across all virtual terminal lines to prevent credentials from being sniffed in transit.",
+    "category": "Remote Access",
+    "severity": "CRITICAL",
+    "fact_path": "remote_access.telnet_enabled.value",
+    "operator": "is_false",
+    "expected_value": false,
+    "explanation": "Telnet transmits administrative usernames and passwords in cleartext over the network, allowing passive eavesdropping and credential theft.",
+    "remediation_key": "disable_telnet",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.2.2",
+        "title": "Ensure Telnet service is disabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.2.2",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-SC-8",
+        "title": "Transmission Confidentiality and Integrity",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "SC-8(1)",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0410",
+        "title": "Deactivate Cleartext Telnet Management",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0410-TELNET",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.13.1.2",
+        "title": "Security of Network Services",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.13.1.2",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-HTTP-001",
+    "normalized_control_id": "NETSEC-REMOTE-HTTP-DISABLE",
+    "title": "Disable Insecure HTTP Web Server",
+    "description": "The unencrypted HTTP management server must be disabled to ensure that all web-based administrative access occurs over TLS-secured HTTPS.",
+    "category": "Remote Access",
+    "severity": "HIGH",
+    "fact_path": "remote_access.http_server_enabled.value",
+    "operator": "is_false",
+    "expected_value": false,
+    "explanation": "HTTP web management does not employ TLS encryption, exposing web session tokens and credentials to network sniffers.",
+    "remediation_key": "disable_http_server",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.2.3",
+        "title": "Ensure HTTP server is disabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.2.3",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-CM-7",
+        "title": "Least Functionality - Disable Insecure Web Interfaces",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "CM-7(1)",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET1640",
+        "title": "Disable Unencrypted HTTP Service",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1640-HTTP",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.13.1.1",
+        "title": "Network Controls",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.13.1.1",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-VTY-ACL-001",
+    "normalized_control_id": "NETSEC-REMOTE-VTY-ACCESS-CLASS",
+    "title": "Enforce Inbound Access Control on Management Lines",
+    "description": "Virtual terminal (VTY) management lines must be protected by an inbound access-class or firewall filter restricting access to authorized administrative subnets.",
+    "category": "Remote Access",
+    "severity": "HIGH",
+    "fact_path": "remote_access.vty_access_class_applied.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Without management line filtering, administrative interfaces are exposed to brute-force and credential stuffing attacks from any network segment.",
+    "remediation_key": "apply_vty_access_class",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.2.4",
+        "title": "Ensure access-class is configured on VTY lines",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.2.4",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-AC-3",
+        "title": "Access Enforcement - Management Plane Restriction",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AC-3",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0812",
+        "title": "Restrict Management Plane Access via ACL",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0812-MGMT",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.1.2",
+        "title": "Access to Networks and Network Services",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.1.2",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-AAA-001",
+    "normalized_control_id": "NETSEC-AUTH-AAA-ENABLED",
+    "title": "Enable AAA (Authentication, Authorization, Accounting)",
+    "description": "AAA subsystem must be enabled globally to enforce centralized access control, user identity verification, and administrative session accounting.",
+    "category": "Authentication",
+    "severity": "CRITICAL",
+    "fact_path": "authentication.aaa_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Disabling AAA forces devices to rely on local static passwords without individual operator accountability or centralized revocation.",
+    "remediation_key": "enable_aaa",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.1.1",
+        "title": "Ensure AAA is enabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.1.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-IA-2",
+        "title": "Identification and Authentication (Organizational Users)",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "IA-2",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET1620",
+        "title": "Enable AAA Framework on Network Nodes",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1620-AAA",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.2.1",
+        "title": "User Registration and De-registration",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.2.1",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-PWD-ENC-001",
+    "normalized_control_id": "NETSEC-AUTH-PASSWORD-ENCRYPTION",
+    "title": "Enable Global Password Encryption Service",
+    "description": "Device configuration must obfuscate or securely hash all plaintext passwords stored in configuration files.",
+    "category": "Authentication",
+    "severity": "HIGH",
+    "fact_path": "authentication.password_encryption_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Without password encryption, passwords appear as cleartext strings in running-config and backup files.",
+    "remediation_key": "enable_password_encryption",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.1.2",
+        "title": "Ensure password encryption is enabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.1.2",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-IA-5",
+        "title": "Authenticator Management - Obfuscation / Hashing",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "IA-5(1)",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET1660",
+        "title": "Secure Password Storage in Device Configs",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1660-PWENC",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.10.1.1",
+        "title": "Policy on the Use of Cryptographic Controls",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.10.1.1",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-SECRET-001",
+    "normalized_control_id": "NETSEC-AUTH-ENABLE-SECRET",
+    "title": "Configure Robust Enable Secret",
+    "description": "Privileged executive access must be protected by a cryptographic enable secret using modern hashing algorithms.",
+    "category": "Authentication",
+    "severity": "CRITICAL",
+    "fact_path": "authentication.enable_secret_configured.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "The enable secret guards administrative root privilege on network devices. Legacy enable passwords use weak reversible ciphers.",
+    "remediation_key": "configure_enable_secret",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.1.3",
+        "title": "Ensure enable secret is configured",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.1.3",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-IA-5",
+        "title": "Authenticator Management - Privileged Secrets",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "IA-5",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET1670",
+        "title": "Privileged Mode Password Hash Requirement",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1670-ENABLE",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.4.3",
+        "title": "Password Management System",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.4.3",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-LOG-REMOTE-001",
+    "normalized_control_id": "NETSEC-LOG-REMOTE-SYSLOG",
+    "title": "Configure Centralized Remote Syslog Logging",
+    "description": "Network security events, authentication records, and system traps must be forwarded in real-time to a central SIEM/Syslog server.",
+    "category": "Logging",
+    "severity": "HIGH",
+    "fact_path": "logging.remote_logging_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Local buffers can be cleared by an attacker or lost during reboots. Centralized logging ensures forensic integrity and SIEM correlation.",
+    "remediation_key": "configure_remote_syslog",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-2.1.1",
+        "title": "Ensure logging host is configured",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 2.1.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-AU-2",
+        "title": "Event Logging - Audit Record Generation and Offloading",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AU-2",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0700",
+        "title": "Centralized Log Server Forwarding",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0700-SYSLOG",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.12.4.1",
+        "title": "Event Logging",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.12.4.1",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-LOG-TIME-001",
+    "normalized_control_id": "NETSEC-LOG-TIMESTAMPS",
+    "title": "Enable High-Precision Log Timestamps",
+    "description": "Log timestamps must include high-precision milliseconds and timezone designation for accurate event sequencing.",
+    "category": "Logging",
+    "severity": "MEDIUM",
+    "fact_path": "logging.log_timestamps_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Imprecise timestamps hinder cross-device incident reconstruction and log correlation during incident response investigations.",
+    "remediation_key": "enable_log_timestamps",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-2.1.2",
+        "title": "Ensure timestamps are configured for log messages",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 2.1.2",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-AU-8",
+        "title": "Time Stamps - Internal System Clocks Synchronization",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AU-8",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0710",
+        "title": "High Resolution Audit Log Timestamps",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0710-TIME",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.12.4.4",
+        "title": "Clock Synchronization",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.12.4.4",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-NTP-001",
+    "normalized_control_id": "NETSEC-TIME-NTP-ENABLED",
+    "title": "Configure Authoritative NTP Time Synchronization",
+    "description": "Network devices must synchronize their system clocks with authorized, authenticated upstream NTP servers.",
+    "category": "Time Synchronization",
+    "severity": "MEDIUM",
+    "fact_path": "time_sync.ntp_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Accurate system clocks are critical for certificate validation, cryptographic session lifetimes, and multi-node forensic analysis.",
+    "remediation_key": "configure_ntp",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-2.2.1",
+        "title": "Ensure NTP is configured",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 2.2.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-AU-8",
+        "title": "Time Stamps - Authoritative Time Source",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AU-8(1)",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0720",
+        "title": "Network Time Protocol Architecture",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0720-NTP",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.12.4.4",
+        "title": "Clock Synchronization with Authoritative Clock",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.12.4.4",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-BANNER-001",
+    "normalized_control_id": "NETSEC-MGMT-MOTD-BANNER",
+    "title": "Configure Legal Advisory MOTD Login Banner",
+    "description": "Devices must display an explicit legal advisory banner warning that unauthorized access is prohibited and subject to monitoring.",
+    "category": "Management",
+    "severity": "LOW",
+    "fact_path": "identity.banner_motd_present.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Legal advisory banners establish jurisdiction and consent to monitoring, preventing legal challenges regarding unauthorized access prosecution.",
+    "remediation_key": "configure_motd_banner",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.3.1",
+        "title": "Ensure MOTD banner is configured",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.3.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-AC-8",
+        "title": "System Use Notification",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AC-8",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0100",
+        "title": "Standard Mandatory DoD Notice and Consent Banner",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0100-BANNER",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.4.2",
+        "title": "Warning Banners and Legal Notifications",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.4.2",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-FINGER-001",
+    "normalized_control_id": "NETSEC-SRV-DISABLE-FINGER",
+    "title": "Deactivate Legacy Finger Service",
+    "description": "The legacy finger daemon must be deactivated to prevent unauthorized reconnaissance of logged-in users.",
+    "category": "Services",
+    "severity": "LOW",
+    "fact_path": "services.finger_disabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "The finger protocol leaks active administrative usernames and terminal session statuses to unauthenticated query sources.",
+    "remediation_key": "disable_finger_service",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-3.1.1",
+        "title": "Ensure Finger service is disabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 3.1.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-CM-7",
+        "title": "Least Functionality - Disable Finger Daemon",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "CM-7",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET1400",
+        "title": "Disable Insecure Legacy Network Services",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1400-FINGER",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.13.1.1",
+        "title": "Deactivation of Unnecessary Services",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.13.1.1",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-SNMP-COMM-001",
+    "normalized_control_id": "NETSEC-SRV-SNMP-COMMUNITIES",
+    "title": "Remove Default Public/Private SNMP Communities",
+    "description": "Default and well-known SNMP community strings ('public' and 'private') must be removed from the configuration.",
+    "category": "Services",
+    "severity": "HIGH",
+    "fact_path": "services.snmp_default_communities_removed.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Default SNMP communities allow unauthorized attackers to query MIB tables and extract internal routing topologies or device configurations.",
+    "remediation_key": "remove_default_snmp_communities",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-3.2.1",
+        "title": "Ensure default SNMP community strings are removed",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 3.2.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-IA-5",
+        "title": "Authenticator Management - SNMP Credentials",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "IA-5",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET1500",
+        "title": "Eliminate Default SNMP Community Strings",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1500-SNMP",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.4.3",
+        "title": "Password Management and Default Credentials",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.4.3",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-BPDU-GUARD-001",
+    "normalized_control_id": "NETSEC-L2-STP-BPDU-GUARD",
+    "title": "Enable Spanning Tree BPDU Guard",
+    "description": "STP BPDU Guard must be enabled globally or on all edge access ports to prevent rogue switches from destabilizing the root bridge topology.",
+    "category": "Network Security",
+    "severity": "HIGH",
+    "fact_path": "network_security.spanning_tree_bpdu_guard_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "BPDU Guard shuts down access ports receiving unauthorized BPDU packets, blocking Layer 2 topology hijacking and loop injection.",
+    "remediation_key": "enable_stp_bpdu_guard",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-4.1.1",
+        "title": "Ensure Spanning Tree BPDU Guard is enabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 4.1.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-SC-7",
+        "title": "Boundary Protection - Layer 2 Control Plane Defense",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "SC-7",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET0900",
+        "title": "Spanning Tree Security Controls (BPDU Guard)",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0900-STP",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.13.1.1",
+        "title": "Network Segregation and Control Plane Defense",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.13.1.1",
+        "verified": true
+      }
+    }
+  },
+  {
+    "id": "RULE-PROXY-ARP-001",
+    "normalized_control_id": "NETSEC-L3-PROXY-ARP-DISABLE",
+    "title": "Disable Proxy ARP on Routed Interfaces",
+    "description": "Proxy ARP must be disabled on all network interfaces to mitigate ARP spoofing and IP redirection attacks.",
+    "category": "Services",
+    "severity": "MEDIUM",
+    "fact_path": "services.proxy_arp_disabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Proxy ARP allows a router to answer ARP requests for subnets it is connected to, enabling traffic misdirection and Man-in-the-Middle exploits.",
+    "remediation_key": "disable_proxy_arp",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-3.3.1",
+        "title": "Ensure Proxy ARP is disabled",
+        "document": "CIS Cisco IOS 17 Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 3.3.1",
+        "verified": true
+      },
+      "NIST": {
+        "control_id": "NIST-SC-7",
+        "title": "Boundary Protection - Address Resolution Security",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "SC-7",
+        "verified": true
+      },
+      "STIG": {
+        "control_id": "STIG-NET1100",
+        "title": "Deactivate Proxy ARP",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1100-PARP",
+        "verified": true
+      },
+      "ISO": {
+        "control_id": "ISO-A.13.1.1",
+        "title": "Layer 3 Routing and Network Protection",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.13.1.1",
+        "verified": true
+      }
+    }
+  }
+]

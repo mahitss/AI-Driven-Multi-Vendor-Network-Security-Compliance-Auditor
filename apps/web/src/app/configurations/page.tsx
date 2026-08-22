@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   UploadCloud,
   FileCode2,
   CheckCircle2,
   AlertCircle,
+  Play,
   Hash,
   Cpu,
   Search,
@@ -689,6 +691,14 @@ export default function ConfigurationsPage() {
                       </td>
 
                       <td className="py-3 px-3 text-right space-x-2">
+                        <Link
+                          href="/audits"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-mono font-semibold transition-colors"
+                        >
+                          <Play className="w-3 h-3 fill-current" />
+                          <span>Audit</span>
+                        </Link>
+
                         <button
                           onClick={() => {
                             setAnalysisConfigId(cfg.id);
@@ -696,7 +706,7 @@ export default function ConfigurationsPage() {
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 hover:text-cyan-200 border border-cyan-800/40 text-[11px] font-mono transition-colors"
                         >
                           <Sparkles className="w-3 h-3 text-cyan-400" />
-                          <span>Security Facts</span>
+                          <span>Facts</span>
                         </button>
 
                         <button

@@ -1,58 +1,82 @@
 "use client";
 
 import React from "react";
-import { Layers, ShieldAlert } from "lucide-react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { ShieldAlert, Play, BookOpen, RefreshCw } from "lucide-react";
+import { fetchFrameworkControls } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
 
 export default function STIGCompliancePage() {
+  const { data: controls = [], isLoading } = useQuery({
+    queryKey: ["framework-controls", "STIG"],
+    queryFn: () => fetchFrameworkControls("STIG"),
+  });
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
-          <Layers className="w-5 h-5 text-amber-400" />
-          <span>DISA STIG Security Technical Implementation Guides</span>
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Department of Defense (DoD) hardening benchmarks categorized into Severity CAT I, CAT II, and CAT III.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
+            <ShieldAlert className="w-5 h-5 text-emerald-400" />
+            <span>DISA STIG Network Infrastructure Catalog</span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Defense Information Systems Agency (DISA) Security Technical Implementation Guides for DoD network perimeter defense.
+          </p>
+        </div>
+
+        <Link
+          href="/audits"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold font-mono self-start sm:self-auto transition-colors"
+        >
+          <Play className="w-3.5 h-3.5 fill-current" />
+          <span>Execute STIG Audit</span>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 rounded-xl bg-slate-900/50 border border-rose-800/30 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-rose-300">CAT I (High)</span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800/50">
-              Immediate Vulnerability
-            </span>
-          </div>
-          <p className="text-xs text-slate-400">
-            Enforces removal of unencrypted Telnet, default passwords, and insecure management services.
-          </p>
+      {isLoading ? (
+        <div className="py-16 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin" />
+          <span>Loading DISA STIG control catalog...</span>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {controls.map((ctrl) => (
+            <div key={ctrl.rule_id} className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/40 font-bold">
+                    {ctrl.control_id}
+                  </span>
+                  <h3 className="text-xs font-bold text-white mt-1.5">{ctrl.title}</h3>
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-mono font-bold uppercase",
+                    ctrl.severity === "CRITICAL" && "text-rose-400",
+                    ctrl.severity === "HIGH" && "text-amber-400",
+                    ctrl.severity === "MEDIUM" && "text-yellow-400",
+                    ctrl.severity === "LOW" && "text-cyan-400"
+                  )}
+                >
+                  {ctrl.severity}
+                </span>
+              </div>
 
-        <div className="p-5 rounded-xl bg-slate-900/50 border border-amber-800/30 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-amber-300">CAT II (Medium)</span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800/50">
-              Degraded Posture
-            </span>
-          </div>
-          <p className="text-xs text-slate-400">
-            Enforces centralized AAA accounting, VTY access classes, and NTP authenticated time synchronization.
-          </p>
-        </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed font-sans">{ctrl.description}</p>
 
-        <div className="p-5 rounded-xl bg-slate-900/50 border border-cyan-800/30 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-cyan-300">CAT III (Low)</span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50">
-              Administrative Hygiene
-            </span>
-          </div>
-          <p className="text-xs text-slate-400">
-            Enforces legal MOTD login warning banners and interface descriptions.
-          </p>
+              <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                <span className="flex items-center gap-1">
+                  <BookOpen className="w-3 h-3 text-emerald-400" />
+                  <span>{ctrl.source?.document || "DoD Network STIG"}</span>
+                </span>
+                <span>Category: {ctrl.category}</span>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "framework": "CIS",
+  "name": "CIS Center for Internet Security Network Benchmark",
+  "version": "v2.0.0",
+  "description": "Consensus-based configuration benchmark for network devices to defend against pervasive cyber attacks.",
+  "document_reference": "CIS Cisco IOS 17 Benchmark v2.0.0",
+  "source_type": "official",
+  "verified": true,
+  "controls_count": 15
+}

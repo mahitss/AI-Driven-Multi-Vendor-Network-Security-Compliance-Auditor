@@ -1,0 +1,10 @@
+{
+  "framework": "NIST",
+  "name": "NIST SP 800-53 Rev. 5 Security and Privacy Controls",
+  "version": "Rev 5",
+  "description": "National Institute of Standards and Technology security control catalog for federal and enterprise network systems.",
+  "document_reference": "NIST Special Publication 800-53 Revision 5",
+  "source_type": "official",
+  "verified": true,
+  "controls_count": 15
+}

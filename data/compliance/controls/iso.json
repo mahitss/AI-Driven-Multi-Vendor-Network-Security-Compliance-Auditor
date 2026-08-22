@@ -1,0 +1,10 @@
+{
+  "framework": "ISO",
+  "name": "ISO/IEC 27001:2022 Annex A Network Controls",
+  "version": "2022",
+  "description": "International standard for Information Security Management Systems (ISMS) configuration control coverage.",
+  "document_reference": "ISO/IEC 27001:2022 Annex A",
+  "source_type": "official",
+  "verified": true,
+  "controls_count": 15
+}

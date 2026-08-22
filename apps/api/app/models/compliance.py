@@ -36,6 +36,3 @@ class Control(Base, UUIDMixin, TimestampMixin):
 
     # Relationships
     framework: Mapped["Framework"] = relationship("Framework", back_populates="controls")
-    findings: Mapped[List["Finding"]] = relationship(
-        "Finding", back_populates="control", cascade="all, delete-orphan"
-    )

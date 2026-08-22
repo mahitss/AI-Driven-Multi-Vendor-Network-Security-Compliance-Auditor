@@ -1,0 +1,10 @@
+{
+  "framework": "STIG",
+  "name": "DISA Security Technical Implementation Guide (STIG)",
+  "version": "v10r3",
+  "description": "Defense Information Systems Agency cybersecurity requirements for Department of Defense (DoD) network infrastructure.",
+  "document_reference": "DoD Network Infrastructure Technology Overview STIG v10r3",
+  "source_type": "official",
+  "verified": true,
+  "controls_count": 15
+}

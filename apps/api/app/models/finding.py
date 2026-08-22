@@ -14,13 +14,13 @@ class Finding(Base, UUIDMixin, TimestampMixin):
     audit_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("audits.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    control_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("controls.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    framework: Mapped[str] = mapped_column(String(50), default="CIS", index=True, nullable=False)
+    control_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(100), index=True, nullable=True)
     status: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
-    # Status: PASS, FAIL, MANUAL_REVIEW, NOT_APPLICABLE
+    # Status: PASS, FAIL, PARTIAL, NOT_APPLICABLE, UNKNOWN
     severity: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
-    # Severity: CRITICAL, HIGH, MEDIUM, LOW, INFORMATIONAL
+    # Severity: CRITICAL, HIGH, MEDIUM, LOW, INFO
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -32,4 +32,3 @@ class Finding(Base, UUIDMixin, TimestampMixin):
 
     # Relationships
     audit: Mapped["Audit"] = relationship("Audit", back_populates="findings")
-    control: Mapped["Control"] = relationship("Control", back_populates="findings")

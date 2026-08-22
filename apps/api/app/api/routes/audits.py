@@ -1,0 +1,199 @@
+"""
+Compliance Audits & Findings API Routes
+Problem Statement: SIH26155 (NTRO)
+"""
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.api.dependencies import DatabaseDep
+from app.core.errors import ResourceNotFoundError
+from app.models.audit import Audit
+from app.models.finding import Finding
+from app.schemas.audit import (
+    AuditDetailResponse,
+    AuditResponse,
+    AuditSummaryResponse,
+    CreateAuditRequest,
+    FindingResponse,
+    SeverityStatsResponse,
+)
+from app.services.compliance.service import ComplianceAuditService
+
+router = APIRouter(prefix="/audits", tags=["Compliance Audits"])
+
+
+@router.post(
+    "",
+    response_model=AuditSummaryResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Execute multi-framework compliance audit against configuration",
+)
+async def create_audit(
+    payload: CreateAuditRequest,
+    db: DatabaseDep,
+) -> AuditSummaryResponse:
+    """
+    Executes a deterministic compliance evaluation:
+    - Loads or extracts normalized security profile
+    - Evaluates rules across CIS, NIST, STIG, and ISO frameworks
+    - Calculates reproducible compliance scores
+    - Stores structured evidence findings
+    - Returns audit executive summary
+    """
+    audit_rec, summary, _ = await ComplianceAuditService.run_audit(
+        configuration_id=payload.configuration_id,
+        frameworks=payload.frameworks,
+        db=db,
+    )
+
+    framework_scores = {fw: score_obj.score for fw, score_obj in summary.framework_scores.items()}
+
+    return AuditSummaryResponse(
+        audit_id=audit_rec.id,
+        configuration_id=audit_rec.configuration_id,
+        overall_score=summary.overall_score,
+        status=audit_rec.status,
+        frameworks=framework_scores,
+        summary=SeverityStatsResponse(
+            critical=summary.severity_breakdown.critical,
+            high=summary.severity_breakdown.high,
+            medium=summary.severity_breakdown.medium,
+            low=summary.severity_breakdown.low,
+            info=summary.severity_breakdown.info,
+        ),
+        status_counts=summary.status_breakdown,
+        completed_at=audit_rec.completed_at,
+    )
+
+
+@router.get(
+    "",
+    response_model=List[AuditResponse],
+    summary="List all executed compliance audits",
+)
+async def list_audits(
+    db: DatabaseDep,
+    configuration_id: Optional[str] = Query(None, description="Filter by configuration ID"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> List[AuditResponse]:
+    """Retrieve audit history sessions ordered by creation date."""
+    query = select(Audit).order_by(desc(Audit.created_at)).offset(offset).limit(limit)
+
+    if configuration_id:
+        query = query.where(Audit.configuration_id == configuration_id)
+
+    res = await db.execute(query)
+    audits = res.scalars().all()
+    return audits
+
+
+@router.get(
+    "/{audit_id}",
+    response_model=AuditDetailResponse,
+    summary="Get complete audit details, framework scores, and findings",
+)
+async def get_audit(
+    audit_id: str,
+    db: DatabaseDep,
+) -> AuditDetailResponse:
+    """Fetch complete audit record with framework breakdown and findings list."""
+    stmt = select(Audit).where(Audit.id == audit_id)
+    res = await db.execute(stmt)
+    audit_rec = res.scalars().first()
+
+    if not audit_rec:
+        raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
+
+    # Fetch associated findings
+    findings_stmt = select(Finding).where(Finding.audit_id == audit_id).order_by(Finding.severity, Finding.control_id)
+    findings_res = await db.execute(findings_stmt)
+    findings = findings_res.scalars().all()
+
+    summary_stats = audit_rec.summary_stats or {}
+    fw_scores = summary_stats.get("framework_scores", {})
+    sev_stats = summary_stats.get("severity_breakdown", {})
+    status_counts = summary_stats.get("status_breakdown", {})
+
+    return AuditDetailResponse(
+        id=audit_rec.id,
+        configuration_id=audit_rec.configuration_id,
+        device_id=audit_rec.device_id,
+        status=audit_rec.status,
+        score=audit_rec.score,
+        started_at=audit_rec.started_at,
+        completed_at=audit_rec.completed_at,
+        summary_stats=audit_rec.summary_stats,
+        framework_scores=fw_scores,
+        severity_breakdown=SeverityStatsResponse(**sev_stats) if sev_stats else SeverityStatsResponse(),
+        status_breakdown=status_counts,
+        findings=[FindingResponse.model_validate(f) for f in findings],
+    )
+
+
+@router.get(
+    "/{audit_id}/findings",
+    response_model=List[FindingResponse],
+    summary="Filter findings for an audit",
+)
+async def get_audit_findings(
+    audit_id: str,
+    db: DatabaseDep,
+    framework: Optional[str] = Query(None, description="Filter by framework (CIS, NIST, STIG, ISO)"),
+    severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL, HIGH, MEDIUM, LOW)"),
+    status_filter: Optional[str] = Query(None, alias="status", description="Filter by status (PASS, FAIL, UNKNOWN)"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+) -> List[FindingResponse]:
+    """Retrieve granular findings with multi-dimensional filtering."""
+    query = select(Finding).where(Finding.audit_id == audit_id)
+
+    if framework and framework.upper() != "ALL":
+        query = query.where(Finding.framework == framework.upper())
+    if severity and severity.upper() != "ALL":
+        query = query.where(Finding.severity == severity.upper())
+    if status_filter and status_filter.upper() != "ALL":
+        query = query.where(Finding.status == status_filter.upper())
+    if category and category.lower() != "all":
+        query = query.where(Finding.category == category)
+
+    query = query.order_by(Finding.severity, Finding.control_id)
+
+    res = await db.execute(query)
+    findings = res.scalars().all()
+    return [FindingResponse.model_validate(f) for f in findings]
+
+
+@router.get(
+    "/{audit_id}/summary",
+    response_model=AuditSummaryResponse,
+    summary="Get executive compliance summary for an audit",
+)
+async def get_audit_summary(
+    audit_id: str,
+    db: DatabaseDep,
+) -> AuditSummaryResponse:
+    """Retrieve aggregated compliance posture metrics and framework comparisons."""
+    stmt = select(Audit).where(Audit.id == audit_id)
+    res = await db.execute(stmt)
+    audit_rec = res.scalars().first()
+
+    if not audit_rec:
+        raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
+
+    summary_stats = audit_rec.summary_stats or {}
+    fw_scores_raw = summary_stats.get("framework_scores", {})
+    fw_scores = {fw: data.get("score", 0.0) for fw, data in fw_scores_raw.items()}
+    sev_stats = summary_stats.get("severity_breakdown", {})
+    status_counts = summary_stats.get("status_breakdown", {})
+
+    return AuditSummaryResponse(
+        audit_id=audit_rec.id,
+        configuration_id=audit_rec.configuration_id,
+        overall_score=audit_rec.score or 0.0,
+        status=audit_rec.status,
+        frameworks=fw_scores,
+        summary=SeverityStatsResponse(**sev_stats) if sev_stats else SeverityStatsResponse(),
+        status_counts=status_counts,
+        completed_at=audit_rec.completed_at,
+    )
