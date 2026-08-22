@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api.routes import ai, audits, configurations, frameworks, health, overview
+from app.api.routes import ai, audits, configurations, frameworks, health, overview, training
 from app.core.config import settings
 from app.core.errors import (
     NetVigilException,
@@ -77,6 +77,7 @@ app.include_router(configurations.router, prefix=settings.API_PREFIX)
 app.include_router(audits.router, prefix=settings.API_PREFIX)
 app.include_router(frameworks.router, prefix=settings.API_PREFIX)
 app.include_router(ai.router, prefix=settings.API_PREFIX)
+app.include_router(training.router, prefix=settings.API_PREFIX)
 app.include_router(overview.router, prefix=settings.API_PREFIX)
 
 

@@ -74,6 +74,16 @@ class VendorDetectionError(NetVigilException):
         )
 
 
+class ValidationError(NetVigilException):
+    def __init__(self, message: str, details: Optional[Any] = None):
+        super().__init__(
+            message=message,
+            code="VALIDATION_ERROR",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            details=details,
+        )
+
+
 def format_error_response(
     code: str,
     message: str,

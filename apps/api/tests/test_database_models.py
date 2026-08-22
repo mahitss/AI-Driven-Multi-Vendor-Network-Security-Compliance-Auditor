@@ -136,11 +136,13 @@ async def test_create_user_and_training_mapping(db_session: AsyncSession):
     mapping = TrainingMapping(
         vendor="fortinet",
         platform="fortios",
-        raw_pattern="set admin-lockout-threshold (\d+)",
+        raw_pattern=r"set admin-lockout-threshold (\d+)",
+        candidate_property="authentication.failed_login_lockout_enabled",
         normalized_control="authentication.failed_login_lockout_enabled",
         semantic_meaning="FortiOS administrative brute-force lockout threshold",
+        category="authentication",
         confidence=0.95,
-        human_verified=True,
+        status="APPROVED",
     )
     db_session.add(mapping)
     await db_session.flush()
@@ -150,5 +152,5 @@ async def test_create_user_and_training_mapping(db_session: AsyncSession):
     saved_map = res.scalars().first()
 
     assert saved_map is not None
-    assert saved_map.human_verified is True
+    assert saved_map.status == "APPROVED"
     assert saved_map.confidence == 0.95
