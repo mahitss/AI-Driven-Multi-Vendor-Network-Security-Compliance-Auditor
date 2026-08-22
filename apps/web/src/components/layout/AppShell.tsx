@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { fetchHealth } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import GlobalSearchModal from "@/components/layout/GlobalSearchModal";
 
 interface NavItem {
   label: string;
@@ -58,8 +59,6 @@ const navItems: NavItem[] = [
   { label: "Reports", href: "/reports", icon: FileText, category: "Governance" },
   { label: "Settings", href: "/settings", icon: SettingsIcon, category: "Governance" },
 ];
-
-import GlobalSearchModal from "@/components/layout/GlobalSearchModal";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
