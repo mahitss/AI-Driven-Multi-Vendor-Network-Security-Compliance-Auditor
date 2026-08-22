@@ -88,14 +88,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const categories = Array.from(new Set(navItems.map((item) => item.category)));
 
   return (
-    <div className="flex h-screen bg-[#070b12] text-slate-200 overflow-hidden">
+    <div className="flex h-screen bg-[#030303] text-[#F5F5F5] overflow-hidden">
       {/* Global Search Modal */}
       <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#0c121e] border-r border-white/5 z-20">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#050505] border-r border-white/[0.07] z-20">
         {/* Brand Header */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+        <div className="p-4 border-b border-white/[0.07] flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
               <Shield className="w-4 h-4" />
@@ -107,7 +107,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   v0.1
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 tracking-tight font-medium">NTRO • SIH26155</p>
+              <p className="text-[10px] text-[#A1A1A1] tracking-tight font-medium">NTRO • SIH26155</p>
             </div>
           </Link>
         </div>
@@ -116,7 +116,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
           {categories.map((category) => (
             <div key={category} className="space-y-1">
-              <div className="px-2.5 text-[10px] font-semibold tracking-wider uppercase text-slate-500 font-mono">
+              <div className="px-2.5 text-[10px] font-semibold tracking-wider uppercase text-[#666666] font-mono">
                 {category}
               </div>
               <div className="space-y-0.5">
@@ -132,15 +132,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         className={cn(
                           "flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-all group",
                           isActive
-                            ? "bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 shadow-sm"
-                            : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent"
+                            ? "bg-[#0B0B0B] text-cyan-300 border border-cyan-500/30 shadow-sm"
+                            : "text-[#A1A1A1] hover:text-white hover:bg-[#090909] border border-transparent"
                         )}
                       >
                         <div className="flex items-center gap-2.5">
                           <Icon
                             className={cn(
                               "w-4 h-4 transition-colors",
-                              isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
+                              isActive ? "text-cyan-400" : "text-[#666666] group-hover:text-[#A1A1A1]"
                             )}
                           />
                           <span>{item.label}</span>
@@ -151,7 +151,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                               "text-[10px] font-mono px-1.5 py-0.2 rounded",
                               isActive
                                 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
-                                : "bg-slate-800 text-slate-400"
+                                : "bg-[#111111] text-[#A1A1A1] border border-white/[0.05]"
                             )}
                           >
                             {item.badge}
@@ -166,28 +166,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Engine Pipeline Status */}
-        <div className="p-3 m-3 rounded-lg bg-slate-900/80 border border-white/5 text-xs">
+        <div className="p-3 m-3 rounded-lg bg-[#080808] border border-white/[0.07] text-xs">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono text-slate-400">Deterministic Core</span>
+            <span className="text-[11px] font-mono text-[#A1A1A1]">Deterministic Core</span>
             <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               ONLINE
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 leading-snug">
+          <p className="text-[11px] text-[#666666] leading-snug">
             Cisco, Juniper & Fortinet AST parsing engine active.
           </p>
         </div>
 
         {/* Operator Profile */}
-        <div className="p-3 border-t border-white/5 flex items-center justify-between bg-[#0a0f19]">
+        <div className="p-3 border-t border-white/[0.07] flex items-center justify-between bg-[#040404]">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-xs font-semibold text-slate-300">
+            <div className="w-7 h-7 rounded-full bg-[#111111] border border-white/10 flex items-center justify-center text-xs font-semibold text-slate-300">
               NA
             </div>
             <div>
-              <div className="text-xs font-medium text-slate-200">NTRO Auditor</div>
-              <div className="text-[10px] text-slate-500 font-mono">SecOps Clearance L3</div>
+              <div className="text-xs font-medium text-white">NTRO Auditor</div>
+              <div className="text-[10px] text-[#666666] font-mono">SecOps Clearance L3</div>
             </div>
           </div>
         </div>
@@ -196,18 +196,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-14 bg-[#0c121e]/80 backdrop-blur-md border-b border-white/5 px-4 lg:px-6 flex items-center justify-between z-10">
+        <header className="h-14 bg-[#050505]/95 backdrop-blur-md border-b border-white/[0.07] px-4 lg:px-6 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800"
+              className="lg:hidden p-1.5 rounded-md text-[#A1A1A1] hover:text-white hover:bg-[#111111]"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-              <span className="text-slate-500">NetVigil</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-              <span className="text-slate-200 font-medium capitalize">
+            <div className="flex items-center gap-2 text-xs text-[#A1A1A1] font-mono">
+              <span className="text-[#666666]">NetVigil</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[#444444]" />
+              <span className="text-white font-medium capitalize">
                 {pathname === "/" ? "Overview" : pathname.replace("/", "").replace(/-/g, " ")}
               </span>
             </div>
@@ -218,17 +218,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Global Search Launch Button */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-white/10 text-slate-400 hover:text-white text-xs font-mono transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#080808] border border-white/[0.07] text-[#A1A1A1] hover:text-white text-xs font-mono transition-colors"
             >
-              <Search className="w-3.5 h-3.5 text-slate-500" />
+              <Search className="w-3.5 h-3.5 text-[#666666]" />
               <span className="hidden sm:inline">Search entities...</span>
-              <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 border border-white/5">
+              <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-[#141414] text-[10px] text-[#A1A1A1] border border-white/[0.05]">
                 Ctrl+K
               </kbd>
             </button>
 
             {/* System Health Indicator */}
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900 border border-white/5 text-xs font-mono">
+            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#080808] border border-white/[0.07] text-xs font-mono">
               {isError ? (
                 <>
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
@@ -258,7 +258,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Viewport Content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#080c14]">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#030303]">
           {children}
         </main>
       </div>

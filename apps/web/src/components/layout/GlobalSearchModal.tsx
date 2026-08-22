@@ -94,22 +94,22 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start justify-center pt-20 p-4 animate-in fade-in duration-150">
-      <div className="bg-[#0b101c] border border-white/10 rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden font-mono text-xs flex flex-col max-h-[80vh]">
+      <div className="bg-[#060606] border border-white/[0.07] rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden font-mono text-xs flex flex-col max-h-[80vh]">
         {/* Search Header */}
-        <div className="p-3.5 border-b border-white/10 flex items-center gap-3 bg-slate-900/80">
-          <Search className="w-4 h-4 text-slate-400" />
+        <div className="p-3.5 border-b border-white/[0.07] flex items-center gap-3 bg-[#080808]">
+          <Search className="w-4 h-4 text-[#666666]" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Search devices, configurations, audits, findings, risks, or remediation..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-white text-xs placeholder-slate-500 focus:outline-none"
+            className="flex-1 bg-transparent text-[#F5F5F5] text-xs placeholder-[#666666] focus:outline-none"
           />
           {isLoading && <RefreshCw className="w-3.5 h-3.5 text-cyan-400 animate-spin" />}
           <button
             onClick={onClose}
-            className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white text-[10px]"
+            className="px-1.5 py-0.5 rounded bg-[#141414] text-[#A1A1A1] hover:text-white text-[10px] border border-white/[0.05]"
           >
             ESC
           </button>
@@ -118,20 +118,20 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
         {/* Search Results List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {!query.trim() ? (
-            <div className="py-8 text-center text-slate-500 space-y-1">
+            <div className="py-8 text-center text-[#666666] space-y-1">
               <p>Type to search across monitored network assets, audits, findings, and risks.</p>
-              <div className="text-[10px] text-slate-600">Quick filters: Cisco, Telnet, SSH, CIS, P0</div>
+              <div className="text-[10px] text-[#444444]">Quick filters: Cisco, Telnet, SSH, CIS, P0</div>
             </div>
           ) : totalResults === 0 && !isLoading ? (
-            <div className="py-8 text-center text-slate-500">
-              No matching records found for "{query}".
+            <div className="py-8 text-center text-[#666666]">
+              No matching records found for &quot;{query}&quot;.
             </div>
           ) : (
             <div className="space-y-4">
               {/* Configurations */}
               {results.configurations?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold flex items-center gap-1.5">
+                  <div className="text-[10px] text-[#8A8A8A] uppercase font-semibold flex items-center gap-1.5">
                     <FileCode className="w-3.5 h-3.5 text-cyan-400" />
                     <span>Configurations ({results.configurations.length})</span>
                   </div>
@@ -139,14 +139,14 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                     <button
                       key={item.id}
                       onClick={() => handleSelect(item.url)}
-                      className="w-full text-left p-2.5 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-white/5 flex items-center justify-between transition-colors"
+                      className="w-full text-left p-2.5 rounded-lg bg-[#0B0B0B] hover:bg-[#111111] border border-white/[0.07] flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="text-white font-semibold">{item.title}</div>
-                        <div className="text-[10px] text-slate-400">{item.subtitle}</div>
+                        <div className="text-[#F5F5F5] font-semibold">{item.title}</div>
+                        <div className="text-[10px] text-[#A1A1A1]">{item.subtitle}</div>
                       </div>
                       {item.badge && (
-                        <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/30 text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-cyan-950/60 text-cyan-300 border border-cyan-800/30 text-[10px]">
                           {item.badge}
                         </span>
                       )}
@@ -158,7 +158,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {/* Audits */}
               {results.audits?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold flex items-center gap-1.5">
+                  <div className="text-[10px] text-[#8A8A8A] uppercase font-semibold flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Audits ({results.audits.length})</span>
                   </div>
@@ -166,14 +166,14 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                     <button
                       key={item.id}
                       onClick={() => handleSelect(item.url)}
-                      className="w-full text-left p-2.5 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-white/5 flex items-center justify-between transition-colors"
+                      className="w-full text-left p-2.5 rounded-lg bg-[#0B0B0B] hover:bg-[#111111] border border-white/[0.07] flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="text-white font-semibold">{item.title}</div>
-                        <div className="text-[10px] text-slate-400">{item.subtitle}</div>
+                        <div className="text-[#F5F5F5] font-semibold">{item.title}</div>
+                        <div className="text-[10px] text-[#A1A1A1]">{item.subtitle}</div>
                       </div>
                       {item.badge && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/30 text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/30 text-[10px]">
                           Score: {item.badge}
                         </span>
                       )}
@@ -185,7 +185,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {/* Findings */}
               {results.findings?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold flex items-center gap-1.5">
+                  <div className="text-[10px] text-[#8A8A8A] uppercase font-semibold flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                     <span>Findings ({results.findings.length})</span>
                   </div>
@@ -193,18 +193,18 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                     <button
                       key={item.id}
                       onClick={() => handleSelect(item.url)}
-                      className="w-full text-left p-2.5 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-white/5 flex items-center justify-between transition-colors"
+                      className="w-full text-left p-2.5 rounded-lg bg-[#0B0B0B] hover:bg-[#111111] border border-white/[0.07] flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="text-white font-semibold">{item.title}</div>
-                        <div className="text-[10px] text-slate-400">{item.subtitle}</div>
+                        <div className="text-[#F5F5F5] font-semibold">{item.title}</div>
+                        <div className="text-[10px] text-[#A1A1A1]">{item.subtitle}</div>
                       </div>
                       {item.badge && (
                         <span className={cn(
                           "px-1.5 py-0.5 rounded text-[10px] font-bold border",
-                          item.badge === "CRITICAL" ? "bg-rose-950 text-rose-300 border-rose-800/40" :
-                          item.badge === "HIGH" ? "bg-amber-950 text-amber-300 border-amber-800/40" :
-                          "bg-blue-950 text-blue-300 border-blue-800/40"
+                          item.badge === "CRITICAL" ? "bg-rose-950/60 text-rose-300 border-rose-800/40" :
+                          item.badge === "HIGH" ? "bg-amber-950/60 text-amber-300 border-amber-800/40" :
+                          "bg-cyan-950/60 text-cyan-300 border-cyan-800/40"
                         )}>
                           {item.badge}
                         </span>
@@ -217,7 +217,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {/* Risks */}
               {results.risks?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold flex items-center gap-1.5">
+                  <div className="text-[10px] text-[#8A8A8A] uppercase font-semibold flex items-center gap-1.5">
                     <Flame className="w-3.5 h-3.5 text-rose-500" />
                     <span>Risks ({results.risks.length})</span>
                   </div>
@@ -225,14 +225,14 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                     <button
                       key={item.id}
                       onClick={() => handleSelect(item.url)}
-                      className="w-full text-left p-2.5 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-white/5 flex items-center justify-between transition-colors"
+                      className="w-full text-left p-2.5 rounded-lg bg-[#0B0B0B] hover:bg-[#111111] border border-white/[0.07] flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="text-white font-semibold">{item.title}</div>
-                        <div className="text-[10px] text-slate-400">{item.subtitle}</div>
+                        <div className="text-[#F5F5F5] font-semibold">{item.title}</div>
+                        <div className="text-[10px] text-[#A1A1A1]">{item.subtitle}</div>
                       </div>
                       {item.badge && (
-                        <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/40 text-[10px] font-bold">
+                        <span className="px-1.5 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-800/40 text-[10px] font-bold">
                           {item.badge}
                         </span>
                       )}
@@ -244,22 +244,22 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {/* Remediations */}
               {results.remediations?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold flex items-center gap-1.5">
-                    <Wrench className="w-3.5 h-3.5 text-emerald-400" />
+                  <div className="text-[10px] text-[#8A8A8A] uppercase font-semibold flex items-center gap-1.5">
+                    <Wrench className="w-3.5 h-3.5 text-purple-400" />
                     <span>Remediations ({results.remediations.length})</span>
                   </div>
                   {results.remediations.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => handleSelect(item.url)}
-                      className="w-full text-left p-2.5 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-white/5 flex items-center justify-between transition-colors"
+                      className="w-full text-left p-2.5 rounded-lg bg-[#0B0B0B] hover:bg-[#111111] border border-white/[0.07] flex items-center justify-between transition-colors"
                     >
                       <div>
-                        <div className="text-white font-semibold">{item.title}</div>
-                        <div className="text-[10px] text-slate-400">{item.subtitle}</div>
+                        <div className="text-[#F5F5F5] font-semibold">{item.title}</div>
+                        <div className="text-[10px] text-[#A1A1A1]">{item.subtitle}</div>
                       </div>
                       {item.badge && (
-                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 border border-white/10 text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-[#141414] text-purple-300 border border-purple-500/20 text-[10px]">
                           {item.badge}
                         </span>
                       )}
@@ -272,7 +272,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-white/10 bg-slate-900/80 text-[10px] text-slate-500 flex items-center justify-between">
+        <div className="p-3 border-t border-white/[0.07] bg-[#080808] text-[10px] text-[#666666] flex items-center justify-between">
           <span>NetVigil Fast Global Entity Search</span>
           <span>Press ESC to exit</span>
         </div>

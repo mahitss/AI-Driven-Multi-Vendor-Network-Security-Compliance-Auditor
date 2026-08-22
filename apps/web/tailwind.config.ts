@@ -10,12 +10,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#080c14",
-        surface: {
-          50: "#1e293b",
-          100: "#151e2e",
-          200: "#0f172a",
-          300: "#0a0f1d",
+        background: "#030303",
+        matte: {
+          bg: "#030303",
+          sidebar: "#050505",
+          surface: "#060606",
+          card: "#080808",
+          elevated: "#0B0B0B",
+          input: "#090909",
+          border: "rgba(255, 255, 255, 0.07)",
+          borderActive: "rgba(255, 255, 255, 0.12)",
+        },
+        slate: {
+          50: "#FAFAFA",
+          100: "#F5F5F5",
+          200: "#E5E5E5",
+          300: "#D4D4D4",
+          400: "#A1A1A1",
+          500: "#666666",
+          600: "#444444",
+          700: "#222222",
+          800: "#121212",
+          850: "#0D0D0D",
+          900: "#080808",
+          950: "#030303",
         },
         cyber: {
           cyan: "#06b6d4",
@@ -26,11 +44,12 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
         mono: ["JetBrains Mono", "Menlo", "Courier New", "monospace"],
       },
       borderColor: {
-        subtle: "rgba(255, 255, 255, 0.08)",
+        subtle: "rgba(255, 255, 255, 0.07)",
+        active: "rgba(255, 255, 255, 0.12)",
         highlight: "rgba(6, 182, 212, 0.3)",
       },
     },
