@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShieldCheck,
@@ -30,6 +31,7 @@ import {
   Send,
   MessageSquare,
   Zap,
+  Wrench,
 } from "lucide-react";
 import {
   fetchAudits,
@@ -846,7 +848,15 @@ export default function AuditsPage() {
             </div>
 
             {/* Drawer Footer */}
-            <div className="p-4 border-t border-white/10 bg-slate-900/90 flex items-center justify-end">
+            <div className="p-4 border-t border-white/10 bg-slate-900/90 flex items-center justify-between">
+              <Link
+                href="/remediation"
+                className="px-3.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/40 text-xs font-mono font-semibold transition-colors flex items-center gap-1.5"
+              >
+                <Wrench className="w-3.5 h-3.5 text-emerald-400" />
+                <span>View Remediation Fix</span>
+              </Link>
+
               <button
                 onClick={() => {
                   setInspectingFinding(null);

@@ -58,9 +58,24 @@ const navItems: NavItem[] = [
   { label: "Settings", href: "/settings", icon: SettingsIcon, category: "Governance" },
 ];
 
+import GlobalSearchModal from "@/components/layout/GlobalSearchModal";
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Keyboard shortcut for Cmd+K / Ctrl+K
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Poll system health every 15 seconds
   const { data: health, isError } = useQuery({
@@ -73,6 +88,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-[#070b12] text-slate-200 overflow-hidden">
+      {/* Global Search Modal */}
+      <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+
       {/* Sidebar Desktop */}
       <aside className="hidden lg:flex flex-col w-64 bg-[#0c121e] border-r border-white/5 z-20">
         {/* Brand Header */}
@@ -194,8 +212,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Right Header Status Pill & Action */}
+          {/* Right Header Status, Search & Action */}
           <div className="flex items-center gap-3">
+            {/* Global Search Launch Button */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-white/10 text-slate-400 hover:text-white text-xs font-mono transition-colors"
+            >
+              <Search className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">Search entities...</span>
+              <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 border border-white/5">
+                Ctrl+K
+              </kbd>
+            </button>
+
             {/* System Health Indicator */}
             <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900 border border-white/5 text-xs font-mono">
               {isError ? (
@@ -218,7 +248,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
             <Link
               href="/configurations"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium shadow-sm transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium shadow-sm transition-colors font-mono"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload Config</span>

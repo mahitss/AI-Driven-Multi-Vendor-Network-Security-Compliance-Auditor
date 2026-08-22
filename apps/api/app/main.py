@@ -12,10 +12,12 @@ from app.api.routes import (
     ai,
     audits,
     configurations,
+    devices,
     frameworks,
     health,
     overview,
     remediations,
+    reports,
     risks,
     training,
 )
@@ -85,11 +87,13 @@ app.include_router(health.router)
 # API v1 Domain Routes
 app.include_router(configurations.router, prefix=settings.API_PREFIX)
 app.include_router(audits.router, prefix=settings.API_PREFIX)
+app.include_router(devices.router, prefix=settings.API_PREFIX)
 app.include_router(frameworks.router, prefix=settings.API_PREFIX)
 app.include_router(ai.router, prefix=settings.API_PREFIX)
 app.include_router(training.router, prefix=settings.API_PREFIX)
 app.include_router(risks.router, prefix=settings.API_PREFIX)
 app.include_router(remediations.router, prefix=settings.API_PREFIX)
+app.include_router(reports.router, prefix=settings.API_PREFIX)
 app.include_router(overview.router, prefix=settings.API_PREFIX)
 
 

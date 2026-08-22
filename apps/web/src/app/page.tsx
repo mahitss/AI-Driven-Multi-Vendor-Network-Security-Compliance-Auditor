@@ -4,262 +4,376 @@ import React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ShieldCheck,
-  FileCode2,
-  Server,
+  Shield,
+  ShieldAlert,
+  Flame,
   AlertTriangle,
-  ArrowRight,
-  UploadCloud,
-  CheckCircle2,
-  Cpu,
+  Server,
   Layers,
-  Lock,
-  ExternalLink,
+  FileCode2,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  ArrowRight,
+  RefreshCw,
+  Clock,
+  Sparkles,
+  Wrench,
+  Activity,
+  FileText,
 } from "lucide-react";
-import { fetchOverviewStats } from "@/lib/api-client";
+import {
+  fetchOverviewStats,
+  fetchSystemActivity,
+  fetchRisks,
+  OverviewStats,
+  ActivityEvent,
+  RiskItem,
+} from "@/lib/api-client";
+import { cn } from "@/lib/utils";
 
-export default function OverviewPage() {
-  const { data: stats, isLoading } = useQuery({
+export default function OverviewDashboardPage() {
+  const { data: stats, isLoading: isStatsLoading, refetch: refetchStats } = useQuery({
     queryKey: ["overview-stats"],
     queryFn: fetchOverviewStats,
-    refetchInterval: 10000,
   });
 
+  const { data: activities = [], isLoading: isActivityLoading } = useQuery({
+    queryKey: ["system-activity"],
+    queryFn: () => fetchSystemActivity(8),
+  });
+
+  const { data: topRisks = [], isLoading: isRisksLoading } = useQuery({
+    queryKey: ["top-risks"],
+    queryFn: () => fetchRisks({ priority: "ALL" }),
+  });
+
+  const complianceScore = stats?.compliance_score ?? 0;
+  const riskScore = stats?.risk_score ?? 0;
+  const severity = stats?.severity_breakdown || { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+  const totalFindings = (stats?.open_findings ?? 0) || 1;
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner */}
-      <div className="p-5 lg:p-6 rounded-xl bg-gradient-to-r from-slate-900 via-[#0d1627] to-slate-900 border border-white/5 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-full bg-cyan-500/5 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-800/40 text-cyan-400 text-[11px] font-mono mb-2">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>SIH26155 • National Technical Research Organisation</span>
-            </div>
-            <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">
-              AI-Driven Multi-Vendor Network Compliance Platform
-            </h1>
-            <p className="text-xs lg:text-sm text-slate-400 max-w-2xl mt-1">
-              Deterministic parsing, universal security normalization, and evidence-backed compliance auditing
-              for heterogeneous Cisco, Juniper, and Fortinet network infrastructures.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/configurations"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-md shadow-cyan-950 transition-colors"
-            >
-              <UploadCloud className="w-4 h-4" />
-              <span>Ingest Configuration</span>
-            </Link>
-          </div>
+    <div className="space-y-6 max-w-7xl mx-auto font-sans">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5 font-mono">
+            <Shield className="w-5 h-5 text-cyan-400" />
+            <span>NETVIGIL SECURITY POSTURE</span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Deterministic multi-vendor network security assessment, risk prioritization, and compliance posture monitoring.
+          </p>
         </div>
+
+        <button
+          onClick={() => refetchStats()}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors self-start sm:self-auto"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Refresh Metrics</span>
+        </button>
       </div>
 
-      {/* KPI Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Ingested Configurations</span>
-            <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
-              <FileCode2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {isLoading ? "--" : stats?.total_configurations ?? 0}
-          </div>
-          <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-            <span className="text-emerald-400 font-medium">Live Ingestion</span>
-            <span>• SHA-256 Verified</span>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Monitored Devices</span>
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-              <Server className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {isLoading ? "--" : stats?.total_devices ?? 0}
-          </div>
-          <div className="text-[11px] text-slate-500">Routers, Switches, Firewalls</div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Compliance Audits</span>
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {isLoading ? "--" : stats?.total_audits ?? 0}
-          </div>
-          <div className="text-[11px] text-slate-500">Deterministic Rule Evaluations</div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Active Findings</span>
-            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {isLoading ? "--" : stats?.total_findings ?? 0}
-          </div>
-          <div className="text-[11px] text-slate-500">Evidence-Backed Deviations</div>
-        </div>
-      </div>
-
-      {/* Architecture & Pipeline Status */}
-      <div className="p-5 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-white">NetVigil Processing Pipeline Contract</h2>
-            <p className="text-xs text-slate-400">
-              Deterministic separation of parsing, normalization, and compliance evaluation from AI interpretation.
-            </p>
-          </div>
-          <span className="text-xs font-mono text-cyan-400 px-2.5 py-1 rounded bg-cyan-950/60 border border-cyan-800/30">
-            Pipeline v1.0
-          </span>
-        </div>
-
-        {/* Pipeline Visual Steps */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 text-center text-xs">
-          {[
-            { step: "01", name: "Raw Config", sub: ".cfg / .conf" },
-            { step: "02", name: "Ingestion", sub: "SHA-256 Hash" },
-            { step: "03", name: "Detection", sub: "Signature Tier" },
-            { step: "04", name: "Parser", sub: "Deterministic" },
-            { step: "05", name: "Normalize", sub: "Universal Schema" },
-            { step: "06", name: "Compliance", sub: "CIS / STIG" },
-            { step: "07", name: "Findings", sub: "Evidence Proof" },
-            { step: "08", name: "AI Co-pilot", sub: "Remediation" },
-          ].map((item, idx) => (
-            <div
-              key={item.step}
-              className="p-3 rounded-lg bg-[#0e1626] border border-white/5 flex flex-col items-center justify-center space-y-1 hover:border-cyan-500/30 transition-colors"
-            >
-              <span className="text-[10px] font-mono text-cyan-400">{item.step}</span>
-              <span className="font-semibold text-slate-200 text-[11px]">{item.name}</span>
-              <span className="text-[10px] text-slate-500 font-mono">{item.sub}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Two Column Section: Vendor Matrix & Framework Matrix */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Vendor Detection Engine Matrix */}
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-white/5 space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
-            <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-cyan-400" />
-              <h2 className="text-sm font-semibold text-white">Multi-Vendor Parser Engine</h2>
-            </div>
-            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">
-              Active Signatures
+      {/* Top Section: Real Executive Posture KPI Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono">
+        {/* Overall Compliance */}
+        <div className="p-4 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col justify-between">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold">Overall Compliance</div>
+          <div className="text-2xl font-bold text-white mt-1 flex items-baseline gap-1">
+            <span className={cn(
+              complianceScore >= 80 ? "text-emerald-400" :
+              complianceScore >= 60 ? "text-amber-400" : "text-rose-400"
+            )}>
+              {complianceScore.toFixed(0)}%
             </span>
           </div>
+          <div className="text-[10px] text-slate-500 mt-2 flex items-center gap-1">
+            {stats?.score_delta !== null && stats?.score_delta !== undefined ? (
+              <>
+                {stats.score_delta >= 0 ? (
+                  <TrendingUp className="w-3 h-3 text-emerald-400" />
+                ) : (
+                  <TrendingDown className="w-3 h-3 text-rose-400" />
+                )}
+                <span className={stats.score_delta >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                  {stats.score_delta >= 0 ? `+${stats.score_delta}%` : `${stats.score_delta}%`}
+                </span>
+                <span>vs prev audit</span>
+              </>
+            ) : (
+              <span>First baseline assessment</span>
+            )}
+          </div>
+        </div>
 
-          <div className="space-y-3">
-            {[
-              {
-                vendor: "Cisco Systems",
-                platform: "IOS / IOS-XE / NX-OS",
-                depth: "Deep Parser & Normalizer (Day 1 Focus)",
-                status: "Operational",
-                color: "text-emerald-400",
-              },
-              {
-                vendor: "Juniper Networks",
-                platform: "JunOS (Hierarchical & Set Syntax)",
-                depth: "Hierarchical & Set AST Detection",
-                status: "Operational",
-                color: "text-emerald-400",
-              },
-              {
-                vendor: "Fortinet",
-                platform: "FortiOS 6.x / 7.x (FortiGate)",
-                depth: "Block Structure & Object Parser",
-                status: "Operational",
-                color: "text-emerald-400",
-              },
-            ].map((v) => (
-              <div
-                key={v.vendor}
-                className="p-3 rounded-lg bg-[#0b101c] border border-white/5 flex items-center justify-between text-xs"
-              >
-                <div>
-                  <div className="font-medium text-slate-200">{v.vendor}</div>
-                  <div className="text-[11px] text-slate-400">{v.platform}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">{v.depth}</div>
-                </div>
-                <span className={`text-[11px] font-mono ${v.color}`}>{v.status}</span>
+        {/* NetVigil Risk Score */}
+        <div className="p-4 rounded-xl bg-[#0e1422] border border-white/10 flex flex-col justify-between">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold">NetVigil Risk Score</div>
+          <div className="text-2xl font-bold text-white mt-1 flex items-baseline gap-1">
+            <span className={cn(
+              riskScore >= 75 ? "text-rose-400" :
+              riskScore >= 50 ? "text-amber-400" : "text-emerald-400"
+            )}>
+              {riskScore.toFixed(0)}
+            </span>
+            <span className="text-xs text-slate-500">/ 100</span>
+          </div>
+          <div className="text-[10px] text-slate-500 mt-2">
+            {riskScore >= 75 ? "High Risk Exposure" : riskScore >= 50 ? "Moderate Exposure" : "Low Risk Profile"}
+          </div>
+        </div>
+
+        {/* Devices Audited */}
+        <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 flex flex-col justify-between">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold">Audited Devices</div>
+          <div className="text-2xl font-bold text-white mt-1 flex items-center justify-between">
+            <span>{stats?.total_devices ?? 0}</span>
+            <Server className="w-5 h-5 text-slate-500" />
+          </div>
+          <div className="text-[10px] text-slate-500 mt-2">
+            {stats?.total_configurations ?? 0} Ingested Configs
+          </div>
+        </div>
+
+        {/* Open Findings */}
+        <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 flex flex-col justify-between">
+          <div className="text-[10px] text-slate-400 uppercase font-semibold">Open Findings</div>
+          <div className="text-2xl font-bold text-white mt-1 flex items-center justify-between">
+            <span className="text-amber-300">{stats?.open_findings ?? 0}</span>
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
+          </div>
+          <div className="text-[10px] text-slate-500 mt-2">
+            Across {stats?.total_audits ?? 0} Audits
+          </div>
+        </div>
+
+        {/* Critical Findings */}
+        <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-800/40 flex flex-col justify-between">
+          <div className="text-[10px] text-rose-400 uppercase font-semibold">Critical Findings</div>
+          <div className="text-2xl font-bold text-rose-300 mt-1 flex items-center justify-between">
+            <span>{severity.critical}</span>
+            <ShieldAlert className="w-5 h-5 text-rose-500" />
+          </div>
+          <Link
+            href="/findings?severity=CRITICAL"
+            className="text-[10px] text-rose-400 hover:text-rose-300 mt-2 flex items-center gap-1 font-semibold"
+          >
+            <span>Inspect Criticals</span>
+            <ArrowRight className="w-2.5 h-2.5" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Main 2-Column Split: Frameworks & Severity on Left, Risks & Activity on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column (7 cols): Framework Coverage & Severity Breakdown */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Framework Performance Coverage Cards */}
+          <div className="p-5 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-white">
+                <Layers className="w-4 h-4 text-cyan-400" />
+                <span>COMPLIANCE FRAMEWORK CONTROL COVERAGE</span>
               </div>
-            ))}
+              <span className="text-[10px] text-slate-500 font-mono">NetVigil Deterministic Assessment</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+              {[
+                { name: "CIS", label: "CIS Benchmarks", href: "/compliance/cis", score: stats?.framework_scores?.CIS ?? complianceScore },
+                { name: "NIST", label: "NIST SP 800-53", href: "/compliance/nist", score: stats?.framework_scores?.NIST ?? complianceScore },
+                { name: "STIG", label: "DISA STIG", href: "/compliance/stig", score: stats?.framework_scores?.STIG ?? complianceScore },
+                { name: "ISO", label: "ISO/IEC 27001", href: "/compliance/iso", score: stats?.framework_scores?.ISO ?? complianceScore },
+              ].map((fw) => (
+                <Link
+                  key={fw.name}
+                  href={fw.href}
+                  className="p-3 rounded-lg bg-[#0a0f1c] border border-white/5 hover:border-cyan-500/30 transition-all space-y-2 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-300 group-hover:text-white">{fw.name}</span>
+                    <span className={cn(
+                      "font-bold text-xs",
+                      fw.score >= 80 ? "text-emerald-400" :
+                      fw.score >= 60 ? "text-amber-400" : "text-rose-400"
+                    )}>
+                      {fw.score.toFixed(0)}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all",
+                        fw.score >= 80 ? "bg-emerald-500" :
+                        fw.score >= 60 ? "bg-amber-500" : "bg-rose-500"
+                      )}
+                      style={{ width: `${Math.min(100, Math.max(5, fw.score))}%` }}
+                    />
+                  </div>
+                  <div className="text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>Coverage</span>
+                    <ArrowRight className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 text-cyan-400 transition-opacity" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Severity Distribution Breakdown */}
+          <div className="p-5 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-white">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <span>FINDINGS SEVERITY DISTRIBUTION</span>
+              </div>
+              <Link href="/findings" className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                <span>View All Findings</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            <div className="space-y-2.5 font-mono text-xs">
+              {[
+                { level: "Critical", count: severity.critical, color: "bg-rose-500", text: "text-rose-400", border: "border-rose-800/40", bg: "bg-rose-950/40", filter: "CRITICAL" },
+                { level: "High", count: severity.high, color: "bg-amber-500", text: "text-amber-400", border: "border-amber-800/40", bg: "bg-amber-950/40", filter: "HIGH" },
+                { level: "Medium", count: severity.medium, color: "bg-blue-500", text: "text-blue-400", border: "border-blue-800/40", bg: "bg-blue-950/40", filter: "MEDIUM" },
+                { level: "Low", count: severity.low, color: "bg-slate-500", text: "text-slate-400", border: "border-slate-700/40", bg: "bg-slate-900/60", filter: "LOW" },
+                { level: "Info", count: severity.info, color: "bg-slate-600", text: "text-slate-500", border: "border-white/5", bg: "bg-slate-900/30", filter: "INFO" },
+              ].map((s) => {
+                const pct = totalFindings > 0 ? (s.count / totalFindings) * 100 : 0;
+                return (
+                  <Link
+                    key={s.level}
+                    href={`/findings?severity=${s.filter}`}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-[#0a0f1c] border border-white/5 hover:border-white/10 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3 w-32">
+                      <span className={cn("w-2 h-2 rounded-full", s.color)} />
+                      <span className="font-semibold text-slate-300 group-hover:text-white">{s.level}</span>
+                    </div>
+
+                    <div className="flex-1 mx-4">
+                      <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                        <div className={cn("h-full rounded-full", s.color)} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-20 justify-end">
+                      <span className={cn("font-bold", s.text)}>{s.count}</span>
+                      <span className="text-[10px] text-slate-500">({pct.toFixed(0)}%)</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Compliance Frameworks Baseline */}
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-white/5 space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-indigo-400" />
-              <h2 className="text-sm font-semibold text-white">Compliance Framework Engines</h2>
+        {/* Right Column (5 cols): Top Real Risks & Activity Stream */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Top Real Risks */}
+          <div className="p-5 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-white">
+                <Flame className="w-4 h-4 text-rose-500" />
+                <span>TOP PRIORITIZED RISKS</span>
+              </div>
+              <Link href="/risk" className="text-[11px] font-mono text-rose-400 hover:text-rose-300 flex items-center gap-1">
+                <span>Risk Center</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
-            <span className="text-[11px] font-mono text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">
-              Universal Schema
-            </span>
+
+            {isRisksLoading ? (
+              <div className="py-8 text-center text-slate-500 font-mono text-xs">Loading risks...</div>
+            ) : topRisks.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 font-mono text-xs space-y-1">
+                <div>No open security risks identified.</div>
+                <div className="text-[10px] text-slate-600">Run a compliance audit to compute risk intelligence.</div>
+              </div>
+            ) : (
+              <div className="space-y-2.5 font-mono text-xs">
+                {topRisks.slice(0, 4).map((risk) => (
+                  <Link
+                    key={risk.id}
+                    href="/risk"
+                    className="p-3 rounded-lg bg-[#090d18] border border-white/5 hover:border-rose-500/30 transition-all block space-y-2 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={cn(
+                        "px-1.5 py-0.5 rounded text-[10px] font-bold border",
+                        risk.priority === "P0" ? "bg-rose-950 text-rose-300 border-rose-800/40" :
+                        risk.priority === "P1" ? "bg-amber-950 text-amber-300 border-amber-800/40" :
+                        "bg-blue-950 text-blue-300 border-blue-800/40"
+                      )}>
+                        {risk.priority} • Score {risk.risk_score.toFixed(0)}
+                      </span>
+                      <span className="text-[10px] text-slate-500">{risk.category}</span>
+                    </div>
+                    <div className="text-white font-semibold line-clamp-1 group-hover:text-rose-300 transition-colors">
+                      {risk.title}
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-white/5">
+                      <span>Findings: {risk.finding_ids?.length ?? 1}</span>
+                      <span className="text-cyan-400 group-hover:underline">Remediation Available →</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="space-y-3">
-            {[
-              {
-                name: "CIS Benchmarks",
-                scope: "Cisco IOS 15 / 17, Juniper JunOS, FortiOS",
-                controls: "AAA, SSH, VTY, BPDU Guard, NTP, Syslog",
-                link: "/compliance/cis",
-              },
-              {
-                name: "NIST SP 800-53",
-                scope: "AC (Access Control), SC (System Comm), AU (Audit)",
-                controls: "Zero Trust & Defensive Perimeter Baselines",
-                link: "/compliance/nist",
-              },
-              {
-                name: "DISA STIG",
-                scope: "Network Infrastructure Security Technical Guide",
-                controls: "High & Medium Cat I/II/III STIG Rules",
-                link: "/compliance/stig",
-              },
-              {
-                name: "ISO/IEC 27001",
-                scope: "Annex A.9, A.10, A.12, A.13 Controls",
-                controls: "Cryptographic Controls & Network Segregation",
-                link: "/compliance/iso",
-              },
-            ].map((f) => (
-              <Link
-                key={f.name}
-                href={f.link}
-                className="p-3 rounded-lg bg-[#0b101c] border border-white/5 flex items-center justify-between text-xs hover:border-indigo-500/30 transition-colors group"
-              >
-                <div>
-                  <div className="font-medium text-slate-200 group-hover:text-indigo-300 transition-colors">
-                    {f.name}
-                  </div>
-                  <div className="text-[11px] text-slate-400">{f.scope}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">{f.controls}</div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-colors" />
-              </Link>
-            ))}
+          {/* Real System Activity Log */}
+          <div className="p-5 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-white">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                <span>RECENT AUDIT & SYSTEM ACTIVITY</span>
+              </div>
+              <span className="text-[10px] text-slate-500 font-mono">Live Timeline</span>
+            </div>
+
+            {isActivityLoading ? (
+              <div className="py-8 text-center text-slate-500 font-mono text-xs">Loading activity...</div>
+            ) : activities.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 font-mono text-xs space-y-1">
+                <div>No recent system activity recorded.</div>
+                <div className="text-[10px] text-slate-600">Ingest a configuration to trigger security workflows.</div>
+              </div>
+            ) : (
+              <div className="space-y-3 font-mono text-xs">
+                {activities.map((act) => (
+                  <Link
+                    key={act.id}
+                    href={act.target_url}
+                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-900/60 transition-colors group"
+                  >
+                    <div className="mt-1">
+                      {act.type === "AUDIT_COMPLETED" ? (
+                        <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : act.type === "CONFIG_INGESTED" ? (
+                        <FileCode2 className="w-3.5 h-3.5 text-cyan-400" />
+                      ) : act.type === "TRAINING_ACTION" ? (
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      ) : (
+                        <Wrench className="w-3.5 h-3.5 text-rose-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white text-xs font-semibold truncate group-hover:text-cyan-300 transition-colors">
+                        {act.title}
+                      </div>
+                      <div className="text-[10px] text-slate-400 truncate">{act.description}</div>
+                    </div>
+                    <div className="text-[10px] text-slate-500 whitespace-nowrap">
+                      {new Date(act.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
