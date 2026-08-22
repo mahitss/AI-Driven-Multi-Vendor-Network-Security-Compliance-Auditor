@@ -77,3 +77,4 @@ storage/uploads/*
 *.sqlite
 *.sqlite3
 postgres-data/
+apps/api/storage/
