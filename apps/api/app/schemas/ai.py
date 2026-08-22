@@ -22,7 +22,7 @@ class FindingExplanationResponse(BaseModel):
 
 class AuditAssistantQueryRequest(BaseModel):
     query: str = Field(..., min_length=2, max_length=500, description="Natural language question about the audit")
-    audit_id: str = Field(..., description="Audit session ID")
+    audit_id: Optional[str] = Field(None, description="Audit session ID")
 
 
 class AuditAssistantQueryResponse(BaseModel):

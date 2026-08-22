@@ -54,3 +54,46 @@ def validate_file_metadata(filename: str, size: int) -> Tuple[str, str]:
         )
 
     return sanitized, ext
+
+
+# -------------------------------------------------------------
+# Sensitive Data Redaction Utilities
+# -------------------------------------------------------------
+SENSITIVE_PATTERNS = [
+    # Cisco secrets & passwords
+    (re.compile(r"(enable\s+secret\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(enable\s+password\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(password\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(secret\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(username\s+\S+\s+(?:secret|password)\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(snmp-server\s+community\s+)\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(wpa-psk\s+ascii\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+
+    # Juniper secrets
+    (re.compile(r'(encrypted-password\s+)"[^"]+"', re.IGNORECASE), r'\1"[REDACTED]"'),
+    (re.compile(r'(secret\s+)"[^"]+"', re.IGNORECASE), r'\1"[REDACTED]"'),
+    (re.compile(r'(community\s+)"?[a-zA-Z0-9_\-]+"?(;|\s)', re.IGNORECASE), r'\1"[REDACTED]"\2'),
+
+    # Fortinet secrets
+    (re.compile(r"(set\s+password\s+ENC\s+)\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(set\s+passphrase\s+ENC\s+)\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(set\s+private-key\s+)\"[^\"]+\"", re.IGNORECASE), r'\1"[REDACTED]"'),
+
+    # Generic Tokens & Keys
+    (re.compile(r"(api[_-]?key\s*[:=]\s*)['\"]?[a-zA-Z0-9_\-\.]{8,}['\"]?", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(bearer\s+)[a-zA-Z0-9_\-\.]{15,}", re.IGNORECASE), r"\1[REDACTED]"),
+]
+
+
+def redact_sensitive_data(text: str) -> str:
+    """
+    Redacts cleartext passwords, password hashes, SNMP community strings,
+    and private keys from raw configurations or log messages.
+    """
+    if not text:
+        return ""
+    
+    redacted = text
+    for pattern, replacement in SENSITIVE_PATTERNS:
+        redacted = pattern.sub(replacement, redacted)
+    return redacted

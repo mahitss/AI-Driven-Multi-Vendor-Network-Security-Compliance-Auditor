@@ -1,110 +1,98 @@
 # NetVigil — AI-Driven Multi-Vendor Network Security Compliance Auditor
 
-**Problem Statement:** SIH26155  
+[![CI Pipeline](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions/workflows/ci.yml/badge.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions)
+[![Tests](https://img.shields.io/badge/Pytest-70%2F70%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Release](https://img.shields.io/badge/Release-v1.0.0--SIH2026-blue.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Organization](https://img.shields.io/badge/Organization-NTRO-red.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+
+**Problem Statement ID:** SIH26155  
 **Title:** AI-Driven Multi-Vendor Network Security Compliance Auditor  
 **Organization:** National Technical Research Organisation (NTRO)  
-**Category:** Software  
-**Theme:** Blockchain & Cybersecurity  
+**Theme:** Blockchain & Cybersecurity | **Category:** Software  
 
 ---
 
 ## 1. Executive Summary & Problem
 
-Modern enterprise and critical national infrastructure networks are composed of heterogeneous equipment from multiple vendors (e.g., Cisco, Juniper, Fortinet). Network engineers frequently grapple with vendor-specific configuration syntaxes, disparate CLI idioms, and evolving compliance mandates (CIS Benchmarks, NIST SP 800-53, DISA STIG, ISO 27001).
+Modern enterprise and critical national infrastructure networks are composed of heterogeneous equipment from multiple vendors (e.g., Cisco, Juniper, Fortinet). Network engineers frequently struggle with disparate CLI idioms, proprietary syntax structures, and evolving compliance mandates (**CIS Benchmarks**, **NIST SP 800-53**, **DISA STIG**, **ISO/IEC 27001**).
 
-Auditing these complex environments manually is labor-intensive, error-prone, and slow. Conversely, delegating compliance decisions directly to raw Large Language Models (LLMs) is dangerous due to non-deterministic outputs, hallucinations, and lack of auditable evidence.
+Manual auditing is slow and error-prone, while raw Large Language Models (LLMs) hallucinate non-existent controls and produce non-deterministic results.
 
 ### The NetVigil Solution
+NetVigil enforces a **strict architectural separation**:
+1. **Deterministic Compliance Core**: Vendor detection, AST parsing, Universal Security Model normalization, mathematical compliance scoring, line-level evidence preservation, and allowlisted remediation templates.
+2. **AI Intelligence Layer**: Context-grounded audit assistance, evidence-based technical explanations, and unparsed syntax interpretation.
+3. **Adaptive Training System**: Human-in-the-loop syntax learning with strict allowlists, enabling zero-downtime knowledge expansion without backend code modification.
 
-NetVigil resolves this challenge through a **strict architectural separation**:
-1. **Deterministic Core:** Deterministic vendor detection, AST/regex parsing, Universal Security Normalization into a canonical schema, and mathematically verifiable rule checks with exact line-by-line evidence.
-2. **AI Co-pilot Layer:** Human-in-the-loop explanation, obscure syntax translation, and vendor-specific remediation synthesis.
-
-> **Critical Principle:** The deterministic engine makes all final PASS/FAIL compliance decisions. The LLM acts strictly as an advisory co-pilot.
+> **Zero Hallucination Invariant:** The deterministic engine makes 100% of PASS/FAIL compliance decisions. The AI layer can never mutate compliance findings or audit scores.
 
 ---
 
 ## 2. System Architecture
 
 ```text
-+-------------------------------------------------------------------------------+
-|                            NETVIGIL PIPELINE FLOW                             |
-|                                                                               |
-|  [Raw Configuration] (.cfg / .conf / .txt / .log)                             |
-|          |                                                                    |
-|          v                                                                    |
-|  [Ingestion & Security Layer]                                                 |
-|    - Path traversal protection & filename sanitization                        |
-|    - SHA-256 cryptographic digest computation                                 |
-|    - Secure isolated storage persistence                                      |
-|          |                                                                    |
-|          v                                                                    |
-|  [Deterministic Multi-Vendor Signature Detector]                              |
-|    - Cisco IOS / IOS-XE / NX-OS                                               |
-|    - Juniper JunOS (Hierarchical & Set syntax)                                 |
-|    - Fortinet FortiOS (FortiGate block syntax)                                |
-|          |                                                                    |
-|          v                                                                    |
-|  [Universal Security Normalization Schema (Pydantic v2)]                      |
-|    - Identity, Authentication, Remote Access, Access Control, Logging,        |
-|      Encryption, Time Sync, Services, Management, Network Security            |
-|          |                                                                    |
-|          v                                                                    |
-|  [Deterministic Compliance Evaluation Engine] (CIS, NIST, STIG, ISO)          |
-|          |                                                                    |
-|          +----------------------------+                                       |
-|          |                            |                                       |
-|          v                            v                                       |
-|  [Evidence-Based Findings]     [AI Co-pilot Layer (OpenRouter / Air-gapped)]  |
-|    - Verbatim line proof         - Syntax semantic translation                |
-|    - Expected vs actual state    - Vendor CLI remediation scripts             |
-|    - Strict severity score       - Executive report generation                |
-+-------------------------------------------------------------------------------+
+  Raw Configuration (.cfg, .conf, .txt)
+                    │
+                    ▼
+   Deterministic Vendor Detection (Cisco, Juniper, Fortinet)
+                    │
+                    ▼
+     Multi-Vendor AST Parser & Lexer
+                    │
+                    ▼
+   Universal Security Model Normalization (8 Canonical Domains)
+                    │
+                    ▼
+   Deterministic Compliance Engine (CIS / NIST / STIG / ISO)
+                    │
+                    ├──────────────────────┬──────────────────────┬──────────────────────┐
+                    ▼                      ▼                      ▼                      ▼
+           Findings & Evidence     Risk Intelligence     Vendor Remediation      Adaptive Training
+         (Verbatim Line Citations)  (P0-P3 Prioritization) (Allowlisted Diffs)     (HITL Syntax Learning)
+                    │                      │                      │                      │
+                    └──────────────────────┴──────────┬───────────┴──────────────────────┘
+                                                      ▼
+                                   Professional SOC Operations Dashboard
+                                        & Executive Report Generator
 ```
 
 ---
 
-## 3. Current Capabilities (Day 1 Foundation)
+## 3. Key Capabilities & Modules
 
-The following capabilities are fully implemented and verified:
-
-* **Clean Monorepo Infrastructure:** FastAPI backend (`apps/api`), Next.js 15 App Router frontend (`apps/web`), and Docker Compose container orchestration.
-* **Cryptographic Ingestion Engine:** `POST /api/v1/configurations` multi-part upload with SHA-256 calculation, file extension validation (`.cfg`, `.conf`, `.txt`, `.log`), and safe storage.
-* **Deterministic Vendor Detection:** Weighted multi-pattern signature detector identifying Cisco IOS/IOS-XE, Juniper JunOS, and Fortinet FortiOS with confidence scores.
-* **Universal Security Schema:** Strongly-typed Pydantic v2 canonical schema covering 11 vendor-neutral network security domains.
-* **Relational Database Domain:** PostgreSQL / SQLAlchemy 2 async models for Users, Devices, Configurations, Frameworks, Controls, Audits, Findings, and Training Mappings with complete Alembic migrations.
-* **Structured System Health:** `/health` endpoint returning system state, active version, component readiness, and database latency.
-* **Structured Error Architecture:** Standardized error envelopes with correlation IDs (`X-Request-ID`) and zero secret or path leakage.
-* **Enterprise Cyber Web UI:** Dark matte cybersecurity interface with live ingestion workspace, client-side SHA-256 pre-calculation, sample loader, and full application navigation.
-* **Automated Test Suite:** 20 comprehensive unit and integration tests passing with 100% success.
+| Module | Technical Capabilities |
+| :--- | :--- |
+| **Vendor Detection** | Signature-based confidence scoring for Cisco IOS/IOS-XE, Juniper JunOS (hierarchical & set syntax), and Fortinet FortiOS. |
+| **AST Parser** | Extracts structured security facts while preserving unparsed syntax for adaptive learning. |
+| **Universal Normalizer** | Standardizes vendor facts into 8 canonical domains: `remote_access`, `authentication`, `authorization`, `logging`, `time_sync`, `access_control`, `network_security`, and `services`. |
+| **Compliance Engine** | Mathematically evaluates 60+ rules across CIS, NIST, DISA STIG, and ISO 27001 with 100% reproducibility and exact line citations. |
+| **Risk Intelligence** | Correlates findings into composite risks scored 0–100 and prioritized into P0 (Immediate Danger), P1 (High), P2 (Medium), and P3 (Low). |
+| **Remediation Center** | Generates verified CLI fix scripts with visual diffs (`REMOVE`/`ADD`), review sign-offs, and a strict **Zero Automated Execution Policy**. |
+| **AI Co-Pilot** | Natural language audit assistant grounded in actual session findings, with 1-click grounded explanations for failed controls. |
+| **Adaptive Training** | Learns unparsed CLI directives via AI classification, property allowlist guards, and administrator review with audit logging. |
+| **SOC Dashboard** | Real-time posture score cards, historical score trend deltas, device drawers, global cross-entity search (`Ctrl+K`), and official printable compliance reports. |
 
 ---
 
-## 4. Local Setup & Execution
+## 4. Local Setup & Quick Start
 
 ### Prerequisites
 - Python 3.11+ (Python 3.13 tested)
-- Node.js 20+ (Node.js 24 tested)
+- Node.js 20+ (Node.js 22/24 tested)
 - Git
-- Docker & Docker Compose (Optional for containerized run)
 
----
-
-### Step 1: Clone and Configure Environment
-
+### Step 1: Clone Repository
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/netvigil.git
-cd netvigil
+git clone https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor.git
+cd AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor
+```
 
-# Copy environment configuration
+### Step 2: Configure Environment
+```bash
 cp .env.example .env
 ```
 
----
-
-### Step 2: Backend Setup & Tests
-
+### Step 3: Set Up Backend
 ```bash
 # Create and activate virtual environment
 python -m venv .venv
@@ -113,91 +101,101 @@ python -m venv .venv
 # On Linux/macOS:
 source .venv/bin/activate
 
-# Install backend dependencies
+# Install dependencies
 pip install -r apps/api/requirements.txt
-
-# Run database migrations
-alembic -c apps/api/alembic.ini upgrade head
-
-# Run backend automated test suite
-pytest apps/api/tests -v
-
-# Start FastAPI backend server (port 8000)
-uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port 8000 --reload
 ```
 
-Backend endpoints will be live at:
-- **API Base:** `http://localhost:8000`
-- **Health Check:** `http://localhost:8000/health`
-- **Interactive Swagger Docs:** `http://localhost:8000/docs`
-
----
-
-### Step 3: Frontend Web UI Setup
-
+### Step 4: Seed Demo Dataset (Instant Presentation State)
 ```bash
-# Navigate to web application directory
+python seed_demo.py
+```
+
+### Step 5: Run Servers
+```bash
+# Terminal 1: Backend API (Port 8000)
+cd apps/api
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2: Frontend Dashboard (Port 3000)
 cd apps/web
-
-# Install frontend dependencies
 npm install
-
-# Start Next.js development server (port 3000)
 npm run dev
 ```
 
-Frontend application will be accessible at:
-- **Web UI:** `http://localhost:3000`
+Open **http://localhost:3000** in your browser.
 
 ---
 
-### Step 4: Docker Compose Setup (Optional)
+## 5. Automated Testing & Verification
 
-To start the full PostgreSQL database, FastAPI API, and Next.js Web UI in containers:
+The test suite includes **70 automated tests** covering unit, integration, security, and the complete 12-stage golden-path lifecycle:
 
 ```bash
-docker compose up --build
+# Run complete test suite
+pytest apps/api/tests -v
+```
+
+```text
+============================= test session starts =============================
+collected 70 items
+
+apps/api/tests/test_golden_path_e2e.py::test_netvigil_complete_golden_path_lifecycle PASSED
+apps/api/tests/test_cross_vendor_compliance_equivalence.py PASSED
+apps/api/tests/test_adaptive_learning_end_to_end.py PASSED
+apps/api/tests/test_risk_and_remediation_end_to_end.py PASSED
+apps/api/tests/test_operations_dashboard.py PASSED
+...
+======================== 70 passed, 1 warning in 3.47s ========================
 ```
 
 ---
 
-## 5. Sample Network Configurations
+## 6. Project Structure
 
-Sample configurations are provided in `data/sample-configs/`:
-- `data/sample-configs/cisco_ios_core_switch.cfg` — Cisco Catalyst 9300 core switch configuration.
-- `data/sample-configs/juniper_srx_firewall.conf` — Juniper SRX345 perimeter firewall configuration.
-- `data/sample-configs/fortinet_fortigate_edge.conf` — FortiGate 60F edge gateway configuration.
-
----
-
-## 6. Environment Variables Reference
-
-See `.env.example` for all configurable parameters:
-
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `DATABASE_URL` | Async database connection URL | `sqlite+aiosqlite:///./netvigil.db` |
-| `SYNC_DATABASE_URL` | Sync database URL for Alembic | `sqlite:///./netvigil.db` |
-| `STORAGE_PATH` | Directory for ingested configuration files | `./storage/uploads` |
-| `MAX_FILE_SIZE_MB` | Maximum allowed configuration size | `10` |
-| `ALLOWED_EXTENSIONS`| Comma-separated list of permitted extensions | `.cfg,.conf,.txt,.log` |
-| `OPENROUTER_API_KEY`| API key for LLM explanation co-pilot | `""` (mock fallback if empty) |
-| `NEXT_PUBLIC_API_BASE_URL` | API base URL for frontend client | `http://localhost:8000` |
-
----
-
-## 7. Verification Commands Summary
-
-| Task | Command |
-| :--- | :--- |
-| **Run Backend Tests** | `pytest apps/api/tests -v` |
-| **Run Migrations** | `alembic -c apps/api/alembic.ini upgrade head` |
-| **Build Web UI** | `cd apps/web && npm run build` |
-| **Start API** | `uvicorn app.main:app --app-dir apps/api --port 8000` |
-| **Start Web** | `cd apps/web && npm run dev` |
+```text
+├── apps/
+│   ├── api/                     # FastAPI Backend Application
+│   │   ├── app/
+│   │   │   ├── api/routes/      # REST API Endpoints (audits, devices, reports, AI, training)
+│   │   │   ├── core/            # Configuration, Security & Redaction Utilities, Errors
+│   │   │   ├── models/          # SQLAlchemy Async Database Entities
+│   │   │   ├── schemas/         # Pydantic v2 Request/Response Models
+│   │   │   └── services/        # Parsers, Compliance, Risk, Remediation, AI, Training
+│   │   └── tests/               # 70 Pytest Unit, Integration & Golden-Path Tests
+│   └── web/                     # Next.js 15 App Router Frontend
+│       ├── src/app/             # 18 Static Routes & SOC Workspaces
+│       ├── src/components/      # UI, Navigation, Modals, Global Search, Charts
+│       └── src/lib/             # TanStack Query & REST API Client
+├── data/
+│   ├── compliance/              # Unified multi-framework rule catalogs (CIS, NIST, STIG, ISO)
+│   └── demo/                    # Synthetic multi-vendor configuration fixtures (Cisco, Juniper, Fortinet)
+├── docs/                        # Complete architecture, ADRs, demo scripts, evaluator Q&A
+├── seed_demo.py                 # 1-Command database & demo dataset seeder
+├── docker-compose.yml           # Containerized multi-service deployment
+└── README.md
+```
 
 ---
 
-## 8. License
+## 7. Security Invariants & Guarantees
 
-This project is licensed under the MIT License — see the [LICENSE](file:///c:/Users/pc/OneDrive/Desktop/SIH2026/LICENSE) file for details.
+1. **Zero Automated Execution:** NetVigil contains zero `subprocess`, `os.system`, or SSH automated push mechanisms. All remediations are strictly preview-only with visual diffs.
+2. **Allowlisted Training Property Paths:** Adaptive training validates candidate properties against `NORMALIZED_PROPERTY_ALLOWLIST`, preventing arbitrary path injection.
+3. **Sensitive Data Redaction:** Passwords, hashes, SNMP strings, and private keys are redacted from logs and AI prompts.
+4. **Air-Gap Capability:** Fully functional in air-gapped environments without external internet connectivity.
+
+---
+
+## 8. SIH Documentation Links
+
+- [Complete Technical Architecture](docs/architecture/architecture.md)
+- [Architecture Decision Records (ADRs 001–005)](docs/architecture/adr/)
+- [SIH 2-Page Executive Architecture Summary](docs/sih-architecture-summary.md)
+- [Demo Dataset & Evaluation Guide](docs/demo.md)
+- [2-Minute Presentation Demo Script](docs/demo-script.md)
+- [Evaluator Technical Q&A Guide](docs/judge-questions.md)
+- [SIH Deliverables Checklist](docs/sih-checklist.md)
+
+---
+
+**NetVigil v1.0.0-SIH2026** — *National Technical Research Organisation (NTRO)*
