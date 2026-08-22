@@ -9,6 +9,8 @@ from app.models.audit import Audit
 from app.models.compliance import Framework, Control
 from app.models.finding import Finding
 from app.models.training import TrainingMapping
+from app.models.risk import RiskItem
+from app.models.remediation import RemediationProposal
 
 __all__ = [
     "Base",
@@ -22,4 +24,6 @@ __all__ = [
     "Control",
     "Finding",
     "TrainingMapping",
+    "RiskItem",
+    "RemediationProposal",
 ]

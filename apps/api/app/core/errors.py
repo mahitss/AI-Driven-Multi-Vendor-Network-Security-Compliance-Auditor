@@ -64,6 +64,16 @@ class ResourceNotFoundError(NetVigilException):
         )
 
 
+class NotFoundError(NetVigilException):
+    def __init__(self, message: str, details: Optional[Any] = None):
+        super().__init__(
+            message=message,
+            code="NOT_FOUND",
+            status_code=status.HTTP_404_NOT_FOUND,
+            details=details,
+        )
+
+
 class VendorDetectionError(NetVigilException):
     def __init__(self, message: str, details: Optional[Any] = None):
         super().__init__(
