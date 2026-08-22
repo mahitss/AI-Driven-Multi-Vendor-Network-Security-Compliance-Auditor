@@ -26,18 +26,34 @@ import {
   ExternalLink,
   BookOpen,
   Info,
+  Bot,
+  Send,
+  MessageSquare,
+  Zap,
 } from "lucide-react";
 import {
   fetchAudits,
   fetchAuditDetail,
   fetchConfigurations,
   createAudit,
+  fetchFindingExplanation,
+  queryAuditAssistant,
   AuditItem,
   AuditDetail,
   Finding,
+  FindingExplanation,
+  AuditAssistantResponse,
   ConfigurationItem,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  supporting_findings?: string[];
+  confidence?: number;
+  timestamp: string;
+}
 
 export default function AuditsPage() {
   const queryClient = useQueryClient();
@@ -50,7 +66,24 @@ export default function AuditsPage() {
   const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
   const [selectedConfigForAudit, setSelectedConfigForAudit] = useState<string>("");
   const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>(["CIS", "NIST", "STIG", "ISO"]);
+  
+  // Finding Inspector state
   const [inspectingFinding, setInspectingFinding] = useState<Finding | null>(null);
+  const [findingExplanation, setFindingExplanation] = useState<FindingExplanation | null>(null);
+  const [isExplaining, setIsExplaining] = useState(false);
+
+  // AI Co-Pilot Assistant state
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [assistantInput, setAssistantInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      role: "assistant",
+      content:
+        "Hello! I am your **NetVigil AI Audit Co-Pilot**. Ask me anything about this audit session — like *'What are the highest risk issues?'*, *'Why did this device fail CIS?'*, or *'What should I fix first?'*",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    },
+  ]);
+  const [isAssistantLoading, setIsAssistantLoading] = useState(false);
 
   // Fetch audits history
   const {
@@ -117,6 +150,53 @@ export default function AuditsPage() {
     }
   };
 
+  const handleExplainFinding = async (findingId: string) => {
+    setIsExplaining(true);
+    try {
+      const exp = await fetchFindingExplanation(findingId);
+      setFindingExplanation(exp);
+    } catch (err) {
+      console.error("AI finding explanation error:", err);
+    } finally {
+      setIsExplaining(false);
+    }
+  };
+
+  const handleSendAssistantQuery = async (queryText: string) => {
+    if (!queryText.trim() || !selectedAuditId || isAssistantLoading) return;
+
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: queryText,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
+    setAssistantInput("");
+    setIsAssistantLoading(true);
+
+    try {
+      const response = await queryAuditAssistant(selectedAuditId, queryText);
+      const assistantMsg: ChatMessage = {
+        role: "assistant",
+        content: response.answer,
+        supporting_findings: response.supporting_findings,
+        confidence: response.confidence,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setChatMessages((prev) => [...prev, assistantMsg]);
+    } catch (err) {
+      const errorMsg: ChatMessage = {
+        role: "assistant",
+        content: "Sorry, I could not query the audit data at this time. Please try again.",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setChatMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsAssistantLoading(false);
+    }
+  };
+
   // Filtered findings
   const findings = auditDetail?.findings || [];
   const filteredFindings = findings.filter((f) => {
@@ -146,11 +226,20 @@ export default function AuditsPage() {
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Deterministic security baseline audits evaluating configurations against CIS, NIST SP 800-53, DISA STIG,
-            and ISO/IEC 27001.
+            and ISO/IEC 27001 with AI-grounded explanations.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          {/* AI Co-Pilot Button */}
+          <button
+            onClick={() => setIsAssistantOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 hover:text-white hover:bg-indigo-900/80 text-xs font-mono font-semibold transition-colors shadow-sm"
+          >
+            <Bot className="w-3.5 h-3.5 text-indigo-400" />
+            <span>AI Co-Pilot</span>
+          </button>
+
           <button
             onClick={() => refetchAudits()}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors"
@@ -211,7 +300,10 @@ export default function AuditsPage() {
                 {audits.map((a) => (
                   <button
                     key={a.id}
-                    onClick={() => setSelectedAuditId(a.id)}
+                    onClick={() => {
+                      setSelectedAuditId(a.id);
+                      setFindingExplanation(null);
+                    }}
                     className={cn(
                       "px-3 py-1 rounded-md text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-1.5",
                       selectedAuditId === a.id
@@ -449,7 +541,7 @@ export default function AuditsPage() {
                       <th className="py-2.5 px-3">Framework & Control</th>
                       <th className="py-2.5 px-3">Title</th>
                       <th className="py-2.5 px-3">Actual vs Expected</th>
-                      <th className="py-2.5 px-3 text-right">Evidence</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -461,7 +553,10 @@ export default function AuditsPage() {
                       return (
                         <tr
                           key={f.id}
-                          onClick={() => setInspectingFinding(f)}
+                          onClick={() => {
+                            setInspectingFinding(f);
+                            setFindingExplanation(null);
+                          }}
                           className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
                         >
                           <td className="py-3 px-3">
@@ -527,16 +622,30 @@ export default function AuditsPage() {
                             </div>
                           </td>
 
-                          <td className="py-3 px-3 text-right">
+                          <td className="py-3 px-3 text-right space-x-1.5">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setInspectingFinding(f);
+                                setFindingExplanation(null);
+                                handleExplainFinding(f.id);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 hover:text-indigo-200 border border-indigo-800/40 text-[11px] font-mono transition-colors"
+                            >
+                              <Sparkles className="w-3 h-3 text-indigo-400" />
+                              <span>AI Explain</span>
+                            </button>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setInspectingFinding(f);
+                                setFindingExplanation(null);
                               }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-white/5 hover:border-cyan-800/40 text-[11px] font-mono transition-colors"
                             >
                               <Terminal className="w-3 h-3 text-cyan-400" />
-                              <span>Evidence</span>
+                              <span>Details</span>
                             </button>
                           </td>
                         </tr>
@@ -550,7 +659,7 @@ export default function AuditsPage() {
         </div>
       )}
 
-      {/* Slide-Over Finding Evidence & Provenance Inspector Drawer */}
+      {/* Slide-Over Finding Evidence & AI Explanation Inspector Drawer */}
       {inspectingFinding && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
           <div className="bg-[#0a0f1d] border-l border-white/10 w-full max-w-2xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
@@ -576,7 +685,10 @@ export default function AuditsPage() {
               </div>
 
               <button
-                onClick={() => setInspectingFinding(null)}
+                onClick={() => {
+                  setInspectingFinding(null);
+                  setFindingExplanation(null);
+                }}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -585,6 +697,64 @@ export default function AuditsPage() {
 
             {/* Drawer Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs font-mono">
+              {/* AI Explanation Banner / Action */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-950/60 to-slate-900 border border-indigo-500/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-indigo-300 font-semibold text-xs">
+                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                    <span>Evidence-Grounded AI Analysis</span>
+                  </div>
+
+                  <button
+                    onClick={() => handleExplainFinding(inspectingFinding.id)}
+                    disabled={isExplaining}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-mono font-semibold disabled:opacity-50 transition-colors"
+                  >
+                    {isExplaining ? (
+                      <>
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-3 h-3 fill-current" />
+                        <span>{findingExplanation ? "Regenerate" : "Explain with AI"}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {findingExplanation && (
+                  <div className="space-y-3 pt-2 border-t border-indigo-500/20 font-sans text-xs">
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-mono text-indigo-400 uppercase font-bold">Executive Summary</div>
+                      <p className="text-slate-200 leading-relaxed bg-slate-950/60 p-2.5 rounded border border-white/5">
+                        {findingExplanation.summary}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-mono text-indigo-400 uppercase font-bold">Why It Matters & Risk Context</div>
+                      <p className="text-slate-300 leading-relaxed bg-slate-950/60 p-2.5 rounded border border-white/5">
+                        {findingExplanation.why_it_matters} {findingExplanation.risk_context}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-mono text-emerald-400 uppercase font-bold">Recommended Remediation</div>
+                      <pre className="p-2.5 rounded bg-[#060911] border border-emerald-500/30 text-[11px] font-mono text-emerald-300 overflow-x-auto">
+                        {findingExplanation.recommended_action}
+                      </pre>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-1">
+                      <span>Model Confidence: {(findingExplanation.confidence * 100).toFixed(0)}%</span>
+                      <span>{findingExplanation.disclaimer}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Metadata Grid */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
@@ -667,20 +837,10 @@ export default function AuditsPage() {
               {/* Technical Risk Explanation */}
               {inspectingFinding.description && (
                 <div className="space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase">Why It Matters (Technical Impact)</div>
+                  <div className="text-[10px] text-slate-500 uppercase">Baseline Specification</div>
                   <p className="text-slate-300 text-xs leading-relaxed font-sans bg-slate-900/40 p-3 rounded-lg border border-white/5">
                     {inspectingFinding.description}
                   </p>
-                </div>
-              )}
-
-              {/* Remediation Hint */}
-              {inspectingFinding.remediation && (
-                <div className="space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase">Remediation Reference</div>
-                  <div className="p-2.5 rounded bg-cyan-950/40 border border-cyan-800/40 text-cyan-300 text-xs">
-                    {inspectingFinding.remediation}
-                  </div>
                 </div>
               )}
             </div>
@@ -688,11 +848,155 @@ export default function AuditsPage() {
             {/* Drawer Footer */}
             <div className="p-4 border-t border-white/10 bg-slate-900/90 flex items-center justify-end">
               <button
-                onClick={() => setInspectingFinding(null)}
+                onClick={() => {
+                  setInspectingFinding(null);
+                  setFindingExplanation(null);
+                }}
                 className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono transition-colors"
               >
                 Close Inspector
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Co-Pilot Interactive Assistant Slide-Over Panel */}
+      {isAssistantOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
+          <div className="bg-[#0b101c] border-l border-indigo-500/30 w-full max-w-xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
+            {/* Assistant Header */}
+            <div className="p-4 border-b border-white/10 bg-indigo-950/60 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                    <span>NetVigil AI Audit Co-Pilot</span>
+                    <span className="text-[10px] font-mono font-normal px-1.5 py-0.2 rounded bg-indigo-900/60 text-indigo-300 border border-indigo-700/40">
+                      Read-Only Grounded
+                    </span>
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-mono">Grounded in Active Audit Session Findings</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsAssistantOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Prompt Chips */}
+            <div className="p-3 bg-slate-900/80 border-b border-white/5 flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono">
+              <span className="text-slate-500 text-[10px] whitespace-nowrap">Suggested:</span>
+              {[
+                "What should I fix first?",
+                "Why did this device fail CIS?",
+                "List all Critical findings",
+                "Which findings affect remote access?",
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  onClick={() => handleSendAssistantQuery(chip)}
+                  className="px-2.5 py-1 rounded bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-slate-300 border border-white/5 whitespace-nowrap transition-colors"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            {/* Chat Message Stream */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {chatMessages.map((msg, idx) => {
+                const isAssistant = msg.role === "assistant";
+                return (
+                  <div key={idx} className={cn("flex gap-3", isAssistant ? "items-start" : "items-end justify-end")}>
+                    {isAssistant && (
+                      <div className="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 flex-shrink-0 mt-0.5">
+                        <Bot className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+
+                    <div
+                      className={cn(
+                        "p-3.5 rounded-xl text-xs max-w-[85%] leading-relaxed",
+                        isAssistant
+                          ? "bg-slate-900/90 border border-white/5 text-slate-200 font-sans"
+                          : "bg-indigo-600 text-white font-sans"
+                      )}
+                    >
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+
+                      {/* Supporting Findings Badges */}
+                      {msg.supporting_findings && msg.supporting_findings.length > 0 && (
+                        <div className="mt-3 pt-2.5 border-t border-white/10 space-y-1.5">
+                          <div className="text-[10px] font-mono text-indigo-400 font-bold uppercase">
+                            Supporting Finding Citations ({msg.supporting_findings.length}):
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {msg.supporting_findings.map((findingRef) => (
+                              <button
+                                key={findingRef}
+                                onClick={() => {
+                                  // Locate finding and open inspector
+                                  const match = findings.find(
+                                    (f) => f.control_id === findingRef || f.id === findingRef
+                                  );
+                                  if (match) {
+                                    setInspectingFinding(match);
+                                  }
+                                }}
+                                className="px-2 py-0.5 rounded bg-indigo-950 hover:bg-indigo-900 text-indigo-300 hover:text-indigo-200 border border-indigo-800/40 text-[10px] font-mono font-semibold transition-colors"
+                              >
+                                {findingRef}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="text-[10px] font-mono text-slate-500 mt-2 text-right">{msg.timestamp}</div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {isAssistantLoading && (
+                <div className="flex gap-3 items-center text-slate-400 font-mono text-xs p-3 rounded-lg bg-slate-900/40 border border-white/5">
+                  <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
+                  <span>NetVigil AI is analyzing audit session findings...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input Bar */}
+            <div className="p-3.5 border-t border-white/10 bg-slate-900/90">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendAssistantQuery(assistantInput);
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  placeholder="Ask about this audit (e.g. Which findings are high risk?)..."
+                  value={assistantInput}
+                  onChange={(e) => setAssistantInput(e.target.value)}
+                  className="flex-1 px-3.5 py-2 rounded-lg bg-[#060911] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-sans"
+                />
+                <button
+                  type="submit"
+                  disabled={!assistantInput.trim() || isAssistantLoading}
+                  className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
             </div>
           </div>
         </div>

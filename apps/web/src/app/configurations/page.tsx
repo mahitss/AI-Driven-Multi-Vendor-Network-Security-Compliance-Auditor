@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Play,
+  Bot,
   Hash,
   Cpu,
   Search,
@@ -40,11 +41,13 @@ import {
   uploadConfigFile,
   analyzeConfiguration,
   fetchConfigurationAnalysis,
+  interpretSyntax,
   ConfigurationItem,
   ConfigurationDetail,
   ConfigurationAnalysisDetail,
   SecurityFact,
   UnknownItem,
+  UnknownInterpretation,
 } from "@/lib/api-client";
 import { computeClientSha256, formatBytes, cn } from "@/lib/utils";
 
@@ -216,6 +219,24 @@ export default function ConfigurationsPage() {
   const [expandedFact, setExpandedFact] = useState<string | null>(null);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [interpretingIdx, setInterpretingIdx] = useState<number | null>(null);
+  const [unknownInterpretations, setUnknownInterpretations] = useState<Record<number, UnknownInterpretation>>({});
+  const [reviewedItems, setReviewedItems] = useState<Record<number, string>>({});
+
+  const handleInterpretUnknownItem = async (idx: number, rawText: string, vendor: string) => {
+    setInterpretingIdx(idx);
+    try {
+      const res = await interpretSyntax({
+        raw_command: rawText,
+        vendor_hint: vendor,
+      });
+      setUnknownInterpretations((prev) => ({ ...prev, [idx]: res }));
+    } catch (err) {
+      console.error("AI interpretation error:", err);
+    } finally {
+      setInterpretingIdx(null);
+    }
+  };
 
   // Fetch configurations list
   const {
@@ -913,21 +934,102 @@ export default function ConfigurationsPage() {
                         preserves these structured records with exact line provenance:
                       </p>
 
-                      <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                        {analysisDetail.unknown_items.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="p-2 rounded bg-[#060911] border border-white/5 flex items-center justify-between text-[11px] font-mono"
-                          >
-                            <div className="flex items-center gap-2">
-                              {item.line_number && (
-                                <span className="text-slate-500 font-semibold">L{item.line_number}:</span>
+                      <div className="space-y-2 max-h-72 overflow-y-auto">
+                        {analysisDetail.unknown_items.map((item, idx) => {
+                          const interp = unknownInterpretations[idx];
+                          const isInterpreting = interpretingIdx === idx;
+                          const reviewStatus = reviewedItems[idx];
+
+                          return (
+                            <div
+                              key={idx}
+                              className="p-3 rounded-lg bg-[#060911] border border-white/5 space-y-2 text-[11px] font-mono"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {item.line_number && (
+                                    <span className="text-slate-500 font-semibold">L{item.line_number}:</span>
+                                  )}
+                                  <span className="text-amber-200 font-bold">{item.raw_text}</span>
+                                </div>
+                                
+                                {!interp && !reviewStatus && (
+                                  <button
+                                    onClick={() => handleInterpretUnknownItem(idx, item.raw_text, analysisDetail.vendor)}
+                                    disabled={isInterpreting}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 text-[10px] border border-indigo-800/40 transition-colors"
+                                  >
+                                    {isInterpreting ? (
+                                      <>
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
+                                        <span>Analyzing...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Sparkles className="w-3 h-3 text-indigo-400" />
+                                        <span>AI Interpret</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+
+                                {reviewStatus && (
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                                    reviewStatus === "accepted" ? "bg-emerald-950 text-emerald-400 border border-emerald-800/40" : "bg-rose-950 text-rose-400 border border-rose-800/40"
+                                  )}>
+                                    {reviewStatus}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* AI Interpretation Result Card */}
+                              {interp && !reviewStatus && (
+                                <div className="p-2.5 rounded bg-slate-900/90 border border-indigo-500/30 space-y-2 text-[11px] font-sans animate-in fade-in duration-150">
+                                  <div className="flex items-center justify-between font-mono text-[10px]">
+                                    <div className="flex items-center gap-1.5 text-indigo-300">
+                                      <Bot className="w-3.5 h-3.5" />
+                                      <span>Semantic Category: <strong>{interp.normalized_category}</strong></span>
+                                    </div>
+                                    <span className={cn(
+                                      "px-1.5 py-0.2 rounded font-bold uppercase",
+                                      interp.confidence_tier === "high" ? "bg-emerald-950 text-emerald-300" : interp.confidence_tier === "review" ? "bg-amber-950 text-amber-300" : "bg-rose-950 text-rose-300"
+                                    )}>
+                                      {(interp.confidence * 100).toFixed(0)}% Confidence ({interp.confidence_tier})
+                                    </span>
+                                  </div>
+
+                                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                                    {interp.semantic_meaning}
+                                  </p>
+
+                                  {interp.candidate_property && (
+                                    <div className="text-[10px] font-mono text-cyan-300 bg-black/40 p-1.5 rounded">
+                                      Candidate Normalized Fact: <strong className="text-white">{interp.candidate_property}</strong> = {String(interp.candidate_value)}
+                                    </div>
+                                  )}
+
+                                  {/* Human Review Decision Buttons */}
+                                  <div className="pt-1.5 border-t border-white/5 flex items-center justify-end gap-1.5 font-mono text-[10px]">
+                                    <button
+                                      onClick={() => setReviewedItems((prev) => ({ ...prev, [idx]: "rejected" }))}
+                                      className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                                    >
+                                      Reject
+                                    </button>
+                                    <button
+                                      onClick={() => setReviewedItems((prev) => ({ ...prev, [idx]: "accepted" }))}
+                                      className="px-2 py-0.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-semibold flex items-center gap-1"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                      <span>Accept Candidate</span>
+                                    </button>
+                                  </div>
+                                </div>
                               )}
-                              <span className="text-amber-200">{item.raw_text}</span>
                             </div>
-                            <span className="text-[10px] text-slate-500">{item.category}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}

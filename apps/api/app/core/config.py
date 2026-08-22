@@ -45,10 +45,15 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: Union[List[str], str] = [".cfg", ".conf", ".txt", ".log"]
 
     # AI Provider Settings (OpenRouter abstraction)
+    AI_PROVIDER: str = "openrouter"  # "openrouter", "mock", "local"
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     AI_MODEL: str = "anthropic/claude-3.5-sonnet"
     AI_TEMPERATURE: float = 0.0
+    AI_MAX_TOKENS: int = 1500
+    AI_TIMEOUT_SECONDS: int = 30
+    CONFIDENCE_HIGH_THRESHOLD: float = 0.90
+    CONFIDENCE_REVIEW_THRESHOLD: float = 0.70
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
