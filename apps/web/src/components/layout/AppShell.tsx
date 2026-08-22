@@ -39,6 +39,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Overview", href: "/", icon: Activity, category: "Core Operations" },
+  { label: "Golden Demo", href: "/demo", icon: Sparkles, category: "Core Operations", badge: "2-Min" },
   { label: "Audits", href: "/audits", icon: Shield, category: "Core Operations" },
   { label: "Configurations", href: "/configurations", icon: FileCode2, category: "Core Operations", badge: "Ingest" },
   { label: "Devices", href: "/devices", icon: Server, category: "Core Operations" },
