@@ -35,6 +35,15 @@ class Configuration(Base, UUIDMixin, TimestampMixin):
     # Statuses: pending, parsed, failed, unparsed
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
+    # Analysis & Universal Normalization Data
+    parser_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    parser_version: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    facts_extracted_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    unknown_items_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    normalized_profile: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default=None, nullable=True)
+    unknown_items: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, default=list, nullable=True)
+    processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # Relationships
     device: Mapped[Optional["Device"]] = relationship("Device", back_populates="configurations")
     audits: Mapped[List["Audit"]] = relationship(
