@@ -2,375 +2,626 @@
 
 import React from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import {
   Shield,
-  ShieldAlert,
-  Flame,
-  AlertTriangle,
-  Server,
-  Layers,
-  FileCode2,
-  TrendingUp,
-  TrendingDown,
   ArrowRight,
-  RefreshCw,
   Sparkles,
+  Bot,
+  Terminal,
+  Cpu,
+  Layers,
+  Lock,
+  Eye,
+  CheckCircle2,
+  FileCode2,
+  ShieldCheck,
+  Server,
   Wrench,
+  Flame,
+  FileText,
   Activity,
+  ChevronRight,
+  ShieldAlert,
+  KeyRound,
+  ExternalLink,
 } from "lucide-react";
-import {
-  fetchOverviewStats,
-  fetchSystemActivity,
-  fetchRisks,
-} from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
-export default function OverviewDashboardPage() {
-  const { data: stats, refetch: refetchStats } = useQuery({
-    queryKey: ["overview-stats"],
-    queryFn: fetchOverviewStats,
-  });
-
-  const { data: activities = [], isLoading: isActivityLoading } = useQuery({
-    queryKey: ["system-activity"],
-    queryFn: () => fetchSystemActivity(8),
-  });
-
-  const { data: topRisks = [], isLoading: isRisksLoading } = useQuery({
-    queryKey: ["top-risks"],
-    queryFn: () => fetchRisks({ priority: "ALL" }),
-  });
-
-  const complianceScore = stats?.compliance_score ?? 0;
-  const riskScore = stats?.risk_score ?? 0;
-  const severity = stats?.severity_breakdown || { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
-  const totalFindings = (stats?.open_findings ?? 0) || 1;
-
+export default function LandingPage() {
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-[#F5F5F5] tracking-tight flex items-center gap-2.5 font-mono">
-            <Shield className="w-5 h-5 text-[#00D9FF]" />
-            <span>NETVIGIL SECURITY POSTURE</span>
-          </h1>
-          <p className="text-xs text-[#A3A3A3] mt-1">
-            Deterministic multi-vendor network security assessment, risk prioritization, and compliance posture monitoring.
-          </p>
-        </div>
-
-        <button
-          onClick={() => refetchStats()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-[#A3A3A3] hover:text-[#F5F5F5] hover:border-[#242424] text-xs font-mono transition-colors self-start sm:self-auto"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Metrics</span>
-        </button>
-      </div>
-
-      {/* Top Section: Real Executive Posture KPI Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono">
-        {/* Overall Compliance */}
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col justify-between">
-          <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">Overall Compliance</div>
-          <div className="text-2xl font-bold text-[#F5F5F5] mt-1 flex items-baseline gap-1">
-            <span className={cn(
-              complianceScore >= 80 ? "text-[#22C55E]" :
-              complianceScore >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
-            )}>
-              {complianceScore.toFixed(0)}%
-            </span>
-          </div>
-          <div className="text-[10px] text-[#666666] mt-2 flex items-center gap-1">
-            {stats?.score_delta !== null && stats?.score_delta !== undefined ? (
-              <>
-                {stats.score_delta >= 0 ? (
-                  <TrendingUp className="w-3 h-3 text-[#22C55E]" />
-                ) : (
-                  <TrendingDown className="w-3 h-3 text-[#EF4444]" />
-                )}
-                <span className={stats.score_delta >= 0 ? "text-[#22C55E]" : "text-[#EF4444]"}>
-                  {stats.score_delta >= 0 ? `+${stats.score_delta}%` : `${stats.score_delta}%`}
-                </span>
-                <span>vs prev audit</span>
-              </>
-            ) : (
-              <span>First baseline assessment</span>
-            )}
-          </div>
-        </div>
-
-        {/* NetVigil Risk Score */}
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col justify-between">
-          <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">NetVigil Risk Score</div>
-          <div className="text-2xl font-bold text-[#F5F5F5] mt-1 flex items-baseline gap-1">
-            <span className={cn(
-              riskScore >= 75 ? "text-[#EF4444]" :
-              riskScore >= 50 ? "text-[#F59E0B]" : "text-[#22C55E]"
-            )}>
-              {riskScore.toFixed(0)}
-            </span>
-            <span className="text-xs text-[#666666]">/ 100</span>
-          </div>
-          <div className="text-[10px] text-[#666666] mt-2">
-            {riskScore >= 75 ? "High Risk Exposure" : riskScore >= 50 ? "Moderate Exposure" : "Low Risk Profile"}
-          </div>
-        </div>
-
-        {/* Devices Audited */}
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col justify-between">
-          <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">Audited Devices</div>
-          <div className="text-2xl font-bold text-[#F5F5F5] mt-1 flex items-center justify-between">
-            <span>{stats?.total_devices ?? 0}</span>
-            <Server className="w-5 h-5 text-[#666666]" />
-          </div>
-          <div className="text-[10px] text-[#666666] mt-2">
-            {stats?.total_configurations ?? 0} Ingested Configs
-          </div>
-        </div>
-
-        {/* Open Findings */}
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col justify-between">
-          <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">Open Findings</div>
-          <div className="text-2xl font-bold text-[#F5F5F5] mt-1 flex items-center justify-between">
-            <span className="text-[#F59E0B]">{stats?.open_findings ?? 0}</span>
-            <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
-          </div>
-          <div className="text-[10px] text-[#666666] mt-2">
-            Across {stats?.total_audits ?? 0} Audits
-          </div>
-        </div>
-
-        {/* Critical Findings */}
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/40 flex flex-col justify-between">
-          <div className="text-[10px] text-[#EF4444] uppercase font-semibold">Critical Findings</div>
-          <div className="text-2xl font-bold text-[#EF4444] mt-1 flex items-center justify-between">
-            <span>{severity.critical}</span>
-            <ShieldAlert className="w-5 h-5 text-[#EF4444]" />
-          </div>
-          <Link
-            href="/findings?severity=CRITICAL"
-            className="text-[10px] text-[#EF4444] hover:underline mt-2 flex items-center gap-1 font-semibold"
-          >
-            <span>Inspect Criticals</span>
-            <ArrowRight className="w-2.5 h-2.5" />
+    <div className="min-h-screen bg-[#050505] text-[#D4D4D4] font-sans antialiased selection:bg-[#00D9FF]/20 selection:text-[#00D9FF]">
+      {/* 1. TOP INSTITUTIONAL NAVIGATION */}
+      <header className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-md border-b border-[#1A1A1A]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Brand */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] group-hover:border-[#00D9FF]/40 flex items-center justify-center text-[#00D9FF] transition-colors">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-bold tracking-tight text-[#F5F5F5]">NETVIGIL</span>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#0E0E0E] text-[#8A8A8A] border border-[#1A1A1A]">
+                SIH26155
+              </span>
+            </div>
           </Link>
-        </div>
-      </div>
 
-      {/* Main 2-Column Split: Frameworks & Severity on Left, Risks & Activity on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (7 cols): Framework Coverage & Severity Breakdown */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Framework Performance Coverage Cards */}
-          <div className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#F5F5F5]">
-                <Layers className="w-4 h-4 text-[#00D9FF]" />
-                <span>COMPLIANCE FRAMEWORK CONTROL COVERAGE</span>
-              </div>
-              <span className="text-[10px] text-[#666666] font-mono">NetVigil Deterministic Assessment</span>
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#8A8A8A]">
+            <a href="#platform" className="hover:text-[#F5F5F5] transition-colors">Platform</a>
+            <a href="#how-it-works" className="hover:text-[#F5F5F5] transition-colors">How It Works</a>
+            <a href="#frameworks" className="hover:text-[#F5F5F5] transition-colors">Frameworks</a>
+            <a href="#security" className="hover:text-[#F5F5F5] transition-colors">Security</a>
+          </nav>
+
+          {/* Action CTAs */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="hidden sm:inline-flex items-center text-xs font-mono text-[#8A8A8A] hover:text-[#F5F5F5] px-3 py-1.5 transition-colors"
+            >
+              SOC Overview
+            </Link>
+            <Link
+              href="/demo"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0E0E0E] border border-[#00D9FF]/40 hover:border-[#00D9FF] hover:bg-[#141414] text-[#00D9FF] text-xs font-mono font-semibold transition-all shadow-[0_0_15px_rgba(0,217,255,0.05)]"
+            >
+              <span>Launch Console</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* 2. HERO SECTION */}
+      <section className="relative pt-20 pb-16 md:pt-28 md:pb-24 border-b border-[#1A1A1A] overflow-hidden">
+        {/* Subtle grid backdrop */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1A1A1A0A_1px,transparent_1px),linear-gradient(to_bottom,#1A1A1A0A_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="max-w-3xl space-y-6">
+            {/* Mission Identifier Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A0A0A] border border-[#1A1A1A] text-xs font-mono text-[#8A8A8A]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF] animate-pulse" />
+              <span>National Technical Research Organisation (NTRO) • SIH26155</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-              {[
-                { name: "CIS", label: "CIS Benchmarks", href: "/compliance/cis", score: stats?.framework_scores?.CIS ?? complianceScore },
-                { name: "NIST", label: "NIST SP 800-53", href: "/compliance/nist", score: stats?.framework_scores?.NIST ?? complianceScore },
-                { name: "STIG", label: "DISA STIG", href: "/compliance/stig", score: stats?.framework_scores?.STIG ?? complianceScore },
-                { name: "ISO", label: "ISO/IEC 27001", href: "/compliance/iso", score: stats?.framework_scores?.ISO ?? complianceScore },
-              ].map((fw) => (
-                <Link
-                  key={fw.name}
-                  href={fw.href}
-                  className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] hover:border-[#00D9FF]/40 transition-all space-y-2 group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#A3A3A3] group-hover:text-white">{fw.name}</span>
-                    <span className={cn(
-                      "font-bold text-xs",
-                      fw.score >= 80 ? "text-[#22C55E]" :
-                      fw.score >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
-                    )}>
-                      {fw.score.toFixed(0)}%
+            {/* Headline */}
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#F5F5F5] font-sans leading-[1.1]">
+              Understand Every Configuration. <br />
+              <span className="text-[#8A8A8A]">Trust Every Decision.</span>
+            </h1>
+
+            {/* Supporting Copy */}
+            <p className="text-sm sm:text-base text-[#8A8A8A] leading-relaxed max-w-2xl font-sans">
+              NetVigil transforms heterogeneous network configurations into a unified security model, evaluates them deterministically against security frameworks, and uses AI-assisted intelligence to interpret previously unknown configuration syntax.
+            </p>
+
+            {/* Hero CTAs */}
+            <div className="pt-2 flex flex-wrap items-center gap-4 font-mono text-xs">
+              <Link
+                href="/demo"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00D9FF] hover:bg-[#00b8d9] text-[#050505] font-bold transition-all"
+              >
+                <span>Launch NetVigil</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-[#0A0A0A] hover:bg-[#111111] text-[#F5F5F5] border border-[#1A1A1A] hover:border-[#242424] transition-all"
+              >
+                <span>Explore Architecture</span>
+                <ChevronRight className="w-4 h-4 text-[#8A8A8A]" />
+              </a>
+            </div>
+
+            {/* Supported Vendor Families Strip */}
+            <div className="pt-8 border-t border-[#1A1A1A] space-y-3 font-mono">
+              <div className="text-[10px] text-[#666666] uppercase tracking-wider font-semibold">
+                Supported Vendor Architecture Dialects
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                {[
+                  { name: "Cisco", detail: "IOS / IOS-XE Block CLI" },
+                  { name: "Juniper", detail: "JunOS Hierarchical & Set" },
+                  { name: "Fortinet", detail: "FortiOS Config Tables" },
+                  { name: "Multi-Vendor", detail: "Universal AST Schema" },
+                ].map((vendor) => (
+                  <div
+                    key={vendor.name}
+                    className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col justify-between"
+                  >
+                    <div className="text-[#F5F5F5] font-bold">{vendor.name}</div>
+                    <div className="text-[10px] text-[#666666] mt-0.5">{vendor.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. TECHNICAL PIPELINE VISUALIZATION */}
+      <section id="how-it-works" className="py-20 border-b border-[#1A1A1A] bg-[#070707]/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="space-y-2">
+            <div className="text-xs font-mono text-[#00D9FF] font-semibold uppercase tracking-wider">
+              System Architecture
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F5F5F5] tracking-tight">
+              Deterministic Security Processing Pipeline
+            </h2>
+            <p className="text-xs sm:text-sm text-[#8A8A8A] max-w-2xl">
+              From raw heterogeneous router/switch CLI dumps to line-level evidence extraction, risk prioritization, and safe CLI remediation scripts.
+            </p>
+          </div>
+
+          {/* Pipeline Stage Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 font-mono text-xs">
+            {[
+              {
+                step: "01",
+                name: "RAW CONFIGURATION",
+                desc: "Ingestion of raw CLI text across heterogeneous routers and firewalls.",
+                tag: "Cisco / JunOS / FortiOS",
+              },
+              {
+                step: "02",
+                name: "VENDOR DETECTION",
+                desc: "Multi-factor heuristic fingerprinting identifies vendor, OS, and syntax style.",
+                tag: "Regex Fingerprinting",
+              },
+              {
+                step: "03",
+                name: "AST PARSER",
+                desc: "Hierarchical block AST tokens parsed with precise source line indices preserved.",
+                tag: "Line-Exact Mapping",
+              },
+              {
+                step: "04",
+                name: "UNIVERSAL MODEL",
+                desc: "Facts normalized into canonical Universal Security Model schema properties.",
+                tag: "Canonical Safety Allowlist",
+              },
+              {
+                step: "05",
+                name: "DETERMINISTIC COMPLIANCE",
+                desc: "Mathematical AST rule evaluation across CIS, NIST, STIG, and ISO/IEC 27001.",
+                tag: "Zero Hallucination Rules",
+              },
+              {
+                step: "06",
+                name: "EVIDENCE EXTRACTION",
+                desc: "Exact CLI configuration snippet and line number citation bound to each finding.",
+                tag: "Verifiable Evidence",
+              },
+              {
+                step: "07",
+                name: "RISK PRIORITIZATION",
+                desc: "Composite risk graph scores exposure severity and groups findings into P0–P3.",
+                tag: "Deterministic Scoring",
+              },
+              {
+                step: "08",
+                name: "REMEDIATION & DIFF",
+                desc: "Vendor-tailored syntax fix generation with before/after visual configuration diffs.",
+                tag: "Safe CLI Scripts",
+              },
+            ].map((node) => (
+              <div
+                key={node.step}
+                className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#242424] transition-colors flex flex-col justify-between space-y-3 group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[#666666] font-bold">{node.step}</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#0E0E0E] text-[#00D9FF] border border-[#1A1A1A]">
+                    {node.tag}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-[#F5F5F5] font-bold tracking-tight group-hover:text-[#00D9FF] transition-colors">
+                    {node.name}
+                  </div>
+                  <p className="text-[11px] text-[#8A8A8A] font-sans mt-1.5 leading-relaxed">
+                    {node.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. AI DIFFERENTIATOR SECTION */}
+      <section id="platform" className="py-20 border-b border-[#1A1A1A]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-5 space-y-4">
+              <div className="text-xs font-mono text-[#8B5CF6] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <Bot className="w-4 h-4" />
+                <span>AI Isolation & Human Authority</span>
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-bold text-[#F5F5F5] tracking-tight leading-tight">
+                AI doesn't decide compliance.
+              </h2>
+              <p className="text-xs sm:text-sm text-[#8A8A8A] font-sans leading-relaxed">
+                In national-security and enterprise network operations, compliance decisions cannot rely on black-box probabilistic models. NetVigil strictly separates deterministic AST rule engines from AI assistance.
+              </p>
+
+              {/* Core Dictum Block */}
+              <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#8B5CF6]/30 font-mono text-xs space-y-2">
+                <div className="text-[#8B5CF6] font-bold text-[11px] uppercase tracking-wider">
+                  Operational Dictum
+                </div>
+                <div className="text-base font-bold text-[#F5F5F5] tracking-tight space-y-1">
+                  <div>AI INTERPRETS.</div>
+                  <div className="text-[#00D9FF]">RULES DECIDE.</div>
+                  <div className="text-[#22C55E]">HUMANS CONTROL.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Adaptive Training Workflow Box */}
+            <div className="lg:col-span-7 p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-5 font-mono text-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A]">
+                <span className="text-[#F5F5F5] font-bold flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#8B5CF6]" />
+                  <span>Adaptive Training Knowledge Lifecycle</span>
+                </span>
+                <span className="text-[10px] text-[#666666]">Human-in-the-Loop</span>
+              </div>
+
+              <div className="space-y-2.5">
+                {[
+                  {
+                    stage: "1. UNKNOWN SYNTAX",
+                    actor: "Parser",
+                    color: "text-[#8A8A8A]",
+                    desc: "An unrecognized proprietary CLI command is detected during ingestion.",
+                  },
+                  {
+                    stage: "2. AI INTERPRETATION",
+                    actor: "Security Co-Pilot",
+                    color: "text-[#8B5CF6]",
+                    desc: "AI classifies semantic intent and proposes candidate security property mapping.",
+                  },
+                  {
+                    stage: "3. PROPERTY VALIDATION",
+                    actor: "Safety Allowlist",
+                    color: "text-[#00D9FF]",
+                    desc: "Candidate property is verified against strict, closed schema definitions.",
+                  },
+                  {
+                    stage: "4. HUMAN APPROVAL",
+                    actor: "Network Administrator",
+                    color: "text-[#22C55E]",
+                    desc: "Administrator reviews, edits if necessary, and explicitly approves the mapping.",
+                  },
+                  {
+                    stage: "5. KNOWLEDGE MAPPING",
+                    actor: "Persistent Engine",
+                    color: "text-[#00D9FF]",
+                    desc: "Approved mapping is stored into live rule knowledge without backend redeployment.",
+                  },
+                  {
+                    stage: "6. RE-ANALYSIS",
+                    actor: "Deterministic Engine",
+                    color: "text-[#22C55E]",
+                    desc: "1-Click instant re-evaluation updates compliance posture and resolves findings.",
+                  },
+                ].map((item, idx) => (
+                  <div
+                    key={item.stage}
+                    className="p-3 rounded-lg bg-[#0E0E0E] border border-[#1A1A1A] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                  >
+                    <div className="space-y-0.5">
+                      <div className={cn("font-bold text-xs", item.color)}>{item.stage}</div>
+                      <div className="text-[11px] text-[#8A8A8A] font-sans">{item.desc}</div>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#141414] text-[#8A8A8A] border border-[#1A1A1A] self-start sm:self-auto">
+                      {item.actor}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-[#1A1A1A] overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all",
-                        fw.score >= 80 ? "bg-[#22C55E]" :
-                        fw.score >= 60 ? "bg-[#F59E0B]" : "bg-[#EF4444]"
-                      )}
-                      style={{ width: `${Math.min(100, Math.max(5, fw.score))}%` }}
-                    />
-                  </div>
-                  <div className="text-[10px] text-[#666666] flex items-center justify-between">
-                    <span>Coverage</span>
-                    <ArrowRight className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 text-[#00D9FF] transition-opacity" />
-                  </div>
-                </Link>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Severity Distribution Breakdown */}
-          <div className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#F5F5F5]">
-                <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
-                <span>FINDINGS SEVERITY DISTRIBUTION</span>
+      {/* 5. CORE CAPABILITIES */}
+      <section className="py-20 border-b border-[#1A1A1A] bg-[#070707]/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="space-y-2">
+            <div className="text-xs font-mono text-[#00D9FF] font-semibold uppercase tracking-wider">
+              Core Capabilities
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F5F5F5] tracking-tight">
+              Enterprise Compliance Engine
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono">
+            {/* Capability 1 */}
+            <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#242424] transition-all space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-[#0E0E0E] border border-[#00D9FF]/30 flex items-center justify-center text-[#00D9FF]">
+                  <Server className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-[#F5F5F5] tracking-tight">
+                  MULTI-VENDOR INTELLIGENCE
+                </h3>
+                <p className="text-xs text-[#8A8A8A] font-sans leading-relaxed">
+                  Normalize heterogeneous vendor dialects (Cisco IOS block structures, Juniper JunOS hierarchical sets, Fortinet FortiOS config tables) into a unified canonical security model.
+                </p>
               </div>
-              <Link href="/findings" className="text-[11px] font-mono text-[#00D9FF] hover:underline flex items-center gap-1">
-                <span>View All Findings</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
+              <div className="pt-3 border-t border-[#1A1A1A] text-[11px] text-[#00D9FF]">
+                AST-Driven Normalization →
+              </div>
             </div>
 
-            <div className="space-y-2.5 font-mono text-xs">
-              {[
-                { level: "Critical", count: severity.critical, color: "bg-[#EF4444]", text: "text-[#EF4444]", filter: "CRITICAL" },
-                { level: "High", count: severity.high, color: "bg-[#F59E0B]", text: "text-[#F59E0B]", filter: "HIGH" },
-                { level: "Medium", count: severity.medium, color: "bg-[#00D9FF]", text: "text-[#00D9FF]", filter: "MEDIUM" },
-                { level: "Low", count: severity.low, color: "bg-[#8A8A8A]", text: "text-[#A3A3A3]", filter: "LOW" },
-                { level: "Info", count: severity.info, color: "bg-[#555555]", text: "text-[#666666]", filter: "INFO" },
-              ].map((s) => {
-                const pct = totalFindings > 0 ? (s.count / totalFindings) * 100 : 0;
-                return (
-                  <Link
-                    key={s.level}
-                    href={`/findings?severity=${s.filter}`}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] hover:border-[#242424] transition-colors group"
-                  >
-                    <div className="flex items-center gap-3 w-32">
-                      <span className={cn("w-2 h-2 rounded-full", s.color)} />
-                      <span className="font-semibold text-[#A3A3A3] group-hover:text-[#F5F5F5]">{s.level}</span>
-                    </div>
+            {/* Capability 2 */}
+            <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#242424] transition-all space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-[#0E0E0E] border border-[#22C55E]/30 flex items-center justify-center text-[#22C55E]">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-[#F5F5F5] tracking-tight">
+                  DETERMINISTIC COMPLIANCE
+                </h3>
+                <p className="text-xs text-[#8A8A8A] font-sans leading-relaxed">
+                  Evaluate network configurations against CIS Benchmarks, NIST SP 800-53, DISA STIG, and ISO/IEC 27001 using exact mathematical logic with 100% reproducible scoring.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-[#1A1A1A] text-[11px] text-[#22C55E]">
+                Zero Hallucination Rules →
+              </div>
+            </div>
 
-                    <div className="flex-1 mx-4">
-                      <div className="w-full h-1.5 rounded-full bg-[#1A1A1A] overflow-hidden">
-                        <div className={cn("h-full rounded-full", s.color)} style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
+            {/* Capability 3 */}
+            <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#242424] transition-all space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-[#0E0E0E] border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6]">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-[#F5F5F5] tracking-tight">
+                  ADAPTIVE INTELLIGENCE
+                </h3>
+                <p className="text-xs text-[#8A8A8A] font-sans leading-relaxed">
+                  Handle new or unknown configuration syntax through secure AI semantic interpretation, allowlist boundary validation, and mandatory administrator sign-off.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-[#1A1A1A] text-[11px] text-[#8B5CF6]">
+                Human-in-the-Loop Learning →
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                    <div className="flex items-center gap-3 w-20 justify-end">
-                      <span className={cn("font-bold", s.text)}>{s.count}</span>
-                      <span className="text-[10px] text-[#666666]">({pct.toFixed(0)}%)</span>
-                    </div>
-                  </Link>
-                );
-              })}
+      {/* 6. SECURITY PRINCIPLES */}
+      <section id="security" className="py-20 border-b border-[#1A1A1A]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="space-y-2">
+            <div className="text-xs font-mono text-[#00D9FF] font-semibold uppercase tracking-wider">
+              Institutional Safeguards
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F5F5F5] tracking-tight">
+              Engineering Security Principles
+            </h2>
+            <p className="text-xs sm:text-sm text-[#8A8A8A]">
+              Rigorous architectural constraints designed for national-security and mission-critical network environments.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 font-mono text-xs">
+            {[
+              {
+                title: "Deterministic Compliance",
+                desc: "All pass/fail decisions and scoring formulas are 100% mathematical AST rules with zero stochastic variation.",
+                icon: ShieldCheck,
+              },
+              {
+                title: "Zero Automated Live Execution",
+                desc: "NetVigil operates as a read-only auditor. It never pushes unverified commands directly to production hardware.",
+                icon: Lock,
+              },
+              {
+                title: "Human-in-the-Loop Remediation",
+                desc: "All remediation CLI scripts and rollback steps require explicit administrator review and verification before manual deployment.",
+                icon: Wrench,
+              },
+              {
+                title: "Sensitive-Data Redaction",
+                desc: "Passwords, enable secrets, and cryptographic hashes are automatically masked prior to normalization or AI inspection.",
+                icon: KeyRound,
+              },
+              {
+                title: "Evidence-Level Findings",
+                desc: "Every finding links directly to the exact file line number and full raw configuration context snippet.",
+                icon: FileCode2,
+              },
+              {
+                title: "AI Isolation & Sandboxing",
+                desc: "AI components operate solely in an advisory capacity for natural-language Q&A and semantic unknown syntax suggestions.",
+                icon: Bot,
+              },
+            ].map((principle) => {
+              const Icon = principle.icon;
+              return (
+                <div
+                  key={principle.title}
+                  className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-2.5 flex flex-col justify-between"
+                >
+                  <div className="flex items-center gap-2 text-[#F5F5F5] font-bold">
+                    <Icon className="w-4 h-4 text-[#00D9FF]" />
+                    <span>{principle.title}</span>
+                  </div>
+                  <p className="text-[11px] text-[#8A8A8A] font-sans leading-relaxed">
+                    {principle.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 7. FRAMEWORK COVERAGE */}
+      <section id="frameworks" className="py-20 border-b border-[#1A1A1A] bg-[#070707]/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="space-y-2">
+            <div className="text-xs font-mono text-[#00D9FF] font-semibold uppercase tracking-wider">
+              Regulatory Standards
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F5F5F5] tracking-tight">
+              Framework Coverage
+            </h2>
+            <p className="text-xs sm:text-sm text-[#8A8A8A]">
+              Comprehensive control coverage mapped to official cybersecurity baselines and defense hardening benchmarks.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
+            {[
+              {
+                name: "CIS Benchmarks",
+                subtitle: "Center for Internet Security",
+                desc: "L1 / L2 Router & Firewall hardening baselines across management, logging, and routing protocols.",
+                href: "/compliance/cis",
+                tag: "CIS Cisco / JunOS / FortiOS",
+              },
+              {
+                name: "NIST SP 800-53",
+                subtitle: "Rev 5 Federal Security",
+                desc: "AC (Access Control), AU (Audit), CM (Config Management), and SC (System Protection) control mappings.",
+                href: "/compliance/nist",
+                tag: "Federal Baseline",
+              },
+              {
+                name: "DISA STIG",
+                subtitle: "Defense Information Systems",
+                desc: "Department of Defense Security Technical Implementation Guides for perimeter network devices.",
+                href: "/compliance/stig",
+                tag: "DoD Infrastructure",
+              },
+              {
+                name: "ISO/IEC 27001",
+                subtitle: "Information Security Management",
+                desc: "Annex A.8 Technical controls, network segregation, and secure telecommunication management.",
+                href: "/compliance/iso",
+                tag: "ISO/IEC 27001:2022",
+              },
+            ].map((fw) => (
+              <Link
+                key={fw.name}
+                href={fw.href}
+                className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#00D9FF]/40 transition-all space-y-3 flex flex-col justify-between group"
+              >
+                <div className="space-y-1">
+                  <div className="text-[10px] text-[#666666] font-bold">{fw.subtitle}</div>
+                  <div className="text-base font-bold text-[#F5F5F5] group-hover:text-[#00D9FF] transition-colors">
+                    {fw.name}
+                  </div>
+                  <p className="text-[11px] text-[#8A8A8A] font-sans mt-2 leading-relaxed">
+                    {fw.desc}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-[#1A1A1A] flex items-center justify-between text-[10px] text-[#666666]">
+                  <span>{fw.tag}</span>
+                  <ArrowRight className="w-3 h-3 text-[#00D9FF] opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. FINAL CTA */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#F5F5F5] tracking-tight font-sans">
+            Turn configuration complexity into <br />
+            <span className="text-[#00D9FF]">security intelligence.</span>
+          </h2>
+          <p className="text-xs sm:text-sm text-[#8A8A8A] max-w-xl mx-auto font-sans leading-relaxed">
+            Run deterministic audits across your multi-vendor network infrastructure with real-time risk prioritization and human-in-the-loop adaptive learning.
+          </p>
+          <div className="pt-4 flex justify-center gap-4 font-mono text-xs">
+            <Link
+              href="/demo"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-[#00D9FF] hover:bg-[#00b8d9] text-[#050505] font-bold transition-all shadow-[0_0_20px_rgba(0,217,255,0.15)]"
+            >
+              <span>Enter NetVigil Console</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. INSTITUTIONAL FOOTER */}
+      <footer className="border-t border-[#1A1A1A] bg-[#050505] py-12 font-mono text-xs text-[#8A8A8A]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-[#F5F5F5] font-bold">
+              <Shield className="w-4 h-4 text-[#00D9FF]" />
+              <span>NETVIGIL</span>
+            </div>
+            <p className="text-[11px] text-[#666666] font-sans leading-relaxed">
+              National Technical Research Organisation (NTRO) • Smart India Hackathon Problem Statement SIH26155.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-[10px] text-[#666666] uppercase font-bold tracking-wider">Workspaces</div>
+            <ul className="space-y-1.5 text-[11px]">
+              <li><Link href="/dashboard" className="hover:text-white transition-colors">SOC Dashboard</Link></li>
+              <li><Link href="/demo" className="hover:text-white transition-colors">Golden Demo</Link></li>
+              <li><Link href="/audits" className="hover:text-white transition-colors">Audit Workspace</Link></li>
+              <li><Link href="/configurations" className="hover:text-white transition-colors">Configuration Ingest</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-[10px] text-[#666666] uppercase font-bold tracking-wider">Intelligence</div>
+            <ul className="space-y-1.5 text-[11px]">
+              <li><Link href="/risk" className="hover:text-white transition-colors">Risk Intelligence</Link></li>
+              <li><Link href="/remediation" className="hover:text-white transition-colors">Remediation Center</Link></li>
+              <li><Link href="/adaptive-training" className="hover:text-white transition-colors">Adaptive Training</Link></li>
+              <li><Link href="/ai-assistant" className="hover:text-white transition-colors">Security Co-Pilot</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-[10px] text-[#666666] uppercase font-bold tracking-wider">Engine Specs</div>
+            <div className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] space-y-1 text-[10px]">
+              <div className="flex items-center justify-between">
+                <span>Release</span>
+                <span className="text-[#F5F5F5]">v1.0.0-SIH2026-RC1</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Execution</span>
+                <span className="text-[#22C55E]">Deterministic AST</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Vendors</span>
+                <span className="text-[#00D9FF]">Cisco / Jun / Forti</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column (5 cols): Top Real Risks & Activity Stream */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Top Real Risks */}
-          <div className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#F5F5F5]">
-                <Flame className="w-4 h-4 text-[#EF4444]" />
-                <span>TOP PRIORITIZED RISKS</span>
-              </div>
-              <Link href="/risk" className="text-[11px] font-mono text-[#EF4444] hover:underline flex items-center gap-1">
-                <span>Risk Center</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            {isRisksLoading ? (
-              <div className="py-8 text-center text-[#666666] font-mono text-xs">Loading risks...</div>
-            ) : topRisks.length === 0 ? (
-              <div className="py-8 text-center text-[#666666] font-mono text-xs space-y-1">
-                <div>No open security risks identified.</div>
-                <div className="text-[10px] text-[#444444]">Run a compliance audit to compute risk intelligence.</div>
-              </div>
-            ) : (
-              <div className="space-y-2.5 font-mono text-xs">
-                {topRisks.slice(0, 4).map((risk) => (
-                  <Link
-                    key={risk.id}
-                    href="/risk"
-                    className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] hover:border-[#EF4444]/40 transition-all block space-y-2 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={cn(
-                        "px-1.5 py-0.5 rounded text-[10px] font-bold border",
-                        risk.priority === "P0" ? "bg-[#141414] text-[#EF4444] border-[#EF4444]/40" :
-                        risk.priority === "P1" ? "bg-[#141414] text-[#F59E0B] border-[#F59E0B]/40" :
-                        "bg-[#111111] text-[#3B82F6] border-[#3B82F6]/40"
-                      )}>
-                        {risk.priority} • Score {risk.risk_score.toFixed(0)}
-                      </span>
-                      <span className="text-[10px] text-[#666666]">{risk.category}</span>
-                    </div>
-                    <div className="text-[#F5F5F5] font-semibold line-clamp-1 group-hover:text-[#EF4444] transition-colors">
-                      {risk.title}
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-[#666666] pt-1 border-t border-[#1A1A1A]">
-                      <span>Findings: {risk.finding_ids?.length ?? 1}</span>
-                      <span className="text-[#00D9FF] group-hover:underline">Remediation Available →</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Real System Activity Log */}
-          <div className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#F5F5F5]">
-                <Activity className="w-4 h-4 text-[#22C55E]" />
-                <span>RECENT AUDIT & SYSTEM ACTIVITY</span>
-              </div>
-              <span className="text-[10px] text-[#666666] font-mono">Live Timeline</span>
-            </div>
-
-            {isActivityLoading ? (
-              <div className="py-8 text-center text-[#666666] font-mono text-xs">Loading activity...</div>
-            ) : activities.length === 0 ? (
-              <div className="py-8 text-center text-[#666666] font-mono text-xs space-y-1">
-                <div>No recent system activity recorded.</div>
-                <div className="text-[10px] text-[#444444]">Ingest a configuration to trigger security workflows.</div>
-              </div>
-            ) : (
-              <div className="space-y-3 font-mono text-xs">
-                {activities.map((act) => (
-                  <Link
-                    key={act.id}
-                    href={act.target_url}
-                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-[#111111] transition-colors group"
-                  >
-                    <div className="mt-1">
-                      {act.type === "AUDIT_COMPLETED" ? (
-                        <Shield className="w-3.5 h-3.5 text-[#22C55E]" />
-                      ) : act.type === "CONFIG_INGESTED" ? (
-                        <FileCode2 className="w-3.5 h-3.5 text-[#00D9FF]" />
-                      ) : act.type === "TRAINING_ACTION" ? (
-                        <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
-                      ) : (
-                        <Wrench className="w-3.5 h-3.5 text-[#EF4444]" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[#F5F5F5] text-xs font-semibold truncate group-hover:text-[#00D9FF] transition-colors">
-                        {act.title}
-                      </div>
-                      <div className="text-[10px] text-[#A3A3A3] truncate">{act.description}</div>
-                    </div>
-                    <div className="text-[10px] text-[#666666] whitespace-nowrap">
-                      {new Date(act.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-[#1A1A1A] flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-[#666666]">
+          <div>© 2026 NetVigil Compliance Auditor. Built for NTRO (SIH26155).</div>
+          <div className="flex items-center gap-4">
+            <span>Air-Gapped Ready</span>
+            <span>Zero Hallucination</span>
+            <span>Human-in-the-Loop</span>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
