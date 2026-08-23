@@ -60,28 +60,33 @@ def validate_file_metadata(filename: str, size: int) -> Tuple[str, str]:
 # Sensitive Data Redaction Utilities
 # -------------------------------------------------------------
 SENSITIVE_PATTERNS = [
-    # Cisco secrets & passwords
-    (re.compile(r"(enable\s+secret\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(enable\s+password\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(password\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(secret\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(username\s+\S+\s+(?:secret|password)\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(snmp-server\s+community\s+)\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(wpa-psk\s+ascii\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    # Multi-line Private Keys (must run before single-line matches)
+    (re.compile(r"-----BEGIN[ A-Z0-9_-]+PRIVATE KEY-----[\s\S]+?-----END[ A-Z0-9_-]+PRIVATE KEY-----", re.IGNORECASE), r"[REDACTED_PRIVATE_KEY_BLOCK]"),
+
+    # Fortinet secrets
+    (re.compile(r"(set\s+password\s+(?:ENC\s+)?)\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(set\s+passphrase\s+(?:ENC\s+)?)\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(set\s+private-key\s+)\"[^\"]+\"", re.IGNORECASE), r'\1"[REDACTED]"'),
 
     # Juniper secrets
     (re.compile(r'(encrypted-password\s+)"[^"]+"', re.IGNORECASE), r'\1"[REDACTED]"'),
     (re.compile(r'(secret\s+)"[^"]+"', re.IGNORECASE), r'\1"[REDACTED]"'),
     (re.compile(r'(community\s+)"?[a-zA-Z0-9_\-]+"?(;|\s)', re.IGNORECASE), r'\1"[REDACTED]"\2'),
 
-    # Fortinet secrets
-    (re.compile(r"(set\s+password\s+ENC\s+)\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(set\s+passphrase\s+ENC\s+)\S+", re.IGNORECASE), r"\1[REDACTED]"),
-    (re.compile(r"(set\s+private-key\s+)\"[^\"]+\"", re.IGNORECASE), r'\1"[REDACTED]"'),
+    # Cisco secrets & compound commands
+    (re.compile(r"(enable\s+secret\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(enable\s+password\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(username\s+\S+\s+(?:secret|password)\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(snmp-server\s+community\s+)\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(wpa-psk\s+ascii\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
 
     # Generic Tokens & Keys
     (re.compile(r"(api[_-]?key\s*[:=]\s*)['\"]?[a-zA-Z0-9_\-\.]{8,}['\"]?", re.IGNORECASE), r"\1[REDACTED]"),
     (re.compile(r"(bearer\s+)[a-zA-Z0-9_\-\.]{15,}", re.IGNORECASE), r"\1[REDACTED]"),
+
+    # Bare fallback generic password/secret
+    (re.compile(r"(password\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
+    (re.compile(r"(secret\s+)(?:\d\s+)?\S+", re.IGNORECASE), r"\1[REDACTED]"),
 ]
 
 
