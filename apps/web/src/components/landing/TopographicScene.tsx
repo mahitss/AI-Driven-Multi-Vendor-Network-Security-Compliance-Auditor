@@ -1,300 +1,293 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
+import React, { useEffect, useRef } from "react";
 
 export default function TopographicScene() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [webglSupported, setWebglSupported] = useState<boolean>(true);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    // Check prefers-reduced-motion
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let scene: THREE.Scene | null = null;
-    let camera: THREE.PerspectiveCamera | null = null;
-    let renderer: THREE.WebGLRenderer | null = null;
-    let animFrameId: number | null = null;
+    // Handle HiDPI Canvas Scaling
+    const resizeCanvas = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const width = canvas.parentElement?.clientWidth || window.innerWidth;
+      const height = canvas.parentElement?.clientHeight || window.innerHeight;
 
-    // Disposables
-    const disposables: { dispose: () => void }[] = [];
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
 
-    try {
-      // 1. Initialize Scene & Camera
-      scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x050505, 0.018);
+      ctx.scale(dpr, dpr);
+    };
 
-      const width = container.clientWidth || window.innerWidth;
-      const height = container.clientHeight || window.innerHeight;
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
-      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      camera.position.set(0, 26, 42);
-      camera.lookAt(0, -2, 0);
+    // Grid properties
+    const rows = 36;
+    const cols = 48;
+    const spacing = 38;
 
-      // 2. Initialize Renderer
-      renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true,
-        powerPreference: "high-performance",
+    // Mouse parallax
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetCameraX = 0;
+    let targetCameraY = 0;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const halfW = window.innerWidth / 2;
+      const halfH = window.innerHeight / 2;
+      mouseX = (e.clientX - halfW) / halfW;
+      mouseY = (e.clientY - halfH) / halfH;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    // Deterministic Network Topology Nodes
+    const nodeCount = 24;
+    const nodes: { r: number; c: number; pulseOffset: number; active: boolean }[] = [];
+    for (let n = 0; n < nodeCount; n++) {
+      nodes.push({
+        r: Math.floor(6 + ((n * 13) % (rows - 12))),
+        c: Math.floor(6 + ((n * 19) % (cols - 12))),
+        pulseOffset: (n * 0.4) % Math.PI,
+        active: n % 4 === 0,
       });
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-      renderer.setClearColor(0x050505, 1);
-      container.appendChild(renderer.domElement);
-      disposables.push(renderer);
-
-      // 3. Construct Procedural Topographic Terrain Geometry
-      const gridWidth = 90;
-      const gridDepth = 90;
-      const segsX = 64;
-      const segsY = 64;
-
-      const geometry = new THREE.PlaneGeometry(gridWidth, gridDepth, segsX, segsY);
-      geometry.rotateX(-Math.PI / 2);
-      disposables.push(geometry);
-
-      const pos = geometry.attributes.position;
-      const originalY = new Float32Array(pos.count);
-
-      // Mathematical Deterministic Terrain Function
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const z = pos.getZ(i);
-
-        // Sinusoidal layered elevation
-        const h1 = Math.sin(x * 0.07) * Math.cos(z * 0.07) * 3.8;
-        const h2 = Math.sin(x * 0.035 + z * 0.045) * 4.2;
-        const h3 = Math.cos(Math.sqrt(x * x + z * z) * 0.08) * 1.8;
-        const distFalloff = Math.max(0, 1 - (x * x + z * z) / (45 * 45));
-
-        const y = (h1 + h2 + h3) * distFalloff;
-        pos.setY(i, y);
-        originalY[i] = y;
-      }
-      geometry.computeVertexNormals();
-
-      // 4. Terrain Materials (Matte Dark Surface & Thin Contour Lines)
-      const wireframeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00d9ff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.12,
-      });
-      disposables.push(wireframeMaterial);
-
-      const terrainMesh = new THREE.Mesh(geometry, wireframeMaterial);
-      scene.add(terrainMesh);
-
-      // Contour elevation ring lines
-      const contourMaterial = new THREE.LineBasicMaterial({
-        color: 0x8b5cf6,
-        transparent: true,
-        opacity: 0.22,
-      });
-      disposables.push(contourMaterial);
-
-      // 5. Network Topology Nodes & Pulses
-      const nodeCount = 28;
-      const nodePositions: THREE.Vector3[] = [];
-      const nodeGeometry = new THREE.BufferGeometry();
-      const nodePosArray = new Float32Array(nodeCount * 3);
-
-      // Deterministic node distribution along terrain ridges
-      for (let n = 0; n < nodeCount; n++) {
-        const theta = (n / nodeCount) * Math.PI * 2;
-        const radius = 12 + ((n * 7) % 22);
-        const nx = Math.cos(theta) * radius;
-        const nz = Math.sin(theta) * radius;
-
-        // Sample terrain height
-        const h1 = Math.sin(nx * 0.07) * Math.cos(nz * 0.07) * 3.8;
-        const h2 = Math.sin(nx * 0.035 + nz * 0.045) * 4.2;
-        const ny = (h1 + h2) * 0.7 + 0.6;
-
-        nodePosArray[n * 3] = nx;
-        nodePosArray[n * 3 + 1] = ny;
-        nodePosArray[n * 3 + 2] = nz;
-
-        nodePositions.push(new THREE.Vector3(nx, ny, nz));
-      }
-
-      nodeGeometry.setAttribute("position", new THREE.BufferAttribute(nodePosArray, 3));
-      disposables.push(nodeGeometry);
-
-      const nodeMaterial = new THREE.PointsMaterial({
-        color: 0x00d9ff,
-        size: 2.2,
-        transparent: true,
-        opacity: 0.85,
-      });
-      disposables.push(nodeMaterial);
-
-      const nodePoints = new THREE.Points(nodeGeometry, nodeMaterial);
-      scene.add(nodePoints);
-
-      // Interconnect lines between nearby nodes
-      const lineIndices: number[] = [];
-      for (let i = 0; i < nodeCount; i++) {
-        for (let j = i + 1; j < nodeCount; j++) {
-          const dist = nodePositions[i].distanceTo(nodePositions[j]);
-          if (dist < 18) {
-            lineIndices.push(i, j);
-          }
-        }
-      }
-
-      const linesGeometry = new THREE.BufferGeometry();
-      const linePositions = new Float32Array(lineIndices.length * 3);
-      for (let k = 0; k < lineIndices.length; k++) {
-        const nodeIdx = lineIndices[k];
-        const v = nodePositions[nodeIdx];
-        linePositions[k * 3] = v.x;
-        linePositions[k * 3 + 1] = v.y;
-        linePositions[k * 3 + 2] = v.z;
-      }
-      linesGeometry.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
-      disposables.push(linesGeometry);
-
-      const networkLinesMaterial = new THREE.LineBasicMaterial({
-        color: 0x00d9ff,
-        transparent: true,
-        opacity: 0.16,
-      });
-      disposables.push(networkLinesMaterial);
-
-      const networkLines = new THREE.LineSegments(linesGeometry, networkLinesMaterial);
-      scene.add(networkLines);
-
-      // 6. Security Scanning Wave Cylinder Plane
-      const scanGeometry = new THREE.RingGeometry(0.5, 42, 64);
-      scanGeometry.rotateX(-Math.PI / 2);
-      disposables.push(scanGeometry);
-
-      const scanMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00d9ff,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.08,
-        wireframe: true,
-      });
-      disposables.push(scanMaterial);
-
-      const scanMesh = new THREE.Mesh(scanGeometry, scanMaterial);
-      scanMesh.position.y = 1.0;
-      scene.add(scanMesh);
-
-      // 7. Mouse Parallax Target
-      let mouseX = 0;
-      let mouseY = 0;
-      let targetCameraX = 0;
-      let targetCameraY = 26;
-
-      const handleMouseMove = (e: MouseEvent) => {
-        const halfX = window.innerWidth / 2;
-        const halfY = window.innerHeight / 2;
-        mouseX = (e.clientX - halfX) / halfX;
-        mouseY = (e.clientY - halfY) / halfY;
-      };
-
-      window.addEventListener("mousemove", handleMouseMove, { passive: true });
-
-      // 8. Resize Handler
-      const handleResize = () => {
-        if (!container || !camera || !renderer) return;
-        const w = container.clientWidth || window.innerWidth;
-        const h = container.clientHeight || window.innerHeight;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-      };
-
-      window.addEventListener("resize", handleResize);
-
-      // 9. Animation Loop
-      let clock = new THREE.Clock();
-
-      const animate = () => {
-        if (!camera || !renderer || !scene) return;
-
-        if (!prefersReducedMotion) {
-          const elapsedTime = clock.getElapsedTime();
-
-          // Subtle terrain undulation
-          const timeOffset = elapsedTime * 0.35;
-          for (let i = 0; i < pos.count; i++) {
-            const x = pos.getX(i);
-            const z = pos.getZ(i);
-            const wave = Math.sin(x * 0.08 + timeOffset) * Math.cos(z * 0.08 + timeOffset) * 0.6;
-            pos.setY(i, originalY[i] + wave);
-          }
-          pos.needsUpdate = true;
-
-          // Slow scan ring expansion
-          const scanScale = (elapsedTime * 0.25) % 1.0;
-          scanMesh.scale.set(scanScale, scanScale, scanScale);
-          scanMaterial.opacity = (1.0 - scanScale) * 0.12;
-
-          // Smooth camera damping parallax
-          targetCameraX = mouseX * 4.0;
-          targetCameraY = 26 + mouseY * 2.0;
-
-          camera.position.x += (targetCameraX - camera.position.x) * 0.03;
-          camera.position.y += (targetCameraY - camera.position.y) * 0.03;
-          camera.lookAt(0, -1, 0);
-
-          // Subtle terrain slow rotation
-          terrainMesh.rotation.y = elapsedTime * 0.015;
-          nodePoints.rotation.y = elapsedTime * 0.015;
-          networkLines.rotation.y = elapsedTime * 0.015;
-        }
-
-        renderer.render(scene, camera);
-        animFrameId = requestAnimationFrame(animate);
-      };
-
-      animFrameId = requestAnimationFrame(animate);
-
-      // Cleanup
-      return () => {
-        if (animFrameId) cancelAnimationFrame(animFrameId);
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("resize", handleResize);
-
-        disposables.forEach((d) => d.dispose());
-        if (renderer && renderer.domElement && renderer.domElement.parentNode) {
-          renderer.domElement.parentNode.removeChild(renderer.domElement);
-        }
-      };
-    } catch (err) {
-      console.warn("WebGL initialization skipped or unsupported:", err);
-      setWebglSupported(false);
     }
+
+    let time = 0;
+
+    // 3D Perspective Projection Function
+    const project3D = (
+      gx: number,
+      gy: number,
+      gz: number,
+      width: number,
+      height: number
+    ) => {
+      const fov = 420;
+      const cameraZ = 340;
+      const cameraY = -120 + targetCameraY * 25;
+      const cameraX = targetCameraX * 35;
+
+      const px = gx - cameraX;
+      const py = gy - cameraY;
+      const pz = gz + cameraZ;
+
+      if (pz <= 10) return null;
+
+      const scale = fov / pz;
+      const screenX = width / 2 + px * scale;
+      const screenY = height / 2 + py * scale;
+
+      return { x: screenX, y: screenY, scale, pz };
+    };
+
+    const render = () => {
+      const width = canvas.parentElement?.clientWidth || window.innerWidth;
+      const height = canvas.parentElement?.clientHeight || window.innerHeight;
+
+      if (!prefersReducedMotion) {
+        time += 0.016;
+        targetCameraX += (mouseX - targetCameraX) * 0.05;
+        targetCameraY += (mouseY - targetCameraY) * 0.05;
+      }
+
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. Calculate Grid Vertices with Sinusoidal Elevation
+      const gridPoints: ({ x: number; y: number; scale: number; pz: number; elev: number } | null)[][] = [];
+
+      for (let r = 0; r < rows; r++) {
+        gridPoints[r] = [];
+        for (let c = 0; c < cols; c++) {
+          const worldX = (c - cols / 2) * spacing;
+          const worldZ = r * spacing * 1.35;
+
+          // Mathematical Elevation Function
+          const distFromCenter = Math.sqrt(
+            Math.pow((c - cols / 2) / (cols / 2), 2) +
+            Math.pow((r - rows / 2) / (rows / 2), 2)
+          );
+
+          const wave1 = Math.sin(c * 0.28 + time * 0.6) * Math.cos(r * 0.28 + time * 0.6) * 32;
+          const wave2 = Math.sin(c * 0.12 - time * 0.3 + r * 0.14) * 24;
+          const falloff = Math.max(0, 1 - distFromCenter * 0.85);
+
+          const elevation = (wave1 + wave2) * falloff;
+          const worldY = 65 - elevation;
+
+          const proj = project3D(worldX, worldY, worldZ, width, height);
+          if (proj) {
+            gridPoints[r][c] = { ...proj, elev: elevation };
+          } else {
+            gridPoints[r][c] = null;
+          }
+        }
+      }
+
+      // 2. Render Topographic Contour Lines
+      for (let r = 0; r < rows; r++) {
+        ctx.beginPath();
+        let started = false;
+
+        const isMajorContour = r % 4 === 0;
+        ctx.strokeStyle = isMajorContour ? "rgba(0, 217, 255, 0.16)" : "rgba(255, 255, 255, 0.05)";
+        ctx.lineWidth = isMajorContour ? 1.0 : 0.6;
+
+        for (let c = 0; c < cols; c++) {
+          const pt = gridPoints[r][c];
+          if (!pt) {
+            started = false;
+            continue;
+          }
+
+          if (!started) {
+            ctx.moveTo(pt.x, pt.y);
+            started = true;
+          } else {
+            ctx.lineTo(pt.x, pt.y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      // Vertical longitudinal contour links
+      for (let c = 0; c < cols; c += 2) {
+        ctx.beginPath();
+        let started = false;
+        ctx.strokeStyle = "rgba(0, 217, 255, 0.04)";
+        ctx.lineWidth = 0.5;
+
+        for (let r = 0; r < rows; r++) {
+          const pt = gridPoints[r][c];
+          if (!pt) {
+            started = false;
+            continue;
+          }
+          if (!started) {
+            ctx.moveTo(pt.x, pt.y);
+            started = true;
+          } else {
+            ctx.lineTo(pt.x, pt.y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      // 3. Render Radial Scanning Wave
+      const scanRadius = (time * 80) % 750;
+      const scanCenterX = width / 2;
+      const scanCenterY = height * 0.65;
+
+      const gradient = ctx.createRadialGradient(
+        scanCenterX,
+        scanCenterY,
+        Math.max(0, scanRadius - 60),
+        scanCenterX,
+        scanCenterY,
+        scanRadius
+      );
+      gradient.addColorStop(0, "rgba(0, 217, 255, 0)");
+      gradient.addColorStop(0.8, "rgba(0, 217, 255, 0.06)");
+      gradient.addColorStop(1, "rgba(0, 217, 255, 0)");
+
+      ctx.save();
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(scanCenterX, scanCenterY, scanRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 4. Render Network Topology Nodes & Connections
+      const nodeScreenPositions: { x: number; y: number; active: boolean; pulse: number }[] = [];
+
+      nodes.forEach((n) => {
+        const pt = gridPoints[n.r]?.[n.c];
+        if (pt) {
+          const pulse = Math.sin(time * 3.0 + n.pulseOffset) * 0.5 + 0.5;
+          nodeScreenPositions.push({ x: pt.x, y: pt.y, active: n.active, pulse });
+        }
+      });
+
+      // Draw node links
+      ctx.strokeStyle = "rgba(0, 217, 255, 0.18)";
+      ctx.lineWidth = 0.75;
+      for (let i = 0; i < nodeScreenPositions.length; i++) {
+        for (let j = i + 1; j < nodeScreenPositions.length; j++) {
+          const n1 = nodeScreenPositions[i];
+          const n2 = nodeScreenPositions[j];
+          const dist = Math.hypot(n1.x - n2.x, n1.y - n2.y);
+          if (dist < 110) {
+            ctx.beginPath();
+            ctx.moveTo(n1.x, n1.y);
+            ctx.lineTo(n2.x, n2.y);
+            ctx.stroke();
+
+            // Animated packet signal along active link
+            if (!prefersReducedMotion && (i + j) % 3 === 0) {
+              const progress = (time * 0.8 + (i * 0.3)) % 1.0;
+              const px = n1.x + (n2.x - n1.x) * progress;
+              const py = n1.y + (n2.y - n1.y) * progress;
+              ctx.fillStyle = "#00D9FF";
+              ctx.beginPath();
+              ctx.arc(px, py, 1.4, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      }
+
+      // Draw node points
+      nodeScreenPositions.forEach((n) => {
+        ctx.fillStyle = n.active ? "#00D9FF" : "#8B5CF6";
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.active ? 2.5 + n.pulse * 1.5 : 2.0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Node halo
+        if (n.active) {
+          ctx.strokeStyle = `rgba(0, 217, 255, ${0.4 * (1 - n.pulse)})`;
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 4.0 + n.pulse * 6.0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+
+      animId = requestAnimationFrame(render);
+    };
+
+    animId = requestAnimationFrame(render);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
   }, []);
 
   return (
     <div
-      ref={containerRef}
       className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
       aria-hidden="true"
     >
-      {!webglSupported && (
-        <div className="absolute inset-0 bg-[#050505] opacity-90">
-          <svg className="w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="fallback-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00D9FF" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#fallback-grid)" />
-          </svg>
-        </div>
-      )}
-      {/* Deep gradient overlay for text readability */}
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block"
+        style={{ background: "#050505" }}
+      />
+      {/* Deep vignette gradients for optimal contrast */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/40 via-transparent to-[#050505] pointer-events-none" />
-      <div className="absolute inset-0 bg-radial-vignette pointer-events-none opacity-70" />
+      <div className="absolute inset-0 bg-radial-vignette pointer-events-none opacity-80" />
     </div>
   );
 }

@@ -2,13 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { Play, ArrowRight, ShieldCheck, Terminal, Cpu, Lock } from "lucide-react";
-
-const TopographicScene = dynamic(() => import("./TopographicScene"), {
-  ssr: false,
-  loading: () => <div className="absolute inset-0 bg-[#050505]" />,
-});
+import TopographicScene from "./TopographicScene";
 
 export default function LandingHero() {
   return (
