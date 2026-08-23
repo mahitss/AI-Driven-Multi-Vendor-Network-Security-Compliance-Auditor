@@ -108,6 +108,20 @@ class ReportSummaryResponse(BaseAdvisoryResponse):
     strategic_recommendations: List[str] = Field(default_factory=list, description="Long-term hardening recommendations")
 
 
+class ConfigurationExplanationResponse(BaseAdvisoryResponse):
+    """Detailed structural walkthrough of an ingested network device configuration."""
+    overview: str = Field(description="Architecture and deployment mode of the configuration")
+    security_domains_configured: List[str] = Field(default_factory=list, description="Security areas present (AAA, ACLs, logging, etc.)")
+    observations: List[str] = Field(default_factory=list, description="Notable configuration traits or legacy patterns observed")
+
+
+class FrameworkExplanationResponse(BaseAdvisoryResponse):
+    """Grounded explanation of compliance frameworks (CIS, NIST, STIG, ISO) and control requirements."""
+    framework_overview: str = Field(description="Scope and purpose of the standard")
+    control_objective: str = Field(description="Security objective of the referenced baseline control")
+    implementation_guidance: str = Field(description="Standard technical hardening requirements")
+
+
 class CodeReviewResponse(BaseAdvisoryResponse):
     """Structured review of parser code or regex rule definitions."""
     assessment: str = Field(description="Quality and safety assessment of syntax grammar")

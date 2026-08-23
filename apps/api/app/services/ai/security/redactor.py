@@ -9,7 +9,6 @@ private keys, or auth tokens through external AI APIs.
 import re
 from typing import Any, Dict, List, Union
 
-
 # Regex patterns matching sensitive configuration directives and credentials
 REDACTION_PATTERNS = [
     # Cisco type 9 / 8 / 7 / 5 / 0 secrets & passwords
@@ -17,27 +16,31 @@ REDACTION_PATTERNS = [
     (r"(enable\s+password\s+(?:\d+\s+)?)[^\s\n\r]+", r"\1[REDACTED_PASSWORD]"),
     (r"(username\s+\S+\s+(?:privilege\s+\d+\s+)?(?:algorithm-type\s+\S+\s+)?secret\s+(?:\d+\s+)?)[^\s\n\r]+", r"\1[REDACTED_SECRET]"),
     (r"(username\s+\S+\s+password\s+(?:\d+\s+)?)[^\s\n\r]+", r"\1[REDACTED_PASSWORD]"),
-    (r"(password\s+)[^\s\n\r]+", r"\1[REDACTED_PASSWORD]"),
+    (r"(password\s+(?:0|7)?\s*)[^\s\n\r]+", r"\1[REDACTED_PASSWORD]"),
 
     # JunOS password / auth hashes
     (r"(encrypted-password\s+)[^\s\n\r;]+", r"\1[REDACTED_JUNOS_HASH]"),
     (r"(authentication-key\s+)[^\s\n\r;]+", r"\1[REDACTED_AUTH_KEY]"),
-    (r"(pre-shared-key\s+)[^\s\n\r;]+", r"\1[REDACTED_PSK]"),
+    (r"(pre-shared-key\s+(?:hex|local|ascii)?\s*)[^\s\n\r;]+", r"\1[REDACTED_PSK]"),
+    (r"(set\s+system\s+root-authentication\s+(?:encrypted-password|plain-text-password-value)\s+)[^\s\n\r;]+", r"\1[REDACTED_SECRET]"),
 
     # Fortinet FortiOS ENC hashes and passwords
     (r"(set\s+password\s+(?:ENC\s+)?)[^\s\n\r]+", r"\1[REDACTED_FORTI_PASSWORD]"),
     (r"(set\s+private-key\s+(?:ENC\s+)?)[^\s\n\r]+", r"\1[REDACTED_PRIVATE_KEY]"),
     (r"(set\s+psksecret\s+(?:ENC\s+)?)[^\s\n\r]+", r"\1[REDACTED_PSK]"),
+    (r"(set\s+admin-password\s+)[^\s\n\r]+", r"\1[REDACTED_PASSWORD]"),
 
     # SNMP Communities & Auth
     (r"(snmp-server\s+community\s+)[^\s\n\r]+", r"\1[REDACTED_SNMP_COMMUNITY]"),
     (r"(set\s+snmp\s+community\s+)[^\s\n\r;]+", r"\1[REDACTED_SNMP_COMMUNITY]"),
     (r"(community\s+)[^\s\n\r;]+", r"\1[REDACTED_SNMP_COMMUNITY]"),
 
-    # BGP / OSPF / IS-IS Authentication Keys
+    # BGP / OSPF / IS-IS / Radius / Tacacs Keys
     (r"(ip\s+ospf\s+authentication-key\s+)[^\s\n\r]+", r"\1[REDACTED_ROUTING_KEY]"),
     (r"(ip\s+ospf\s+message-digest-key\s+\d+\s+md5\s+)[^\s\n\r]+", r"\1[REDACTED_MD5_KEY]"),
     (r"(neighbor\s+\S+\s+password\s+)[^\s\n\r]+", r"\1[REDACTED_BGP_PASSWORD]"),
+    (r"(radius-server\s+key\s+)[^\s\n\r]+", r"\1[REDACTED_KEY]"),
+    (r"(tacacs-server\s+key\s+)[^\s\n\r]+", r"\1[REDACTED_KEY]"),
 
     # RSA / ECDSA / Ed25519 Private Keys
     (r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----", "[REDACTED_PRIVATE_KEY_BLOCK]"),
@@ -61,6 +64,21 @@ def redact_sensitive_data(text: str) -> str:
         sanitized = re.sub(pattern, replacement, sanitized, flags=re.IGNORECASE)
 
     return sanitized
+
+
+def redact_sensitive_credentials(text: str) -> str:
+    """Alias for backwards compatibility."""
+    return redact_sensitive_data(text)
+
+
+def sanitize_untrusted_configuration(content: str) -> str:
+    """
+    Sanitizes raw configuration strings and wraps them in explicit untrusted data markers.
+    Mitigates indirect prompt injection attempts embedded in network comments or banners.
+    """
+    clean_content = redact_sensitive_data(content)
+    clean_content = clean_content.replace("</untrusted_configuration_data>", "[TAG_ESCAPED]")
+    return f"<untrusted_configuration_data>\n{clean_content}\n</untrusted_configuration_data>"
 
 
 def sanitize_dict_payload(data: Union[Dict[str, Any], List[Any], str]) -> Any:
