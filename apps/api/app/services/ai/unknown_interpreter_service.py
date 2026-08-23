@@ -9,11 +9,12 @@ Foundation for NetVigil's Adaptive Training system:
 from typing import List, Optional
 from app.core.config import settings
 from app.schemas.ai import UnknownConfigInterpretationResponse
-from app.services.ai.manager import get_ai_provider
+from app.services.ai.gateway.openrouter_gateway import OpenRouterGateway
 from app.services.ai.prompts.unknown_configuration import (
     UNKNOWN_CONFIG_SYSTEM_PROMPT,
     build_unknown_config_prompt,
 )
+from app.services.ai.schemas.models import AITaskType
 
 
 class UnknownConfigInterpreterService:
@@ -35,12 +36,18 @@ class UnknownConfigInterpreterService:
             nearby_context=nearby_context,
         )
 
-        # 2. Call AI Provider
-        provider = get_ai_provider()
-        interpretation = await provider.generate_structured(
-            schema=UnknownConfigInterpretationResponse,
-            system_prompt=UNKNOWN_CONFIG_SYSTEM_PROMPT,
+        context_data = {
+            "raw_command": raw_command,
+            "vendor_hint": vendor_hint,
+            "platform_hint": platform_hint,
+        }
+
+        # 2. Dispatch through OpenRouter Multi-Model Gateway
+        interpretation = await OpenRouterGateway.execute_task(
+            task_type=AITaskType.UNKNOWN_SYNTAX_CLASSIFICATION,
             user_prompt=user_prompt,
+            response_schema=UnknownConfigInterpretationResponse,
+            context_data=context_data,
         )
 
         # 3. Calculate confidence tier

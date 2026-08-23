@@ -14,11 +14,12 @@ from app.core.errors import ResourceNotFoundError
 from app.models.audit import Audit
 from app.models.finding import Finding
 from app.schemas.ai import AuditAssistantQueryResponse
-from app.services.ai.manager import get_ai_provider
+from app.services.ai.gateway.openrouter_gateway import OpenRouterGateway
 from app.services.ai.prompts.audit_assistant import (
     AUDIT_ASSISTANT_SYSTEM_PROMPT,
     build_audit_assistant_prompt,
 )
+from app.services.ai.schemas.models import AITaskType
 
 
 class SafeAuditTools:
@@ -98,12 +99,19 @@ class AuditAssistantService:
             relevant_findings=findings,
         )
 
-        # 5. Call AI Provider
-        provider = get_ai_provider()
-        response = await provider.generate_structured(
-            schema=AuditAssistantQueryResponse,
-            system_prompt=AUDIT_ASSISTANT_SYSTEM_PROMPT,
+        context_data = {
+            "query": query,
+            "audit_id": audit_id,
+            "findings_count": len(findings),
+            "cited_controls": [f["control_id"] for f in findings[:5]],
+        }
+
+        # 5. Dispatch through OpenRouter Multi-Model Gateway
+        response = await OpenRouterGateway.execute_task(
+            task_type=AITaskType.SECURITY_ASSISTANT,
             user_prompt=user_prompt,
+            response_schema=AuditAssistantQueryResponse,
+            context_data=context_data,
         )
 
         response.query = query

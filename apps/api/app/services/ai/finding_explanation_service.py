@@ -1,6 +1,9 @@
 """
 Evidence-Grounded Finding Explanation Service
 Problem Statement: SIH26155 (NTRO)
+
+Strict Invariant:
+AI is an advisory layer only. It cannot alter the finding's deterministic compliance status.
 """
 from typing import List, Optional
 from sqlalchemy import select
@@ -10,11 +13,12 @@ from app.models.audit import Audit
 from app.models.configuration import Configuration
 from app.models.finding import Finding
 from app.schemas.ai import FindingExplanationResponse
-from app.services.ai.manager import get_ai_provider
+from app.services.ai.gateway.openrouter_gateway import OpenRouterGateway
 from app.services.ai.prompts.finding_explanation import (
     FINDING_EXPLANATION_SYSTEM_PROMPT,
     build_finding_explanation_prompt,
 )
+from app.services.ai.schemas.models import AITaskType
 
 
 class FindingExplanationService:
@@ -72,12 +76,21 @@ class FindingExplanationService:
             vendor=vendor,
         )
 
-        # 5. Call AI Provider
-        provider = get_ai_provider()
-        explanation = await provider.generate_structured(
-            schema=FindingExplanationResponse,
-            system_prompt=FINDING_EXPLANATION_SYSTEM_PROMPT,
+        context_data = {
+            "title": finding.title,
+            "control_id": finding.control_id,
+            "evidence": finding.evidence,
+            "framework": finding.framework,
+            "severity": finding.severity,
+            "status": finding.status,
+        }
+
+        # 5. Dispatch through OpenRouter Multi-Model Gateway
+        explanation = await OpenRouterGateway.execute_task(
+            task_type=AITaskType.FINDING_EXPLANATION,
             user_prompt=user_prompt,
+            response_schema=FindingExplanationResponse,
+            context_data=context_data,
         )
 
         # 6. Ensure evidence used and source lines are accurately reflected

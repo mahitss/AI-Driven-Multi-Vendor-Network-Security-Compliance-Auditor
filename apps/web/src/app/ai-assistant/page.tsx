@@ -139,12 +139,15 @@ export default function AIAssistantPage() {
         </div>
 
         {/* AI Provider Status Badge */}
-        <div className="flex items-center gap-2 font-mono text-[11px] px-3 py-1.5 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] text-[#A3A3A3]">
+        <div className="flex items-center gap-2.5 font-mono text-[11px] px-3 py-1.5 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] text-[#A3A3A3]">
           <Cpu className="w-3.5 h-3.5 text-[#8B5CF6]" />
           <span>
-            Provider: <strong className="text-[#F5F5F5]">{aiHealth?.provider || "OpenRouter"}</strong> ({aiHealth?.model || "Claude 3.5"})
+            AI Gateway: <strong className="text-[#F5F5F5]">OpenRouter</strong> (15 Models)
           </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+          <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
+          <span className="text-[10px] uppercase font-bold text-[#22C55E]">
+            ADVISORY ACTIVE
+          </span>
         </div>
       </div>
 
