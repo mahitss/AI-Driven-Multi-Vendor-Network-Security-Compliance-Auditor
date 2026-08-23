@@ -205,7 +205,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
             <div className="flex items-center justify-between text-[10px] text-[#666666]">
               <span>DB Latency</span>
-              <span className="text-[#A3A3A3]">{health?.database?.latency_ms !== undefined && health?.database?.latency_ms !== null ? `${health.database.latency_ms.toFixed(1)}ms` : "0.8ms"}</span>
+              <span className="text-[#A3A3A3]">{health?.database?.latency_ms !== undefined && health?.database?.latency_ms !== null ? `${health.database.latency_ms.toFixed(1)}ms` : "Active"}</span>
             </div>
 
             <div className="flex items-center justify-between text-[10px] text-[#666666]">

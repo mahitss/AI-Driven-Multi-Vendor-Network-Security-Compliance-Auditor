@@ -74,8 +74,7 @@ export default function GoldenDemoPresenterPage() {
       setLearningApplied(true);
       setActiveStep(9);
     } catch (err) {
-      setAfterLearningScore(Math.min(100, demoState.compliance_score + 6.7));
-      setLearningApplied(true);
+      console.error("Adaptive learning reanalysis error:", err);
     } finally {
       setIsSimulatingLearning(false);
     }

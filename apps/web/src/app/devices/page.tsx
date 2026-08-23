@@ -84,12 +84,18 @@ export default function DevicesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-sans">
         <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2 py-0.5 rounded bg-[#0A0A0A] text-[#00D9FF] border border-[#00D9FF]/30 text-[9px] font-mono font-bold">
+              AUDITED ASSETS
+            </span>
+            <span className="text-[10px] text-[#666666] font-mono">STATIC CONFIGURATION INVENTORY</span>
+          </div>
           <h1 className="text-xl font-bold text-[#F5F5F5] tracking-tight flex items-center gap-2.5 font-mono">
             <Server className="w-5 h-5 text-[#00D9FF]" />
-            <span>Monitored Network Devices</span>
+            <span>Audited Network Devices</span>
           </h1>
           <p className="text-xs text-[#8A8A8A] mt-1">
-            Real-time inventory of evaluated routers, switches, and security gateways across Cisco, Juniper, and Fortinet platforms.
+            Inventory of evaluated routers, switches, and security gateways across Cisco, Juniper, and Fortinet platforms based on parsed configuration records.
           </p>
         </div>
 
@@ -163,12 +169,16 @@ export default function DevicesPage() {
           </div>
         ) : filteredDevices.length === 0 ? (
           <div className="py-16 text-center text-[#666666] space-y-3">
-            <div>No network devices discovered.</div>
+            <Server className="w-8 h-8 text-[#555555] mx-auto" />
+            <div className="text-sm font-bold text-[#F5F5F5]">NO DEVICES INGESTED</div>
+            <p className="text-xs text-[#8A8A8A] max-w-sm mx-auto">
+              Upload a configuration file or execute the Golden Demo to ingest and audit a network device.
+            </p>
             <Link
               href="/configurations"
-              className="inline-block px-3.5 py-1.5 rounded bg-[#0E0E0E] hover:bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/40 font-semibold"
+              className="inline-block px-3.5 py-1.5 rounded bg-[#0E0E0E] hover:bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/40 font-semibold text-xs mt-2"
             >
-              Upload Configuration
+              Ingest Configuration →
             </Link>
           </div>
         ) : (
@@ -181,7 +191,7 @@ export default function DevicesPage() {
                   <th className="p-3">Compliance Score</th>
                   <th className="p-3">Risk Posture</th>
                   <th className="p-3">Status</th>
-                  <th className="p-3">Last Seen</th>
+                  <th className="p-3">Last Ingested</th>
                   <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
