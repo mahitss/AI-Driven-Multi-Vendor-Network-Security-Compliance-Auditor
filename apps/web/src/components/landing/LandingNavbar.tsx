@@ -1,20 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Shield, Play, Activity } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Shield, Play } from "lucide-react";
 import { fetchEngineDiagnostics } from "@/lib/api-client";
 
 export default function LandingNavbar() {
-  const { data: diagnostics } = useQuery({
-    queryKey: ["engineDiagnosticsNavbar"],
-    queryFn: fetchEngineDiagnostics,
-    staleTime: 60000,
-    retry: 1,
-  });
+  const [isOperational, setIsOperational] = useState<boolean>(true);
 
-  const isOperational = !!diagnostics;
+  useEffect(() => {
+    let mounted = true;
+    fetchEngineDiagnostics()
+      .then((data) => {
+        if (mounted && data) setIsOperational(true);
+      })
+      .catch(() => {
+        if (mounted) setIsOperational(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#1A1A1A]/80 bg-[#050505]/80 backdrop-blur-md font-mono">
