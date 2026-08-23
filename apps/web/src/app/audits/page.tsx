@@ -91,6 +91,8 @@ export default function AuditsPage() {
   const {
     data: audits = [],
     isLoading: isAuditsLoading,
+    isError: isAuditsError,
+    error: auditsError,
     refetch: refetchAudits,
   } = useQuery({
     queryKey: ["audits"],
@@ -265,15 +267,39 @@ export default function AuditsPage() {
         </div>
       </div>
 
-      {audits.length === 0 ? (
+      {isAuditsError ? (
+        <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/30 text-center space-y-3 font-mono">
+          <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
+            <div className="text-[11px] text-[#EF4444] mt-1">
+              {auditsError instanceof Error ? auditsError.message : "Failed to retrieve audit sessions from backend API."}
+            </div>
+          </div>
+          <button
+            onClick={() => refetchAudits()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/40 text-xs font-semibold"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Retry Request</span>
+          </button>
+        </div>
+      ) : isAuditsLoading ? (
+        <div className="py-16 text-center text-[#8A8A8A] font-mono text-xs flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#00D9FF]" />
+          <span>Loading compliance audit sessions...</span>
+        </div>
+      ) : audits.length === 0 ? (
         /* Empty State */
-        <div className="p-12 rounded-xl bg-slate-900/40 border border-white/5 text-center space-y-4">
+        <div className="p-12 rounded-xl bg-slate-900/40 border border-white/5 text-center space-y-4 font-mono text-xs">
           <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto">
             <ShieldCheck className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-white">No Compliance Audits Executed</h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
+            <h3 className="text-sm font-semibold text-white font-sans">No Compliance Audits Executed</h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto font-sans">
               Run a deterministic compliance audit against an ingested configuration to evaluate CIS, NIST, DISA STIG,
               and ISO 27001 baseline checks.
             </p>
@@ -285,7 +311,7 @@ export default function AuditsPage() {
               }
               setIsLaunchModalOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-colors font-mono"
           >
             <Play className="w-4 h-4 fill-current" />
             <span>Launch Initial Audit</span>
