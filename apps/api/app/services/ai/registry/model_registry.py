@@ -307,6 +307,131 @@ CANONICAL_MODELS: List[ModelInfo] = [
         temperature=0.1,
         max_tokens=1500,
     ),
+
+    # 16. Notes and Report Summary
+    ModelInfo(
+        model_id="dots-studio/dots-3-note-preview:free",
+        role="note_and_summary_reasoning",
+        task_types=[
+            AITaskType.REPORT_SUMMARY,
+            AITaskType.AUDIT_SUMMARY,
+            AITaskType.DEVICE_SUMMARY,
+        ],
+        priority=1,
+        fallback_priority=2,
+        context_length=32768,
+        cost_tier="free",
+        reasoning_capability="fast",
+        temperature=0.1,
+        max_tokens=1500,
+    ),
+
+    # 17. Laguna Fast Code & Remediation
+    ModelInfo(
+        model_id="poolside/laguna-s-2.1:free",
+        role="fast_code_and_cli_reasoning",
+        task_types=[
+            AITaskType.REMEDIATION_EXPLANATION,
+            AITaskType.CLI_SYNTAX_ASSISTANCE,
+            AITaskType.CODE_REVIEW,
+        ],
+        priority=1,
+        fallback_priority=1,
+        context_length=65536,
+        cost_tier="free",
+        reasoning_capability="coder",
+        temperature=0.0,
+        max_tokens=2048,
+    ),
+
+    # 18. Cohere North Mini Code
+    ModelInfo(
+        model_id="cohere/north-mini-code:free",
+        role="lightweight_code_reasoning",
+        task_types=[
+            AITaskType.CLI_SYNTAX_ASSISTANCE,
+            AITaskType.UNKNOWN_SYNTAX_CLASSIFICATION,
+            AITaskType.CODE_REVIEW,
+        ],
+        priority=2,
+        fallback_priority=2,
+        context_length=32768,
+        cost_tier="free",
+        reasoning_capability="coder",
+        temperature=0.0,
+        max_tokens=1500,
+    ),
+
+    # 19. Liquid LFM Lightweight Reasoning
+    ModelInfo(
+        model_id="liquid/lfm-2.5-2.6b:free",
+        role="ultra_fast_lightweight_reasoning",
+        task_types=[
+            AITaskType.SECURITY_ASSISTANT,
+            AITaskType.DEVICE_SUMMARY,
+            AITaskType.UNKNOWN_SYNTAX_CLASSIFICATION,
+        ],
+        priority=1,
+        fallback_priority=1,
+        context_length=32768,
+        cost_tier="free",
+        reasoning_capability="fast",
+        temperature=0.0,
+        max_tokens=1024,
+    ),
+
+    # 20. Thinking Machines Inkling
+    ModelInfo(
+        model_id="thinkingmachines/inkling:free",
+        role="structured_thought_reasoning",
+        task_types=[
+            AITaskType.FINDING_EXPLANATION,
+            AITaskType.RISK_CONTEXT_EXPLANATION,
+            AITaskType.CONFIGURATION_EXPLANATION,
+        ],
+        priority=1,
+        fallback_priority=2,
+        context_length=65536,
+        cost_tier="free",
+        reasoning_capability="thinking",
+        temperature=0.0,
+        max_tokens=2048,
+    ),
+
+    # 21. Deepgram Flux TTS / Stream Responder
+    ModelInfo(
+        model_id="deepgram/flux-tts:free",
+        role="fast_stream_response_reasoning",
+        task_types=[
+            AITaskType.SECURITY_ASSISTANT,
+            AITaskType.FRAMEWORK_EXPLANATION,
+        ],
+        priority=2,
+        fallback_priority=3,
+        context_length=32768,
+        cost_tier="free",
+        reasoning_capability="fast",
+        temperature=0.1,
+        max_tokens=1024,
+    ),
+
+    # 22. Nvidia Nemotron 3.5 Lightning
+    ModelInfo(
+        model_id="nvidia/nemotron-3.5-lightning:free",
+        role="lightning_security_reasoning",
+        task_types=[
+            AITaskType.FINDING_EXPLANATION,
+            AITaskType.SECURITY_ASSISTANT,
+            AITaskType.RISK_CONTEXT_EXPLANATION,
+        ],
+        priority=1,
+        fallback_priority=1,
+        context_length=65536,
+        cost_tier="free",
+        reasoning_capability="fast",
+        temperature=0.0,
+        max_tokens=2048,
+    ),
 ]
 
 
