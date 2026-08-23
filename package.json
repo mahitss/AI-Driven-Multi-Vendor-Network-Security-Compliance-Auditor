@@ -1,0 +1,13 @@
+{
+  "name": "netvigil-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NetVigil — AI-Driven Multi-Vendor Network Security Compliance Auditor",
+  "scripts": {
+    "dev": "npm run dev --prefix apps/web",
+    "dev:web": "npm run dev --prefix apps/web",
+    "build": "npm run build --prefix apps/web",
+    "start": "npm run start --prefix apps/web",
+    "lint": "npm run lint --prefix apps/web"
+  }
+}

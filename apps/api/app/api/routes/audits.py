@@ -90,6 +90,38 @@ async def list_audits(
 
 
 @router.get(
+    "/findings/all",
+    response_model=List[FindingResponse],
+    summary="List all findings across audits",
+)
+async def list_all_findings(
+    db: DatabaseDep,
+    framework: Optional[str] = Query(None, description="Filter by framework (CIS, NIST, STIG, ISO)"),
+    severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL, HIGH, MEDIUM, LOW)"),
+    status_filter: Optional[str] = Query(None, alias="status", description="Filter by status (PASS, FAIL, UNKNOWN)"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    limit: int = Query(200, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> List[FindingResponse]:
+    """Retrieve all findings across all audits with multi-dimensional filtering."""
+    query = select(Finding)
+
+    if framework and framework.upper() != "ALL":
+        query = query.where(Finding.framework == framework.upper())
+    if severity and severity.upper() != "ALL":
+        query = query.where(Finding.severity == severity.upper())
+    if status_filter and status_filter.upper() != "ALL":
+        query = query.where(Finding.status == status_filter.upper())
+    if category and category.lower() != "all":
+        query = query.where(Finding.category == category)
+
+    query = query.order_by(Finding.severity, Finding.control_id).offset(offset).limit(limit)
+    res = await db.execute(query)
+    findings = res.scalars().all()
+    return [FindingResponse.model_validate(f) for f in findings]
+
+
+@router.get(
     "/{audit_id}",
     response_model=AuditDetailResponse,
     summary="Get complete audit details, framework scores, and findings",

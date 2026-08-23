@@ -47,6 +47,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Database schema initialization notice: {e}")
 
+    # Idempotently seed canonical multi-vendor demo dataset if empty
+    try:
+        from app.db.session import AsyncSessionLocal
+        from app.db.seed import seed_database_if_empty
+        async with AsyncSessionLocal() as session:
+            await seed_database_if_empty(session)
+    except Exception as e:
+        logger.warning(f"Database seed notice: {e}")
+
     yield
 
     logger.info(f"Shutting down {settings.PROJECT_NAME}")
