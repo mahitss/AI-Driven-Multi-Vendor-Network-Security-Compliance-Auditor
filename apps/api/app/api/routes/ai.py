@@ -193,31 +193,52 @@ async def interpret_syntax(
 
 
 @router.post(
-    "/configurations/{config_id}/interpret-unknown",
-    response_model=List[UnknownConfigInterpretationResponse],
-    summary="Batch interpret all unknown lines extracted from a parsed configuration",
+    "/explain-finding",
+    response_model=FindingExplanationResponse,
+    summary="Direct alias to explain finding by ID",
 )
-async def batch_interpret_unknown_config_lines(
-    config_id: str,
+async def explain_finding_direct(
+    finding_id: str,
     db: DatabaseDep,
-) -> List[UnknownConfigInterpretationResponse]:
-    """Runs unknown syntax classifier across all unrecognized configuration directives."""
-    cfg = await db.get(Configuration, config_id)
-    if not cfg:
-        raise ResourceNotFoundError(resource="Configuration", identifier=config_id)
+) -> FindingExplanationResponse:
+    """Direct alias for explain finding."""
+    return await FindingExplanationService.explain_finding(finding_id=finding_id, db=db)
 
-    unknown_directives = cfg.unknown_items or []
-    if not unknown_directives:
-        return []
 
-    results = []
-    for item in unknown_directives[:10]:  # Limit to 10 for batch responsiveness
-        raw_cmd = item if isinstance(item, str) else item.get("raw_line", str(item))
-        interp = await UnknownConfigInterpreterService.interpret_command(
-            raw_command=raw_cmd,
-            vendor_hint=cfg.detected_vendor or "cisco",
-            platform_hint=cfg.detected_platform,
+@router.post(
+    "/classify-syntax",
+    response_model=UnknownConfigInterpretationResponse,
+    summary="Direct alias to classify unknown vendor syntax",
+)
+async def classify_syntax_direct(
+    payload: UnknownConfigInterpretationRequest,
+) -> UnknownConfigInterpretationResponse:
+    """Direct alias for unknown syntax classification."""
+    return await UnknownConfigInterpreterService.interpret_command(
+        raw_command=payload.raw_command,
+        vendor_hint=payload.vendor_hint,
+        platform_hint=payload.platform_hint,
+        nearby_context=payload.nearby_context,
+    )
+
+
+@router.post(
+    "/assistant",
+    response_model=AuditAssistantQueryResponse,
+    summary="Direct alias for AI security assistant Q&A",
+)
+async def query_assistant_direct(
+    payload: AuditAssistantQueryRequest,
+    db: DatabaseDep,
+) -> AuditAssistantQueryResponse:
+    """Direct alias for AI assistant query."""
+    if not payload.audit_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="audit_id is required for grounded AI assistant query.",
         )
-        results.append(interp)
-
-    return results
+    return await AuditAssistantService.answer_query(
+        query=payload.query,
+        audit_id=payload.audit_id,
+        db=db,
+    )

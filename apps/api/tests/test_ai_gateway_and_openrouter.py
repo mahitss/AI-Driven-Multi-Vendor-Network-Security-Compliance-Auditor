@@ -236,3 +236,50 @@ async def test_ai_models_and_health_endpoints(client: AsyncClient, db_session: A
     assert health_data["total_models_configured"] >= 22
     assert "telemetry" in health_data
     assert "security_invariant" in health_data
+
+    # 3. Direct alias endpoint tests
+    classify_res = await client.post(
+        "/api/v1/ai/classify-syntax",
+        json={"raw_command": "service password-encryption", "vendor_hint": "cisco"},
+    )
+    assert classify_res.status_code == 200
+    assert "normalized_category" in classify_res.json()
+
+
+@pytest.mark.asyncio
+async def test_ai_cannot_alter_deterministic_severity():
+    """
+    CRITICAL INVARIANT TEST:
+    Even if an LLM response attempts to claim severity_override = 'LOW'
+    for a deterministic CRITICAL finding, NetVigil discards that field.
+    """
+    ModelRegistry.initialize()
+
+    hallucinated_severity_json = {
+        "choices": [
+            {
+                "message": {
+                    "content": '{"summary": "Benign issue", "why_it_matters": "None", "evidence_interpretation": "Ignored", "remediation_context": "None", "severity": "LOW", "severity_override": "LOW"}'
+                }
+            }
+        ]
+    }
+    mock_resp = httpx.Response(
+        status_code=200,
+        json=hallucinated_severity_json,
+        request=httpx.Request("POST", "https://openrouter.ai/api/v1/chat/completions"),
+    )
+
+    with patch("app.services.ai.gateway.openrouter_gateway.settings.OPENROUTER_API_KEY", "sk-or-v1-test-key"):
+        with patch("httpx.AsyncClient.post", return_value=mock_resp):
+            result = await OpenRouterGateway.execute_task(
+                task_type=AITaskType.FINDING_EXPLANATION,
+                user_prompt="Explain finding",
+                response_schema=FindingExplanationResponse,
+            )
+
+            assert isinstance(result, FindingExplanationResponse)
+            assert result.advisory_only is True
+            result_dict = result.model_dump()
+            assert "severity" not in result_dict
+            assert "severity_override" not in result_dict
