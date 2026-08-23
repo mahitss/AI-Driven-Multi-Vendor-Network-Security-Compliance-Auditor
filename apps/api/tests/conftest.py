@@ -14,6 +14,9 @@ from app.db.session import get_db
 from app.main import app
 from app.models.base import Base
 
+# Ensure fast deterministic test execution by default
+settings.OPENROUTER_API_KEY = ""
+
 # Use in-memory SQLite for high-speed test isolation
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
