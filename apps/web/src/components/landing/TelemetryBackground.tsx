@@ -6,31 +6,26 @@ interface TelemetryItem {
   id: string;
   text: string;
   depth: "bg" | "mid" | "fg";
-  side: "left" | "right";
   top: string;
   horizontalPos: string;
   color: string;
 }
 
-// Left flank telemetry fragments (peripheral framing)
+// Peripheral Left Flank Fragments (Restrained to far left edge)
 const LEFT_FRAGMENTS = [
-  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#06B6D4]", top: "14%", horizontalPos: "left-[2%] sm:left-[3%] lg:left-[4%]" },
-  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#737373]", top: "26%", horizontalPos: "left-[1%] sm:left-[2%] lg:left-[3%]" },
-  { text: "logging.remote_logging = false", depth: "bg", color: "text-[#737373]", top: "38%", horizontalPos: "left-[2%] sm:left-[4%] lg:left-[5%]" },
-  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#10B981]", top: "50%", horizontalPos: "left-[1%] sm:left-[2%] lg:left-[3%]" },
-  { text: "EVIDENCE:[LINE 17]", depth: "fg", color: "text-[#06B6D4]", top: "62%", horizontalPos: "left-[2%] sm:left-[3%] lg:left-[4%]" },
-  { text: "time_sync.ntp_enabled = false", depth: "bg", color: "text-[#737373]", top: "74%", horizontalPos: "left-[1%] sm:left-[2%] lg:left-[3%]" },
+  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#0891b2]", top: "18%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
+  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#525252]", top: "34%", horizontalPos: "left-[1%] sm:left-[2%]" },
+  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#059669]", top: "52%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
+  { text: "EVIDENCE:[LINE 17]", depth: "mid", color: "text-[#0891b2]", top: "68%", horizontalPos: "left-[1%] sm:left-[2%]" },
 ];
 
-// Right flank telemetry fragments (peripheral framing)
+// Peripheral Right Flank Fragments (Restrained to far right edge)
 const RIGHT_FRAGMENTS = [
-  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#737373]", top: "14%", horizontalPos: "right-[2%] sm:right-[3%] lg:right-[4%]" },
-  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#10B981]", top: "25%", horizontalPos: "right-[1%] sm:right-[2%] lg:right-[3%]" },
-  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#06B6D4]", top: "36%", horizontalPos: "right-[2%] sm:right-[4%] lg:right-[5%]" },
-  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#06B6D4]", top: "48%", horizontalPos: "right-[1%] sm:right-[2%] lg:right-[3%]" },
-  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#10B981]", top: "59%", horizontalPos: "right-[2%] sm:right-[3%] lg:right-[4%]" },
-  { text: "EXECUTION:DISABLED", depth: "fg", color: "text-[#06B6D4]", top: "70%", horizontalPos: "right-[1%] sm:right-[2%] lg:right-[3%]" },
-  { text: "REMOTE_PUSH:ABSENT", depth: "mid", color: "text-[#10B981]", top: "81%", horizontalPos: "right-[2%] sm:right-[3%] lg:right-[4%]" },
+  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#525252]", top: "18%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#059669]", top: "32%", horizontalPos: "right-[1%] sm:right-[2%]" },
+  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#0891b2]", top: "46%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#0891b2]", top: "60%", horizontalPos: "right-[1%] sm:right-[2%]" },
+  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#059669]", top: "74%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
 ];
 
 export default function TelemetryBackground() {
@@ -65,18 +60,18 @@ export default function TelemetryBackground() {
 
     const updatePosition = () => {
       if (!prefersReducedMotion && container) {
-        time += 0.009;
-        currentParallaxX += (mouseX * 10 - currentParallaxX) * 0.04;
-        currentParallaxY += (mouseY * 8 - currentParallaxY) * 0.04;
+        time += 0.005;
+        currentParallaxX += (mouseX * 6 - currentParallaxX) * 0.03;
+        currentParallaxY += (mouseY * 5 - currentParallaxY) * 0.03;
 
         const children = container.children;
         for (let i = 0; i < children.length; i++) {
           const el = children[i] as HTMLElement;
           const depth = el.dataset.depth;
-          const depthFactor = depth === "fg" ? 1.2 : depth === "mid" ? 0.75 : 0.45;
+          const depthFactor = depth === "fg" ? 1.0 : depth === "mid" ? 0.6 : 0.35;
 
-          const floatX = Math.sin(time * 0.45 + i * 1.1) * 4 * depthFactor;
-          const floatY = Math.cos(time * 0.35 + i * 0.8) * 3 * depthFactor;
+          const floatX = Math.sin(time * 0.3 + i * 1.2) * 3 * depthFactor;
+          const floatY = Math.cos(time * 0.25 + i * 0.9) * 2.5 * depthFactor;
 
           const px = currentParallaxX * depthFactor + floatX;
           const py = currentParallaxY * depthFactor + floatY;
@@ -99,28 +94,24 @@ export default function TelemetryBackground() {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
-      {/* Central Clean Quiet Zone Atmosphere */}
-      <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[400px] bg-radial from-[#06B6D4]/[0.025] via-transparent to-transparent rounded-full blur-3xl pointer-events-none" />
-
-      {/* Peripheral Left & Right Telemetry Framing */}
+      {/* Peripheral Left & Right Telemetry Framing (Opacity: 0.025 - 0.055) */}
       <div ref={containerRef} className="w-full h-full relative font-mono text-[10px] sm:text-[11px]">
         {/* Left Flank Items */}
         {LEFT_FRAGMENTS.map((item, idx) => {
           const opacityClass =
             item.depth === "fg"
-              ? "opacity-[0.09] sm:opacity-[0.10] hover:opacity-[0.18]"
+              ? "opacity-[0.05] sm:opacity-[0.055]"
               : item.depth === "mid"
-              ? "opacity-[0.06] sm:opacity-[0.07]"
-              : "opacity-[0.03] sm:opacity-[0.04]";
+              ? "opacity-[0.035] sm:opacity-[0.04]"
+              : "opacity-[0.025]";
 
-          // On mobile, hide lower items to keep UI completely uncluttered
-          const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
+          const mobileClass = idx > 1 ? "hidden lg:block" : "hidden sm:block";
 
           return (
             <div
               key={`left-${idx}`}
               data-depth={item.depth}
-              className={`absolute ${item.horizontalPos} ${opacityClass} ${mobileClass} ${item.color} font-semibold tracking-wider whitespace-nowrap transition-transform duration-75`}
+              className={`absolute ${item.horizontalPos} ${opacityClass} ${mobileClass} ${item.color} font-medium tracking-wider whitespace-nowrap`}
               style={{
                 top: item.top,
                 willChange: "transform",
@@ -135,18 +126,18 @@ export default function TelemetryBackground() {
         {RIGHT_FRAGMENTS.map((item, idx) => {
           const opacityClass =
             item.depth === "fg"
-              ? "opacity-[0.09] sm:opacity-[0.10] hover:opacity-[0.18]"
+              ? "opacity-[0.05] sm:opacity-[0.055]"
               : item.depth === "mid"
-              ? "opacity-[0.06] sm:opacity-[0.07]"
-              : "opacity-[0.03] sm:opacity-[0.04]";
+              ? "opacity-[0.035] sm:opacity-[0.04]"
+              : "opacity-[0.025]";
 
-          const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
+          const mobileClass = idx > 1 ? "hidden lg:block" : "hidden sm:block";
 
           return (
             <div
               key={`right-${idx}`}
               data-depth={item.depth}
-              className={`absolute ${item.horizontalPos} ${opacityClass} ${mobileClass} ${item.color} font-semibold tracking-wider whitespace-nowrap transition-transform duration-75`}
+              className={`absolute ${item.horizontalPos} ${opacityClass} ${mobileClass} ${item.color} font-medium tracking-wider whitespace-nowrap`}
               style={{
                 top: item.top,
                 willChange: "transform",
