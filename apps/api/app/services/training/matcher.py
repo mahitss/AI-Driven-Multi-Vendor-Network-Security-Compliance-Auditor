@@ -8,11 +8,14 @@ Evaluates unparsed configuration syntax against approved Training Mappings in pr
 3. Prefix/keyword matching (Confidence: 0.85)
 """
 import json
+import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel
 from app.models.training import TrainingMapping
 from app.services.training.allowlist import validate_and_cast_property_value
+
+logger = logging.getLogger(__name__)
 
 
 class MatchedMappingResult(BaseModel):
@@ -129,8 +132,10 @@ def apply_learned_fact_to_profile(
             fact.method = "learned_mapping"
             setattr(submodel, field_name, fact)
             return True
-    except Exception:
-        pass
+    except (AttributeError, TypeError, ValueError) as err:
+        logger.warning("Failed to apply learned mapping %s on domain %s: %s", match.property_path, domain, err)
+    except Exception as err:
+        logger.error("Unexpected error applying learned mapping %s: %s", match.property_path, err, exc_info=True)
     return False
 
 

@@ -5,13 +5,17 @@ Problem Statement: SIH26155 (NTRO)
 Evaluates compliance rules against the canonical Universal Security Model.
 Calculates PASS / FAIL / PARTIAL / NOT_APPLICABLE / UNKNOWN with complete line evidence.
 """
+import logging
 from typing import Any, List, Optional, Tuple
+from pydantic import ValidationError
 from app.services.compliance.models import (
     ComplianceRule,
     EvaluationStatus,
     RuleEvaluationResult,
 )
 from app.services.parser.models import NormalizedSecurityProfile, SecurityFact
+
+logger = logging.getLogger(__name__)
 
 
 class RuleEvaluator:
@@ -47,14 +51,16 @@ class RuleEvaluator:
                 if isinstance(current, dict) and "value" in current:
                     try:
                         fact_container = SecurityFact.model_validate(current)
-                    except Exception:
-                        pass
+                    except (ValidationError, TypeError, ValueError) as err:
+                        logger.debug("Failed to validate SecurityFact dict: %s", err)
             else:
                 return None, None
 
         if isinstance(current, SecurityFact):
             fact_container = current
             current = current.value
+        elif isinstance(current, dict) and "value" in current:
+            current = current["value"]
 
         return current, fact_container
 
@@ -152,5 +158,6 @@ class RuleEvaluator:
             else:
                 # Default fallback comparison
                 return EvaluationStatus.PASS if str(actual) == str(expected) else EvaluationStatus.FAIL
-        except Exception:
+        except Exception as err:
+            logger.warning("Deterministic rule comparison failed (op: %s, actual: %r, expected: %r): %s", op, actual, expected, err)
             return EvaluationStatus.UNKNOWN

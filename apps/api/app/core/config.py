@@ -55,6 +55,25 @@ class Settings(BaseSettings):
     CONFIDENCE_HIGH_THRESHOLD: float = 0.90
     CONFIDENCE_REVIEW_THRESHOLD: float = 0.70
 
+    @field_validator("SECRET_KEY", mode="after")
+    @classmethod
+    def validate_secret_key(cls, v: str, info) -> str:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        insecure_keys = [
+            "dev-insecure-secret-key-replace-in-production-sih26155",
+            "secret",
+            "changeme",
+            "default",
+            "",
+        ]
+        if env == "production":
+            if not v or v in insecure_keys or len(v) < 32:
+                raise ValueError(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: A strong, unguessable SECRET_KEY (minimum 32 characters) "
+                    "must be explicitly configured via environment variable in production mode. Development default secret keys are strictly prohibited."
+                )
+        return v
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

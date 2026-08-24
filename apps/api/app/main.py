@@ -29,7 +29,7 @@ from app.core.errors import (
     validation_exception_handler,
 )
 from app.core.logging import logger
-from app.core.middleware import RequestContextMiddleware
+from app.core.middleware import RequestContextMiddleware, RateLimitMiddleware
 from app.db.session import async_engine
 from app.models.base import Base
 
@@ -74,6 +74,9 @@ app = FastAPI(
 
 # Correlation & Request ID Middleware
 app.add_middleware(RequestContextMiddleware)
+
+# Application-Level Rate Limiting Middleware
+app.add_middleware(RateLimitMiddleware)
 
 # CORS Middleware
 app.add_middleware(

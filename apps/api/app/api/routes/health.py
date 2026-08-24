@@ -2,6 +2,7 @@
 Health Check Route
 GET /health
 """
+import logging
 import time
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
@@ -11,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.session import get_db
 from app.schemas.health import DatabaseHealth, SystemHealthResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Health"])
 
@@ -28,7 +31,8 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
     try:
         await db.execute(text("SELECT 1"))
         latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
-    except Exception:
+    except Exception as err:
+        logger.warning("Database connectivity probe check failed: %s", err)
         db_status = "disconnected"
 
     return SystemHealthResponse(

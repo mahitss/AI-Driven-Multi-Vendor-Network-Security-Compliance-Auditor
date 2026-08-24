@@ -7,8 +7,11 @@ If OpenRouter is unconfigured, unreachable, or in air-gapped defense mode,
 NetVigil falls back cleanly to this offline deterministic provider.
 Core parsing and compliance continue seamlessly.
 """
+import logging
 from typing import Any, Dict, Optional, Type, TypeVar
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
+
+logger = logging.getLogger(__name__)
 
 from app.schemas.ai import (
     AuditAssistantQueryResponse,
@@ -199,8 +202,10 @@ class OfflineStandbyProvider:
                     advisory_only=True,
                     limitations="Offline Standby Mode. Core deterministic compliance remains 100% active.",
                 )
-            except Exception:
-                pass
+            except (ValidationError, TypeError) as err:
+                logger.debug("Schema fallback instantiation bypassed in offline provider: %s", err)
+            except Exception as err:
+                logger.warning("Unexpected error instantiating response schema in offline provider: %s", err)
 
         return {
             "advisory_only": True,

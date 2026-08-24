@@ -141,8 +141,10 @@ class OpenRouterGateway:
                 props = response_schema.model_json_schema().get("properties", {})
                 clean_example = {k: f"<{v.get('description', k)}>" for k, v in props.items()}
                 system_prompt += f"\nYou MUST respond with ONLY a valid JSON object matching this structure (all field values must be strings, not objects):\n{json.dumps(clean_example, indent=2)}"
-            except Exception:
-                pass
+            except (AttributeError, TypeError, ValueError) as err:
+                logger.debug("Could not generate JSON schema example for task %s: %s", task_type, err)
+            except Exception as err:
+                logger.warning("Unexpected error generating JSON schema example: %s", err)
 
         # 2. Determine Candidate Model Sequence
         candidates: List[ModelInfo] = TaskRouter.get_candidate_models(task_type)
