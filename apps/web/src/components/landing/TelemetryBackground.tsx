@@ -6,58 +6,39 @@ interface TelemetryItem {
   id: string;
   text: string;
   depth: "bg" | "mid" | "fg";
+  side: "left" | "right";
   top: string;
-  left: string;
-  speed: number;
+  horizontalPos: string;
   color: string;
 }
 
-const TELEMETRY_FRAGMENTS = [
-  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#EF4444]" },
-  { text: "remote_access.telnet_enabled = true", depth: "mid", color: "text-[#EF4444]" },
-  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#F59E0B]" },
-  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#737373]" },
-  { text: "logging.remote_logging = false", depth: "bg", color: "text-[#737373]" },
-  { text: "time_sync.ntp_enabled = false", depth: "bg", color: "text-[#737373]" },
-  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#06B6D4]" },
-  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#10B981]" },
-  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#F59E0B]" },
-  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#EF4444]" },
-  { text: "NIST-AC-17 / FAIL", depth: "mid", color: "text-[#EF4444]" },
-  { text: "STIG / FAIL", depth: "bg", color: "text-[#EF4444]" },
-  { text: "ISO-27001 / FAIL", depth: "mid", color: "text-[#F59E0B]" },
-  { text: "RISK:P0 / SCORE:97", depth: "fg", color: "text-[#EF4444]" },
-  { text: "EVIDENCE:[LINE 17]", depth: "fg", color: "text-[#10B981]" },
-  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#06B6D4]" },
-  { text: "EXECUTION:DISABLED", depth: "fg", color: "text-[#10B981]" },
-  { text: "REMOTE_PUSH:ABSENT", depth: "mid", color: "text-[#10B981]" },
+// Left flank telemetry fragments (peripheral framing)
+const LEFT_FRAGMENTS = [
+  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#06B6D4]", top: "14%", horizontalPos: "left-[2%] sm:left-[3%] lg:left-[4%]" },
+  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#737373]", top: "26%", horizontalPos: "left-[1%] sm:left-[2%] lg:left-[3%]" },
+  { text: "logging.remote_logging = false", depth: "bg", color: "text-[#737373]", top: "38%", horizontalPos: "left-[2%] sm:left-[4%] lg:left-[5%]" },
+  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#10B981]", top: "50%", horizontalPos: "left-[1%] sm:left-[2%] lg:left-[3%]" },
+  { text: "EVIDENCE:[LINE 17]", depth: "fg", color: "text-[#06B6D4]", top: "62%", horizontalPos: "left-[2%] sm:left-[3%] lg:left-[4%]" },
+  { text: "time_sync.ntp_enabled = false", depth: "bg", color: "text-[#737373]", top: "74%", horizontalPos: "left-[1%] sm:left-[2%] lg:left-[3%]" },
+];
+
+// Right flank telemetry fragments (peripheral framing)
+const RIGHT_FRAGMENTS = [
+  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#737373]", top: "14%", horizontalPos: "right-[2%] sm:right-[3%] lg:right-[4%]" },
+  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#10B981]", top: "25%", horizontalPos: "right-[1%] sm:right-[2%] lg:right-[3%]" },
+  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#06B6D4]", top: "36%", horizontalPos: "right-[2%] sm:right-[4%] lg:right-[5%]" },
+  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#06B6D4]", top: "48%", horizontalPos: "right-[1%] sm:right-[2%] lg:right-[3%]" },
+  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#10B981]", top: "59%", horizontalPos: "right-[2%] sm:right-[3%] lg:right-[4%]" },
+  { text: "EXECUTION:DISABLED", depth: "fg", color: "text-[#06B6D4]", top: "70%", horizontalPos: "right-[1%] sm:right-[2%] lg:right-[3%]" },
+  { text: "REMOTE_PUSH:ABSENT", depth: "mid", color: "text-[#10B981]", top: "81%", horizontalPos: "right-[2%] sm:right-[3%] lg:right-[4%]" },
 ];
 
 export default function TelemetryBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [items, setItems] = useState<TelemetryItem[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Generate deterministic layout positions
-    const initialItems: TelemetryItem[] = TELEMETRY_FRAGMENTS.map((frag, idx) => {
-      // Grid-based positioning to prevent heavy overlap
-      const col = idx % 4;
-      const row = Math.floor(idx / 4);
-      const topOffset = 12 + row * 18 + ((idx * 7) % 8);
-      const leftOffset = 6 + col * 23 + ((idx * 13) % 10);
-
-      return {
-        id: `telemetry-${idx}`,
-        text: frag.text,
-        depth: frag.depth as "bg" | "mid" | "fg",
-        top: `${topOffset}%`,
-        left: `${leftOffset}%`,
-        speed: frag.depth === "fg" ? 0.04 : frag.depth === "mid" ? 0.025 : 0.015,
-        color: frag.color,
-      };
-    });
-
-    setItems(initialItems);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -84,18 +65,18 @@ export default function TelemetryBackground() {
 
     const updatePosition = () => {
       if (!prefersReducedMotion && container) {
-        time += 0.01;
-        currentParallaxX += (mouseX * 12 - currentParallaxX) * 0.05;
-        currentParallaxY += (mouseY * 12 - currentParallaxY) * 0.05;
+        time += 0.009;
+        currentParallaxX += (mouseX * 10 - currentParallaxX) * 0.04;
+        currentParallaxY += (mouseY * 8 - currentParallaxY) * 0.04;
 
         const children = container.children;
         for (let i = 0; i < children.length; i++) {
           const el = children[i] as HTMLElement;
           const depth = el.dataset.depth;
-          const depthFactor = depth === "fg" ? 1.4 : depth === "mid" ? 0.9 : 0.5;
+          const depthFactor = depth === "fg" ? 1.2 : depth === "mid" ? 0.75 : 0.45;
 
-          const floatX = Math.sin(time * 0.5 + i) * 6 * depthFactor;
-          const floatY = Math.cos(time * 0.4 + i * 0.7) * 4 * depthFactor;
+          const floatX = Math.sin(time * 0.45 + i * 1.1) * 4 * depthFactor;
+          const floatY = Math.cos(time * 0.35 + i * 0.8) * 3 * depthFactor;
 
           const px = currentParallaxX * depthFactor + floatX;
           const py = currentParallaxY * depthFactor + floatY;
@@ -114,33 +95,60 @@ export default function TelemetryBackground() {
     };
   }, []);
 
+  if (!mounted) return null;
+
   return (
     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
-      {/* Subtle Central Security Intelligence Atmosphere */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-radial from-[#06B6D4]/[0.04] via-[#10B981]/[0.015] to-transparent rounded-full blur-3xl pointer-events-none" />
+      {/* Central Clean Quiet Zone Atmosphere */}
+      <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[400px] bg-radial from-[#06B6D4]/[0.025] via-transparent to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      {/* Decorative Telemetry Layer Container */}
+      {/* Peripheral Left & Right Telemetry Framing */}
       <div ref={containerRef} className="w-full h-full relative font-mono text-[10px] sm:text-[11px]">
-        {items.map((item, idx) => {
-          // Three-depth opacity control
+        {/* Left Flank Items */}
+        {LEFT_FRAGMENTS.map((item, idx) => {
           const opacityClass =
             item.depth === "fg"
-              ? "opacity-15 sm:opacity-[0.14]"
+              ? "opacity-[0.09] sm:opacity-[0.10] hover:opacity-[0.18]"
               : item.depth === "mid"
-              ? "opacity-10 sm:opacity-[0.08]"
-              : "opacity-5 sm:opacity-[0.04]";
+              ? "opacity-[0.06] sm:opacity-[0.07]"
+              : "opacity-[0.03] sm:opacity-[0.04]";
 
-          // Hide dense fragments on small mobile screens to keep hero pristine
-          const mobileVisibilityClass = idx > 4 ? "hidden sm:block" : "block";
+          // On mobile, hide lower items to keep UI completely uncluttered
+          const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
 
           return (
             <div
-              key={item.id}
+              key={`left-${idx}`}
               data-depth={item.depth}
-              className={`absolute transition-transform ease-out ${opacityClass} ${mobileVisibilityClass} ${item.color} font-semibold tracking-wider whitespace-nowrap`}
+              className={`absolute ${item.horizontalPos} ${opacityClass} ${mobileClass} ${item.color} font-semibold tracking-wider whitespace-nowrap transition-transform duration-75`}
               style={{
                 top: item.top,
-                left: item.left,
+                willChange: "transform",
+              }}
+            >
+              {item.text}
+            </div>
+          );
+        })}
+
+        {/* Right Flank Items */}
+        {RIGHT_FRAGMENTS.map((item, idx) => {
+          const opacityClass =
+            item.depth === "fg"
+              ? "opacity-[0.09] sm:opacity-[0.10] hover:opacity-[0.18]"
+              : item.depth === "mid"
+              ? "opacity-[0.06] sm:opacity-[0.07]"
+              : "opacity-[0.03] sm:opacity-[0.04]";
+
+          const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
+
+          return (
+            <div
+              key={`right-${idx}`}
+              data-depth={item.depth}
+              className={`absolute ${item.horizontalPos} ${opacityClass} ${mobileClass} ${item.color} font-semibold tracking-wider whitespace-nowrap transition-transform duration-75`}
+              style={{
+                top: item.top,
                 willChange: "transform",
               }}
             >

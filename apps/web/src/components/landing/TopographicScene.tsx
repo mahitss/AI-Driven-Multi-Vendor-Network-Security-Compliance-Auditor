@@ -4,13 +4,15 @@ import React, { useEffect, useRef } from "react";
 
 /**
  * TopographicScene
- * Full-screen interactive WebGL / Canvas2D wireframe terrain representing
- * raw configuration complexity converging into normalized security semantics.
+ * 
+ * High-performance 3D topological security surface that occupies the lower ~45-50%
+ * of the hero viewport. Creates a receding perspective landscape with a soft horizon fade
+ * below the hero text and CTAs.
  *
  * Visual semantics:
- * - Green/Emerald particles & nodes: Deterministic Security Facts
- * - Cyan particles & nodes: Grounded AI Advisory & Syntax Interpretation
- * - Topographic Wireframe Mesh: Multi-Vendor AST Normalization Field
+ * - Emerald nodes: Deterministic Security Facts
+ * - Cyan nodes: Grounded AI Advisory
+ * - Receding Wireframe Contours: Normalized Security Topography
  */
 export default function TopographicScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,18 +44,20 @@ export default function TopographicScene() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Mesh Grid parameters
-    const rows = 32;
-    const cols = 44;
-    const spacing = 42;
+    // Landscape Grid Dimensions
+    const rows = 30; // Depth slices (Z)
+    const cols = 44; // Width slices (X)
+    const spacingX = 48;
+    const spacingZ = 36;
 
-    // Interactive mouse tracking for gentle camera parallax
+    // Mouse tracking for gentle perspective parallax
     let mouseX = 0;
     let mouseY = 0;
     let targetCameraX = 0;
     let targetCameraY = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (prefersReducedMotion) return;
       const halfW = window.innerWidth / 2;
       const halfH = window.innerHeight / 2;
       mouseX = (e.clientX - halfW) / halfW;
@@ -62,47 +66,50 @@ export default function TopographicScene() {
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // Deterministic & AI Particle Nodes
+    // Topological Security Node Intersections
     const nodes: {
       r: number;
       c: number;
       pulseOffset: number;
       type: "deterministic" | "ai";
+      travelSpeed: number;
     }[] = [];
 
-    for (let n = 0; n < 28; n++) {
+    for (let n = 0; n < 32; n++) {
       nodes.push({
-        r: Math.floor(4 + ((n * 11) % (rows - 8))),
-        c: Math.floor(4 + ((n * 17) % (cols - 8))),
-        pulseOffset: (n * 0.45) % (Math.PI * 2),
+        r: Math.floor(4 + ((n * 7) % (rows - 6))),
+        c: Math.floor(4 + ((n * 13) % (cols - 8))),
+        pulseOffset: (n * 0.4) % (Math.PI * 2),
         type: n % 3 === 0 ? "ai" : "deterministic",
+        travelSpeed: 0.2 + (n % 4) * 0.1,
       });
     }
 
     let time = 0;
 
-    // 3D Perspective Projection Function
+    // 3D Perspective Projection to Lower Floor
     const project3D = (
       gx: number,
-      gy: number,
+      elevation: number,
       gz: number,
       width: number,
       height: number
     ) => {
-      const fov = 440;
-      const cameraZ = 360;
-      const cameraY = -130 + targetCameraY * 20;
-      const cameraX = targetCameraX * 30;
+      const fov = 360;
+      const cameraZ = 220;
+      const horizonY = height * 0.44; // Horizon starts right below hero text / CTAs
+      const cameraHeight = 160 + targetCameraY * 18;
+      const cameraX = targetCameraX * 35;
 
       const px = gx - cameraX;
-      const py = gy - cameraY;
+      const py = cameraHeight - elevation;
       const pz = gz + cameraZ;
 
       if (pz <= 10) return null;
 
       const scale = fov / pz;
       const screenX = width / 2 + px * scale;
-      const screenY = height / 2 + py * scale;
+      const screenY = horizonY + py * scale;
 
       return { x: screenX, y: screenY, scale, pz };
     };
@@ -112,120 +119,156 @@ export default function TopographicScene() {
       const height = canvas.parentElement?.clientHeight || window.innerHeight;
 
       if (!prefersReducedMotion) {
-        time += 0.012;
-        // Smooth camera damping
-        targetCameraX += (mouseX - targetCameraX) * 0.04;
-        targetCameraY += (mouseY - targetCameraY) * 0.04;
+        time += 0.011;
+        targetCameraX += (mouseX - targetCameraX) * 0.035;
+        targetCameraY += (mouseY - targetCameraY) * 0.035;
       }
 
       ctx.clearRect(0, 0, width, height);
 
-      // Deep subtle technical background vignette
-      const bgGrad = ctx.createRadialGradient(
+      // Radial atmosphere in the lower landscape
+      const floorGlow = ctx.createRadialGradient(
         width / 2,
-        height * 0.4,
-        50,
+        height * 0.72,
+        40,
         width / 2,
-        height * 0.5,
-        width * 0.7
+        height * 0.75,
+        width * 0.65
       );
-      bgGrad.addColorStop(0, "rgba(6, 182, 212, 0.03)"); // Cyan aura
-      bgGrad.addColorStop(0.5, "rgba(16, 185, 129, 0.015)"); // Emerald aura
-      bgGrad.addColorStop(1, "rgba(5, 5, 5, 0)");
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, width, height);
+      floorGlow.addColorStop(0, "rgba(6, 182, 212, 0.035)");
+      floorGlow.addColorStop(0.5, "rgba(16, 185, 129, 0.015)");
+      floorGlow.addColorStop(1, "rgba(10, 12, 16, 0)");
+      ctx.fillStyle = floorGlow;
+      ctx.fillRect(0, height * 0.4, width, height * 0.6);
 
-      // Compute grid elevation matrix
-      const grid3D: { x: number; y: number; scale: number; pz: number }[][] = [];
+      // Compute grid points matrix
+      const grid3D: ({ x: number; y: number; scale: number; pz: number } | null)[][] = [];
 
       for (let r = 0; r < rows; r++) {
         grid3D[r] = [];
+        // Z extends from horizon (far) to foreground (near)
+        const gz = r * spacingZ + 60;
+
         for (let c = 0; c < cols; c++) {
-          const gx = (c - cols / 2) * spacing;
-          const gz = (r - rows / 2) * spacing;
+          const gx = (c - cols / 2) * spacingX;
 
-          // Normalized undulating topological mathematical equation
-          const dist = Math.sqrt(gx * gx + gz * gz) * 0.003;
+          // Undulating landscape waves
           let elevation = 0;
-
           if (!prefersReducedMotion) {
-            const wave1 = Math.sin(dist * 5 - time * 1.5) * 22;
-            const wave2 = Math.cos(gx * 0.008 + time) * Math.sin(gz * 0.008 - time * 0.8) * 18;
-            const mouseInteraction =
-              Math.exp(-((gx - targetCameraX * 200) ** 2 + (gz - targetCameraY * 200) ** 2) / 35000) * 28;
-            elevation = wave1 + wave2 + mouseInteraction;
+            const wave1 = Math.sin(gz * 0.012 - time * 1.6) * 18;
+            const wave2 = Math.cos(gx * 0.009 + time * 0.7) * Math.sin(gz * 0.007) * 14;
+            const mouseEffect =
+              Math.exp(-((gx - targetCameraX * 180) ** 2 + (gz - 300) ** 2) / 45000) * 22;
+            elevation = wave1 + wave2 + mouseEffect;
           } else {
-            elevation = Math.sin(dist * 5) * 18;
+            elevation = Math.sin(gz * 0.012) * 15;
           }
 
           const pt = project3D(gx, elevation, gz, width, height);
-          if (pt) {
-            grid3D[r][c] = pt;
-          }
+          grid3D[r][c] = pt;
         }
       }
 
-      // Draw subtle technical wireframe mesh lines
-      ctx.lineWidth = 0.75;
+      // Draw Topographic Contour Lines (Latitude & Longitude)
+      ctx.lineWidth = 0.85;
 
       for (let r = 0; r < rows; r++) {
+        // Depth-based opacity: Fades out completely near horizon (r=0), bright near bottom (r=rows-1)
+        const depthRatio = r / (rows - 1);
+        const lineAlpha = Math.pow(depthRatio, 1.4) * 0.32; // Smooth exponential horizon fade
+
+        if (lineAlpha < 0.01) continue;
+
+        // 1. Draw horizontal contour line (latitude)
+        ctx.beginPath();
+        let first = true;
         for (let c = 0; c < cols; c++) {
-          const curr = grid3D[r]?.[c];
-          if (!curr) continue;
-
-          // Depth-based opacity fading
-          const depthAlpha = Math.max(0.04, Math.min(0.24, 1.0 - curr.pz / 750));
-
-          // Draw horizontal connection
-          if (c + 1 < cols && grid3D[r]?.[c + 1]) {
-            const next = grid3D[r][c + 1];
-            ctx.beginPath();
-            ctx.moveTo(curr.x, curr.y);
-            ctx.lineTo(next.x, next.y);
-            ctx.strokeStyle = `rgba(16, 185, 129, ${depthAlpha * 0.7})`;
-            ctx.stroke();
+          const pt = grid3D[r][c];
+          if (!pt) continue;
+          if (first) {
+            ctx.moveTo(pt.x, pt.y);
+            first = false;
+          } else {
+            ctx.lineTo(pt.x, pt.y);
           }
+        }
+        ctx.strokeStyle = `rgba(6, 182, 212, ${lineAlpha})`;
+        ctx.stroke();
 
-          // Draw vertical connection
-          if (r + 1 < rows && grid3D[r + 1]?.[c]) {
-            const next = grid3D[r + 1][c];
+        // 2. Draw vertical depth grid lines (longitude)
+        for (let c = 0; c < cols; c += 2) {
+          const curr = grid3D[r][c];
+          const next = r + 1 < rows ? grid3D[r + 1][c] : null;
+          if (curr && next) {
             ctx.beginPath();
             ctx.moveTo(curr.x, curr.y);
             ctx.lineTo(next.x, next.y);
-            ctx.strokeStyle = `rgba(6, 182, 212, ${depthAlpha * 0.8})`;
+            ctx.strokeStyle = `rgba(16, 185, 129, ${lineAlpha * 0.75})`;
             ctx.stroke();
           }
         }
       }
 
-      // Render Topological Security Nodes
+      // Render Topological Network Nodes along contours
       for (const node of nodes) {
         const pt = grid3D[node.r]?.[node.c];
         if (!pt) continue;
 
+        const depthRatio = node.r / (rows - 1);
+        if (depthRatio < 0.15) continue; // Don't render far-horizon clutter
+
         const pulse = prefersReducedMotion
           ? 1
-          : 0.6 + 0.4 * Math.sin(time * 3 + node.pulseOffset);
-        const radius = Math.max(1.5, 2.5 * pt.scale * pulse);
+          : 0.6 + 0.4 * Math.sin(time * 2.8 + node.pulseOffset);
+
+        const nodeAlpha = Math.min(0.9, Math.pow(depthRatio, 1.2) * 0.95 * pulse);
+        const radius = Math.max(1.5, 2.8 * pt.scale * pulse);
 
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
 
         if (node.type === "deterministic") {
-          // Emerald Green: Deterministic Fact
-          ctx.fillStyle = `rgba(16, 185, 129, ${0.75 * pulse})`;
-          ctx.shadowColor = "rgba(16, 185, 129, 0.6)";
-          ctx.shadowBlur = 6;
+          // Emerald: Deterministic Security Fact Node
+          ctx.fillStyle = `rgba(16, 185, 129, ${nodeAlpha})`;
+          ctx.shadowColor = "rgba(16, 185, 129, 0.65)";
+          ctx.shadowBlur = 6 * pt.scale;
           ctx.fill();
         } else {
-          // Cyan: AI Semantic Fact
-          ctx.fillStyle = `rgba(6, 182, 212, ${0.85 * pulse})`;
-          ctx.shadowColor = "rgba(6, 182, 212, 0.7)";
-          ctx.shadowBlur = 8;
+          // Cyan: AI Semantic Node
+          ctx.fillStyle = `rgba(6, 182, 212, ${nodeAlpha})`;
+          ctx.shadowColor = "rgba(6, 182, 212, 0.75)";
+          ctx.shadowBlur = 8 * pt.scale;
           ctx.fill();
         }
-
         ctx.shadowBlur = 0;
+      }
+
+      // Occasional gentle scanning pulse line traveling toward viewer
+      if (!prefersReducedMotion) {
+        const pulseProgress = (time * 0.4) % 1; // 0 to 1
+        const pulseRow = Math.floor(pulseProgress * (rows - 2));
+        if (pulseRow >= 2 && grid3D[pulseRow]) {
+          ctx.beginPath();
+          let firstPt = true;
+          for (let c = 0; c < cols; c++) {
+            const pt = grid3D[pulseRow][c];
+            if (!pt) continue;
+            if (firstPt) {
+              ctx.moveTo(pt.x, pt.y);
+              firstPt = false;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
+            }
+          }
+          const pulseAlpha = Math.sin(pulseProgress * Math.PI) * 0.28;
+          ctx.lineWidth = 1.6;
+          ctx.strokeStyle = `rgba(0, 217, 255, ${pulseAlpha})`;
+          ctx.shadowColor = "rgba(0, 217, 255, 0.8)";
+          ctx.shadowBlur = 10;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.lineWidth = 0.85;
+        }
       }
 
       animId = requestAnimationFrame(render);
@@ -244,7 +287,7 @@ export default function TopographicScene() {
     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
       <canvas
         ref={canvasRef}
-        className="w-full h-full block opacity-75 transition-opacity duration-1000"
+        className="w-full h-full block opacity-85 transition-opacity duration-1000"
       />
     </div>
   );
