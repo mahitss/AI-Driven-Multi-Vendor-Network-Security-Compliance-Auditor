@@ -48,22 +48,37 @@ export default function LandingHero() {
           line-level evidence, and uses grounded AI only where interpretation is required.
         </p>
 
-        {/* Action Controls - Aligned Buttons */}
-        <div className="flex flex-wrap items-center gap-3.5 font-mono text-xs mb-8">
+        {/* Tactical Chamfered Cut-Corner Action Controls */}
+        <div className="flex flex-wrap items-center gap-4 font-mono text-xs mb-8">
+          {/* Primary: Tactical Chamfered Solid Emerald Button */}
           <Link
             href="/demo"
-            className="inline-flex items-center justify-center gap-2 px-5 h-11 rounded-lg bg-[#00E5AA] hover:bg-[#00D19B] text-[#050709] font-bold text-[12px] transition-all duration-150 active:translate-y-[1px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_0_16px_rgba(0,229,170,0.2)]"
+            className="group relative inline-flex items-center justify-center gap-2.5 px-6 h-12 bg-[#00E5AA] hover:bg-[#00F5B6] text-[#03070C] font-bold text-[12px] tracking-wider transition-all duration-200 active:scale-[0.98] shadow-[0_0_20px_rgba(0,229,170,0.3)] hover:shadow-[0_0_28px_rgba(0,229,170,0.45)]"
+            style={{
+              clipPath: "polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)",
+            }}
           >
-            <Play className="w-3.5 h-3.5 fill-current" />
+            <Play className="w-3.5 h-3.5 fill-current transition-transform group-hover:translate-x-0.5" />
             <span>LAUNCH GOLDEN DEMO →</span>
           </Link>
 
-          <Link
-            href="/demo/multi-vendor"
-            className="inline-flex items-center justify-center gap-2 px-5 h-11 rounded-lg bg-[#0B0F19] hover:bg-[#111726] border border-white/[0.08] hover:border-white/[0.2] text-[#F5F7FA] font-semibold text-[12px] transition-all duration-150 active:translate-y-[1px]"
+          {/* Secondary: Tactical Chamfered Dark Glass Button with 1px Cyan Frame */}
+          <div
+            className="p-[1px] bg-gradient-to-r from-white/20 via-white/10 to-[#00D9FF]/40 hover:to-[#00D9FF]/80 transition-all duration-200"
+            style={{
+              clipPath: "polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)",
+            }}
           >
-            <span>EXPLORE SECURITY ENGINE →</span>
-          </Link>
+            <Link
+              href="/demo/multi-vendor"
+              className="inline-flex items-center justify-center gap-2 px-6 h-[46px] bg-[#070C14] hover:bg-[#0B1322] text-[#E2E8F0] hover:text-[#FFFFFF] font-semibold text-[12px] tracking-wider transition-all duration-200 active:scale-[0.98]"
+              style={{
+                clipPath: "polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px)",
+              }}
+            >
+              <span>EXPLORE SECURITY ENGINE →</span>
+            </Link>
+          </div>
         </div>
 
         {/* Faint Telemetry Footnote on Lower Left */}
