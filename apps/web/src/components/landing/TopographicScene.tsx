@@ -5,13 +5,14 @@ import React, { useEffect, useRef } from "react";
 /**
  * TopographicScene
  * 
- * Interactive 3D Topographic Security Terrain for the Two-Column Hero layout:
- * - Rendered on the right side (occupying ~54% width on desktop)
- * - True 3D perspective landscape with dual ridges, valleys, and non-parallel curved contours
- * - 8 traveling security telemetry nodes with architectural NetVigil concept labels
- * - 4 subtle inter-node network connection paths
- * - Smooth interactive cursor parallax and continuous 12-20s wave deformation cycle
- * - Atmospheric perimeter fade to blend seamlessly into #050709
+ * Large Environmental 3D Topographic Security Terrain:
+ * - Occupies the right 55-65% of the hero viewport
+ * - Low-angle perspective camera looking across a 3D cybersecurity landscape
+ * - True 3D depth with 32 curved contour paths, dual elevation ridges & valleys
+ * - Seamless atmospheric edge fade into #050709 (zero rectangular boundary)
+ * - 8 traveling security telemetry nodes with architectural NetVigil concept tags
+ * - 4 subtle curved network connection links
+ * - Ultra-smooth 14-18s continuous wave deformation + restrained 2-4% mouse parallax
  */
 export default function TopographicScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,11 +27,11 @@ export default function TopographicScene() {
     let animId: number;
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // HiDPI Canvas Scaling based on container dimensions
+    // HiDPI Canvas Scaling
     const resizeCanvas = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const width = canvas.parentElement?.clientWidth || window.innerWidth / 2;
-      const height = canvas.parentElement?.clientHeight || 600;
+      const width = canvas.parentElement?.clientWidth || window.innerWidth * 0.6;
+      const height = canvas.parentElement?.clientHeight || 800;
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -44,12 +45,12 @@ export default function TopographicScene() {
     window.addEventListener("resize", resizeCanvas);
 
     // 3D Grid & Contour Parameters
-    const numContours = 28; // 28 depth slices from horizon to foreground
-    const pointsPerContour = 54; // Horizontal curve resolution
+    const numContours = 32; // 32 depth contour slices
+    const pointsPerContour = 56; // Horizontal curve resolution
     const contourZStart = 30;
-    const contourZEnd = 620;
+    const contourZEnd = 680;
 
-    // Smooth Camera & Cursor Parallax
+    // Restrained Camera Parallax (2-4% max influence)
     let mouseX = 0;
     let mouseY = 0;
     let targetCameraX = 0;
@@ -65,7 +66,7 @@ export default function TopographicScene() {
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // 8 Telemetry Nodes with Real NetVigil Architectural Concepts
+    // 8 Telemetry Nodes with Real NetVigil Concepts
     const nodes: {
       contourIndex: number;
       xRatio: number;
@@ -74,14 +75,14 @@ export default function TopographicScene() {
       type: "deterministic" | "ai";
       label: string;
     }[] = [
-      { contourIndex: 5, xRatio: 0.22, speed: 0.0006, pulseOffset: 0.2, type: "deterministic", label: "CISCO IOS → AST → USM" },
-      { contourIndex: 9, xRatio: 0.78, speed: -0.0005, pulseOffset: 1.4, type: "ai", label: "JUNOS → AST → USM" },
-      { contourIndex: 13, xRatio: 0.35, speed: 0.0007, pulseOffset: 2.8, type: "deterministic", label: "CIS-1.2.1 / FAIL" },
-      { contourIndex: 17, xRatio: 0.65, speed: -0.0008, pulseOffset: 3.5, type: "ai", label: "FORTIOS → AST → USM" },
-      { contourIndex: 21, xRatio: 0.25, speed: 0.0005, pulseOffset: 4.6, type: "deterministic", label: "EVIDENCE:[LINE 17]" },
-      { contourIndex: 15, xRatio: 0.84, speed: -0.0006, pulseOffset: 5.1, type: "ai", label: "AI_ADVISORY:READ_ONLY" },
-      { contourIndex: 23, xRatio: 0.52, speed: 0.0005, pulseOffset: 1.9, type: "deterministic", label: "REMOTE_PUSH:ABSENT" },
-      { contourIndex: 11, xRatio: 0.15, speed: -0.0004, pulseOffset: 3.9, type: "deterministic", label: "SECURITY ENGINE / CORE" },
+      { contourIndex: 6, xRatio: 0.24, speed: 0.0005, pulseOffset: 0.2, type: "deterministic", label: "CISCO IOS → AST → USM" },
+      { contourIndex: 11, xRatio: 0.78, speed: -0.0004, pulseOffset: 1.4, type: "ai", label: "JUNOS → AST → USM" },
+      { contourIndex: 15, xRatio: 0.38, speed: 0.0006, pulseOffset: 2.8, type: "deterministic", label: "CIS-1.2.1 / FAIL" },
+      { contourIndex: 19, xRatio: 0.65, speed: -0.0007, pulseOffset: 3.5, type: "ai", label: "FORTIOS → AST → USM" },
+      { contourIndex: 25, xRatio: 0.28, speed: 0.0004, pulseOffset: 4.6, type: "deterministic", label: "EVIDENCE:[LINE 17]" },
+      { contourIndex: 17, xRatio: 0.86, speed: -0.0005, pulseOffset: 5.1, type: "ai", label: "AI_ADVISORY:READ_ONLY" },
+      { contourIndex: 27, xRatio: 0.54, speed: 0.0004, pulseOffset: 1.9, type: "deterministic", label: "REMOTE_PUSH:ABSENT" },
+      { contourIndex: 13, xRatio: 0.16, speed: -0.0003, pulseOffset: 3.9, type: "deterministic", label: "SECURITY ENGINE / CORE" },
     ];
 
     // 4 Inter-Node Network Connection Pairs
@@ -94,36 +95,36 @@ export default function TopographicScene() {
 
     let time = 0;
 
-    // Organic 3D Topographic Elevation Model
+    // Organic 3D Topographic Elevation Model: Dual Ridges + Center Valley
     const getElevation = (x: number, z: number, t: number) => {
       if (prefersReducedMotion) {
-        const r1 = Math.exp(-Math.pow((x + 220) / 200, 2)) * 48;
-        const r2 = Math.exp(-Math.pow((x - 240) / 210, 2)) * 56;
-        return r1 + r2 + Math.sin(x * 0.006) * 12;
+        const r1 = Math.exp(-Math.pow((x + 200) / 220, 2)) * 52;
+        const r2 = Math.exp(-Math.pow((x - 260) / 230, 2)) * 62;
+        return r1 + r2 + Math.sin(x * 0.005) * 12;
       }
 
       // Left Ridge Peak
       const ridge1 =
-        Math.exp(-Math.pow((x + 200) / 190, 2)) *
-        (54 + Math.sin(z * 0.007 + t * 0.5) * 15);
+        Math.exp(-Math.pow((x + 180) / 210, 2)) *
+        (56 + Math.sin(z * 0.006 + t * 0.45) * 16);
 
       // Right Ridge Peak
       const ridge2 =
-        Math.exp(-Math.pow((x - 220) / 200, 2)) *
-        (62 + Math.cos(z * 0.006 + t * 0.45) * 18);
+        Math.exp(-Math.pow((x - 240) / 220, 2)) *
+        (66 + Math.cos(z * 0.005 + t * 0.4) * 20);
 
       // Valley curvature and gentle undulating terrain ripples (14-18s period)
-      const valleyWave = Math.sin(x * 0.006 + t * 0.35) * Math.cos(z * 0.005 - t * 0.3) * 16;
-      const fineDetail = Math.sin((x * 0.01 + z * 0.008) + t * 0.55) * 8;
+      const valleyWave = Math.sin(x * 0.005 + t * 0.3) * Math.cos(z * 0.004 - t * 0.25) * 18;
+      const fineDetail = Math.sin((x * 0.009 + z * 0.007) + t * 0.5) * 8;
 
-      // Mouse interactive elevation warp
-      const mouseDistSq = Math.pow(x - targetCameraX * 200, 2) + Math.pow(z - 260, 2);
-      const mouseElevation = Math.exp(-mouseDistSq / 45000) * 18;
+      // Mouse interactive elevation warp (subtle 2-4%)
+      const mouseDistSq = Math.pow(x - targetCameraX * 180, 2) + Math.pow(z - 280, 2);
+      const mouseElevation = Math.exp(-mouseDistSq / 50000) * 14;
 
       return ridge1 + ridge2 + valleyWave + fineDetail + mouseElevation;
     };
 
-    // 3D Perspective Projection Function
+    // 3D Perspective Projection Function (Low-Angle Camera)
     const project3D = (
       gx: number,
       elevation: number,
@@ -131,12 +132,12 @@ export default function TopographicScene() {
       width: number,
       height: number
     ) => {
-      const fov = 420;
-      const cameraZ = 150;
-      // Horizon located in upper-middle of right visual area
-      const horizonY = height * 0.28;
-      const cameraHeight = 145 + targetCameraY * 18;
-      const cameraX = targetCameraX * 35;
+      const fov = 440;
+      const cameraZ = 140;
+      // Horizon located around 46% down the hero height
+      const horizonY = height * 0.46;
+      const cameraHeight = 150 + targetCameraY * 14;
+      const cameraX = targetCameraX * 28;
 
       const px = gx - cameraX;
       const py = cameraHeight - elevation;
@@ -145,21 +146,21 @@ export default function TopographicScene() {
       if (pz <= 10) return null;
 
       const scale = fov / pz;
-      const screenX = width * 0.52 + px * scale;
+      const screenX = width * 0.5 + px * scale;
       const screenY = horizonY + py * scale;
 
       return { x: screenX, y: screenY, scale, pz, elevation };
     };
 
     const render = () => {
-      const width = canvas.parentElement?.clientWidth || window.innerWidth / 2;
-      const height = canvas.parentElement?.clientHeight || 600;
+      const width = canvas.parentElement?.clientWidth || window.innerWidth * 0.6;
+      const height = canvas.parentElement?.clientHeight || 800;
 
       if (!prefersReducedMotion) {
         // Continuous, graceful 14-18s wave deformation rate
-        time += 0.0065;
-        targetCameraX += (mouseX - targetCameraX) * 0.03;
-        targetCameraY += (mouseY - targetCameraY) * 0.03;
+        time += 0.006;
+        targetCameraX += (mouseX - targetCameraX) * 0.025;
+        targetCameraY += (mouseY - targetCameraY) * 0.025;
 
         // Advance nodes along contour curves
         for (const node of nodes) {
@@ -171,16 +172,16 @@ export default function TopographicScene() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Ambient Central Atmosphere Glow
+      // 1. Ambient Central Atmospheric Glow (Cyan/Teal)
       const centerGlow = ctx.createRadialGradient(
         width * 0.52,
-        height * 0.55,
-        20,
-        width * 0.52,
         height * 0.58,
+        30,
+        width * 0.52,
+        height * 0.62,
         width * 0.65
       );
-      centerGlow.addColorStop(0, "rgba(0, 217, 255, 0.06)");
+      centerGlow.addColorStop(0, "rgba(0, 217, 255, 0.07)");
       centerGlow.addColorStop(0.5, "rgba(0, 201, 139, 0.02)");
       centerGlow.addColorStop(1, "rgba(5, 7, 9, 0)");
       ctx.fillStyle = centerGlow;
@@ -192,8 +193,8 @@ export default function TopographicScene() {
       for (let ci = 0; ci < numContours; ci++) {
         contourPoints[ci] = [];
         const zFraction = ci / (numContours - 1);
-        const gz = contourZStart + Math.pow(zFraction, 1.25) * (contourZEnd - contourZStart);
-        const spanX = 520 + zFraction * 460; // Wider perspective in foreground
+        const gz = contourZStart + Math.pow(zFraction, 1.22) * (contourZEnd - contourZStart);
+        const spanX = 580 + zFraction * 520; // Perspective expansion toward foreground
 
         for (let pi = 0; pi < pointsPerContour; pi++) {
           const xFraction = pi / (pointsPerContour - 1);
@@ -205,24 +206,24 @@ export default function TopographicScene() {
         }
       }
 
-      // 3. Render 3D Curved Contour Lines (28 Paths) with Perspective Foreshortening
+      // 3. Render 3D Curved Contour Lines (32 Paths) with Depth Scaling
       for (let ci = 0; ci < numContours; ci++) {
         const depthRatio = ci / (numContours - 1);
 
         // 3-Depth Plane Opacity Gradient:
-        // Distant: 0.06 - 0.10 | Midground: 0.12 - 0.18 | Foreground: 0.20 - 0.30
+        // Distant: 0.05 - 0.09 | Midground: 0.12 - 0.18 | Foreground: 0.22 - 0.32
         let alpha: number;
         let lineWidth: number;
 
         if (depthRatio < 0.3) {
-          alpha = 0.06 + depthRatio * 0.14;
+          alpha = 0.05 + depthRatio * 0.13;
           lineWidth = 0.75;
         } else if (depthRatio < 0.7) {
-          alpha = 0.12 + (depthRatio - 0.3) * 0.18;
+          alpha = 0.12 + (depthRatio - 0.3) * 0.16;
           lineWidth = 0.95;
         } else {
-          alpha = 0.20 + (depthRatio - 0.7) * 0.32;
-          lineWidth = 1.25;
+          alpha = 0.20 + (depthRatio - 0.7) * 0.38;
+          lineWidth = 1.3;
         }
 
         const pts = contourPoints[ci];
@@ -264,7 +265,7 @@ export default function TopographicScene() {
 
       ctx.shadowBlur = 0;
 
-      // 4. Subtle Longitudinal Structural Ribs (Secondary Emerald Grid Lines)
+      // 4. Subtle Longitudinal Structural Ties (Secondary Emerald Lines)
       for (let pi = 3; pi < pointsPerContour - 3; pi += 4) {
         ctx.beginPath();
         let started = false;
@@ -281,7 +282,7 @@ export default function TopographicScene() {
           }
         }
 
-        const ribAlpha = 0.04 + (pi / pointsPerContour) * 0.035;
+        const ribAlpha = 0.035 + (pi / pointsPerContour) * 0.035;
         ctx.strokeStyle = `rgba(0, 201, 139, ${ribAlpha})`;
         ctx.lineWidth = 0.65;
         ctx.stroke();
@@ -374,9 +375,9 @@ export default function TopographicScene() {
         ctx.shadowBlur = 0;
 
         // Architectural Telemetry Label (Micro annotation on key nodes)
-        if (i % 2 === 0 && nodePos.scale > 0.65) {
-          ctx.font = `${Math.floor(9 * nodePos.scale)}px monospace`;
-          ctx.fillStyle = `rgba(148, 163, 184, ${0.35 * nodeAlpha})`;
+        if (i % 2 === 0 && nodePos.scale > 0.6) {
+          ctx.font = `${Math.floor(9.5 * nodePos.scale)}px monospace`;
+          ctx.fillStyle = `rgba(148, 163, 184, ${0.28 * nodeAlpha})`;
           ctx.fillText(nodePos.label, nodePos.x + 8, nodePos.y - 4);
         }
       }
@@ -394,7 +395,15 @@ export default function TopographicScene() {
   }, []);
 
   return (
-    <div className="w-full h-full relative overflow-hidden pointer-events-none select-none">
+    <div
+      className="w-full h-full relative overflow-hidden pointer-events-none select-none"
+      style={{
+        maskImage:
+          "radial-gradient(ellipse 90% 85% at 55% 55%, black 45%, rgba(0,0,0,0.6) 70%, transparent 100%)",
+        WebkitMaskImage:
+          "radial-gradient(ellipse 90% 85% at 55% 55%, black 45%, rgba(0,0,0,0.6) 70%, transparent 100%)",
+      }}
+    >
       <canvas
         ref={canvasRef}
         className="w-full h-full block opacity-95 transition-opacity duration-1000"
