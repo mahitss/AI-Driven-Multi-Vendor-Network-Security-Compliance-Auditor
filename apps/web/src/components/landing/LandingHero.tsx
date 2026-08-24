@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Play, ArrowRight, ShieldCheck, Terminal, Cpu, Lock, Sparkles } from "lucide-react";
+import { Play } from "lucide-react";
 import TopographicScene from "./TopographicScene";
 import TelemetryBackground from "./TelemetryBackground";
 
@@ -12,11 +12,14 @@ export default function LandingHero() {
       {/* 1. Subtle Animated Security Telemetry Layer */}
       <TelemetryBackground />
 
-      {/* 2. Interactive Topographic / Terrain Canvas */}
+      {/* 2. Interactive High-Visibility Topographic / Terrain Canvas */}
       <TopographicScene />
 
       {/* 3. Dominant Hero Content Container */}
       <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+        {/* Localized radial mask behind headline for pristine contrast without hiding surrounding terrain */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[340px] bg-radial from-[#0A0C10]/85 via-[#0A0C10]/45 to-transparent blur-2xl pointer-events-none -z-10" />
+
         {/* Technical Status Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0E131F]/90 border border-[#06B6D4]/30 text-[11px] font-mono text-[#A3A3A3] shadow-sm backdrop-blur-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />

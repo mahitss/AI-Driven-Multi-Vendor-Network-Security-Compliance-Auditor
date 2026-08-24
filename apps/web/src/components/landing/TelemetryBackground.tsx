@@ -11,21 +11,23 @@ interface TelemetryItem {
   color: string;
 }
 
-// Peripheral Left Flank Fragments (Restrained to far left edge)
+// Peripheral Left Flank Fragments (Restrained to outer left edge)
 const LEFT_FRAGMENTS = [
-  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#0891b2]", top: "18%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
-  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#525252]", top: "34%", horizontalPos: "left-[1%] sm:left-[2%]" },
-  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#059669]", top: "52%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
-  { text: "EVIDENCE:[LINE 17]", depth: "mid", color: "text-[#0891b2]", top: "68%", horizontalPos: "left-[1%] sm:left-[2%]" },
+  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#06B6D4]", top: "16%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
+  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#737373]", top: "30%", horizontalPos: "left-[1%] sm:left-[2%]" },
+  { text: "logging.remote_logging = false", depth: "bg", color: "text-[#737373]", top: "44%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
+  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#10B981]", top: "58%", horizontalPos: "left-[1%] sm:left-[2%]" },
+  { text: "EVIDENCE:[LINE 17]", depth: "mid", color: "text-[#06B6D4]", top: "72%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
 ];
 
-// Peripheral Right Flank Fragments (Restrained to far right edge)
+// Peripheral Right Flank Fragments (Restrained to outer right edge)
 const RIGHT_FRAGMENTS = [
-  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#525252]", top: "18%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
-  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#059669]", top: "32%", horizontalPos: "right-[1%] sm:right-[2%]" },
-  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#0891b2]", top: "46%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
-  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#0891b2]", top: "60%", horizontalPos: "right-[1%] sm:right-[2%]" },
-  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#059669]", top: "74%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#737373]", top: "16%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#10B981]", top: "28%", horizontalPos: "right-[1%] sm:right-[2%]" },
+  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#06B6D4]", top: "42%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#06B6D4]", top: "56%", horizontalPos: "right-[1%] sm:right-[2%]" },
+  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#10B981]", top: "70%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "REMOTE_PUSH:ABSENT", depth: "fg", color: "text-[#10B981]", top: "82%", horizontalPos: "right-[1%] sm:right-[2%]" },
 ];
 
 export default function TelemetryBackground() {
@@ -60,18 +62,18 @@ export default function TelemetryBackground() {
 
     const updatePosition = () => {
       if (!prefersReducedMotion && container) {
-        time += 0.005;
-        currentParallaxX += (mouseX * 6 - currentParallaxX) * 0.03;
-        currentParallaxY += (mouseY * 5 - currentParallaxY) * 0.03;
+        time += 0.007;
+        currentParallaxX += (mouseX * 8 - currentParallaxX) * 0.035;
+        currentParallaxY += (mouseY * 6 - currentParallaxY) * 0.035;
 
         const children = container.children;
         for (let i = 0; i < children.length; i++) {
           const el = children[i] as HTMLElement;
           const depth = el.dataset.depth;
-          const depthFactor = depth === "fg" ? 1.0 : depth === "mid" ? 0.6 : 0.35;
+          const depthFactor = depth === "fg" ? 1.1 : depth === "mid" ? 0.7 : 0.4;
 
-          const floatX = Math.sin(time * 0.3 + i * 1.2) * 3 * depthFactor;
-          const floatY = Math.cos(time * 0.25 + i * 0.9) * 2.5 * depthFactor;
+          const floatX = Math.sin(time * 0.4 + i * 1.1) * 4 * depthFactor;
+          const floatY = Math.cos(time * 0.3 + i * 0.8) * 3 * depthFactor;
 
           const px = currentParallaxX * depthFactor + floatX;
           const py = currentParallaxY * depthFactor + floatY;
@@ -94,18 +96,18 @@ export default function TelemetryBackground() {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
-      {/* Peripheral Left & Right Telemetry Framing (Opacity: 0.025 - 0.055) */}
+      {/* Peripheral Left & Right Telemetry Framing (Target Opacity: 0.05 - 0.10) */}
       <div ref={containerRef} className="w-full h-full relative font-mono text-[10px] sm:text-[11px]">
         {/* Left Flank Items */}
         {LEFT_FRAGMENTS.map((item, idx) => {
           const opacityClass =
             item.depth === "fg"
-              ? "opacity-[0.05] sm:opacity-[0.055]"
+              ? "opacity-[0.09] sm:opacity-[0.10]"
               : item.depth === "mid"
-              ? "opacity-[0.035] sm:opacity-[0.04]"
-              : "opacity-[0.025]";
+              ? "opacity-[0.07] sm:opacity-[0.08]"
+              : "opacity-[0.05] sm:opacity-[0.06]";
 
-          const mobileClass = idx > 1 ? "hidden lg:block" : "hidden sm:block";
+          const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
 
           return (
             <div
@@ -126,12 +128,12 @@ export default function TelemetryBackground() {
         {RIGHT_FRAGMENTS.map((item, idx) => {
           const opacityClass =
             item.depth === "fg"
-              ? "opacity-[0.05] sm:opacity-[0.055]"
+              ? "opacity-[0.09] sm:opacity-[0.10]"
               : item.depth === "mid"
-              ? "opacity-[0.035] sm:opacity-[0.04]"
-              : "opacity-[0.025]";
+              ? "opacity-[0.07] sm:opacity-[0.08]"
+              : "opacity-[0.05] sm:opacity-[0.06]";
 
-          const mobileClass = idx > 1 ? "hidden lg:block" : "hidden sm:block";
+          const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
 
           return (
             <div
