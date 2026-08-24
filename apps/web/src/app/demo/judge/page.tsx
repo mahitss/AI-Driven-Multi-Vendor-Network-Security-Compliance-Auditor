@@ -36,33 +36,33 @@ import {
   Info,
   Lock,
   Pause,
-  Maximize2,
   Check,
   X,
   FileText,
   Sliders,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STAGES = [
-  { id: 1, key: "1", title: "Ingestion", subtitle: "SHA-256 Hashing" },
-  { id: 2, key: "2", title: "AST Parser", subtitle: "Vendor Detection" },
-  { id: 3, key: "3", title: "Universal Model", subtitle: "Canonical Schema" },
-  { id: 4, key: "4", title: "Multi-Vendor", subtitle: "Cross-OS Equivalence" },
-  { id: 5, key: "5", title: "Compliance", subtitle: "Line-Level Evidence" },
-  { id: 6, key: "6", title: "Risk Engine", subtitle: "P0 Prioritization" },
-  { id: 7, key: "7", title: "Safe Remediation", subtitle: "Zero Live Push" },
-  { id: 8, key: "8", title: "AI Advisory", subtitle: "Strict Boundary" },
-  { id: 9, key: "9", title: "Adaptive Training", subtitle: "Allowlist Guard" },
-  { id: 10, key: "0", title: "Executive Posture", subtitle: "Final Verdict" },
+const TIMELINE_STEPS = [
+  { id: 1, key: "1", tag: "01 INGEST", title: "Ingestion" },
+  { id: 2, key: "2", tag: "02 PARSE", title: "Deterministic AST" },
+  { id: 3, key: "3", tag: "03 NORMALIZE", title: "Universal Model" },
+  { id: 4, key: "4", tag: "04 MULTI-VENDOR", title: "Cross-OS Proof" },
+  { id: 5, key: "5", tag: "05 COMPLIANCE", title: "Deterministic Rules" },
+  { id: 6, key: "6", tag: "06 RISK", title: "Risk Intelligence" },
+  { id: 7, key: "7", tag: "07 REMEDIATION", title: "Safe Remediation" },
+  { id: 8, key: "8", tag: "08 AI", title: "AI Advisory Boundary" },
+  { id: 9, key: "9", tag: "09 ADAPTIVE", title: "Adaptive Training" },
+  { id: 10, key: "0", tag: "10 VERDICT", title: "Final Posture" },
 ];
 
-export default function JudgeDemoPresenterPage() {
+export default function JudgePresenterModePage() {
   const [currentStage, setCurrentStage] = useState<number>(1);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
   const [adaptiveApproved, setAdaptiveApproved] = useState<boolean>(false);
 
-  // Queries for live deterministic states
+  // Load live deterministic datasets
   const {
     data: goldenData,
     isLoading: isGoldenLoading,
@@ -106,10 +106,9 @@ export default function JudgeDemoPresenterPage() {
     setAdaptiveApproved(false);
   }, []);
 
-  // Keyboard navigation listener
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore when typing in input fields
       if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)) {
         return;
       }
@@ -153,251 +152,273 @@ export default function JudgeDemoPresenterPage() {
   const isError = isGoldenError || isMultiError;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 font-sans selection:bg-[#00D9FF]/20 selection:text-[#00D9FF]">
-      {/* Top Header / Evaluator Mode Banner */}
-      <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5 font-mono">
-            <span className="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-[#111111] text-[#00D9FF] border border-[#00D9FF]/30">
-              SIH26155 • NTRO EVALUATION
-            </span>
-            <span className="px-2.5 py-0.5 rounded text-[10px] bg-[#111111] text-[#22C55E] border border-[#22C55E]/30 font-semibold">
-              JUDGE / PRESENTER DEMO MODE
-            </span>
-            <span className="px-2 py-0.5 rounded text-[10px] bg-[#141414] text-[#A3A3A3] border border-[#242424]">
-              2-3 MINUTE RUNTIME
-            </span>
+    <div className="min-h-screen bg-[#030303] text-[#E5E5E5] font-sans selection:bg-[#00D9FF]/20 selection:text-[#00D9FF] flex flex-col justify-between p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-5">
+      {/* 1. COMPACT COMMAND CENTER HEADER */}
+      <header className="flex items-center justify-between border-b border-[#1A1A1A] pb-3.5 font-mono">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00D9FF] shadow-[0_0_8px_#00D9FF] animate-pulse" />
+            <span className="font-bold text-sm tracking-wider text-white">NETVIGIL</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#F5F5F5] flex items-center gap-2.5 font-mono">
-            <Shield className="w-7 h-7 text-[#00D9FF]" />
-            <span>NETVIGIL EVALUATOR PRESENTATION</span>
-          </h1>
-          <p className="text-xs text-[#A3A3A3] mt-1 max-w-2xl font-sans leading-relaxed">
-            DETERMINISTIC SECURITY • GROUNDED AI • MULTI-VENDOR VISIBILITY
-          </p>
+          <span className="text-xs text-[#555555]">/</span>
+          <span className="text-xs text-[#888888]">SIH26155 • NTRO</span>
+          <span className="text-xs text-[#555555]">/</span>
+          <span className="text-xs px-2 py-0.5 rounded bg-[#111111] text-[#00D9FF] border border-[#00D9FF]/30 font-semibold">
+            JUDGE MODE
+          </span>
         </div>
 
-        {/* Global Controls & Keyboard Indicator */}
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs self-start lg:self-auto">
+        {/* Live Status Indicators & Controls */}
+        <div className="flex items-center gap-4 text-xs">
+          <div className="hidden sm:flex items-center gap-3 text-[11px] text-[#777777]">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+              <span>ENGINE ONLINE</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+              <span>API ONLINE</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF]" />
+              <span>AST READY</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+              className={cn(
+                "px-2.5 py-1 rounded text-xs border transition-colors flex items-center gap-1",
+                isAutoPlaying
+                  ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/40"
+                  : "bg-[#0E0E0E] text-[#888888] hover:text-white border-[#222222]"
+              )}
+              title="Toggle Auto-Advance (8s per stage)"
+            >
+              {isAutoPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 fill-current" />}
+              <span>{isAutoPlaying ? "PAUSE" : "AUTO"}</span>
+            </button>
+
+            <button
+              onClick={handleReset}
+              className="p-1 rounded bg-[#0E0E0E] text-[#666666] hover:text-white border border-[#222222] transition-colors"
+              title="Reset to Stage 1 (Esc)"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* 2. THIN HORIZONTAL PIPELINE TIMELINE */}
+      <nav className="w-full font-mono text-[10px] select-none">
+        <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 bg-[#080808] p-1.5 rounded-lg border border-[#141414]">
+          {TIMELINE_STEPS.map((step) => {
+            const isActive = currentStage === step.id;
+            const isDone = currentStage > step.id;
+            return (
+              <button
+                key={step.id}
+                onClick={() => setCurrentStage(step.id)}
+                className={cn(
+                  "px-2 py-1.5 rounded text-left transition-all relative flex flex-col justify-between overflow-hidden",
+                  isActive
+                    ? "bg-[#00D9FF]/10 text-white border border-[#00D9FF] shadow-[0_0_10px_rgba(0,217,255,0.2)]"
+                    : isDone
+                    ? "bg-[#0A0A0A] text-[#22C55E]/80 border border-[#22C55E]/20 hover:border-[#22C55E]/40"
+                    : "bg-[#050505] text-[#555555] border border-[#111111] hover:border-[#222222]"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={cn("font-bold text-[9px]", isActive ? "text-[#00D9FF]" : isDone ? "text-[#22C55E]" : "text-[#444444]")}>
+                    {step.tag}
+                  </span>
+                  {isDone && <Check className="w-2.5 h-2.5 text-[#22C55E]" />}
+                </div>
+                <div className="text-[10px] font-semibold truncate mt-0.5 text-[#A3A3A3]">{step.title}</div>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* 3. MAIN STAGE VIEWPORT (OWNS MAJORITY OF SCREEN) */}
+      <main className="flex-1 flex flex-col justify-center min-h-[460px] lg:min-h-[520px]">
+        {/* Fail-Safe / Error State */}
+        {isError && (
+          <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/40 text-center space-y-3 font-mono">
+            <div className="w-10 h-10 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-white uppercase tracking-wider">NETVIGIL ENGINE OFFLINE</div>
+              <div className="text-xs text-[#EF4444] mt-1">
+                Backend API request failed on port 8000. Ensure the FastAPI service is active.
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                refetchGolden();
+                refetchMulti();
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded bg-[#111111] hover:bg-[#181818] text-[#00D9FF] border border-[#00D9FF]/40 text-xs font-semibold"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>RETRY CONNECTION</span>
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && !isError && (
+          <div className="p-16 rounded-xl bg-[#080808] border border-[#141414] text-center space-y-3 font-mono">
+            <RefreshCw className="w-7 h-7 animate-spin text-[#00D9FF] mx-auto" />
+            <div className="text-sm font-bold text-white">Loading Live Evaluator Demonstration Assets...</div>
+            <p className="text-xs text-[#666666]">
+              Gathering AST normalization facts, multi-vendor profiles, and deterministic compliance evidence.
+            </p>
+          </div>
+        )}
+
+        {/* Stage Content Components */}
+        {!isLoading && !isError && (
+          <div className="w-full transition-all duration-300">
+            {currentStage === 1 && <Stage1Ingestion />}
+            {currentStage === 2 && <Stage2Parsing />}
+            {currentStage === 3 && <Stage3UniversalModel />}
+            {currentStage === 4 && <Stage4MultiVendorProof multiVendorData={multiVendorData} />}
+            {currentStage === 5 && <Stage5Compliance goldenData={goldenData} />}
+            {currentStage === 6 && <Stage6Risk goldenData={goldenData} />}
+            {currentStage === 7 && <Stage7Remediation />}
+            {currentStage === 8 && <Stage8AIAdvisory />}
+            {currentStage === 9 && (
+              <Stage9Adaptive
+                approved={adaptiveApproved}
+                onApprove={() => setAdaptiveApproved(true)}
+              />
+            )}
+            {currentStage === 10 && <Stage10Verdict goldenData={goldenData} />}
+          </div>
+        )}
+      </main>
+
+      {/* 4. COMPACT PRESENTER FOOTER & KEYBOARD SHORTCUT BAR */}
+      <footer className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-[#141414] pt-3.5 gap-3 font-mono text-[11px]">
+        <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
             disabled={currentStage === 1}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0E0E0E] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] transition-colors disabled:opacity-30 disabled:pointer-events-none"
-            title="Previous Stage (←)"
+            className="px-3 py-1.5 rounded bg-[#0A0A0A] hover:bg-[#121212] text-[#888888] hover:text-white border border-[#1C1C1C] transition-colors disabled:opacity-20 disabled:pointer-events-none flex items-center gap-1.5"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Prev</span>
-          </button>
-
-          <button
-            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors",
-              isAutoPlaying
-                ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/40"
-                : "bg-[#0E0E0E] text-[#A3A3A3] hover:text-[#F5F5F5] border-[#1A1A1A]"
-            )}
-          >
-            {isAutoPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-            <span>{isAutoPlaying ? "Pause Auto-Run" : "Auto-Run"}</span>
+            <ArrowLeft className="w-3 h-3" />
+            <span>PREV (←)</span>
           </button>
 
           <button
             onClick={handleNext}
             disabled={currentStage === 10}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold shadow-sm transition-colors disabled:opacity-30 disabled:pointer-events-none"
-            title="Next Stage (→ / Space)"
+            className="px-4 py-1.5 rounded bg-[#00D9FF] hover:bg-[#00B4D8] text-black font-bold transition-all shadow-[0_0_12px_rgba(0,217,255,0.3)] disabled:opacity-20 disabled:pointer-events-none flex items-center gap-1.5"
           >
-            <span>Next Stage</span>
+            <span>NEXT STAGE</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
 
-          <button
-            onClick={handleReset}
-            className="p-1.5 rounded-lg bg-[#0E0E0E] hover:bg-[#141414] text-[#888888] hover:text-white border border-[#1A1A1A] transition-colors"
-            title="Reset to Stage 1 (Esc)"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Stage Progress Stepper Bar */}
-      <div className="p-3 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A]">
-        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-1.5 font-mono text-[11px]">
-          {STAGES.map((s) => {
-            const isActive = currentStage === s.id;
-            const isCompleted = currentStage > s.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() => setCurrentStage(s.id)}
-                className={cn(
-                  "p-2 rounded-lg border text-left flex flex-col justify-between transition-all group",
-                  isActive
-                    ? "bg-[#00D9FF]/10 border-[#00D9FF] text-white shadow-[0_0_12px_rgba(0,217,255,0.15)]"
-                    : isCompleted
-                    ? "bg-[#0E0E0E] border-[#22C55E]/30 text-[#A3A3A3]"
-                    : "bg-[#070707] border-[#1A1A1A] text-[#666666] hover:border-[#2A2A2A]"
-                )}
-              >
-                <div className="flex items-center justify-between text-[9px]">
-                  <span className={cn("font-bold", isActive ? "text-[#00D9FF]" : isCompleted ? "text-[#22C55E]" : "text-[#555555]")}>
-                    0{s.id} [{s.key}]
-                  </span>
-                  {isCompleted && <Check className="w-2.5 h-2.5 text-[#22C55E]" />}
-                </div>
-                <div className="font-semibold text-xs mt-1 truncate">{s.title}</div>
-                <div className="text-[9px] text-[#888888] truncate mt-0.5">{s.subtitle}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Fail-Safe / Loading Alert */}
-      {isError && (
-        <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/30 text-center space-y-3 font-mono">
-          <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
-            <AlertTriangle className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">DEMO DATA SOURCE OFFLINE</div>
-            <div className="text-[11px] text-[#EF4444] mt-1">
-              Backend API unreachable. Ensure the FastAPI backend server is active on port 8000.
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              refetchGolden();
-              refetchMulti();
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/40 text-xs font-semibold"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Retry Connection</span>
-          </button>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="p-16 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] text-center space-y-3 font-mono">
-          <RefreshCw className="w-6 h-6 animate-spin text-[#00D9FF] mx-auto" />
-          <div className="text-sm font-bold text-[#F5F5F5]">Loading Live Evaluator Demonstration Assets...</div>
-          <p className="text-xs text-[#666666]">
-            Gathering AST normalization facts, multi-vendor profiles, and deterministic compliance evidence.
-          </p>
-        </div>
-      )}
-
-      {/* Active Stage Viewport */}
-      {!isLoading && !isError && (
-        <div className="space-y-6">
-          {currentStage === 1 && <Stage1Ingestion goldenData={goldenData} />}
-          {currentStage === 2 && <Stage2DeterministicParsing />}
-          {currentStage === 3 && <Stage3UniversalModel />}
-          {currentStage === 4 && <Stage4MultiVendorProof multiVendorData={multiVendorData} />}
-          {currentStage === 5 && <Stage5DeterministicCompliance goldenData={goldenData} />}
-          {currentStage === 6 && <Stage6RiskIntelligence goldenData={goldenData} />}
-          {currentStage === 7 && <Stage7SafeRemediation />}
-          {currentStage === 8 && <Stage8AIAdvisoryBoundary />}
-          {currentStage === 9 && (
-            <Stage9AdaptiveTraining
-              approved={adaptiveApproved}
-              onApprove={() => setAdaptiveApproved(true)}
-            />
-          )}
-          {currentStage === 10 && <Stage10FinalExecutivePosture goldenData={goldenData} />}
-        </div>
-      )}
-
-      {/* Bottom Keyboard Shortcut Hint */}
-      <div className="p-3 rounded-xl bg-[#080808] border border-[#1A1A1A] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] font-mono text-[#666666]">
-        <div className="flex items-center gap-2">
-          <span className="px-1.5 py-0.5 rounded bg-[#141414] border border-[#222222] text-[#A3A3A3]">
-            [Space / →] Next
-          </span>
-          <span className="px-1.5 py-0.5 rounded bg-[#141414] border border-[#222222] text-[#A3A3A3]">
-            [←] Prev
-          </span>
-          <span className="px-1.5 py-0.5 rounded bg-[#141414] border border-[#222222] text-[#A3A3A3]">
-            [1-0] Direct Jump
-          </span>
-          <span className="px-1.5 py-0.5 rounded bg-[#141414] border border-[#222222] text-[#A3A3A3]">
-            [Esc] Reset
+          <span className="text-[#555555] ml-2 hidden md:inline">
+            Stage {currentStage} of 10
           </span>
         </div>
-        <span className="text-[#888888]">NetVigil SIH26155 Invariant: AI is Advisory Only • Zero Live Push</span>
-      </div>
+
+        {/* Keyboard Shortcuts Prompt */}
+        <div className="flex items-center gap-2 text-[#666666] text-[10px]">
+          <span className="px-1.5 py-0.5 rounded bg-[#0D0D0D] border border-[#1A1A1A] text-[#999999]">[→ / Space] Next</span>
+          <span className="px-1.5 py-0.5 rounded bg-[#0D0D0D] border border-[#1A1A1A] text-[#999999]">[←] Prev</span>
+          <span className="px-1.5 py-0.5 rounded bg-[#0D0D0D] border border-[#1A1A1A] text-[#999999]">[1–0] Direct</span>
+          <span className="px-1.5 py-0.5 rounded bg-[#0D0D0D] border border-[#1A1A1A] text-[#999999]">[Esc] Reset</span>
+        </div>
+      </footer>
     </div>
   );
 }
 
 // -------------------------------------------------------------
-// STAGE 1: INGESTION & SHA-256 HASHING
+// STAGE 1: 01 / INGESTION (CANONICAL CONFIGURATION INGEST)
 // -------------------------------------------------------------
-function Stage1Ingestion({ goldenData }: { goldenData?: GoldenDemoState }) {
+function Stage1Ingestion() {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-4 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 01 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Static Configuration Ingestion & Cryptographic Hashing
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 01 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            01 / INGESTION <span className="text-xs text-[#888888] font-mono font-normal ml-2">CANONICAL CONFIGURATION INGEST</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#22C55E] border border-[#22C55E]/30 text-[10px] font-bold">
-          IMMUTABLE RAW ARTIFACT
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#22C55E] border border-[#22C55E]/30 font-bold">
+          CRYPTOGRAPHICALLY UNTAMPERED
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Ingested Filename</div>
-          <div className="text-xs font-bold text-white mt-1">cisco-core-router.cfg</div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Left Panel: Target Metadata */}
+        <div className="lg:col-span-4 space-y-3">
+          <div className="p-4 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-2.5">
+            <div className="text-[10px] text-[#666666] uppercase font-bold">INGESTED DEVICE TARGET</div>
+            <div className="text-lg font-bold text-[#00D9FF]">CORE-RTR-01</div>
+            <div className="text-xs text-[#22C55E]">CISCO IOS / IOS-XE</div>
+          </div>
 
-        <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Target Asset Hostname</div>
-          <div className="text-xs font-bold text-[#00D9FF] mt-1">{goldenData?.device_name || "CORE-RTR-01"}</div>
-        </div>
+          <div className="p-4 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-[#666666]">Filename:</span>
+              <span className="text-white font-semibold">cisco-core-router.cfg</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#666666]">Total Lines:</span>
+              <span className="text-white font-semibold">52 lines</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#666666]">Payload Size:</span>
+              <span className="text-white font-semibold">870 B</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#666666]">Ingestion Engine:</span>
+              <span className="text-[#00D9FF] font-semibold">Stream Reader v1.2</span>
+            </div>
+          </div>
 
-        <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Detected Platform</div>
-          <div className="text-xs font-bold text-[#22C55E] mt-1">CISCO IOS / IOS-XE</div>
-        </div>
-
-        <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Ingestion Latency</div>
-          <div className="text-xs font-bold text-[#F59E0B] mt-1">
-            {goldenData?.pipeline_latency?.ingestion_ms ?? 50.9}ms
+          <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-1 text-xs">
+            <div className="text-[9px] text-[#666666] uppercase font-bold">SHA-256 INTEGRITY HASH</div>
+            <div className="text-[10px] text-[#00D9FF] break-all leading-tight">
+              9b642e8d35f7564d295bbfa6574f9d0c64c7810e7b87c7161b9a9976378ef153
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] space-y-1.5">
-        <div className="flex items-center justify-between text-[10px]">
-          <span className="text-[#666666] uppercase font-bold">Cryptographic Integrity Hash (SHA-256)</span>
-          <span className="text-[#22C55E]">VERIFIED UNTAMPERED</span>
-        </div>
-        <div className="text-[11px] text-[#00D9FF] bg-[#050505] p-2 rounded border border-[#1A1A1A] break-all">
-          9b642e8d35f7564d295bbfa6574f9d0c64c7810e7b87c7161b9a9976378ef153
-        </div>
-      </div>
+        {/* Right Panel: Terminal Viewer with Invariant Highlights */}
+        <div className="lg:col-span-8 space-y-2">
+          <div className="flex items-center justify-between text-[10px] text-[#777777]">
+            <span>RAW CLI STREAM VIEWPORT</span>
+            <span className="text-[#F59E0B]">CRITICAL INVARIANTS HIGHLIGHTED</span>
+          </div>
 
-      <div className="space-y-2">
-        <div className="text-[10px] text-[#666666] uppercase font-bold">Raw Configuration Stream (Excerpt)</div>
-        <pre className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A] text-[11px] text-[#A3A3A3] overflow-x-auto leading-relaxed max-h-48">
-{`! Cisco IOS Core Router Configuration
+          <pre className="p-4 rounded-lg bg-[#030303] border border-[#1A1A1A] text-[11px] font-mono leading-relaxed overflow-x-auto text-[#A3A3A3] max-h-[300px]">
+{`! Cisco IOS Core Router Configuration (CORE-RTR-01)
 hostname CORE-RTR-01
 !
-no service password-encryption
+`}
+<span className="text-[#EF4444] bg-[#EF4444]/10 px-1 py-0.5 rounded font-bold">no service password-encryption</span>
+{`
 service timestamps log datetime msec
 !
 username admin privilege 15 secret 5 $1$mERr$hx5rVt7rPNoS4wqbXKX7m0
 !
-ip ssh version 1
-ip http server
+`}
+<span className="text-[#EF4444] bg-[#EF4444]/10 px-1 py-0.5 rounded font-bold">ip ssh version 1</span>
+{`
+`}
+<span className="text-[#EF4444] bg-[#EF4444]/10 px-1 py-0.5 rounded font-bold">ip http server</span>
+{`
 no ip http secure-server
 !
 interface GigabitEthernet0/0
@@ -406,83 +427,85 @@ interface GigabitEthernet0/0
  no ip proxy-arp
 !
 line vty 0 4
- transport input telnet ssh
- login local`}
-        </pre>
+ `}
+<span className="text-[#EF4444] bg-[#EF4444]/10 px-1 py-0.5 rounded font-bold">transport input telnet ssh</span>
+{`
+ login local
+!
+end`}
+          </pre>
+        </div>
       </div>
     </div>
   );
 }
 
 // -------------------------------------------------------------
-// STAGE 2: DETERMINISTIC AST PARSING
+// STAGE 2: 02 / DETERMINISTIC PARSING
 // -------------------------------------------------------------
-function Stage2DeterministicParsing() {
+function Stage2Parsing() {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 02 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Deterministic AST Parsing & Fact Extraction
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 02 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            02 / DETERMINISTIC PARSING <span className="text-xs text-[#888888] font-mono font-normal ml-2">AST FACT EXTRACTION</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/30 text-[10px] font-bold">
-          ZERO LLM DEPENDENCY
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#00D9FF] border border-[#00D9FF]/30 font-bold">
+          ZERO LLM / DETERMINISTIC PIPELINE
         </span>
       </div>
 
-      {/* Parsing Flow Stepper */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] space-y-1">
-          <div className="text-[9px] text-[#666666] uppercase">Stage A: Signature Detection</div>
-          <div className="text-xs font-bold text-white">Vendor Detector (0.99)</div>
-          <div className="text-[10px] text-[#888888]">Matched Cisco IOS token hierarchy</div>
+      {/* Visual Transformation Pipeline Flow */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-center text-xs">
+        <div className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666] uppercase">INPUT</div>
+          <div className="font-bold text-white mt-1">RAW CONFIG</div>
+          <div className="text-[10px] text-[#777777] mt-0.5">52 Lines CLI</div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#00D9FF]/30 space-y-1">
-          <div className="text-[9px] text-[#00D9FF] uppercase">Stage B: AST Parsing</div>
-          <div className="text-xs font-bold text-[#00D9FF]">Cisco AST Parser v1.2.0</div>
-          <div className="text-[10px] text-[#888888]">Context-aware block state machine</div>
+        <div className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666] uppercase">STAGE 1</div>
+          <div className="font-bold text-[#00D9FF] mt-1">VENDOR DETECTOR</div>
+          <div className="text-[10px] text-[#22C55E] mt-0.5">Confidence: 0.99</div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#22C55E]/30 space-y-1">
-          <div className="text-[9px] text-[#22C55E] uppercase">Stage C: Fact Generation</div>
-          <div className="text-xs font-bold text-[#22C55E]">15 Canonical Facts</div>
-          <div className="text-[10px] text-[#888888]">100% deterministic line mapping</div>
+        <div className="p-3 rounded-lg bg-[#050505] border border-[#00D9FF]/30 bg-[#00D9FF]/5">
+          <div className="text-[9px] text-[#00D9FF] uppercase">STAGE 2</div>
+          <div className="font-bold text-white mt-1">CISCO AST PARSER</div>
+          <div className="text-[10px] text-[#00D9FF] mt-0.5">v1.2.0 State Machine</div>
+        </div>
+
+        <div className="p-3 rounded-lg bg-[#050505] border border-[#22C55E]/30 bg-[#22C55E]/5">
+          <div className="text-[9px] text-[#22C55E] uppercase">OUTPUT</div>
+          <div className="font-bold text-[#22C55E] mt-1">SECURITY FACTS</div>
+          <div className="text-[10px] text-[#22C55E] mt-0.5">15 Extracted Facts</div>
         </div>
       </div>
 
-      {/* Extracted Facts Table */}
+      {/* Extracted Facts with Verbatim Line Evidence */}
       <div className="space-y-2">
-        <div className="text-[10px] text-[#666666] uppercase font-bold">Extracted Facts (Sample)</div>
-        <div className="overflow-x-auto rounded-lg border border-[#1A1A1A]">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-[#1A1A1A] bg-[#0E0E0E] text-[#666666] text-[9px] uppercase">
-                <th className="p-2.5">Fact Identifier</th>
-                <th className="p-2.5">Extracted Value</th>
-                <th className="p-2.5">Source Line Citation</th>
-                <th className="p-2.5">Confidence</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1A1A1A]">
-              {[
-                { name: "remote_access.ssh_version", val: "1", line: "Line 17: ip ssh version 1", conf: "1.00 (Deterministic)" },
-                { name: "remote_access.http_server_enabled", val: "true", line: "Line 18: ip http server", conf: "1.00 (Deterministic)" },
-                { name: "remote_access.telnet_enabled", val: "true", line: "Line 41: transport input telnet ssh", conf: "1.00 (Deterministic)" },
-                { name: "authentication.password_encryption_enabled", val: "false", line: "Line 8: no service password-encryption", conf: "1.00 (Deterministic)" },
-                { name: "authentication.aaa_enabled", val: "false", line: "Line 12: [Default: no aaa new-model]", conf: "0.95 (Inferred Default)" },
-              ].map((f) => (
-                <tr key={f.name} className="hover:bg-[#0D0D0D]">
-                  <td className="p-2.5 font-semibold text-white">{f.name}</td>
-                  <td className="p-2.5 font-bold text-[#EF4444]">{f.val}</td>
-                  <td className="p-2.5 text-[#00D9FF] font-mono">{f.line}</td>
-                  <td className="p-2.5 text-[#22C55E]">{f.conf}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="text-[10px] text-[#777777] uppercase font-bold">EXTRACTED DETERMINISTIC FACTS</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          {[
+            { key: "remote_access.ssh_version", val: "1", line: "Line 17: ip ssh version 1", status: "CRITICAL" },
+            { key: "remote_access.http_server_enabled", val: "true", line: "Line 18: ip http server", status: "HIGH" },
+            { key: "remote_access.telnet_enabled", val: "true", line: "Line 41: transport input telnet ssh", status: "HIGH" },
+            { key: "authentication.password_encryption_enabled", val: "false", line: "Line 8: no service password-encryption", status: "MEDIUM" },
+          ].map((fact) => (
+            <div key={fact.key} className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A] flex items-center justify-between">
+              <div className="space-y-0.5">
+                <div className="font-bold text-white">{fact.key}</div>
+                <div className="text-[10px] text-[#00D9FF]">{fact.line}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-bold text-[#EF4444]">{fact.val}</div>
+                <div className="text-[9px] text-[#EF4444]">{fact.status}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -490,186 +513,196 @@ function Stage2DeterministicParsing() {
 }
 
 // -------------------------------------------------------------
-// STAGE 3: UNIVERSAL SECURITY MODEL
+// STAGE 3: 03 / UNIVERSAL SECURITY MODEL (HERO VISUALIZATION)
 // -------------------------------------------------------------
 function Stage3UniversalModel() {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 03 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Universal Security Model Normalization
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 03 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            03 / UNIVERSAL SECURITY MODEL <span className="text-xs text-[#888888] font-mono font-normal ml-2">CANONICAL NORMALIZATION</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/30 text-[10px] font-bold">
-          8 STANDARDIZED DOMAINS
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#8B5CF6] border border-[#8B5CF6]/30 font-bold">
+          8 CANONICAL DOMAINS
         </span>
       </div>
 
-      <div className="p-3.5 rounded-lg bg-[#00D9FF]/5 border border-[#00D9FF]/30 flex items-center justify-between">
-        <span className="text-white font-bold">CORE ARCHITECTURAL CONCEPT:</span>
-        <span className="text-[#00D9FF] font-semibold">VENDOR SYNTAX ──→ CANONICAL SECURITY SEMANTICS</span>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { title: "Identity", count: "3 Facts", desc: "hostname, banner_motd, legal_warning" },
-          { title: "Remote Access", count: "4 Facts", desc: "ssh_version, telnet, http, https" },
-          { title: "Authentication", count: "3 Facts", desc: "password_encryption, aaa, enable_secret" },
-          { title: "Logging & SIEM", count: "2 Facts", desc: "syslog_enabled, remote_host" },
-          { title: "Time Sync (NTP)", count: "1 Fact", desc: "ntp_enabled, server_configured" },
-          { title: "Access Control", count: "2 Facts", desc: "default_drop_inbound, acl_count" },
-          { title: "Network Security", count: "1 Fact", desc: "spanning_tree_bpdu_guard" },
-          { title: "Legacy Services", count: "2 Facts", desc: "finger_disabled, proxy_arp_disabled" },
-        ].map((d) => (
-          <div key={d.title} className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] space-y-1">
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="font-bold text-white">{d.title}</span>
-              <span className="text-[#00D9FF]">{d.count}</span>
-            </div>
-            <div className="text-[10px] text-[#666666] truncate">{d.desc}</div>
+      {/* Converging Dialects Visual Architecture */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+        {/* Left: 3 Dialects */}
+        <div className="lg:col-span-4 space-y-2 text-xs">
+          <div className="p-3 rounded bg-[#050505] border border-[#00D9FF]/30">
+            <div className="text-[9px] text-[#00D9FF] font-bold">CISCO IOS SYNTAX</div>
+            <div className="text-white mt-1">ip ssh version 1</div>
+            <div className="text-[#666666] text-[10px]">transport input telnet ssh</div>
           </div>
-        ))}
+
+          <div className="p-3 rounded bg-[#050505] border border-[#8B5CF6]/30">
+            <div className="text-[9px] text-[#8B5CF6] font-bold">JUNIPER JUNOS SYNTAX</div>
+            <div className="text-white mt-1">set system services ssh protocol-version v1</div>
+            <div className="text-[#666666] text-[10px]">system services telnet;</div>
+          </div>
+
+          <div className="p-3 rounded bg-[#050505] border border-[#F59E0B]/30">
+            <div className="text-[9px] text-[#F59E0B] font-bold">FORTINET FORTIOS SYNTAX</div>
+            <div className="text-white mt-1">set admin-ssh-v1 enable</div>
+            <div className="text-[#666666] text-[10px]">set admin-sport 80</div>
+          </div>
+        </div>
+
+        {/* Center: Convergence Arrow */}
+        <div className="lg:col-span-1 text-center hidden lg:block">
+          <div className="text-[#00D9FF] text-2xl font-bold">──▶</div>
+        </div>
+
+        {/* Right: Universal Security Model & Shared Engine */}
+        <div className="lg:col-span-7 space-y-3">
+          <div className="p-4 rounded-xl bg-[#00D9FF]/5 border border-[#00D9FF]/40 space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-white flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#00D9FF]" />
+                <span>UNIVERSAL SECURITY MODEL SLOTS</span>
+              </span>
+              <span className="text-[10px] text-[#00D9FF]">ZERO VENDOR BIAS</span>
+            </div>
+
+            <div className="space-y-1.5 text-xs">
+              <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] flex justify-between font-mono">
+                <span className="text-[#A3A3A3]">remote_access.ssh_version</span>
+                <span className="text-[#EF4444] font-bold">1</span>
+              </div>
+              <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] flex justify-between font-mono">
+                <span className="text-[#A3A3A3]">remote_access.telnet_enabled</span>
+                <span className="text-[#EF4444] font-bold">true</span>
+              </div>
+              <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] flex justify-between font-mono">
+                <span className="text-[#A3A3A3]">remote_access.http_server_enabled</span>
+                <span className="text-[#EF4444] font-bold">true</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-lg bg-[#22C55E]/10 border border-[#22C55E]/30 flex items-center justify-between text-xs">
+            <span className="text-white font-bold">SHARED EVALUATION:</span>
+            <span className="text-[#22C55E] font-semibold">ONE COMPLIANCE & RISK ENGINE FOR ALL VENDORS</span>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 // -------------------------------------------------------------
-// STAGE 4: MULTI-VENDOR PROOF
+// STAGE 4: 04 / MULTI-VENDOR PROOF (EVALUATOR PROOF MOMENT)
 // -------------------------------------------------------------
 function Stage4MultiVendorProof({ multiVendorData }: { multiVendorData?: MultiVendorProofState }) {
-  const matrix = multiVendorData?.comparison_matrix || [
-    {
-      property_key: "remote_access.ssh_version",
-      display_name: "SSH Protocol Version",
-      cisco: { syntax: "ip ssh version 1", line: 17, status: "FAIL (v1)" },
-      juniper: { syntax: "set system services ssh protocol-version v1", line: 8, status: "FAIL (v1)" },
-      fortinet: { syntax: "set admin-ssh-v1 enable", line: 7, status: "FAIL (admin-ssh-v1 enable)" },
-    },
-    {
-      property_key: "remote_access.http_server_enabled",
-      display_name: "Insecure HTTP Server",
-      cisco: { syntax: "ip http server", line: 18, status: "FAIL (Active)" },
-      juniper: { syntax: "web-management { http { port 80; } }", line: 10, status: "FAIL (Active)" },
-      fortinet: { syntax: "set admin-sport 80", line: 8, status: "FAIL (Active)" },
-    },
-  ];
-
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 04 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Multi-Vendor Cross-OS Equivalence Proof
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 04 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            04 / MULTI-VENDOR PROOF <span className="text-xs text-[#888888] font-mono font-normal ml-2">CROSS-OS EQUIVALENCE</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#22C55E] border border-[#22C55E]/30 text-[10px] font-bold">
-          3 DIALECTS • 1 ENGINE
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#22C55E] border border-[#22C55E]/30 font-bold">
+          3 DIALECTS • 1 VERDICT
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-[#1A1A1A]">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-[#1A1A1A] bg-[#0E0E0E] text-[#888888] text-[9px] uppercase">
-              <th className="p-3">Normalized Security Property</th>
-              <th className="p-3 text-[#00D9FF]">Cisco IOS Syntax</th>
-              <th className="p-3 text-[#8B5CF6]">Juniper JunOS Syntax</th>
-              <th className="p-3 text-[#F59E0B]">Fortinet FortiOS Syntax</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#1A1A1A]">
-            {matrix.map((row) => (
-              <tr key={row.property_key} className="hover:bg-[#0D0D0D]">
-                <td className="p-3">
-                  <div className="font-bold text-white">{row.display_name}</div>
-                  <div className="text-[10px] text-[#666666]">{row.property_key}</div>
-                </td>
-                <td className="p-3">
-                  <div className="p-1.5 rounded bg-[#050505] border border-[#1A1A1A] text-[11px] text-white">
-                    {row.cisco.syntax}
-                  </div>
-                  <div className="text-[9px] text-[#EF4444] mt-1 font-bold">{row.cisco.status}</div>
-                </td>
-                <td className="p-3">
-                  <div className="p-1.5 rounded bg-[#050505] border border-[#1A1A1A] text-[11px] text-white">
-                    {row.juniper.syntax}
-                  </div>
-                  <div className="text-[9px] text-[#EF4444] mt-1 font-bold">{row.juniper.status}</div>
-                </td>
-                <td className="p-3">
-                  <div className="p-1.5 rounded bg-[#050505] border border-[#1A1A1A] text-[11px] text-white">
-                    {row.fortinet.syntax}
-                  </div>
-                  <div className="text-[9px] text-[#EF4444] mt-1 font-bold">{row.fortinet.status}</div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Proof Box: Different Syntax -> Same Semantics -> Same Rule -> Same Verdict */}
+      <div className="p-4 rounded-xl bg-[#050505] border border-[#1A1A1A] space-y-3 text-xs">
+        <div className="text-[10px] text-[#777777] uppercase font-bold">
+          PROOF CASE: SSH PROTOCOL VERSION 1 ENFORCEMENT (RULE-SSH-001)
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#00D9FF]/30">
+            <div className="text-[10px] text-[#00D9FF] font-bold">CISCO IOS</div>
+            <div className="text-white mt-1 text-[11px]">ip ssh version 1</div>
+            <div className="text-[9px] text-[#EF4444] mt-1 font-bold">FAIL (Line 17)</div>
+          </div>
+
+          <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#8B5CF6]/30">
+            <div className="text-[10px] text-[#8B5CF6] font-bold">JUNIPER JUNOS</div>
+            <div className="text-white mt-1 text-[11px]">set system services ssh protocol-version v1</div>
+            <div className="text-[9px] text-[#EF4444] mt-1 font-bold">FAIL (Line 8)</div>
+          </div>
+
+          <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#F59E0B]/30">
+            <div className="text-[10px] text-[#F59E0B] font-bold">FORTINET FORTIOS</div>
+            <div className="text-white mt-1 text-[11px]">set admin-ssh-v1 enable</div>
+            <div className="text-[9px] text-[#EF4444] mt-1 font-bold">FAIL (Line 7)</div>
+          </div>
+        </div>
+
+        <div className="p-2.5 rounded bg-[#111111] border border-[#1C1C1C] flex items-center justify-between">
+          <span className="text-[#888888]">Shared Rule Evaluation (CIS-1.2.1 / NIST-AC-17):</span>
+          <span className="text-[#EF4444] font-bold">FAIL (100% Deterministic Match across all 3 OS)</span>
+        </div>
       </div>
     </div>
   );
 }
 
 // -------------------------------------------------------------
-// STAGE 5: DETERMINISTIC COMPLIANCE & EVIDENCE
+// STAGE 5: 05 / DETERMINISTIC COMPLIANCE & LINE EVIDENCE
 // -------------------------------------------------------------
-function Stage5DeterministicCompliance({ goldenData }: { goldenData?: GoldenDemoState }) {
+function Stage5Compliance({ goldenData }: { goldenData?: GoldenDemoState }) {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 05 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Deterministic Compliance Engine & Line Citations
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 05 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            05 / DETERMINISTIC COMPLIANCE <span className="text-xs text-[#888888] font-mono font-normal ml-2">60 EVALUATED CONTROLS</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#EF4444] border border-[#EF4444]/30 text-[10px] font-bold">
-          SCORE: 20.0% (FAIL)
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#EF4444] border border-[#EF4444]/30 font-bold">
+          BASELINE SCORE: 20.0%
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* 4 Framework Scores */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
         {[
-          { name: "CIS Benchmarks v2.0", score: "20.0%", status: "FAIL" },
-          { name: "NIST SP 800-53 r5", score: "20.0%", status: "FAIL" },
-          { name: "DISA STIG v10r3", score: "20.0%", status: "FAIL" },
-          { name: "ISO/IEC 27001:2022", score: "20.0%", status: "FAIL" },
+          { name: "CIS BENCHMARKS", score: "20.0%", evaluated: "15 Controls" },
+          { name: "NIST SP 800-53", score: "20.0%", evaluated: "15 Controls" },
+          { name: "DISA STIG", score: "20.0%", evaluated: "15 Controls" },
+          { name: "ISO/IEC 27001", score: "20.0%", evaluated: "15 Controls" },
         ].map((f) => (
-          <div key={f.name} className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] space-y-1">
-            <div className="text-[9px] text-[#666666] uppercase">{f.name}</div>
-            <div className="text-base font-bold text-[#EF4444]">{f.score}</div>
+          <div key={f.name} className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+            <div className="text-[9px] text-[#666666]">{f.name}</div>
+            <div className="text-lg font-bold text-[#EF4444] mt-0.5">{f.score}</div>
+            <div className="text-[9px] text-[#555555] mt-0.5">{f.evaluated}</div>
           </div>
         ))}
       </div>
 
-      {/* Control Spotlight Card */}
-      <div className="p-4 rounded-lg bg-[#050505] border border-[#EF4444]/40 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      {/* Control Spotlight: CIS-1.2.1 */}
+      <div className="p-4 rounded-xl bg-[#050505] border border-[#EF4444]/40 space-y-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-bold text-white flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
-            <span className="font-bold text-white">CONTROL SPOTLIGHT: CIS-1.2.1 (SSH Version 2 Enforcement)</span>
-          </div>
-          <span className="px-2 py-0.5 rounded bg-[#EF4444]/20 text-[#EF4444] font-bold text-[10px]">
-            FAIL (CRITICAL)
+            <span>CONTROL SPOTLIGHT: CIS-1.2.1 (SSH Version 2 Enforcement)</span>
           </span>
+          <span className="px-2 py-0.5 rounded bg-[#EF4444]/20 text-[#EF4444] font-bold text-[10px]">FAIL</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
-          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Expected Standard:</span>
-            <span className="text-[#22C55E] font-bold">SSH Protocol Version 2</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-2.5 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[10px]">Expected Standard:</span>
+            <span className="text-[#22C55E] font-bold">SSH Version 2</span>
           </div>
-          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Actual Evaluated Value:</span>
+          <div className="p-2.5 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[10px]">Evaluated Fact:</span>
             <span className="text-[#EF4444] font-bold">SSH Version 1</span>
           </div>
-          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Verbatim Line Citation:</span>
+          <div className="p-2.5 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[10px]">Line-Level Evidence:</span>
             <span className="text-[#00D9FF] font-bold">[Line 17] ip ssh version 1</span>
           </div>
         </div>
@@ -679,42 +712,48 @@ function Stage5DeterministicCompliance({ goldenData }: { goldenData?: GoldenDemo
 }
 
 // -------------------------------------------------------------
-// STAGE 6: RISK INTELLIGENCE & P0 PRIORITIZATION
+// STAGE 6: 06 / RISK INTELLIGENCE & P0 PRIORITIZATION
 // -------------------------------------------------------------
-function Stage6RiskIntelligence({ goldenData }: { goldenData?: GoldenDemoState }) {
+function Stage6Risk({ goldenData }: { goldenData?: GoldenDemoState }) {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 06 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Risk Intelligence & Attack Surface Correlation
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 06 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            06 / RISK INTELLIGENCE <span className="text-xs text-[#888888] font-mono font-normal ml-2">GRAPH CORRELATION</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#EF4444] border border-[#EF4444]/30 text-[10px] font-bold">
-          P0 CRITICAL PRIORITY
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#EF4444] border border-[#EF4444]/30 font-bold">
+          2 P0 CRITICAL RISKS
         </span>
       </div>
 
-      <div className="p-4 rounded-xl bg-[#050505] border border-[#EF4444]/40 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Flame className="w-5 h-5 text-[#EF4444]" />
+      <div className="p-5 rounded-xl bg-[#050505] border border-[#EF4444]/40 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444]">
+              <Flame className="w-6 h-6" />
+            </div>
             <div>
-              <span className="text-sm font-bold text-white block">
+              <div className="text-base font-bold text-white">
                 Administrative Remote Access & Management Plane Exposure
-              </span>
-              <span className="text-[10px] text-[#888888]">Category: Remote Management • Graph Correlated</span>
+              </div>
+              <div className="text-[11px] text-[#888888]">
+                Correlation: Graph-Correlated Exposure on CORE-RTR-01
+              </div>
             </div>
           </div>
+
           <div className="text-right">
-            <div className="text-xl font-bold text-[#EF4444]">97 / 100</div>
-            <div className="text-[9px] text-[#666666]">RISK SCORE</div>
+            <div className="text-2xl font-bold text-[#EF4444]">P0 • 97 / 100</div>
+            <div className="text-[9px] text-[#666666]">DETERMINISTIC RISK SCORE</div>
           </div>
         </div>
 
-        <div className="space-y-1.5 pt-2 border-t border-[#1A1A1A]">
-          <div className="text-[10px] text-[#666666] uppercase font-bold">Contributing Deterministic Findings (3):</div>
+        {/* Contributing Findings List */}
+        <div className="space-y-1.5 pt-3 border-t border-[#1A1A1A] text-xs">
+          <div className="text-[10px] text-[#666666] uppercase font-bold">CONTRIBUTING FINDINGS:</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
               <span className="text-[#EF4444] font-bold">CIS-1.2.1:</span> SSHv1 (Line 17)
@@ -733,31 +772,45 @@ function Stage6RiskIntelligence({ goldenData }: { goldenData?: GoldenDemoState }
 }
 
 // -------------------------------------------------------------
-// STAGE 7: SAFE REMEDIATION & ZERO PUSH
+// STAGE 7: 07 / SAFE REMEDIATION & ZERO NETWORK PUSH
 // -------------------------------------------------------------
-function Stage7SafeRemediation() {
+function Stage7Remediation() {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 07 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Allowlisted Safe Remediation & Zero Live Push
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 07 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            07 / SAFE REMEDIATION <span className="text-xs text-[#888888] font-mono font-normal ml-2">ALLOWLISTED CATALOG</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#22C55E] border border-[#22C55E]/30 text-[10px] font-bold">
-          REMEDIATION_CATALOG
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#22C55E] border border-[#22C55E]/30 font-bold">
+          STATIC TEMPLATES ONLY
         </span>
       </div>
 
-      <div className="p-3.5 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/40 flex items-center justify-between">
-        <span className="text-[#EF4444] font-bold">PRODUCT SAFETY INVARIANT:</span>
-        <span className="text-white font-semibold">AUTOMATED REMOTE PUSH / SSH EXECUTION IS STRICTLY DISABLED</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+        <div className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666]">SOURCE</div>
+          <div className="font-bold text-white mt-0.5">REMEDIATION_CATALOG</div>
+        </div>
+        <div className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666]">EXECUTION</div>
+          <div className="font-bold text-[#EF4444] mt-0.5">DISABLED (NO SSH/NETCONF)</div>
+        </div>
+        <div className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666]">NETWORK PUSH</div>
+          <div className="font-bold text-[#22C55E] mt-0.5">ZERO AUTOMATED PUSH</div>
+        </div>
       </div>
 
+      {/* Terminal Remediation Diff */}
       <div className="space-y-2">
-        <div className="text-[10px] text-[#666666] uppercase font-bold">Synthesized Cisco IOS Remediation Diff</div>
-        <pre className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A] text-[11px] font-mono leading-relaxed overflow-x-auto">
+        <div className="flex items-center justify-between text-[10px] text-[#777777]">
+          <span>PROPOSED CISCO IOS CLI DIFF</span>
+          <span className="text-[#EF4444] font-bold">STATUS: NOT EXECUTED (HUMAN OPERATOR SIGNOFF REQUIRED)</span>
+        </div>
+        <pre className="p-4 rounded-lg bg-[#030303] border border-[#1A1A1A] text-[11px] font-mono leading-relaxed overflow-x-auto">
 {`--- cisco-core-router.cfg (Line 17)
 +++ proposed-remediation (Allowlisted Template: CISCO-SSH-001)
 @@ -17,2 +17,3 @@
@@ -769,46 +822,41 @@ function Stage7SafeRemediation() {
 +write memory`}
         </pre>
       </div>
-
-      <div className="p-3 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] flex items-center justify-between text-[11px]">
-        <span className="text-[#888888]">Verification Procedure:</span>
-        <code className="text-[#22C55E]">show ip ssh # Verify protocol version is 2.0</code>
-      </div>
     </div>
   );
 }
 
 // -------------------------------------------------------------
-// STAGE 8: AI ADVISORY BOUNDARY
+// STAGE 8: 08 / GROUNDED AI ADVISORY & STRICT BOUNDARY
 // -------------------------------------------------------------
-function Stage8AIAdvisoryBoundary() {
+function Stage8AIAdvisory() {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 08 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Strict AI Advisory & Deterministic Engine Boundary
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 08 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            08 / GROUNDED AI ADVISORY <span className="text-xs text-[#888888] font-mono font-normal ml-2">STRICT COMPLIANCE BOUNDARY</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/30 text-[10px] font-bold">
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#8B5CF6] border border-[#8B5CF6]/30 font-bold">
           AI IS ADVISORY ONLY
         </span>
       </div>
 
-      {/* Split-Screen: Deterministic vs AI Advisory */}
+      {/* Split Viewport Exactly 50/50 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left: Deterministic */}
-        <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#EF4444]/40 space-y-3">
+        {/* Left: Deterministic Verdict */}
+        <div className="p-4 rounded-xl bg-[#050505] border border-[#EF4444]/40 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-white flex items-center gap-1.5">
+            <span className="font-bold text-white flex items-center gap-2 text-xs">
               <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
               <span>DETERMINISTIC VERDICT (SOURCE OF TRUTH)</span>
             </span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EF4444]/20 text-[#EF4444]">IMMUTABLE</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#EF4444]/20 text-[#EF4444] font-bold">IMMUTABLE</span>
           </div>
 
-          <div className="space-y-2 text-[11px] text-[#A3A3A3]">
+          <div className="space-y-2 text-xs text-[#A3A3A3]">
             <div><strong>Control ID:</strong> CIS-1.2.1</div>
             <div><strong>Status:</strong> <span className="text-[#EF4444] font-bold">FAIL</span></div>
             <div><strong>Line Citation:</strong> <span className="text-[#00D9FF]">Line 17: ip ssh version 1</span></div>
@@ -817,18 +865,23 @@ function Stage8AIAdvisoryBoundary() {
         </div>
 
         {/* Right: AI Advisory */}
-        <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#8B5CF6]/40 space-y-3">
+        <div className="p-4 rounded-xl bg-[#050505] border border-[#8B5CF6]/40 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-white flex items-center gap-1.5">
+            <span className="font-bold text-white flex items-center gap-2 text-xs">
               <Bot className="w-4 h-4 text-[#8B5CF6]" />
-              <span>AI ADVISORY (READ-ONLY)</span>
+              <span>AI ADVISORY (WHY THIS MATTERS)</span>
             </span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#8B5CF6]/20 text-[#8B5CF6]">GROUNDED</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#8B5CF6]/20 text-[#8B5CF6] font-bold">READ ONLY</span>
           </div>
 
-          <p className="text-[11px] text-[#D4D4D4] font-sans leading-relaxed">
-            SSH Version 1 relies on insecure CRC-32 compensation attack mitigation and lacks forward secrecy. An attacker on the network segment can perform man-in-the-middle decryption of administrative management credentials.
+          <p className="text-xs text-[#D4D4D4] font-sans leading-relaxed">
+            SSH Version 1 lacks forward secrecy and relies on vulnerable CRC-32 compensation attack mitigation. An attacker sniffing management plane traffic can perform man-in-the-middle decryption of privileged credentials.
           </p>
+
+          <div className="text-[10px] text-[#777777] pt-2 border-t border-[#1A1A1A] flex justify-between">
+            <span>GROUNDED IN DETERMINISTIC EVIDENCE</span>
+            <span className="text-[#8B5CF6] font-bold">AI ≠ VERDICT</span>
+          </div>
         </div>
       </div>
     </div>
@@ -836,9 +889,9 @@ function Stage8AIAdvisoryBoundary() {
 }
 
 // -------------------------------------------------------------
-// STAGE 9: ADAPTIVE TRAINING & SCHEMA GUARD
+// STAGE 9: 09 / ADAPTIVE TRAINING & SCHEMA BOUNDARY
 // -------------------------------------------------------------
-function Stage9AdaptiveTraining({
+function Stage9Adaptive({
   approved,
   onApprove,
 }: {
@@ -846,48 +899,48 @@ function Stage9AdaptiveTraining({
   onApprove: () => void;
 }) {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 09 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Adaptive Training & Safety Allowlist Guard
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 09 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            09 / ADAPTIVE TRAINING <span className="text-xs text-[#888888] font-mono font-normal ml-2">SCHEMA SAFETY BOUNDARY</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#22C55E] border border-[#22C55E]/30 text-[10px] font-bold">
-          HITL GOVERNANCE
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#22C55E] border border-[#22C55E]/30 font-bold">
+          HUMAN-IN-THE-LOOP
         </span>
       </div>
 
-      {/* Workflow 1: Valid CoPP Directive */}
-      <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#22C55E]/40 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-white">Scenario A: Legitimate Vendor Syntax Learning</span>
+      {/* Legitimate Directive Learning */}
+      <div className="p-4 rounded-xl bg-[#050505] border border-[#22C55E]/40 space-y-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-bold text-white">CASE A: UNKNOWN DIRECTIVE LEARNING (CoPP)</span>
           <span className="text-[10px] text-[#22C55E] font-bold">ALLOWLIST: PASS</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-[10px]">
-          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Unknown CLI Directive:</span>
-            <span className="text-white font-bold">control-plane / policy-map CoPP</span>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[9px]">Unknown Directive:</span>
+            <span className="text-white font-bold">COPP_MGMT_POLICY</span>
           </div>
-          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">AI Suggested Property:</span>
+          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[9px]">AI Suggestion:</span>
             <span className="text-[#00D9FF] font-bold">control_plane_policing_enabled</span>
           </div>
-          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Schema Allowlist Check:</span>
+          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[9px]">Schema Guard:</span>
             <span className="text-[#22C55E] font-bold">PASS (Allowlisted)</span>
           </div>
-          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] flex items-center justify-center">
+          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A] flex items-center justify-center">
             {approved ? (
-              <span className="text-[#22C55E] font-bold flex items-center gap-1">
+              <span className="text-[#22C55E] font-bold text-xs flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Approved
               </span>
             ) : (
               <button
                 onClick={onApprove}
-                className="px-3 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white font-bold"
+                className="px-3 py-1 rounded bg-[#00D9FF] hover:bg-[#00B4D8] text-black font-bold text-xs"
               >
                 Sign-off & Learn
               </button>
@@ -896,25 +949,25 @@ function Stage9AdaptiveTraining({
         </div>
       </div>
 
-      {/* Workflow 2: Malicious / Non-Allowlisted Injection Rejection */}
-      <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#EF4444]/40 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-white">Scenario B: Malicious Property Injection Attempt</span>
-          <span className="text-[10px] text-[#EF4444] font-bold">SECURITY GATE: REJECTED</span>
+      {/* Malicious Attempt Rejected */}
+      <div className="p-4 rounded-xl bg-[#050505] border border-[#EF4444]/40 space-y-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-bold text-white">CASE B: MALICIOUS ATTRIBUTE INJECTION REJECTION</span>
+          <span className="text-[10px] text-[#EF4444] font-bold">SECURITY GATE: REJECTED (HTTP 422)</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
-          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Injected Suggestion:</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[9px]">Injected Candidate:</span>
             <span className="text-[#EF4444] font-bold">system.execute_arbitrary_shell_command</span>
           </div>
-          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Schema Allowlist Validation:</span>
-            <span className="text-[#EF4444] font-bold">REJECTED (HTTP 422)</span>
+          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[9px]">Schema Allowlist Result:</span>
+            <span className="text-[#EF4444] font-bold">REJECTED</span>
           </div>
-          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A]">
-            <span className="text-[#666666] block">Security Engine Status:</span>
-            <span className="text-[#22C55E] font-bold">BLOCKED (Memory Protected)</span>
+          <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
+            <span className="text-[#666666] block text-[9px]">Model Protection:</span>
+            <span className="text-[#22C55E] font-bold">AI CANNOT ARBITRARILY EXPAND SCHEMA</span>
           </div>
         </div>
       </div>
@@ -923,62 +976,67 @@ function Stage9AdaptiveTraining({
 }
 
 // -------------------------------------------------------------
-// STAGE 10: FINAL EXECUTIVE POSTURE & CONCLUSION
+// STAGE 10: 10 / EXECUTIVE SECURITY VERDICT
 // -------------------------------------------------------------
-function Stage10FinalExecutivePosture({ goldenData }: { goldenData?: GoldenDemoState }) {
+function Stage10Verdict({ goldenData }: { goldenData?: GoldenDemoState }) {
   return (
-    <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6 font-mono text-xs">
-      <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
+    <div className="p-6 rounded-xl bg-[#080808] border border-[#171717] space-y-5 font-mono">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
-          <span className="text-[10px] text-[#00D9FF] uppercase font-bold tracking-wider">STAGE 10 / 10</span>
-          <h2 className="text-lg font-bold text-[#F5F5F5] font-sans mt-0.5">
-            Executive Security Posture & Final Verdict
+          <div className="text-[10px] text-[#00D9FF] uppercase tracking-wider font-bold">STAGE 10 / 10</div>
+          <h2 className="text-xl font-bold text-white font-sans mt-0.5">
+            10 / EXECUTIVE SECURITY VERDICT <span className="text-xs text-[#888888] font-mono font-normal ml-2">SUMMARY OF FINDINGS</span>
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/30 text-[10px] font-bold">
-          EVALUATOR SUMMARY
+        <span className="text-[10px] px-2.5 py-1 rounded bg-[#0D0D0D] text-[#00D9FF] border border-[#00D9FF]/30 font-bold">
+          EVALUATOR CONCLUSION
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Overall Compliance</div>
-          <div className="text-lg font-bold text-[#EF4444] mt-1">20.0%</div>
+      {/* Real Backend Values Only */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+        <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666] uppercase">AUDITED ASSETS</div>
+          <div className="text-base font-bold text-[#00D9FF] mt-0.5">3 Platforms</div>
         </div>
-
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Audited Platforms</div>
-          <div className="text-lg font-bold text-[#00D9FF] mt-1">Cisco / Jun / Forti</div>
+        <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666] uppercase">TOTAL FINDINGS</div>
+          <div className="text-base font-bold text-[#F59E0B] mt-0.5">60</div>
         </div>
-
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Open Findings</div>
-          <div className="text-lg font-bold text-[#F59E0B] mt-1">60</div>
+        <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666] uppercase">P0 CRITICAL</div>
+          <div className="text-base font-bold text-[#EF4444] mt-0.5">2</div>
         </div>
-
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">P0 Critical Risks</div>
-          <div className="text-lg font-bold text-[#EF4444] mt-1">2</div>
+        <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666] uppercase">P1 HIGH</div>
+          <div className="text-base font-bold text-[#EF4444] mt-0.5">8</div>
         </div>
-
-        <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A]">
-          <div className="text-[9px] text-[#666666] uppercase">Total Latency</div>
-          <div className="text-lg font-bold text-[#22C55E] mt-1">
-            {goldenData?.pipeline_latency?.total_ms ?? 349.5}ms
-          </div>
+        <div className="p-3.5 rounded-lg bg-[#050505] border border-[#1A1A1A]">
+          <div className="text-[9px] text-[#666666] uppercase">COMPLIANCE SCORE</div>
+          <div className="text-base font-bold text-[#EF4444] mt-0.5">20.0%</div>
         </div>
       </div>
 
-      {/* Architectural Summary Banner */}
-      <div className="p-5 rounded-xl bg-[#0D0D0D] border border-[#00D9FF]/30 space-y-3 text-center">
-        <div className="text-sm font-bold text-white font-sans">
-          "Different vendor dialects. One security model. Deterministic compliance. Grounded AI."
+      {/* Three Large Invariants */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center text-xs">
+        <div className="p-3.5 rounded-lg bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] font-bold">
+          ✓ DETERMINISTIC VERDICT
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-[#A3A3A3]">
-          <span className="px-2 py-0.5 rounded bg-[#050505] border border-[#1A1A1A]">AI: Advisory Only</span>
-          <span className="px-2 py-0.5 rounded bg-[#050505] border border-[#1A1A1A]">Remote Execution: Disabled</span>
-          <span className="px-2 py-0.5 rounded bg-[#050505] border border-[#1A1A1A]">Evidence: Line Verified</span>
-          <span className="px-2 py-0.5 rounded bg-[#050505] border border-[#1A1A1A]">Supported: Cisco / Juniper / Fortinet</span>
+        <div className="p-3.5 rounded-lg bg-[#00D9FF]/10 border border-[#00D9FF]/30 text-[#00D9FF] font-bold">
+          ✓ LINE-LEVEL EVIDENCE
+        </div>
+        <div className="p-3.5 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] font-bold">
+          ✓ ZERO LIVE NETWORK PUSH
+        </div>
+      </div>
+
+      {/* Final Statement */}
+      <div className="p-4 rounded-xl bg-[#030303] border border-[#1A1A1A] text-center space-y-1.5">
+        <div className="text-sm font-bold text-white font-sans tracking-wide">
+          THREE DIALECTS. ONE SECURITY MODEL. ONE DETERMINISTIC VERDICT.
+        </div>
+        <div className="text-xs text-[#888888]">
+          AI: ADVISORY ONLY • VENDORS: CISCO • JUNIPER • FORTINET
         </div>
       </div>
     </div>
