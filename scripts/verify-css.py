@@ -5,7 +5,7 @@ import urllib.request
 import re
 import sys
 
-BASE_URL = "http://localhost:3001"
+BASE_URL = "http://localhost:3000"
 ROUTES = [
     "/",
     "/dashboard",
