@@ -12,8 +12,8 @@ export default function LandingHero() {
       {/* 1. Atmospheric Ambient Peripheral Telemetry */}
       <TelemetryBackground />
 
-      {/* 2. Large Environmental 3D Topographical Security Scene (Occupies Right ~66%) */}
-      <div className="absolute right-0 top-0 bottom-0 w-full lg:w-[66%] h-full pointer-events-none z-10 overflow-hidden">
+      {/* 2. Full-Bleed 3D Topographical Security Scene Canvas (Spanning Behind Right 65%) */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-hidden">
         <TopographicScene />
       </div>
 
@@ -30,13 +30,13 @@ export default function LandingHero() {
 
         {/* Clean Controlled Editorial Headline (Exact Reference Proportions) */}
         <h1 className="flex flex-col tracking-[-0.04em] font-sans font-extrabold text-[#FFFFFF] mb-5">
-          <span className="block text-4xl sm:text-5xl lg:text-[42px] xl:text-[50px] leading-[1.02] whitespace-nowrap">
+          <span className="block text-4xl sm:text-5xl lg:text-[42px] xl:text-[48px] leading-[1.02] whitespace-nowrap">
             UNDERSTAND EVERY
           </span>
-          <span className="block text-4xl sm:text-5xl lg:text-[42px] xl:text-[50px] leading-[1.02] mt-1 whitespace-nowrap">
+          <span className="block text-4xl sm:text-5xl lg:text-[42px] xl:text-[48px] leading-[1.02] mt-1 whitespace-nowrap">
             CONFIGURATION.
           </span>
-          <span className="block text-3xl sm:text-4xl lg:text-[36px] xl:text-[44px] leading-[1.04] text-[#00D9FF] mt-3 whitespace-nowrap">
+          <span className="block text-3xl sm:text-4xl lg:text-[36px] xl:text-[42px] leading-[1.04] text-[#00D9FF] mt-3 whitespace-nowrap">
             TRUST EVERY DECISION.
           </span>
         </h1>
