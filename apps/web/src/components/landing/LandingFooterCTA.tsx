@@ -40,7 +40,7 @@ export default function LandingFooterCTA() {
         </div>
 
         <div className="pt-8 border-t border-[#141414] text-[11px] font-mono text-[#555555] flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>NetVigil v1.0.0-SIH2026-RC1</span>
+          <span>NetVigil v1.0.0-PROD-RC1</span>
           <span>National Technical Research Organisation (NTRO)</span>
         </div>
       </div>

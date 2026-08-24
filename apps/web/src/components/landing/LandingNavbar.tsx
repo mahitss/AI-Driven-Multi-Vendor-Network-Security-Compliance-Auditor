@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, Play, Layers, Sparkles, Activity } from "lucide-react";
+import { Shield, Play, Sparkles, Activity } from "lucide-react";
 
 export default function LandingNavbar() {
   return (
@@ -15,7 +15,7 @@ export default function LandingNavbar() {
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="font-bold text-sm tracking-wider text-white">NETVIGIL</span>
-            <span className="text-[10px] text-[#06B6D4] font-semibold">SIH26155</span>
+            <span className="text-[10px] text-[#06B6D4] font-semibold">CORE</span>
           </div>
         </Link>
 

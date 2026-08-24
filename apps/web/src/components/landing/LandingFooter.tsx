@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { Shield } from "lucide-react";
 
 export default function LandingFooter() {
@@ -14,7 +13,7 @@ export default function LandingFooter() {
           </div>
           <div>
             <span className="font-bold text-white tracking-wider">NETVIGIL</span>
-            <span className="text-[#06B6D4] ml-2">SIH26155 • NTRO</span>
+            <span className="text-[#06B6D4] ml-2">SECURITY OPERATIONS CENTER</span>
           </div>
         </div>
 

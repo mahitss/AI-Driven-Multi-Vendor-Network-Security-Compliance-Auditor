@@ -9,12 +9,12 @@ export default function MetricStripSection() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-white/5">
           <div className="pt-2 md:pt-0 md:px-6 space-y-1">
             <div className="text-[10px] text-[#737373] uppercase tracking-wider font-semibold">
-              SYSTEM ID
+              SECURITY ENGINE
             </div>
             <div className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              SIH26155
+              NETVIGIL CORE
             </div>
-            <div className="text-[10px] text-[#A3A3A3]">NTRO Problem Statement</div>
+            <div className="text-[10px] text-[#A3A3A3]">Universal Compliance Runtime</div>
           </div>
 
           <div className="pt-4 md:pt-0 md:px-6 space-y-1">
