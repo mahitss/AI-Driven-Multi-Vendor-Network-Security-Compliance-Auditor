@@ -5,15 +5,16 @@ import React, { useEffect, useRef } from "react";
 /**
  * TopographicScene
  * 
- * 1:1 Exact Mathematical Replication of Image 2 (Target Design):
- * - Standard 3D Camera LookAt Projection (Camera Height = 280, Tilt = 32°)
- * - Center-Bottom Conical Mountain Peak with radiant beacon apex & concentric elevation contour rings
- * - Upper-Center JunOS Ridge Peak with vertical pin to floating chip
- * - Upper-Right FortiOS Flank Peak with vertical pin to floating chip
- * - Left Cisco Shoulder Ridge with connector pin to floating chip
- * - Right Flank Slope Nodes: "CIS-1.2.1 / FAIL", "AI_ADVISORY:READ_ONLY", "REMOTE_PUSH:ABSENT"
- * - Luminous curved cyan spline arcs connecting nodes with moving white-cyan light packets
- * - Fine 3D wireframe mesh with volumetric depth
+ * Volumetric 3D Multi-Pyramid Topographical Security Intelligence Landscape:
+ * - Multiple Distinct 3D Pyramid Peaks:
+ *   1. Foreground Center-Bottom Pyramid with radiant beacon apex & concentric ripple elevation rings
+ *   2. Upper-Center JunOS Pyramid Peak with vertical pin to floating chip
+ *   3. Upper-Right FortiOS Pyramid Peak with vertical pin to floating chip
+ *   4. Mid-Left Cisco Shoulder Pyramid Peak with connector pin to floating chip
+ *   5. Midground Central Pyramid Peak
+ *   6. Right Flank Pyramid Ridge with CIS-1.2.1/FAIL (Red), AI_ADVISORY, REMOTE_PUSH chips
+ * - Luminous curved cyan spline arcs linking the pyramids with moving light packets
+ * - Smooth interactive mouse parallax
  */
 export default function TopographicScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,11 +45,11 @@ export default function TopographicScene() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // 3D Grid Parameters
-    const gridCols = 54;
-    const gridRows = 44;
-    const gridWidth = 1200;
-    const gridDepth = 960;
+    // High-Resolution 3D Grid Parameters
+    const gridCols = 58;
+    const gridRows = 46;
+    const gridWidth = 1260;
+    const gridDepth = 980;
 
     // Mouse Tracking (3-4 degree subtle parallax)
     let mouseX = 0;
@@ -67,24 +68,24 @@ export default function TopographicScene() {
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // 8 Telemetry Nodes Matching Reference Image 2 Exactly
+    // 8 Telemetry Nodes across Multiple Pyramids
     const nodes = [
-      // 0: Foreground Radiant Beacon Node (Center-Bottom Cone Apex)
-      { id: "beacon", x: 10, z: 160, label: "", color: "#FFFFFF", isBeacon: true, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
-      // 1: JunOS Peak (Upper-Center Peak)
-      { id: "junos", x: 20, z: -140, label: "JUNOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
-      // 2: FortiOS Peak (Upper-Right Flank Peak)
-      { id: "fortios", x: 300, z: -80, label: "FORTIOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
-      // 3: Cisco IOS (Mid-Left Slope)
+      // 0: Foreground Radiant Beacon Node (Center-Bottom Pyramid Summit)
+      { id: "beacon", x: 20, z: 160, label: "", color: "#FFFFFF", isBeacon: true, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
+      // 1: JunOS Pyramid Peak (Upper-Center Summit)
+      { id: "junos", x: 40, z: -140, label: "JUNOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
+      // 2: FortiOS Pyramid Peak (Upper-Right Summit)
+      { id: "fortios", x: 320, z: -80, label: "FORTIOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
+      // 3: Cisco IOS Pyramid Shoulder (Mid-Left Summit)
       { id: "cisco", x: -240, z: 20, label: "CISCO IOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: -20, y: -38 }, lineDir: "up" },
       // 4: Midground Ridge Node (between Cisco and JunOS)
-      { id: "mid_node", x: -100, z: -60, label: "", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
+      { id: "mid_node", x: -90, z: -50, label: "", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
       // 5: CIS-1.2.1 / FAIL (Right Flank Upper)
       { id: "cis_fail", x: 340, z: 30, label: "CIS-1.2.1 / FAIL", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -34 }, lineDir: "up", isFail: true },
       // 6: AI Advisory (Right Flank Mid)
-      { id: "ai_advisory", x: 320, z: 130, label: "AI_ADVISORY:READ_ONLY", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
+      { id: "ai_advisory", x: 330, z: 120, label: "AI_ADVISORY:READ_ONLY", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
       // 7: Remote Push Absent (Right Flank Lower)
-      { id: "remote_push", x: 320, z: 230, label: "REMOTE_PUSH:ABSENT", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
+      { id: "remote_push", x: 330, z: 220, label: "REMOTE_PUSH:ABSENT", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
     ];
 
     // Luminous Curved Network Connection Splines
@@ -101,35 +102,42 @@ export default function TopographicScene() {
 
     let time = 0;
 
-    // 3D Topographical Elevation (Positive Y is UP in world space)
+    // 3D Multiple Pyramids Topographical Elevation Function
     const getElevation = (x: number, z: number, t: number) => {
-      // 1. Prominent Foreground Cone (Center-Bottom)
-      const distConeSq = Math.pow(x - 10, 2) + Math.pow(z - 160, 2);
-      const foregroundCone = 220 * Math.exp(-distConeSq / 32000);
+      // 1. Foreground Center-Bottom Pyramid Peak
+      const distCone = Math.sqrt(Math.pow(x - 20, 2) + Math.pow(z - 160, 2));
+      const pyramid1 = 230 * Math.exp(-distCone / 140);
 
-      // 2. Upper-Center JunOS Ridge Peak
-      const distJunosSq = Math.pow(x - 20, 2) + Math.pow(z + 140, 2);
-      const junosPeak = 240 * Math.exp(-distJunosSq / 38000);
+      // 2. Upper-Center JunOS Pyramid Peak
+      const distJunos = Math.sqrt(Math.pow(x - 40, 2) + Math.pow(z + 140, 2));
+      const pyramid2 = 250 * Math.exp(-distJunos / 150);
 
-      // 3. Upper-Right FortiOS Flank Peak
-      const distFortiosSq = Math.pow(x - 300, 2) + Math.pow(z + 80, 2);
-      const fortiosPeak = 220 * Math.exp(-distFortiosSq / 36000);
+      // 3. Upper-Right FortiOS Pyramid Peak
+      const distFortios = Math.sqrt(Math.pow(x - 320, 2) + Math.pow(z + 80, 2));
+      const pyramid3 = 230 * Math.exp(-distFortios / 145);
 
-      // 4. Left Cisco Shoulder Ridge
-      const distCiscoSq = Math.pow(x + 240, 2) + Math.pow(z - 20, 2);
-      const ciscoPeak = 140 * Math.exp(-distCiscoSq / 42000);
+      // 4. Mid-Left Cisco Shoulder Pyramid Peak
+      const distCisco = Math.sqrt(Math.pow(x + 240, 2) + Math.pow(z - 20, 2));
+      const pyramid4 = 170 * Math.exp(-distCisco / 150);
 
-      // 5. Connecting Saddle Ridges & Valleys
-      const saddle1 = 80 * Math.exp(-Math.pow((x - 20) / 140, 2) - Math.pow((z + 20) / 120, 2));
-      const saddle2 = 90 * Math.exp(-Math.pow((x - 200) / 150, 2) - Math.pow((z - 40) / 130, 2));
+      // 5. Central Midground Pyramid Summit
+      const distMid = Math.sqrt(Math.pow(x + 90, 2) + Math.pow(z + 50, 2));
+      const pyramid5 = 150 * Math.exp(-distMid / 130);
+
+      // 6. Right Flank Pyramid Ridge
+      const distFlank = Math.sqrt(Math.pow(x - 330, 2) + Math.pow(z - 120, 2));
+      const pyramid6 = 160 * Math.exp(-distFlank / 140);
+
+      // Interconnecting Saddle Terraces
+      const saddle = 60 * Math.exp(-Math.pow((x - 120) / 160, 2) - Math.pow(z / 140, 2));
 
       if (prefersReducedMotion) {
-        return foregroundCone + junosPeak + fortiosPeak + ciscoPeak + saddle1 + saddle2;
+        return pyramid1 + pyramid2 + pyramid3 + pyramid4 + pyramid5 + pyramid6 + saddle;
       }
 
       // Continuous subtle organic wave ripples
-      const wave = 9 * Math.sin(x * 0.008 - t * 0.35) * Math.cos(z * 0.007 + t * 0.3);
-      return foregroundCone + junosPeak + fortiosPeak + ciscoPeak + saddle1 + saddle2 + wave;
+      const wave = 8 * Math.sin(x * 0.009 - t * 0.35) * Math.cos(z * 0.008 + t * 0.3);
+      return pyramid1 + pyramid2 + pyramid3 + pyramid4 + pyramid5 + pyramid6 + saddle + wave;
     };
 
     // Standard 3D Camera LookAt Projection (Camera Height = 280, Pitch = 31.5°)
@@ -194,7 +202,7 @@ export default function TopographicScene() {
         height * 0.50,
         width * 0.65
       );
-      centerGlow.addColorStop(0, "rgba(0, 217, 255, 0.14)");
+      centerGlow.addColorStop(0, "rgba(0, 217, 255, 0.15)");
       centerGlow.addColorStop(0.45, "rgba(0, 201, 139, 0.04)");
       centerGlow.addColorStop(1, "rgba(3, 7, 12, 0)");
       ctx.fillStyle = centerGlow;
@@ -281,33 +289,41 @@ export default function TopographicScene() {
         ctx.stroke();
       }
 
-      // 5. Concentric Elevation Contour Rings Around Foreground Beacon Peak
-      for (let radius = 20; radius <= 200; radius += 26) {
-        ctx.beginPath();
-        let ringStarted = false;
-        const ringSegments = 40;
+      // 5. Concentric Elevation Contour Rings Around Multiple Pyramids
+      const pyramidCenters = [
+        { x: 20, z: 160, maxR: 200, step: 26 },   // Foreground Pyramid
+        { x: 40, z: -140, maxR: 170, step: 32 },  // JunOS Pyramid
+        { x: 320, z: -80, maxR: 160, step: 30 },  // FortiOS Pyramid
+      ];
 
-        for (let a = 0; a <= ringSegments; a++) {
-          const angle = (a / ringSegments) * Math.PI * 2;
-          const rx = 10 + Math.cos(angle) * radius * 1.35;
-          const rz = 160 + Math.sin(angle) * radius * 0.95;
-          const ry = getElevation(rx, rz, time);
+      for (const pyr of pyramidCenters) {
+        for (let radius = 22; radius <= pyr.maxR; radius += pyr.step) {
+          ctx.beginPath();
+          let ringStarted = false;
+          const ringSegments = 40;
 
-          const pt = project3D(rx, ry, rz, width, height, targetRotX, targetRotY);
-          if (!pt) continue;
+          for (let a = 0; a <= ringSegments; a++) {
+            const angle = (a / ringSegments) * Math.PI * 2;
+            const rx = pyr.x + Math.cos(angle) * radius * 1.35;
+            const rz = pyr.z + Math.sin(angle) * radius * 0.95;
+            const ry = getElevation(rx, rz, time);
 
-          if (!ringStarted) {
-            ctx.moveTo(pt.x, pt.y);
-            ringStarted = true;
-          } else {
-            ctx.lineTo(pt.x, pt.y);
+            const pt = project3D(rx, ry, rz, width, height, targetRotX, targetRotY);
+            if (!pt) continue;
+
+            if (!ringStarted) {
+              ctx.moveTo(pt.x, pt.y);
+              ringStarted = true;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
+            }
           }
-        }
 
-        const ringAlpha = 0.16 + (200 - radius) * 0.0016;
-        ctx.strokeStyle = `rgba(0, 217, 255, ${ringAlpha})`;
-        ctx.lineWidth = 1.0;
-        ctx.stroke();
+          const ringAlpha = 0.16 + (pyr.maxR - radius) * 0.0016;
+          ctx.strokeStyle = `rgba(0, 217, 255, ${ringAlpha})`;
+          ctx.lineWidth = 1.0;
+          ctx.stroke();
+        }
       }
 
       // 6. Compute 3D Positions for Telemetry Nodes

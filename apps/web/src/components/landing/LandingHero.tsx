@@ -8,17 +8,17 @@ import TelemetryBackground from "./TelemetryBackground";
 
 export default function LandingHero() {
   return (
-    <section className="relative min-h-[760px] lg:h-[calc(100vh-56px)] xl:min-h-[800px] flex items-center pl-6 sm:pl-10 lg:pl-16 pr-4 sm:pr-8 lg:pr-8 pt-12 pb-8 overflow-hidden bg-[#03070C] text-[#FFFFFF]">
+    <section className="relative min-h-[780px] lg:h-[calc(100vh-56px)] xl:min-h-[840px] flex items-center pl-6 sm:pl-10 lg:pl-16 pr-4 sm:pr-8 lg:pr-8 pt-14 pb-8 overflow-hidden bg-[#03070C] text-[#FFFFFF]">
       {/* 1. Atmospheric Ambient Peripheral Telemetry */}
       <TelemetryBackground />
 
-      {/* 2. Full-Bleed 3D Topographical Security Scene Canvas (Spanning Behind Right 65%) */}
+      {/* 2. Full-Bleed 3D Multi-Pyramid Topographical Security Scene Canvas */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-hidden">
         <TopographicScene />
       </div>
 
-      {/* 3. Left Content: Clean Compact Editorial Security Messaging (Z-20, Max 440px) */}
-      <div className="relative z-20 w-full max-w-[420px] lg:max-w-[440px] flex flex-col items-start text-left">
+      {/* 3. Left Content: Premium Editorial Security Messaging (Z-20, Max 520px) */}
+      <div className="relative z-20 w-full max-w-[480px] lg:max-w-[520px] flex flex-col items-start text-left">
         
         {/* Institutional Status Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0B132B]/90 border border-[#00D9FF]/20 text-[11px] font-mono text-[#94A3B8] shadow-sm mb-6">
@@ -28,21 +28,21 @@ export default function LandingHero() {
           <span className="text-[#94A3B8] font-medium tracking-wide">DETERMINISTIC MULTI-VENDOR SECURITY</span>
         </div>
 
-        {/* Clean Controlled Editorial Headline (Exact Reference Proportions) */}
+        {/* Scaled Editorial Headline (Bold & Clear) */}
         <h1 className="flex flex-col tracking-[-0.04em] font-sans font-extrabold text-[#FFFFFF] mb-5">
-          <span className="block text-3xl sm:text-4xl lg:text-[38px] xl:text-[44px] leading-[1.04] whitespace-nowrap">
+          <span className="block text-4xl sm:text-5xl lg:text-[46px] xl:text-[52px] 2xl:text-[56px] leading-[1.02] whitespace-nowrap">
             UNDERSTAND EVERY
           </span>
-          <span className="block text-3xl sm:text-4xl lg:text-[38px] xl:text-[44px] leading-[1.04] mt-1 whitespace-nowrap">
+          <span className="block text-4xl sm:text-5xl lg:text-[46px] xl:text-[52px] 2xl:text-[56px] leading-[1.02] mt-1.5 whitespace-nowrap">
             CONFIGURATION.
           </span>
-          <span className="block text-2xl sm:text-3xl lg:text-[34px] xl:text-[40px] leading-[1.06] text-[#00D9FF] mt-3 whitespace-nowrap">
+          <span className="block text-3xl sm:text-4xl lg:text-[38px] xl:text-[44px] 2xl:text-[48px] leading-[1.04] text-[#00D9FF] mt-3.5 whitespace-nowrap">
             TRUST EVERY DECISION.
           </span>
         </h1>
 
-        {/* Supporting Architectural Copy (Max 400px Container) */}
-        <p className="max-w-[400px] text-[13.5px] sm:text-[14.5px] text-[#8B9EB3] leading-[1.6] font-sans font-normal mb-8">
+        {/* Supporting Architectural Copy */}
+        <p className="max-w-[480px] text-[14.5px] sm:text-[15.5px] xl:text-[16.5px] text-[#8B9EB3] leading-[1.6] font-sans font-normal mb-8">
           NetVigil transforms Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations into
           one Universal Security Model, evaluates them against shared security frameworks, preserves
           line-level evidence, and uses grounded AI only where interpretation is required.
