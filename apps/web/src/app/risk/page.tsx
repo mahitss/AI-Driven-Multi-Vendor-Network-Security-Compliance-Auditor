@@ -47,7 +47,13 @@ export default function RiskIntelligencePage() {
     queryFn: () => fetchAudits(),
   });
 
-  const { data: risks = [], isLoading: isRisksLoading, refetch: refetchRisks } = useQuery({
+  const {
+    data: risks = [],
+    isLoading: isRisksLoading,
+    isError: isRisksError,
+    error: risksError,
+    refetch: refetchRisks,
+  } = useQuery({
     queryKey: ["risks", selectedAuditId, selectedPriority, selectedCategory],
     queryFn: () => {
       if (selectedAuditId !== "ALL") {
@@ -233,7 +239,26 @@ export default function RiskIntelligencePage() {
         {/* View 1: Risk List */}
         {activeView === "list" && (
           <div className="space-y-3 pt-2">
-            {isRisksLoading ? (
+            {isRisksError ? (
+              <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/30 text-center space-y-3 font-mono">
+                <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
+                  <div className="text-[11px] text-[#EF4444] mt-1">
+                    {risksError instanceof Error ? risksError.message : "Failed to retrieve prioritized risk intelligence."}
+                  </div>
+                </div>
+                <button
+                  onClick={() => refetchRisks()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#EF4444] border border-[#EF4444]/40 text-xs font-semibold"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Retry Request</span>
+                </button>
+              </div>
+            ) : isRisksLoading ? (
               <div className="py-12 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
                 <RefreshCw className="w-4 h-4 animate-spin text-[#EF4444]" />
                 <span>Computing prioritized risk intelligence...</span>

@@ -10,6 +10,9 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
         defaultOptions: {
           queries: {
             staleTime: 5000,
+            gcTime: 30000,
+            retry: 1, // Bounded retry: maximum 1 retry on network failure
+            retryDelay: 1000,
             refetchOnWindowFocus: false,
           },
         },

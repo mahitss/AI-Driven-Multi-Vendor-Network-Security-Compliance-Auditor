@@ -69,12 +69,24 @@ export default function AdaptiveTrainingPage() {
     queryFn: () => fetchTrainingStats(),
   });
 
-  const { data: pendingMappings = [], isLoading: isPendingLoading, refetch: refetchPending } = useQuery({
+  const {
+    data: pendingMappings = [],
+    isLoading: isPendingLoading,
+    isError: isPendingError,
+    error: pendingError,
+    refetch: refetchPending,
+  } = useQuery({
     queryKey: ["training-pending", selectedVendorFilter],
     queryFn: () => fetchTrainingPending(selectedVendorFilter === "ALL" ? undefined : selectedVendorFilter),
   });
 
-  const { data: allMappings = [], isLoading: isMappingsLoading, refetch: refetchMappings } = useQuery({
+  const {
+    data: allMappings = [],
+    isLoading: isMappingsLoading,
+    isError: isMappingsError,
+    error: mappingsError,
+    refetch: refetchMappings,
+  } = useQuery({
     queryKey: ["training-mappings", selectedStatusFilter, selectedVendorFilter],
     queryFn: () =>
       fetchTrainingMappings({
@@ -337,7 +349,26 @@ export default function AdaptiveTrainingPage() {
       {/* Tab Content: Pending Reviews */}
       {activeTab === "pending" && (
         <div className="space-y-4">
-          {isPendingLoading ? (
+          {isPendingError ? (
+            <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/30 text-center space-y-3 font-mono">
+              <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
+                <XCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
+                <div className="text-[11px] text-[#EF4444] mt-1">
+                  {pendingError instanceof Error ? pendingError.message : "Failed to retrieve pending review candidates."}
+                </div>
+              </div>
+              <button
+                onClick={() => refetchPending()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/40 text-xs font-semibold"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Retry Request</span>
+              </button>
+            </div>
+          ) : isPendingLoading ? (
             <div className="py-16 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-[#8B5CF6]" />
               <span>Loading pending review candidates...</span>
