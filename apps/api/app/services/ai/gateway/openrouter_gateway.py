@@ -54,13 +54,54 @@ class OpenRouterGateway:
 
     @classmethod
     def _sanitize_dict_against_compliance_overrides(cls, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Strips any attempt by an LLM to override deterministic compliance scores or statuses."""
+        """Strips any attempt by an LLM to override deterministic compliance scores or statuses and normalizes nested dicts and types."""
         cleaned = {}
         for k, v in data.items():
             if k.lower() in FORBIDDEN_COMPLIANCE_FIELDS:
                 logger.warning(f"Discarded unauthorized compliance override field from AI response: {k}={v}")
                 continue
+            if isinstance(v, dict):
+                # If model echoed schema metadata like {'description': '...'}
+                if "description" in v and isinstance(v["description"], str):
+                    v = v["description"]
+                elif "value" in v and isinstance(v["value"], str):
+                    v = v["value"]
+                elif "text" in v and isinstance(v["text"], str):
+                    v = v["text"]
             cleaned[k] = v
+
+        # Confidence normalization (convert string like "High" or "95%" to float)
+        if "confidence" in cleaned:
+            val = cleaned["confidence"]
+            if isinstance(val, str):
+                numbers = re.findall(r"\d+(?:\.\d+)?", val)
+                if numbers:
+                    num = float(numbers[0])
+                    cleaned["confidence"] = num / 100.0 if num > 1.0 else num
+                else:
+                    cleaned["confidence"] = 0.90
+            elif isinstance(val, (int, float)):
+                cleaned["confidence"] = float(val) / 100.0 if val > 1.0 else float(val)
+
+        # Evidence list normalization
+        if "evidence_used" in cleaned and isinstance(cleaned["evidence_used"], str):
+            cleaned["evidence_used"] = [cleaned["evidence_used"]]
+
+        # Source lines normalization
+        if "source_lines" in cleaned:
+            sl = cleaned["source_lines"]
+            if isinstance(sl, str):
+                cleaned["source_lines"] = [int(x) for x in re.findall(r"\b\d+\b", sl)]
+            elif isinstance(sl, list):
+                extracted_lines = []
+                for item in sl:
+                    if isinstance(item, int):
+                        extracted_lines.append(item)
+                    elif isinstance(item, str):
+                        nums = re.findall(r"\b\d+\b", item)
+                        extracted_lines.extend(int(n) for n in nums)
+                cleaned["source_lines"] = extracted_lines
+
         cleaned["advisory_only"] = True
         return cleaned
 
@@ -73,10 +114,10 @@ class OpenRouterGateway:
         context_data: Optional[Dict[str, Any]] = None,
         preferred_model: Optional[str] = None,
         max_attempts: int = 3,
-    ) -> Any:
+    ) -> T:
         """
-        Executes an AI task through OpenRouter with automatic candidate fallback,
-        strict redaction, schema validation, and offline recovery.
+        Executes an AI task through OpenRouter multi-model router with automatic fallback,
+        strict prompt-injection defense, and compliance isolation.
         """
         api_key = settings.OPENROUTER_API_KEY.strip() if settings.OPENROUTER_API_KEY else ""
 
@@ -94,11 +135,12 @@ class OpenRouterGateway:
         sanitized_user_prompt = redact_sensitive_data(user_prompt)
         system_prompt = get_system_prompt_for_task(task_type)
 
-        # Append schema schema instruction if specified
+        # Append clean example JSON instruction if specified
         if response_schema:
             try:
-                schema_json = json.dumps(response_schema.model_json_schema().get("properties", {}), indent=2)
-                system_prompt += f"\nRequired JSON Structure:\n{schema_json}"
+                props = response_schema.model_json_schema().get("properties", {})
+                clean_example = {k: f"<{v.get('description', k)}>" for k, v in props.items()}
+                system_prompt += f"\nYou MUST respond with ONLY a valid JSON object matching this structure (all field values must be strings, not objects):\n{json.dumps(clean_example, indent=2)}"
             except Exception:
                 pass
 
