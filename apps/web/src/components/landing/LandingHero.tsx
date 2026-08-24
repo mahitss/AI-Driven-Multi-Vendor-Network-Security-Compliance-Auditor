@@ -2,77 +2,62 @@
 
 import React from "react";
 import Link from "next/link";
-import { Play, ArrowRight, ShieldCheck, Terminal, Cpu, Lock } from "lucide-react";
+import { Play, ArrowRight, ShieldCheck, Terminal, Cpu, Lock, Sparkles } from "lucide-react";
 import TopographicScene from "./TopographicScene";
 
 export default function LandingHero() {
   return (
-    <section className="relative min-h-[92vh] flex flex-col justify-center items-center px-4 sm:px-6 pt-24 pb-16 overflow-hidden bg-[#050505] text-[#F5F5F5]">
-      {/* 3D Topographic Terrain Canvas in Background */}
+    <section className="relative min-h-[92vh] flex flex-col justify-center items-center px-4 sm:px-6 pt-28 pb-16 overflow-hidden bg-[#0A0C10] text-[#F5F5F5]">
+      {/* Interactive Topographic / Terrain Canvas */}
       <TopographicScene />
 
-      {/* Top Technical Metadata HUD */}
+      {/* Hero Content Container */}
       <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A0A0A]/90 border border-[#1A1A1A] text-[11px] font-mono text-[#8A8A8A]">
-          <span className="text-[#00D9FF] font-semibold">SIH26155</span>
-          <span>•</span>
-          <span>NATIONAL TECHNICAL RESEARCH ORGANISATION</span>
+        {/* Technical Status Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0E131F]/90 border border-[#06B6D4]/30 text-[11px] font-mono text-[#A3A3A3] shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+          <span className="text-[#06B6D4] font-bold">SIH26155</span>
+          <span className="text-white/20">•</span>
+          <span className="text-white/80">NTRO</span>
+          <span className="text-white/20">•</span>
+          <span className="text-[#10B981]">DETERMINISTIC MULTI-VENDOR SECURITY</span>
         </div>
 
-        {/* Main Display Typography */}
-        <div className="space-y-3">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight font-sans text-[#F5F5F5] uppercase">
-            NETVIGIL
+        {/* Large Two-Line Headline with Stitch Visual Hierarchy */}
+        <div className="space-y-1 sm:space-y-2">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight font-sans text-white leading-[1.1]">
+            Understand Every <br />
+            Configuration.
           </h1>
-          <p className="text-base sm:text-xl lg:text-2xl font-medium tracking-tight text-[#00D9FF] font-mono">
-            AI-Driven Multi-Vendor Network Security Compliance Auditor
-          </p>
+          <h2 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight font-sans text-[#06B6D4] leading-[1.1]">
+            Trust Every <br className="sm:hidden" />
+            Decision.
+          </h2>
         </div>
 
-        {/* Technical Value Proposition */}
-        <p className="max-w-2xl mx-auto text-xs sm:text-sm text-[#A3A3A3] leading-relaxed font-sans">
-          Audit heterogeneous Cisco, Juniper, and Fortinet network configurations against CIS,
-          NIST, STIG, and ISO benchmarks with mathematical precision, line-level evidence, and
-          grounded advisory AI intelligence.
+        {/* Supporting Copy */}
+        <p className="max-w-2xl mx-auto text-xs sm:text-sm text-[#A3A3A3] leading-relaxed font-sans font-normal pt-1">
+          NetVigil transforms Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations into a
+          Universal Security Model, evaluates them against shared security frameworks, preserves
+          line-level evidence, and uses grounded AI only where interpretation is required.
         </p>
 
-        {/* Primary Call-to-Actions */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2 font-mono">
+        {/* CTA Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-3.5 pt-3 font-mono text-xs">
           <Link
             href="/demo"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00D9FF] text-[#050505] font-bold text-xs hover:bg-[#33E0FF] transition-all shadow-[0_0_20px_rgba(0,217,255,0.25)]"
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-[#10B981] hover:bg-[#059669] text-black font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)]"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
-            <span>RUN GOLDEN DEMO</span>
+            <span>LAUNCH GOLDEN DEMO →</span>
           </Link>
 
           <Link
-            href="/audits"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] hover:border-[#333333] hover:bg-[#141414] text-[#D4D4D4] font-medium text-xs transition-colors"
+            href="/demo/multi-vendor"
+            className="inline-flex items-center gap-2 px-5 py-3.5 rounded-lg bg-[#0E131F] border border-white/10 hover:border-white/25 hover:bg-[#141B2D] text-[#E5E5E5] font-semibold transition-all"
           >
-            <span>EXPLORE WORKSPACE</span>
-            <ArrowRight className="w-3.5 h-3.5 text-[#8A8A8A]" />
+            <span>EXPLORE SECURITY ENGINE →</span>
           </Link>
-        </div>
-
-        {/* Technical HUD Feature Anchors */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-3xl mx-auto pt-8 font-mono text-[11px]">
-          <div className="p-2.5 rounded-lg bg-[#0A0A0A]/80 border border-[#1A1A1A] flex items-center gap-2">
-            <Cpu className="w-3.5 h-3.5 text-[#00D9FF]" />
-            <span className="text-[#A3A3A3]">MULTI-VENDOR AST</span>
-          </div>
-          <div className="p-2.5 rounded-lg bg-[#0A0A0A]/80 border border-[#1A1A1A] flex items-center gap-2">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#22C55E]" />
-            <span className="text-[#A3A3A3]">DETERMINISTIC RULES</span>
-          </div>
-          <div className="p-2.5 rounded-lg bg-[#0A0A0A]/80 border border-[#1A1A1A] flex items-center gap-2">
-            <Terminal className="w-3.5 h-3.5 text-[#8B5CF6]" />
-            <span className="text-[#A3A3A3]">AI ADVISORY ONLY</span>
-          </div>
-          <div className="p-2.5 rounded-lg bg-[#0A0A0A]/80 border border-[#1A1A1A] flex items-center gap-2">
-            <Lock className="w-3.5 h-3.5 text-[#F59E0B]" />
-            <span className="text-[#A3A3A3]">ZERO LIVE PUSH</span>
-          </div>
         </div>
       </div>
     </section>

@@ -2,6 +2,16 @@
 
 import React, { useEffect, useRef } from "react";
 
+/**
+ * TopographicScene
+ * Full-screen interactive WebGL / Canvas2D wireframe terrain representing
+ * raw configuration complexity converging into normalized security semantics.
+ *
+ * Visual semantics:
+ * - Green/Emerald particles & nodes: Deterministic Security Facts
+ * - Cyan particles & nodes: Grounded AI Advisory & Syntax Interpretation
+ * - Topographic Wireframe Mesh: Multi-Vendor AST Normalization Field
+ */
 export default function TopographicScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -17,7 +27,7 @@ export default function TopographicScene() {
 
     // Handle HiDPI Canvas Scaling
     const resizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = canvas.parentElement?.clientWidth || window.innerWidth;
       const height = canvas.parentElement?.clientHeight || window.innerHeight;
 
@@ -32,12 +42,12 @@ export default function TopographicScene() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Grid properties
-    const rows = 36;
-    const cols = 48;
-    const spacing = 38;
+    // Mesh Grid parameters
+    const rows = 32;
+    const cols = 44;
+    const spacing = 42;
 
-    // Mouse parallax
+    // Interactive mouse tracking for gentle camera parallax
     let mouseX = 0;
     let mouseY = 0;
     let targetCameraX = 0;
@@ -52,15 +62,20 @@ export default function TopographicScene() {
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // Deterministic Network Topology Nodes
-    const nodeCount = 24;
-    const nodes: { r: number; c: number; pulseOffset: number; active: boolean }[] = [];
-    for (let n = 0; n < nodeCount; n++) {
+    // Deterministic & AI Particle Nodes
+    const nodes: {
+      r: number;
+      c: number;
+      pulseOffset: number;
+      type: "deterministic" | "ai";
+    }[] = [];
+
+    for (let n = 0; n < 28; n++) {
       nodes.push({
-        r: Math.floor(6 + ((n * 13) % (rows - 12))),
-        c: Math.floor(6 + ((n * 19) % (cols - 12))),
-        pulseOffset: (n * 0.4) % Math.PI,
-        active: n % 4 === 0,
+        r: Math.floor(4 + ((n * 11) % (rows - 8))),
+        c: Math.floor(4 + ((n * 17) % (cols - 8))),
+        pulseOffset: (n * 0.45) % (Math.PI * 2),
+        type: n % 3 === 0 ? "ai" : "deterministic",
       });
     }
 
@@ -74,10 +89,10 @@ export default function TopographicScene() {
       width: number,
       height: number
     ) => {
-      const fov = 420;
-      const cameraZ = 340;
-      const cameraY = -120 + targetCameraY * 25;
-      const cameraX = targetCameraX * 35;
+      const fov = 440;
+      const cameraZ = 360;
+      const cameraY = -130 + targetCameraY * 20;
+      const cameraX = targetCameraX * 30;
 
       const px = gx - cameraX;
       const py = gy - cameraY;
@@ -97,176 +112,126 @@ export default function TopographicScene() {
       const height = canvas.parentElement?.clientHeight || window.innerHeight;
 
       if (!prefersReducedMotion) {
-        time += 0.016;
-        targetCameraX += (mouseX - targetCameraX) * 0.05;
-        targetCameraY += (mouseY - targetCameraY) * 0.05;
+        time += 0.012;
+        // Smooth camera damping
+        targetCameraX += (mouseX - targetCameraX) * 0.04;
+        targetCameraY += (mouseY - targetCameraY) * 0.04;
       }
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Calculate Grid Vertices with Sinusoidal Elevation
-      const gridPoints: ({ x: number; y: number; scale: number; pz: number; elev: number } | null)[][] = [];
-
-      for (let r = 0; r < rows; r++) {
-        gridPoints[r] = [];
-        for (let c = 0; c < cols; c++) {
-          const worldX = (c - cols / 2) * spacing;
-          const worldZ = r * spacing * 1.35;
-
-          // Mathematical Elevation Function
-          const distFromCenter = Math.sqrt(
-            Math.pow((c - cols / 2) / (cols / 2), 2) +
-            Math.pow((r - rows / 2) / (rows / 2), 2)
-          );
-
-          const wave1 = Math.sin(c * 0.28 + time * 0.6) * Math.cos(r * 0.28 + time * 0.6) * 32;
-          const wave2 = Math.sin(c * 0.12 - time * 0.3 + r * 0.14) * 24;
-          const falloff = Math.max(0, 1 - distFromCenter * 0.85);
-
-          const elevation = (wave1 + wave2) * falloff;
-          const worldY = 65 - elevation;
-
-          const proj = project3D(worldX, worldY, worldZ, width, height);
-          if (proj) {
-            gridPoints[r][c] = { ...proj, elev: elevation };
-          } else {
-            gridPoints[r][c] = null;
-          }
-        }
-      }
-
-      // 2. Render Topographic Contour Lines
-      for (let r = 0; r < rows; r++) {
-        ctx.beginPath();
-        let started = false;
-
-        const isMajorContour = r % 4 === 0;
-        ctx.strokeStyle = isMajorContour ? "rgba(0, 217, 255, 0.16)" : "rgba(255, 255, 255, 0.05)";
-        ctx.lineWidth = isMajorContour ? 1.0 : 0.6;
-
-        for (let c = 0; c < cols; c++) {
-          const pt = gridPoints[r][c];
-          if (!pt) {
-            started = false;
-            continue;
-          }
-
-          if (!started) {
-            ctx.moveTo(pt.x, pt.y);
-            started = true;
-          } else {
-            ctx.lineTo(pt.x, pt.y);
-          }
-        }
-        ctx.stroke();
-      }
-
-      // Vertical longitudinal contour links
-      for (let c = 0; c < cols; c += 2) {
-        ctx.beginPath();
-        let started = false;
-        ctx.strokeStyle = "rgba(0, 217, 255, 0.04)";
-        ctx.lineWidth = 0.5;
-
-        for (let r = 0; r < rows; r++) {
-          const pt = gridPoints[r][c];
-          if (!pt) {
-            started = false;
-            continue;
-          }
-          if (!started) {
-            ctx.moveTo(pt.x, pt.y);
-            started = true;
-          } else {
-            ctx.lineTo(pt.x, pt.y);
-          }
-        }
-        ctx.stroke();
-      }
-
-      // 3. Render Radial Scanning Wave
-      const scanRadius = (time * 80) % 750;
-      const scanCenterX = width / 2;
-      const scanCenterY = height * 0.65;
-
-      const gradient = ctx.createRadialGradient(
-        scanCenterX,
-        scanCenterY,
-        Math.max(0, scanRadius - 60),
-        scanCenterX,
-        scanCenterY,
-        scanRadius
+      // Deep subtle technical background vignette
+      const bgGrad = ctx.createRadialGradient(
+        width / 2,
+        height * 0.4,
+        50,
+        width / 2,
+        height * 0.5,
+        width * 0.7
       );
-      gradient.addColorStop(0, "rgba(0, 217, 255, 0)");
-      gradient.addColorStop(0.8, "rgba(0, 217, 255, 0.06)");
-      gradient.addColorStop(1, "rgba(0, 217, 255, 0)");
+      bgGrad.addColorStop(0, "rgba(6, 182, 212, 0.03)"); // Cyan aura
+      bgGrad.addColorStop(0.5, "rgba(16, 185, 129, 0.015)"); // Emerald aura
+      bgGrad.addColorStop(1, "rgba(5, 5, 5, 0)");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
 
-      ctx.save();
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(scanCenterX, scanCenterY, scanRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+      // Compute grid elevation matrix
+      const grid3D: { x: number; y: number; scale: number; pz: number }[][] = [];
 
-      // 4. Render Network Topology Nodes & Connections
-      const nodeScreenPositions: { x: number; y: number; active: boolean; pulse: number }[] = [];
+      for (let r = 0; r < rows; r++) {
+        grid3D[r] = [];
+        for (let c = 0; c < cols; c++) {
+          const gx = (c - cols / 2) * spacing;
+          const gz = (r - rows / 2) * spacing;
 
-      nodes.forEach((n) => {
-        const pt = gridPoints[n.r]?.[n.c];
-        if (pt) {
-          const pulse = Math.sin(time * 3.0 + n.pulseOffset) * 0.5 + 0.5;
-          nodeScreenPositions.push({ x: pt.x, y: pt.y, active: n.active, pulse });
-        }
-      });
+          // Normalized undulating topological mathematical equation
+          const dist = Math.sqrt(gx * gx + gz * gz) * 0.003;
+          let elevation = 0;
 
-      // Draw node links
-      ctx.strokeStyle = "rgba(0, 217, 255, 0.18)";
-      ctx.lineWidth = 0.75;
-      for (let i = 0; i < nodeScreenPositions.length; i++) {
-        for (let j = i + 1; j < nodeScreenPositions.length; j++) {
-          const n1 = nodeScreenPositions[i];
-          const n2 = nodeScreenPositions[j];
-          const dist = Math.hypot(n1.x - n2.x, n1.y - n2.y);
-          if (dist < 110) {
-            ctx.beginPath();
-            ctx.moveTo(n1.x, n1.y);
-            ctx.lineTo(n2.x, n2.y);
-            ctx.stroke();
+          if (!prefersReducedMotion) {
+            const wave1 = Math.sin(dist * 5 - time * 1.5) * 22;
+            const wave2 = Math.cos(gx * 0.008 + time) * Math.sin(gz * 0.008 - time * 0.8) * 18;
+            const mouseInteraction =
+              Math.exp(-((gx - targetCameraX * 200) ** 2 + (gz - targetCameraY * 200) ** 2) / 35000) * 28;
+            elevation = wave1 + wave2 + mouseInteraction;
+          } else {
+            elevation = Math.sin(dist * 5) * 18;
+          }
 
-            // Animated packet signal along active link
-            if (!prefersReducedMotion && (i + j) % 3 === 0) {
-              const progress = (time * 0.8 + (i * 0.3)) % 1.0;
-              const px = n1.x + (n2.x - n1.x) * progress;
-              const py = n1.y + (n2.y - n1.y) * progress;
-              ctx.fillStyle = "#00D9FF";
-              ctx.beginPath();
-              ctx.arc(px, py, 1.4, 0, Math.PI * 2);
-              ctx.fill();
-            }
+          const pt = project3D(gx, elevation, gz, width, height);
+          if (pt) {
+            grid3D[r][c] = pt;
           }
         }
       }
 
-      // Draw node points
-      nodeScreenPositions.forEach((n) => {
-        ctx.fillStyle = n.active ? "#00D9FF" : "#8B5CF6";
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.active ? 2.5 + n.pulse * 1.5 : 2.0, 0, Math.PI * 2);
-        ctx.fill();
+      // Draw subtle technical wireframe mesh lines
+      ctx.lineWidth = 0.75;
 
-        // Node halo
-        if (n.active) {
-          ctx.strokeStyle = `rgba(0, 217, 255, ${0.4 * (1 - n.pulse)})`;
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, 4.0 + n.pulse * 6.0, 0, Math.PI * 2);
-          ctx.stroke();
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const curr = grid3D[r]?.[c];
+          if (!curr) continue;
+
+          // Depth-based opacity fading
+          const depthAlpha = Math.max(0.04, Math.min(0.24, 1.0 - curr.pz / 750));
+
+          // Draw horizontal connection
+          if (c + 1 < cols && grid3D[r]?.[c + 1]) {
+            const next = grid3D[r][c + 1];
+            ctx.beginPath();
+            ctx.moveTo(curr.x, curr.y);
+            ctx.lineTo(next.x, next.y);
+            ctx.strokeStyle = `rgba(16, 185, 129, ${depthAlpha * 0.7})`;
+            ctx.stroke();
+          }
+
+          // Draw vertical connection
+          if (r + 1 < rows && grid3D[r + 1]?.[c]) {
+            const next = grid3D[r + 1][c];
+            ctx.beginPath();
+            ctx.moveTo(curr.x, curr.y);
+            ctx.lineTo(next.x, next.y);
+            ctx.strokeStyle = `rgba(6, 182, 212, ${depthAlpha * 0.8})`;
+            ctx.stroke();
+          }
         }
-      });
+      }
+
+      // Render Topological Security Nodes
+      for (const node of nodes) {
+        const pt = grid3D[node.r]?.[node.c];
+        if (!pt) continue;
+
+        const pulse = prefersReducedMotion
+          ? 1
+          : 0.6 + 0.4 * Math.sin(time * 3 + node.pulseOffset);
+        const radius = Math.max(1.5, 2.5 * pt.scale * pulse);
+
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+
+        if (node.type === "deterministic") {
+          // Emerald Green: Deterministic Fact
+          ctx.fillStyle = `rgba(16, 185, 129, ${0.75 * pulse})`;
+          ctx.shadowColor = "rgba(16, 185, 129, 0.6)";
+          ctx.shadowBlur = 6;
+          ctx.fill();
+        } else {
+          // Cyan: AI Semantic Fact
+          ctx.fillStyle = `rgba(6, 182, 212, ${0.85 * pulse})`;
+          ctx.shadowColor = "rgba(6, 182, 212, 0.7)";
+          ctx.shadowBlur = 8;
+          ctx.fill();
+        }
+
+        ctx.shadowBlur = 0;
+      }
 
       animId = requestAnimationFrame(render);
     };
 
-    animId = requestAnimationFrame(render);
+    render();
 
     return () => {
       cancelAnimationFrame(animId);
@@ -276,18 +241,11 @@ export default function TopographicScene() {
   }, []);
 
   return (
-    <div
-      className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0"
-      aria-hidden="true"
-    >
+    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
       <canvas
         ref={canvasRef}
-        className="w-full h-full block"
-        style={{ background: "#050505" }}
+        className="w-full h-full block opacity-75 transition-opacity duration-1000"
       />
-      {/* Deep vignette gradients for optimal contrast */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/40 via-transparent to-[#050505] pointer-events-none" />
-      <div className="absolute inset-0 bg-radial-vignette pointer-events-none opacity-80" />
     </div>
   );
 }

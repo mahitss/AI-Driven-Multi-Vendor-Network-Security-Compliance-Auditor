@@ -1,82 +1,57 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { Shield, Play } from "lucide-react";
-import { fetchEngineDiagnostics } from "@/lib/api-client";
+import { Shield, Play, Layers, Sparkles, Activity } from "lucide-react";
 
 export default function LandingNavbar() {
-  const [isOperational, setIsOperational] = useState<boolean>(true);
-
-  useEffect(() => {
-    let mounted = true;
-    fetchEngineDiagnostics()
-      .then((data) => {
-        if (mounted && data) setIsOperational(true);
-      })
-      .catch(() => {
-        if (mounted) setIsOperational(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#1A1A1A]/80 bg-[#050505]/80 backdrop-blur-md font-mono">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-[#0E0E0E] border border-[#00D9FF]/40 flex items-center justify-center text-[#00D9FF] group-hover:border-[#00D9FF] transition-colors">
-              <Shield className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-sm font-bold tracking-widest text-[#F5F5F5] group-hover:text-[#00D9FF] transition-colors">
-                NETVIGIL
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] text-[#8A8A8A] font-sans font-medium">
-                SIH26155 • NTRO
-              </span>
-            </div>
-          </Link>
-        </div>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A0C10]/80 backdrop-blur-md border-b border-white/5 font-mono text-xs">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        {/* Brand Logo & Identifier */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-7 h-7 rounded-lg bg-[#0E131F] border border-[#10B981]/30 flex items-center justify-center text-[#10B981] group-hover:border-[#10B981] transition-colors">
+            <Shield className="w-3.5 h-3.5" />
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-bold text-sm tracking-wider text-white">NETVIGIL</span>
+            <span className="text-[10px] text-[#06B6D4] font-semibold">SIH26155</span>
+          </div>
+        </Link>
 
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6 text-xs text-[#8A8A8A]">
-          <a href="#problem" className="hover:text-[#F5F5F5] transition-colors">
-            Problem
-          </a>
-          <a href="#pipeline" className="hover:text-[#F5F5F5] transition-colors">
+        {/* Navigation Anchors */}
+        <nav className="hidden md:flex items-center gap-6 text-[#A3A3A3]">
+          <Link href="#architecture" className="hover:text-white transition-colors">
             Architecture
-          </a>
-          <a href="#ai-boundary" className="hover:text-[#F5F5F5] transition-colors">
+          </Link>
+          <Link href="#ai-boundary" className="hover:text-white transition-colors">
             AI Boundary
-          </a>
-          <a href="#security" className="hover:text-[#F5F5F5] transition-colors">
-            Safety Invariants
-          </a>
+          </Link>
+          <Link href="#multi-vendor" className="hover:text-white transition-colors">
+            Multi-Vendor Proof
+          </Link>
+          <Link href="/demo/judge" className="hover:text-[#06B6D4] transition-colors flex items-center gap-1">
+            <Play className="w-3 h-3 fill-current" />
+            <span>Judge Mode</span>
+          </Link>
         </nav>
 
-        {/* Right Status & Actions */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-[#0A0A0A] border border-[#1A1A1A] text-[10px]">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                isOperational ? "bg-[#22C55E] animate-pulse" : "bg-[#8A8A8A]"
-              }`}
-            />
-            <span className="text-[#A3A3A3]">
-              {isOperational ? "ENGINE OPERATIONAL" : "PLATFORM READY"}
-            </span>
-          </div>
-
+        {/* Action Controls */}
+        <div className="flex items-center gap-2.5">
           <Link
             href="/demo"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0D0D0D] border border-[#00D9FF]/50 hover:border-[#00D9FF] hover:bg-[#141414] text-[#00D9FF] text-xs font-semibold transition-all shadow-sm"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0E131F] border border-white/10 hover:border-white/20 text-[#D4D4D4] hover:text-white transition-all"
           >
-            <Play className="w-3 h-3 fill-current" />
-            <span>Launch Demo</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#06B6D4]" />
+            <span>Golden Demo</span>
+          </Link>
+
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#10B981] hover:bg-[#059669] text-black font-bold transition-all shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Launch SOC →</span>
           </Link>
         </div>
       </div>
