@@ -13,6 +13,8 @@ from pydantic import BaseModel
 from app.schemas.ai import (
     AuditAssistantQueryResponse,
     FindingExplanationResponse as FindingExplanationLegacy,
+    RiskExplanationResponse as RiskExplanationLegacy,
+    RemediationExplanationResponse as RemediationExplanationLegacy,
     UnknownConfigInterpretationResponse,
 )
 from app.services.ai.schemas.models import (
@@ -21,7 +23,7 @@ from app.services.ai.schemas.models import (
     FindingExplanationResponse as FindingExplanationModel,
     SecurityAssistantResponse,
     RiskContextResponse,
-    RemediationExplanationResponse,
+    RemediationExplanationResponse as RemediationExplanationModel,
     AuditSummaryResponse,
 )
 
@@ -43,7 +45,11 @@ class OfflineStandbyProvider:
         ctx = context_data or {}
 
         # 1. Unknown Syntax Interpretation
-        if response_schema == UnknownConfigInterpretationResponse or response_schema == UnknownSyntaxResponse or task_type == AITaskType.UNKNOWN_SYNTAX_CLASSIFICATION:
+        if (
+            response_schema == UnknownConfigInterpretationResponse
+            or response_schema == UnknownSyntaxResponse
+            or task_type == AITaskType.UNKNOWN_SYNTAX_CLASSIFICATION
+        ):
             raw_cmd = ctx.get("raw_command", "")
             vendor = ctx.get("vendor_hint", "device")
             if response_schema == UnknownConfigInterpretationResponse:
@@ -69,7 +75,11 @@ class OfflineStandbyProvider:
             )
 
         # 2. Finding Explanation
-        elif response_schema == FindingExplanationModel or response_schema == FindingExplanationLegacy or task_type == AITaskType.FINDING_EXPLANATION:
+        elif (
+            response_schema == FindingExplanationModel
+            or response_schema == FindingExplanationLegacy
+            or task_type == AITaskType.FINDING_EXPLANATION
+        ):
             title = ctx.get("title", "Security Finding")
             control_id = ctx.get("control_id", "SEC-CTRL")
             evidence = ctx.get("evidence", "Missing baseline configuration")
@@ -94,8 +104,74 @@ class OfflineStandbyProvider:
                 source_lines=[],
             )
 
-        # 3. Security Assistant Chat Q&A
-        elif response_schema == AuditAssistantQueryResponse or response_schema == SecurityAssistantResponse or task_type == AITaskType.SECURITY_ASSISTANT:
+        # 3. Risk Context / Risk Explanation
+        elif (
+            response_schema == RiskExplanationLegacy
+            or response_schema == RiskContextResponse
+            or task_type == AITaskType.RISK_CONTEXT_EXPLANATION
+        ):
+            risk_id = ctx.get("risk_id", "RISK-01")
+            title = ctx.get("title", "Security Risk Exposure")
+            risk_score = ctx.get("risk_score", 75.0)
+            priority = ctx.get("priority", "P1")
+            contributing = ctx.get("contributing_findings", [])
+
+            if response_schema == RiskExplanationLegacy:
+                return RiskExplanationLegacy(
+                    risk_id=risk_id,
+                    title=title,
+                    deterministic_risk_score=float(risk_score),
+                    priority=priority,
+                    why_this_risk_is_prioritized=f"Risk is prioritized at {priority} based on direct perimeter reachability and composite severity score of {risk_score}.",
+                    contributing_findings_analysis=contributing if contributing else ["Direct configuration vulnerability"],
+                    attack_surface_analysis="Administrative interfaces and services exposed without strong cryptographic or access controls.",
+                    business_operational_impact="Potential unauthorized privilege escalation or eavesdropping on transit management traffic.",
+                    why_remediation_matters="Applying the remediation diff restores strict control plane isolation and mitigates attack surface exposure.",
+                    confidence=0.95,
+                )
+
+            return RiskContextResponse(
+                threat_scenario="Adversaries targeting perimeter network devices exploit unencrypted management protocols or default credentials.",
+                blast_radius_explanation="Compromise of management plane allows transit traffic sniffing and lateral movement to internal network segments.",
+                mitigation_urgency="Priority determined by CVSS base metrics and administrative reachability.",
+                limitations="Deterministic offline risk profile.",
+            )
+
+        # 4. Remediation Explanation
+        elif (
+            response_schema == RemediationExplanationLegacy
+            or response_schema == RemediationExplanationModel
+            or task_type == AITaskType.REMEDIATION_EXPLANATION
+        ):
+            rem_id = ctx.get("remediation_id", "REM-01")
+            control_id = ctx.get("control_id", "CONTROL")
+            vendor = ctx.get("vendor", "cisco").upper()
+
+            if response_schema == RemediationExplanationLegacy:
+                return RemediationExplanationLegacy(
+                    remediation_id=rem_id,
+                    control_id=control_id,
+                    vendor=vendor,
+                    what_changes=f"Replaces insecure directives with hardened {vendor} configuration syntax.",
+                    why_change_is_safe="Targeted CLI commands apply only to the affected management line or service without impacting active routing table forwarding.",
+                    what_security_property_is_restored="Restores deterministic compliance baseline invariant (cryptographic encryption and access restriction).",
+                    what_operator_should_verify=f"Execute '{vendor.lower()} show running-config' and test administrative login before committing changes.",
+                    confidence=0.95,
+                )
+
+            return RemediationExplanationModel(
+                command_breakdown=[{"step": "1", "detail": "Apply allowlisted hardening CLI block"}],
+                prerequisites=["Verify console or out-of-band management access"],
+                rollback_guidance="Revert modified lines using baseline configuration backup.",
+                limitations="Offline remediation context.",
+            )
+
+        # 5. Security Assistant Chat Q&A
+        elif (
+            response_schema == AuditAssistantQueryResponse
+            or response_schema == SecurityAssistantResponse
+            or task_type == AITaskType.SECURITY_ASSISTANT
+        ):
             query = ctx.get("query", user_prompt)
             audit_id = ctx.get("audit_id", "")
             findings_count = ctx.get("findings_count", 0)
@@ -114,24 +190,6 @@ class OfflineStandbyProvider:
                 evidence_used=cited_controls,
                 suggested_followups=["Which findings have CRITICAL severity?", "What remediation commands are available?"],
                 limitations="Operating in offline deterministic mode.",
-            )
-
-        # 4. Risk Context
-        elif task_type == AITaskType.RISK_CONTEXT_EXPLANATION:
-            return RiskContextResponse(
-                threat_scenario="Adversaries targeting perimeter network devices exploit unencrypted management protocols or default credentials.",
-                blast_radius_explanation="Compromise of management plane allows transit traffic sniffing and lateral movement to internal network segments.",
-                mitigation_urgency="Priority determined by CVSS base metrics and administrative reachability.",
-                limitations="Deterministic offline risk profile.",
-            )
-
-        # 5. Remediation Explanation
-        elif task_type == AITaskType.REMEDIATION_EXPLANATION:
-            return RemediationExplanationResponse(
-                command_breakdown=[{"step": "1", "detail": "Apply allowlisted hardening CLI block"}],
-                prerequisites=["Verify console or out-of-band management access"],
-                rollback_guidance="Revert modified lines using baseline configuration backup.",
-                limitations="Offline remediation context.",
             )
 
         # Default fallback instantiation

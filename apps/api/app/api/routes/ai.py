@@ -22,11 +22,15 @@ from app.schemas.ai import (
     AuditAssistantQueryRequest,
     AuditAssistantQueryResponse,
     FindingExplanationResponse,
+    RiskExplanationResponse,
+    RemediationExplanationResponse,
     UnknownConfigInterpretationRequest,
     UnknownConfigInterpretationResponse,
 )
 from app.services.ai.audit_assistant_service import AuditAssistantService
 from app.services.ai.finding_explanation_service import FindingExplanationService
+from app.services.ai.risk_explanation_service import RiskExplanationService
+from app.services.ai.remediation_explanation_service import RemediationExplanationService
 from app.services.ai.registry.model_registry import ModelInfo, ModelRegistry
 from app.services.ai.telemetry.ai_telemetry import AITelemetryCollector, AITelemetrySummary
 from app.services.ai.unknown_interpreter_service import UnknownConfigInterpreterService
@@ -242,3 +246,30 @@ async def query_assistant_direct(
         audit_id=payload.audit_id,
         db=db,
     )
+
+
+@router.post(
+    "/risks/{risk_id}/explanation",
+    response_model=RiskExplanationResponse,
+    summary="Generate evidence-grounded technical explanation for a correlated risk",
+)
+async def explain_risk(
+    risk_id: str,
+    db: DatabaseDep,
+) -> RiskExplanationResponse:
+    """Generates an evidence-grounded advisory explanation for prioritized risk intelligence."""
+    return await RiskExplanationService.explain_risk(risk_id=risk_id, db=db)
+
+
+@router.post(
+    "/remediations/{remediation_id}/explanation",
+    response_model=RemediationExplanationResponse,
+    summary="Generate evidence-grounded technical explanation for a verified remediation diff",
+)
+async def explain_remediation(
+    remediation_id: str,
+    db: DatabaseDep,
+) -> RemediationExplanationResponse:
+    """Generates an evidence-grounded advisory explanation for a static remediation proposal."""
+    return await RemediationExplanationService.explain_remediation(remediation_id=remediation_id, db=db)
+

@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   RotateCcw,
   Search,
+  Sparkles,
 } from "lucide-react";
 import {
   fetchRemediations,
@@ -22,7 +23,9 @@ import {
   fetchRemediationStats,
   reviewRemediation,
   fetchAudits,
+  fetchRemediationExplanation,
   RemediationProposal,
+  RemediationExplanation,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +37,21 @@ export default function RemediationCenterPage() {
   const [selectedAuditId, setSelectedAuditId] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [activeCardTab, setActiveCardTab] = useState<Record<string, "commands" | "diff" | "impact" | "rollback">>({});
+  const [activeCardTab, setActiveCardTab] = useState<Record<string, "commands" | "diff" | "impact" | "rollback" | "ai_advisory">>({});
+  const [remediationExplanations, setRemediationExplanations] = useState<Record<string, RemediationExplanation>>({});
+  const [explainingRemediationId, setExplainingRemediationId] = useState<string | null>(null);
+
+  const handleRequestRemediationExplanation = async (remediationId: string) => {
+    setExplainingRemediationId(remediationId);
+    try {
+      const exp = await fetchRemediationExplanation(remediationId);
+      setRemediationExplanations((prev) => ({ ...prev, [remediationId]: exp }));
+    } catch (err) {
+      console.error("Failed to fetch remediation explanation:", err);
+    } finally {
+      setExplainingRemediationId(null);
+    }
+  };
 
   // Queries
   const { data: stats, refetch: refetchStats } = useQuery({
@@ -315,6 +332,22 @@ export default function RemediationCenterPage() {
                         <span>Rollback</span>
                       </button>
                     )}
+
+                    <button
+                      onClick={() => {
+                        setActiveCardTab((prev) => ({ ...prev, [proposal.id]: "ai_advisory" }));
+                        if (!remediationExplanations[proposal.id]) {
+                          handleRequestRemediationExplanation(proposal.id);
+                        }
+                      }}
+                      className={cn(
+                        "px-2.5 py-1 rounded transition-colors flex items-center gap-1 ml-auto",
+                        cardTab === "ai_advisory" ? "bg-[#141414] text-[#8B5CF6] font-bold border border-[#8B5CF6]/40" : "text-[#8B5CF6] hover:text-[#A78BFA]"
+                      )}
+                    >
+                      <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
+                      <span>AI Advisory</span>
+                    </button>
                   </div>
 
                   {/* Tab Content 1: CLI Commands */}
@@ -379,6 +412,66 @@ export default function RemediationCenterPage() {
                       <pre className="p-3.5 rounded-lg bg-[#050505] border border-[#EF4444]/30 text-[#EF4444] text-xs font-mono overflow-x-auto select-text leading-relaxed">
                         {proposal.rollback_commands}
                       </pre>
+                    </div>
+                  )}
+
+                  {/* Tab Content 5: AI Remediation Advisory */}
+                  {cardTab === "ai_advisory" && (
+                    <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#8B5CF6]/50 space-y-2.5 font-sans text-xs">
+                      {remediationExplanations[proposal.id] ? (
+                        <>
+                          <div className="flex items-center justify-between pb-1.5 border-b border-[#1A1A1A]">
+                            <div className="flex items-center gap-1.5 text-[10px] text-[#8B5CF6] font-bold font-mono">
+                              <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6]" />
+                              <span>AI REMEDIATION ADVISORY (READ-ONLY)</span>
+                            </div>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/30 font-semibold font-mono">
+                              Diff Sourced from Template Catalog
+                            </span>
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-mono text-[#00D9FF] uppercase font-bold">What Changes</div>
+                            <p className="text-[#E5E5E5] leading-relaxed">{remediationExplanations[proposal.id].what_changes}</p>
+                          </div>
+
+                          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] space-y-1">
+                            <div className="text-[10px] font-mono text-[#22C55E] uppercase font-bold">Why Change Is Safe</div>
+                            <p className="text-[#A3A3A3] leading-relaxed">{remediationExplanations[proposal.id].why_change_is_safe}</p>
+                          </div>
+
+                          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] space-y-1">
+                            <div className="text-[10px] font-mono text-[#F59E0B] uppercase font-bold">Security Invariant Restored</div>
+                            <p className="text-[#A3A3A3] leading-relaxed">{remediationExplanations[proposal.id].what_security_property_is_restored}</p>
+                          </div>
+
+                          <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] space-y-1">
+                            <div className="text-[10px] font-mono text-[#EF4444] uppercase font-bold">Operator Post-Change Verification</div>
+                            <p className="text-[#A3A3A3] leading-relaxed">{remediationExplanations[proposal.id].what_operator_should_verify}</p>
+                          </div>
+
+                          <div className="pt-1.5 border-t border-[#1A1A1A] text-[9px] text-[#666666] italic flex items-center justify-between font-mono">
+                            <span>Advisory grounded in verified vendor catalog</span>
+                            <span>Confidence: {(remediationExplanations[proposal.id].confidence * 100).toFixed(0)}%</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="py-4 text-center space-y-2">
+                          <p className="text-[#A3A3A3]">
+                            {explainingRemediationId === proposal.id
+                              ? "Analyzing remediation safety & security invariants with AI Gateway..."
+                              : "Click below to request an AI technical safety advisory for this CLI diff."}
+                          </p>
+                          <button
+                            onClick={() => handleRequestRemediationExplanation(proposal.id)}
+                            disabled={explainingRemediationId === proposal.id}
+                            className="px-4 py-1.5 rounded-lg bg-[#141414] hover:bg-[#1A1A1A] border border-[#8B5CF6]/40 text-[#8B5CF6] font-bold inline-flex items-center gap-1.5 transition-all"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>{explainingRemediationId === proposal.id ? "Analyzing..." : "Generate AI Safety Advisory"}</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 

@@ -57,8 +57,13 @@ class UnknownConfigInterpreterService:
             interpretation.confidence_tier = "review"
         else:
             interpretation.confidence_tier = "low"
-            if interpretation.status == "candidate":
-                interpretation.status = "uncertain"
+        # 4. Strict Allowlist Safety Enforcement
+        if interpretation.candidate_property:
+            from app.services.training.allowlist import is_property_allowlisted
+            if not is_property_allowlisted(interpretation.candidate_property):
+                interpretation.status = "rejected_by_allowlist"
+                interpretation.confidence_tier = "low"
+                interpretation.disclaimer = f"Candidate property '{interpretation.candidate_property}' rejected: Not present in normalized safety allowlist."
 
         # Ensure original evidence is retained
         if not interpretation.evidence:

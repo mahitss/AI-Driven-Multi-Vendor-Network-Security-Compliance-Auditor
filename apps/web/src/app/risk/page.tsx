@@ -17,6 +17,7 @@ import {
   Shield,
   Activity,
   X,
+  Sparkles,
 } from "lucide-react";
 import {
   fetchRisks,
@@ -24,7 +25,9 @@ import {
   fetchRiskStats,
   fetchAuditRiskGraph,
   fetchAudits,
+  fetchRiskExplanation,
   RiskItem,
+  RiskExplanation,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +38,20 @@ export default function RiskIntelligencePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeView, setActiveView] = useState<"list" | "graph">("list");
   const [selectedRiskDetail, setSelectedRiskDetail] = useState<RiskItem | null>(null);
+  const [riskExplanation, setRiskExplanation] = useState<RiskExplanation | null>(null);
+  const [isExplainingRisk, setIsExplainingRisk] = useState<boolean>(false);
+
+  const handleRequestRiskExplanation = async (risk: RiskItem) => {
+    setIsExplainingRisk(true);
+    try {
+      const exp = await fetchRiskExplanation(risk.id);
+      setRiskExplanation(exp);
+    } catch (err) {
+      console.error("Failed to fetch risk explanation:", err);
+    } finally {
+      setIsExplainingRisk(false);
+    }
+  };
 
   // Queries
   const { data: stats, refetch: refetchStats } = useQuery({
@@ -478,13 +495,58 @@ export default function RiskIntelligencePage() {
                 </div>
               </div>
 
-              {selectedRiskDetail.evidence_summary && (
-                <div className="space-y-1">
-                  <span className="text-[#666666] text-[10px] uppercase font-semibold">Evidence:</span>
-                  <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] text-[#00D9FF] text-[11px] whitespace-pre-wrap select-text">
-                    {selectedRiskDetail.evidence_summary}
+              {/* AI Deep Risk Intelligence Advisory */}
+              {riskExplanation ? (
+                <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#8B5CF6]/50 space-y-2.5">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-[#1A1A1A]">
+                    <div className="flex items-center gap-1.5 text-[10px] text-[#8B5CF6] font-bold">
+                      <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6]" />
+                      <span>AI RISK ADVISORY (READ-ONLY)</span>
+                    </div>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/30 font-semibold">
+                      Score Computed Deterministically
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-[#F59E0B] font-bold uppercase">Why This Risk Is Prioritized</div>
+                    <p className="text-[11px] text-[#E5E5E5] font-sans leading-relaxed">
+                      {riskExplanation.why_this_risk_is_prioritized}
+                    </p>
+                  </div>
+
+                  {riskExplanation.attack_surface_analysis && (
+                    <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] space-y-1">
+                      <div className="text-[10px] text-[#00D9FF] font-bold uppercase">Attack Surface & Exposure Path</div>
+                      <p className="text-[11px] text-[#A3A3A3] font-sans leading-relaxed">
+                        {riskExplanation.attack_surface_analysis}
+                      </p>
+                    </div>
+                  )}
+
+                  {riskExplanation.business_operational_impact && (
+                    <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] space-y-1">
+                      <div className="text-[10px] text-[#EF4444] font-bold uppercase">Operational & Business Impact</div>
+                      <p className="text-[11px] text-[#A3A3A3] font-sans leading-relaxed">
+                        {riskExplanation.business_operational_impact}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="pt-1.5 border-t border-[#1A1A1A] text-[9px] text-[#666666] font-sans italic flex items-center justify-between">
+                    <span>Source: Correlated Deterministic Findings</span>
+                    <span>Confidence: {(riskExplanation.confidence * 100).toFixed(0)}%</span>
                   </div>
                 </div>
+              ) : (
+                <button
+                  onClick={() => handleRequestRiskExplanation(selectedRiskDetail)}
+                  disabled={isExplainingRisk}
+                  className="w-full py-2 rounded-lg bg-[#0D0D0D] hover:bg-[#141414] border border-[#8B5CF6]/30 hover:border-[#8B5CF6] text-[#8B5CF6] font-bold flex items-center justify-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.2)]"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{isExplainingRisk ? "Synthesizing AI Risk Advisory..." : "Request Grounded AI Risk Advisory"}</span>
+                </button>
               )}
             </div>
 

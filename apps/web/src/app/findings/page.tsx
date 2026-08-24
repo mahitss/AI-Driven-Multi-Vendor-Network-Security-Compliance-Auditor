@@ -410,26 +410,62 @@ export default function FindingsPage() {
 
               {/* AI Deep Explanation */}
               {explanation ? (
-                <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#8B5CF6]/40 space-y-2">
-                  <div className="flex items-center gap-1.5 text-[10px] text-[#8B5CF6] font-bold">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>AI ADVISORY EXPLANATION</span>
+                <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#8B5CF6]/50 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#1A1A1A]">
+                    <div className="flex items-center gap-1.5 text-[10px] text-[#8B5CF6] font-bold">
+                      <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6]" />
+                      <span>AI ADVISORY LAYER (READ-ONLY)</span>
+                    </div>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/30 font-semibold">
+                      Deterministic Core Unaltered
+                    </span>
                   </div>
-                  <p className="text-[11px] text-[#D4D4D4] font-sans leading-relaxed">
-                    {explanation.summary}
-                  </p>
-                  <div className="text-[10px] text-[#8A8A8A] pt-2 border-t border-[#1A1A1A] font-sans">
-                    <strong>Why it matters: </strong>{explanation.why_it_matters}
+
+                  <div>
+                    <div className="text-[10px] text-[#666666] uppercase font-bold mb-1">Executive Summary</div>
+                    <p className="text-[11px] text-[#E5E5E5] font-sans leading-relaxed">
+                      {explanation.summary}
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-1.5">
+                    <div className="text-[10px] text-[#F59E0B] font-bold uppercase">Why It Matters</div>
+                    <p className="text-[11px] text-[#A3A3A3] font-sans leading-relaxed">
+                      {explanation.why_it_matters}
+                    </p>
+                  </div>
+
+                  {explanation.technical_explanation && (
+                    <div className="p-2.5 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-1.5">
+                      <div className="text-[10px] text-[#00D9FF] font-bold uppercase">Technical Deep Dive</div>
+                      <p className="text-[11px] text-[#A3A3A3] font-sans leading-relaxed">
+                        {explanation.technical_explanation}
+                      </p>
+                    </div>
+                  )}
+
+                  {explanation.risk_context && (
+                    <div className="p-2.5 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-1.5">
+                      <div className="text-[10px] text-[#EF4444] font-bold uppercase">Attack Surface & Exploit Vector</div>
+                      <p className="text-[11px] text-[#A3A3A3] font-sans leading-relaxed">
+                        {explanation.risk_context}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-[#1A1A1A] text-[9px] text-[#666666] font-sans italic flex items-center justify-between">
+                    <span>Source: Deterministic Line Evidence</span>
+                    <span>Confidence: {(explanation.confidence * 100).toFixed(0)}%</span>
                   </div>
                 </div>
               ) : (
                 <button
                   onClick={() => handleRequestAIExplanation(selectedFinding)}
                   disabled={isExplaining}
-                  className="w-full py-2 rounded-lg bg-[#0D0D0D] hover:bg-[#141414] border border-[#8B5CF6]/30 hover:border-[#8B5CF6] text-[#8B5CF6] font-bold flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-2.5 rounded-lg bg-[#0D0D0D] hover:bg-[#141414] border border-[#8B5CF6]/30 hover:border-[#8B5CF6] text-[#8B5CF6] font-bold flex items-center justify-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.2)]"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>{isExplaining ? "Analyzing with AI..." : "Request AI Technical Explanation"}</span>
+                  <span>{isExplaining ? "Analyzing with OpenRouter Gateway..." : "Request Grounded AI Technical Advisory"}</span>
                 </button>
               )}
             </div>
