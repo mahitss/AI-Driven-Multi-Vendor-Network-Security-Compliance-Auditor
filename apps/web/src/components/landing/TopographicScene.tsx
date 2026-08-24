@@ -5,13 +5,13 @@ import React, { useEffect, useRef } from "react";
 /**
  * TopographicScene
  * 
- * Authentic 3D Topographic Security Surface featuring:
- * - Organic dual-ridge elevation field (ridges, valleys, curved non-parallel contours)
- * - Vanishing depth perspective with horizon at ~56% of hero height
- * - 3-depth plane hierarchy (0.06 distant, 0.15 midground, 0.26 foreground)
- * - 8 traveling security telemetry nodes following 3D contour curves
+ * Refined 3D Topographic Security Surface:
+ * - Horizon positioned at ~59% of hero height (underneath headline & description)
+ * - Organic dual-ridge elevation field with center focal depth
+ * - Subtle horizontal system scan wave (10-12s cycle, ultra-low opacity)
+ * - 8 smooth traveling security telemetry nodes following 3D contour curves
  * - 4 subtle inter-node network connection links
- * - Ultra-smooth 12-20s continuous deformation cycle
+ * - 12-20s continuous slow deformation cycle
  */
 export default function TopographicScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,10 +44,10 @@ export default function TopographicScene() {
     window.addEventListener("resize", resizeCanvas);
 
     // Grid & Contour Parameters
-    const numContours = 26; // 26 distinct curved depth slices
+    const numContours = 24; // 24 distinct curved depth slices
     const pointsPerContour = 52; // Horizontal resolution for organic curves
     const contourZStart = 40;
-    const contourZEnd = 620;
+    const contourZEnd = 580;
 
     // Smooth Camera Parallax
     let mouseX = 0;
@@ -68,28 +68,27 @@ export default function TopographicScene() {
     // 8 Telemetry Nodes bound to 3D Topographic Coordinates
     const nodes: {
       contourIndex: number;
-      xRatio: number; // 0 (left) to 1 (right)
+      xRatio: number;
       speed: number;
       pulseOffset: number;
       type: "deterministic" | "ai";
-      label: string;
     }[] = [
-      { contourIndex: 6, xRatio: 0.18, speed: 0.0008, pulseOffset: 0.2, type: "deterministic", label: "NODE.CISCO-01" },
-      { contourIndex: 10, xRatio: 0.78, speed: -0.0006, pulseOffset: 1.4, type: "ai", label: "NODE.JUNOS-CORE" },
-      { contourIndex: 14, xRatio: 0.32, speed: 0.0007, pulseOffset: 2.8, type: "deterministic", label: "NODE.USM-ROUTER" },
-      { contourIndex: 18, xRatio: 0.65, speed: -0.0009, pulseOffset: 3.5, type: "ai", label: "NODE.FORTINET-GW" },
-      { contourIndex: 22, xRatio: 0.22, speed: 0.0005, pulseOffset: 4.6, type: "deterministic", label: "NODE.EVIDENCE-L17" },
-      { contourIndex: 16, xRatio: 0.85, speed: -0.0007, pulseOffset: 5.1, type: "ai", label: "NODE.ADVISORY-L0" },
-      { contourIndex: 24, xRatio: 0.48, speed: 0.0006, pulseOffset: 1.9, type: "deterministic", label: "NODE.ZERO-PUSH" },
-      { contourIndex: 12, xRatio: 0.12, speed: -0.0005, pulseOffset: 3.9, type: "deterministic", label: "NODE.AST-NORM" },
+      { contourIndex: 5, xRatio: 0.2, speed: 0.0007, pulseOffset: 0.2, type: "deterministic" },
+      { contourIndex: 9, xRatio: 0.76, speed: -0.0005, pulseOffset: 1.4, type: "ai" },
+      { contourIndex: 13, xRatio: 0.34, speed: 0.0006, pulseOffset: 2.8, type: "deterministic" },
+      { contourIndex: 17, xRatio: 0.64, speed: -0.0008, pulseOffset: 3.5, type: "ai" },
+      { contourIndex: 21, xRatio: 0.24, speed: 0.0005, pulseOffset: 4.6, type: "deterministic" },
+      { contourIndex: 15, xRatio: 0.82, speed: -0.0006, pulseOffset: 5.1, type: "ai" },
+      { contourIndex: 22, xRatio: 0.5, speed: 0.0005, pulseOffset: 1.9, type: "deterministic" },
+      { contourIndex: 11, xRatio: 0.14, speed: -0.0004, pulseOffset: 3.9, type: "deterministic" },
     ];
 
-    // 4 Inter-Node Network Connection Pairs (indices into nodes array)
+    // 4 Inter-Node Network Connection Pairs
     const nodeConnections = [
-      [0, 2], // Left flank ridge link
-      [2, 6], // Center valley link
-      [1, 3], // Right flank ridge link
-      [3, 5], // Right perimeter link
+      [0, 2],
+      [2, 6],
+      [1, 3],
+      [3, 5],
     ];
 
     let time = 0;
@@ -97,28 +96,28 @@ export default function TopographicScene() {
     // Organic 3D Topographic Elevation Model: Dual Ridges + Center Valley
     const getElevation = (x: number, z: number, t: number) => {
       if (prefersReducedMotion) {
-        const r1 = Math.exp(-Math.pow((x + 280) / 220, 2)) * 48;
-        const r2 = Math.exp(-Math.pow((x - 300) / 240, 2)) * 56;
-        return r1 + r2 + Math.sin(x * 0.006) * 12;
+        const r1 = Math.exp(-Math.pow((x + 260) / 210, 2)) * 44;
+        const r2 = Math.exp(-Math.pow((x - 270) / 220, 2)) * 50;
+        return r1 + r2 + Math.sin(x * 0.006) * 10;
       }
 
-      // Left Ridge elevation peak
+      // Left Ridge
       const ridge1 =
-        Math.exp(-Math.pow((x + 260) / 220, 2)) *
-        (52 + Math.sin(z * 0.007 + t * 0.5) * 14);
+        Math.exp(-Math.pow((x + 250) / 210, 2)) *
+        (46 + Math.sin(z * 0.007 + t * 0.45) * 12);
 
-      // Right Ridge elevation peak
+      // Right Ridge
       const ridge2 =
-        Math.exp(-Math.pow((x - 280) / 240, 2)) *
-        (60 + Math.cos(z * 0.006 + t * 0.45) * 16);
+        Math.exp(-Math.pow((x - 260) / 220, 2)) *
+        (52 + Math.cos(z * 0.006 + t * 0.4) * 14);
 
-      // Valley curvature and gentle undulating terrain ripples (12-20s period)
-      const valleyWave = Math.sin(x * 0.005 + t * 0.35) * Math.cos(z * 0.005 - t * 0.3) * 16;
-      const fineDetail = Math.sin((x * 0.009 + z * 0.007) + t * 0.6) * 8;
+      // Valley curvature and gentle undulating terrain ripples (14-18s period)
+      const valleyWave = Math.sin(x * 0.005 + t * 0.3) * Math.cos(z * 0.005 - t * 0.25) * 14;
+      const fineDetail = Math.sin((x * 0.009 + z * 0.007) + t * 0.5) * 7;
 
       // Cursor gentle elevation warp
-      const mouseDistSq = Math.pow(x - targetCameraX * 220, 2) + Math.pow(z - 280, 2);
-      const mouseElevation = Math.exp(-mouseDistSq / 50000) * 18;
+      const mouseDistSq = Math.pow(x - targetCameraX * 200, 2) + Math.pow(z - 260, 2);
+      const mouseElevation = Math.exp(-mouseDistSq / 50000) * 15;
 
       return ridge1 + ridge2 + valleyWave + fineDetail + mouseElevation;
     };
@@ -131,12 +130,12 @@ export default function TopographicScene() {
       width: number,
       height: number
     ) => {
-      const fov = 400;
+      const fov = 390;
       const cameraZ = 160;
-      // Horizon located at 56% of hero height (below headline)
-      const horizonY = height * 0.56;
-      const cameraHeight = 135 + targetCameraY * 18;
-      const cameraX = targetCameraX * 35;
+      // Horizon located at 59% of hero height (safely underneath text & copy)
+      const horizonY = height * 0.59;
+      const cameraHeight = 125 + targetCameraY * 16;
+      const cameraX = targetCameraX * 30;
 
       const px = gx - cameraX;
       const py = cameraHeight - elevation;
@@ -156,10 +155,10 @@ export default function TopographicScene() {
       const height = canvas.parentElement?.clientHeight || window.innerHeight;
 
       if (!prefersReducedMotion) {
-        // Controlled slow cycle rate (~16s full deformation period)
-        time += 0.0065;
-        targetCameraX += (mouseX - targetCameraX) * 0.03;
-        targetCameraY += (mouseY - targetCameraY) * 0.03;
+        // Slow 14-18s continuous wave cycle
+        time += 0.006;
+        targetCameraX += (mouseX - targetCameraX) * 0.025;
+        targetCameraY += (mouseY - targetCameraY) * 0.025;
 
         // Advance nodes along contour curves
         for (const node of nodes) {
@@ -171,28 +170,28 @@ export default function TopographicScene() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Subtle Cyan Horizon Line & Atmospheric Glow
-      const horizonY = height * 0.56;
+      // 1. Subtle Cyan Horizon Glow
+      const horizonY = height * 0.59;
       const horizonGlow = ctx.createRadialGradient(
         width / 2,
-        horizonY + 30,
+        horizonY + 25,
         10,
         width / 2,
-        horizonY + 40,
-        width * 0.65
+        horizonY + 35,
+        width * 0.6
       );
-      horizonGlow.addColorStop(0, "rgba(0, 217, 255, 0.045)");
-      horizonGlow.addColorStop(0.5, "rgba(0, 200, 150, 0.015)");
+      horizonGlow.addColorStop(0, "rgba(0, 217, 255, 0.035)");
+      horizonGlow.addColorStop(0.5, "rgba(0, 201, 139, 0.012)");
       horizonGlow.addColorStop(1, "rgba(5, 7, 9, 0)");
       ctx.fillStyle = horizonGlow;
       ctx.fillRect(0, horizonY - 10, width, height - horizonY + 10);
 
       // Horizon line itself (thin, soft glowing cyan)
       ctx.beginPath();
-      ctx.moveTo(width * 0.15, horizonY);
-      ctx.lineTo(width * 0.85, horizonY);
-      ctx.strokeStyle = "rgba(0, 217, 255, 0.07)";
-      ctx.lineWidth = 0.8;
+      ctx.moveTo(width * 0.18, horizonY);
+      ctx.lineTo(width * 0.82, horizonY);
+      ctx.strokeStyle = "rgba(0, 217, 255, 0.06)";
+      ctx.lineWidth = 0.75;
       ctx.stroke();
 
       // 2. Generate 3D Contour Point Matrix
@@ -201,9 +200,8 @@ export default function TopographicScene() {
       for (let ci = 0; ci < numContours; ci++) {
         contourPoints[ci] = [];
         const zFraction = ci / (numContours - 1);
-        // Exponential depth distribution for natural perspective foreshortening
-        const gz = contourZStart + Math.pow(zFraction, 1.3) * (contourZEnd - contourZStart);
-        const spanX = 680 + zFraction * 440; // Wider span in foreground
+        const gz = contourZStart + Math.pow(zFraction, 1.25) * (contourZEnd - contourZStart);
+        const spanX = 640 + zFraction * 400;
 
         for (let pi = 0; pi < pointsPerContour; pi++) {
           const xFraction = pi / (pointsPerContour - 1);
@@ -215,27 +213,26 @@ export default function TopographicScene() {
         }
       }
 
-      // 3. Render 3D Curved Contour Lines (26 Paths)
+      // 3. Render 3D Curved Contour Lines (24 Paths) with Focal Center Attenuation
       for (let ci = 0; ci < numContours; ci++) {
         const depthRatio = ci / (numContours - 1);
 
-        // 3-Depth Plane Opacity Gradient:
-        // Distant: 0.06 - 0.10 | Midground: 0.12 - 0.18 | Foreground: 0.20 - 0.28
-        let alpha: number;
+        // Depth-based Opacity Curve:
+        // Distant: 0.05 - 0.08 | Midground: 0.10 - 0.16 | Foreground: 0.18 - 0.24
+        let baseAlpha: number;
         let lineWidth: number;
 
         if (depthRatio < 0.3) {
-          alpha = 0.06 + depthRatio * 0.13;
-          lineWidth = 0.75;
+          baseAlpha = 0.05 + depthRatio * 0.1;
+          lineWidth = 0.7;
         } else if (depthRatio < 0.7) {
-          alpha = 0.12 + (depthRatio - 0.3) * 0.15;
-          lineWidth = 0.95;
+          baseAlpha = 0.1 + (depthRatio - 0.3) * 0.14;
+          lineWidth = 0.85;
         } else {
-          alpha = 0.18 + (depthRatio - 0.7) * 0.3;
-          lineWidth = 1.25;
+          baseAlpha = 0.16 + (depthRatio - 0.7) * 0.22;
+          lineWidth = 1.1;
         }
 
-        // Draw organic smooth curved path
         const pts = contourPoints[ci];
         if (!pts || pts.length < 2) continue;
 
@@ -250,7 +247,6 @@ export default function TopographicScene() {
             ctx.moveTo(pt.x, pt.y);
             started = true;
           } else {
-            // Smooth curve segment
             const prev = pts[pi - 1];
             if (prev) {
               const midX = (prev.x + pt.x) / 2;
@@ -263,20 +259,20 @@ export default function TopographicScene() {
         // Subtle luminescence on primary ridge contours
         const isRidgeContour = ci % 3 === 0 || ci === numContours - 1;
         if (isRidgeContour && depthRatio > 0.35) {
-          ctx.shadowColor = "rgba(0, 217, 255, 0.35)";
-          ctx.shadowBlur = 5;
+          ctx.shadowColor = "rgba(0, 217, 255, 0.25)";
+          ctx.shadowBlur = 4;
         } else {
           ctx.shadowBlur = 0;
         }
 
-        ctx.strokeStyle = `rgba(0, 217, 255, ${alpha})`;
+        ctx.strokeStyle = `rgba(0, 217, 255, ${baseAlpha})`;
         ctx.lineWidth = lineWidth;
         ctx.stroke();
       }
 
       ctx.shadowBlur = 0;
 
-      // 4. Render Subtle Longitudinal Structural Ribs (Interconnecting Depth Lines)
+      // 4. Subtle Longitudinal Structural Ties
       for (let pi = 4; pi < pointsPerContour - 4; pi += 4) {
         ctx.beginPath();
         let started = false;
@@ -293,13 +289,32 @@ export default function TopographicScene() {
           }
         }
 
-        const ribAlpha = 0.045 + (pi / pointsPerContour) * 0.035;
-        ctx.strokeStyle = `rgba(0, 200, 150, ${ribAlpha})`; // Secondary technical emerald
-        ctx.lineWidth = 0.65;
+        const ribAlpha = 0.035 + (pi / pointsPerContour) * 0.03;
+        ctx.strokeStyle = `rgba(0, 201, 139, ${ribAlpha})`;
+        ctx.lineWidth = 0.6;
         ctx.stroke();
       }
 
-      // 5. Compute Node Screen Positions
+      // 5. System Horizontal Scan Wave (10s continuous subtle telemetry sweep)
+      if (!prefersReducedMotion) {
+        const scanProgress = (time * 0.1) % 1; // 0 to 1
+        const scanX = width * 0.15 + scanProgress * width * 0.7;
+        const scanGrad = ctx.createRadialGradient(
+          scanX,
+          height * 0.78,
+          5,
+          scanX,
+          height * 0.78,
+          180
+        );
+        scanGrad.addColorStop(0, "rgba(0, 217, 255, 0.06)");
+        scanGrad.addColorStop(0.5, "rgba(0, 201, 139, 0.02)");
+        scanGrad.addColorStop(1, "rgba(5, 7, 9, 0)");
+        ctx.fillStyle = scanGrad;
+        ctx.fillRect(scanX - 180, horizonY, 360, height - horizonY);
+      }
+
+      // 6. Compute Node Screen Positions
       const nodeScreenPositions: { x: number; y: number; scale: number; pulse: number; type: string }[] = [];
 
       for (const node of nodes) {
@@ -321,12 +336,12 @@ export default function TopographicScene() {
 
         const pulse = prefersReducedMotion
           ? 1
-          : 0.75 + 0.25 * Math.sin(time * 2.2 + node.pulseOffset);
+          : 0.8 + 0.2 * Math.sin(time * 2.0 + node.pulseOffset);
 
         nodeScreenPositions.push({ x: sx, y: sy, scale, pulse, type: node.type });
       }
 
-      // 6. Render 4 Network Connection Paths Linking Selected Nodes
+      // 7. Render 4 Network Connection Paths Linking Selected Nodes
       for (const [idxA, idxB] of nodeConnections) {
         const nodeA = nodeScreenPositions[idxA];
         const nodeB = nodeScreenPositions[idxB];
@@ -334,40 +349,37 @@ export default function TopographicScene() {
 
         ctx.beginPath();
         ctx.moveTo(nodeA.x, nodeA.y);
-        // Gentle curved path following terrain curvature
         const midX = (nodeA.x + nodeB.x) / 2;
-        const midY = Math.min(nodeA.y, nodeB.y) - 12;
+        const midY = Math.min(nodeA.y, nodeB.y) - 10;
         ctx.quadraticCurveTo(midX, midY, nodeB.x, nodeB.y);
 
-        ctx.strokeStyle = "rgba(0, 217, 255, 0.16)";
-        ctx.lineWidth = 0.85;
+        ctx.strokeStyle = "rgba(0, 217, 255, 0.12)";
+        ctx.lineWidth = 0.75;
         ctx.setLineDash([3, 5]);
         ctx.stroke();
-        ctx.setLineDash([]); // Reset dash
+        ctx.setLineDash([]);
       }
 
-      // 7. Render 8 Telemetry Nodes (Small, focused, technical)
+      // 8. Render 8 Telemetry Nodes (Small, restrained, focused)
       for (let i = 0; i < nodeScreenPositions.length; i++) {
         const nodePos = nodeScreenPositions[i];
         if (!nodePos) continue;
 
-        const radius = Math.max(1.8, 3.2 * nodePos.scale * nodePos.pulse);
-        const nodeAlpha = Math.min(0.65, 0.3 + 0.35 * nodePos.pulse);
+        const radius = Math.max(1.6, 2.8 * nodePos.scale * nodePos.pulse);
+        const nodeAlpha = Math.min(0.5, 0.25 + 0.25 * nodePos.pulse);
 
         ctx.beginPath();
         ctx.arc(nodePos.x, nodePos.y, radius, 0, Math.PI * 2);
 
         if (nodePos.type === "deterministic") {
-          // Technical Emerald Fact Node
-          ctx.fillStyle = `rgba(0, 200, 150, ${nodeAlpha})`;
-          ctx.shadowColor = "rgba(0, 200, 150, 0.7)";
-          ctx.shadowBlur = 6 * nodePos.scale;
+          ctx.fillStyle = `rgba(0, 201, 139, ${nodeAlpha})`;
+          ctx.shadowColor = "rgba(0, 201, 139, 0.5)";
+          ctx.shadowBlur = 5 * nodePos.scale;
           ctx.fill();
         } else {
-          // Technical Cyan AI Node
           ctx.fillStyle = `rgba(0, 217, 255, ${nodeAlpha})`;
-          ctx.shadowColor = "rgba(0, 217, 255, 0.8)";
-          ctx.shadowBlur = 8 * nodePos.scale;
+          ctx.shadowColor = "rgba(0, 217, 255, 0.6)";
+          ctx.shadowBlur = 6 * nodePos.scale;
           ctx.fill();
         }
 
