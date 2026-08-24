@@ -62,18 +62,18 @@ export default function TelemetryBackground() {
 
     const updatePosition = () => {
       if (!prefersReducedMotion && container) {
-        time += 0.007;
-        currentParallaxX += (mouseX * 8 - currentParallaxX) * 0.035;
-        currentParallaxY += (mouseY * 6 - currentParallaxY) * 0.035;
+        time += 0.006;
+        currentParallaxX += (mouseX * 7 - currentParallaxX) * 0.03;
+        currentParallaxY += (mouseY * 5 - currentParallaxY) * 0.03;
 
         const children = container.children;
         for (let i = 0; i < children.length; i++) {
           const el = children[i] as HTMLElement;
           const depth = el.dataset.depth;
-          const depthFactor = depth === "fg" ? 1.1 : depth === "mid" ? 0.7 : 0.4;
+          const depthFactor = depth === "fg" ? 1.0 : depth === "mid" ? 0.65 : 0.4;
 
-          const floatX = Math.sin(time * 0.4 + i * 1.1) * 4 * depthFactor;
-          const floatY = Math.cos(time * 0.3 + i * 0.8) * 3 * depthFactor;
+          const floatX = Math.sin(time * 0.35 + i * 1.1) * 3.5 * depthFactor;
+          const floatY = Math.cos(time * 0.28 + i * 0.8) * 2.5 * depthFactor;
 
           const px = currentParallaxX * depthFactor + floatX;
           const py = currentParallaxY * depthFactor + floatY;
@@ -96,16 +96,16 @@ export default function TelemetryBackground() {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
-      {/* Peripheral Left & Right Telemetry Framing (Target Opacity: 0.05 - 0.10) */}
+      {/* Peripheral Left & Right Telemetry Framing (Target Opacity: 0.035 - 0.07) */}
       <div ref={containerRef} className="w-full h-full relative font-mono text-[10px] sm:text-[11px]">
         {/* Left Flank Items */}
         {LEFT_FRAGMENTS.map((item, idx) => {
           const opacityClass =
             item.depth === "fg"
-              ? "opacity-[0.09] sm:opacity-[0.10]"
+              ? "opacity-[0.065] sm:opacity-[0.07]"
               : item.depth === "mid"
-              ? "opacity-[0.07] sm:opacity-[0.08]"
-              : "opacity-[0.05] sm:opacity-[0.06]";
+              ? "opacity-[0.045] sm:opacity-[0.05]"
+              : "opacity-[0.035]";
 
           const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
 
@@ -128,10 +128,10 @@ export default function TelemetryBackground() {
         {RIGHT_FRAGMENTS.map((item, idx) => {
           const opacityClass =
             item.depth === "fg"
-              ? "opacity-[0.09] sm:opacity-[0.10]"
+              ? "opacity-[0.065] sm:opacity-[0.07]"
               : item.depth === "mid"
-              ? "opacity-[0.07] sm:opacity-[0.08]"
-              : "opacity-[0.05] sm:opacity-[0.06]";
+              ? "opacity-[0.045] sm:opacity-[0.05]"
+              : "opacity-[0.035]";
 
           const mobileClass = idx > 2 ? "hidden lg:block" : "hidden sm:block";
 
