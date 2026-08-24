@@ -102,7 +102,15 @@ export default function GoldenDemoPresenterPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 font-mono">
+        <div className="flex items-center gap-2 font-mono">
+          <Link
+            href="/demo/judge"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-[#00D9FF] border border-[#00D9FF]/40 text-xs font-semibold transition-all"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            <span>Judge Mode →</span>
+          </Link>
+
           <Link
             href="/demo/multi-vendor"
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0E0E0E] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] text-xs font-semibold transition-all"

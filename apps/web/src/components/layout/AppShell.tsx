@@ -25,6 +25,7 @@ import {
   Menu,
   X,
   Search,
+  Play,
 } from "lucide-react";
 import { fetchHealth } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "SOC Overview", href: "/dashboard", icon: Activity, category: "Core Operations" },
+  { label: "Judge Demo Mode", href: "/demo/judge", icon: Play, category: "Core Operations", badge: "Judge" },
   { label: "Golden Demo", href: "/demo", icon: Sparkles, category: "Core Operations", badge: "2-Min" },
   { label: "Multi-Vendor Proof", href: "/demo/multi-vendor", icon: Layers, category: "Core Operations", badge: "Multi-OS" },
   { label: "Audits", href: "/audits", icon: Shield, category: "Core Operations" },
