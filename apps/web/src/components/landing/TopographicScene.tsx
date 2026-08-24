@@ -5,20 +5,14 @@ import React, { useEffect, useRef } from "react";
 /**
  * TopographicScene
  * 
- * Exact 3D Cybersecurity Intelligence Terrain from Reference:
- * - Upper-Right Dominant Mountain Pyramid with glowing white-cyan apex beacon
- * - Lower-Center Concentric Elevation Contour Rings centered around "SECURITY ENGINE / CORE"
- * - 8 Telemetry Nodes with Vertical Connector Lines & HUD Chips:
- *   1. "JUNOS → AST → USM" (Top center, vertical line to upper ridge node)
- *   2. "FORTIOS → AST → USM" (Upper right, vertical line to right ridge node)
- *   3. "CISCO IOS → AST → USM" (Mid left, vertical line to left shoulder node)
- *   4. "CIS-1.2.1 / FAIL" (Red FAIL badge, vertical line from Security Engine)
- *   5. "EVIDENCE: [LINE 17]" (Lower left node)
- *   6. "REMOTE_PUSH: ABSENT" (Mid-right slope node)
- *   7. "AI_ADVISORY: READ_ONLY" (Lower-right slope node)
- *   8. "SECURITY ENGINE / CORE" (Center of concentric contour rings)
- * - Luminous curved cyan spline arcs connecting nodes with moving light pulses
- * - Fine 3D wireframe mesh with perspective depth and subtle interactive mouse parallax
+ * 1:1 Pixel-Accurate Implementation of Reference Image 1:
+ * - Prominent Foreground Mountain Peak (Center-Bottom) with concentric contour rings & radiant beacon
+ * - Upper-Center Ridge Peak (JunOS) with vertical pin to floating chip
+ * - Upper-Right Flank Peak (FortiOS) with vertical pin to floating chip
+ * - Left Shoulder Mountain (Cisco) with connector line to floating chip
+ * - Right Flank Nodes: "CIS-1.2.1 / FAIL", "AI_ADVISORY:READ_ONLY", "REMOTE_PUSH:ABSENT"
+ * - Luminous curved cyan/teal spline arcs connecting nodes with moving light pulses
+ * - Fine 3D wireframe mesh with volumetric depth shading and subtle interactive mouse parallax
  */
 export default function TopographicScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,10 +44,10 @@ export default function TopographicScene() {
     window.addEventListener("resize", resizeCanvas);
 
     // 3D Grid Parameters
-    const gridCols = 48;
-    const gridRows = 38;
-    const gridWidth = 1100;
-    const gridDepth = 900;
+    const gridCols = 52;
+    const gridRows = 42;
+    const gridWidth = 1140;
+    const gridDepth = 920;
 
     // Mouse Tracking (3-4 degree subtle parallax)
     let mouseX = 0;
@@ -72,72 +66,72 @@ export default function TopographicScene() {
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // 8 Telemetry Nodes Matching Reference Exactly
+    // 7 Telemetry HUD Chips & Nodes Matching Reference Image 1 Exactly
     const nodes = [
-      // 0: Apex Summit (Upper Mountain Peak)
-      { id: "apex", x: 220, z: -80, label: "", color: "#FFFFFF", isApex: true, chipOffset: { x: 0, y: 0 }, lineUp: false },
-      // 1: JunOS (Top Center)
-      { id: "junos", x: 140, z: -160, label: "JUNOS → AST → USM", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: -44 }, lineUp: true },
-      // 2: FortiOS (Upper Right)
-      { id: "fortios", x: 380, z: -100, label: "FORTIOS → AST → USM", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: -42 }, lineUp: true },
-      // 3: Cisco IOS (Mid Left Shoulder)
-      { id: "cisco", x: -160, z: -40, label: "CISCO IOS → AST → USM", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: -42 }, lineUp: true },
-      // 4: CIS-1.2.1 / FAIL (Center-Left Ridge)
-      { id: "cis_fail", x: 60, z: 40, label: "CIS-1.2.1 / FAIL", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: -30 }, lineUp: true, isFail: true },
-      // 5: Security Engine / Core (Foreground Concentric Center)
-      { id: "core", x: 60, z: 180, label: "SECURITY ENGINE / CORE", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: 28 }, lineUp: false, isCore: true },
-      // 6: Evidence Line 17 (Lower Left)
-      { id: "evidence", x: -200, z: 120, label: "EVIDENCE: [LINE 17]", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: -26 }, lineUp: true },
-      // 7: Remote Push Absent (Center-Right Slope)
-      { id: "remote_push", x: 240, z: 60, label: "REMOTE_PUSH: ABSENT", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: -26 }, lineUp: true },
-      // 8: AI Advisory Read Only (Lower Right Slope)
-      { id: "ai_advisory", x: 360, z: 140, label: "AI_ADVISORY: READ_ONLY", color: "#00D9FF", isApex: false, chipOffset: { x: 0, y: -26 }, lineUp: true },
+      // 0: Foreground Beacon Node (Center-Bottom Cone Apex)
+      { id: "beacon", x: 160, z: 160, label: "", color: "#FFFFFF", isBeacon: true, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
+      // 1: JunOS Peak (Upper-Center Peak)
+      { id: "junos", x: 130, z: -140, label: "JUNOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
+      // 2: FortiOS Peak (Upper-Right Flank Peak)
+      { id: "fortios", x: 380, z: -80, label: "FORTIOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
+      // 3: Cisco IOS (Mid-Left Slope)
+      { id: "cisco", x: -140, z: 40, label: "CISCO IOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: -30, y: -38 }, lineDir: "up" },
+      // 4: Midground Ridge Node (between Cisco and JunOS)
+      { id: "mid_node", x: 0, z: -60, label: "", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
+      // 5: CIS-1.2.1 / FAIL (Right Flank Upper)
+      { id: "cis_fail", x: 390, z: 20, label: "CIS-1.2.1 / FAIL", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -34 }, lineDir: "up", isFail: true },
+      // 6: AI Advisory (Right Flank Mid)
+      { id: "ai_advisory", x: 360, z: 120, label: "AI_ADVISORY:READ_ONLY", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
+      // 7: Remote Push Absent (Right Flank Lower)
+      { id: "remote_push", x: 360, z: 220, label: "REMOTE_PUSH:ABSENT", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
     ];
 
-    // Curved Network Spline Connections
+    // Luminous Curved Network Connection Splines
     const connections = [
-      { from: 3, to: 0, speed: 0.007, offset: 0 },
-      { from: 1, to: 0, speed: 0.008, offset: 0.2 },
-      { from: 0, to: 2, speed: 0.007, offset: 0.4 },
-      { from: 0, to: 4, speed: 0.009, offset: 0.6 },
-      { from: 4, to: 5, speed: 0.008, offset: 0.1 },
-      { from: 4, to: 6, speed: 0.006, offset: 0.3 },
-      { from: 4, to: 7, speed: 0.008, offset: 0.5 },
-      { from: 7, to: 8, speed: 0.007, offset: 0.75 },
-      { from: 5, to: 7, speed: 0.006, offset: 0.35 },
+      { from: 0, to: 3, speed: 0.007, offset: 0 },
+      { from: 0, to: 4, speed: 0.008, offset: 0.2 },
+      { from: 4, to: 1, speed: 0.007, offset: 0.4 },
+      { from: 1, to: 2, speed: 0.006, offset: 0.6 },
+      { from: 0, to: 2, speed: 0.008, offset: 0.15 },
+      { from: 2, to: 5, speed: 0.007, offset: 0.35 },
+      { from: 5, to: 6, speed: 0.008, offset: 0.55 },
+      { from: 6, to: 7, speed: 0.006, offset: 0.75 },
     ];
 
     let time = 0;
 
-    // 3D Topographical Elevation Function Matching Reference Image
+    // 3D Topographical Elevation Function Matching Reference Image 1
     const getElevation = (x: number, z: number, t: number) => {
-      // 1. Dominant Upper-Right Mountain Peak (Apex)
-      const distApexSq = Math.pow(x - 220, 2) + Math.pow(z + 80, 2);
-      const apexPeak = 240 * Math.exp(-distApexSq / 38000);
+      // 1. Prominent Foreground Cone / Mountain Peak (Center-Bottom)
+      const distConeSq = Math.pow(x - 160, 2) + Math.pow(z - 160, 2);
+      const foregroundCone = 220 * Math.exp(-distConeSq / 34000);
 
-      // 2. JunOS Ridge (Top Center Shoulder)
-      const junosRidge = 160 * Math.exp(-Math.pow((x - 140) / 130, 2) - Math.pow((z + 160) / 120, 2));
+      // 2. Upper-Center JunOS Ridge Peak
+      const distJunosSq = Math.pow(x - 130, 2) + Math.pow(z + 140, 2);
+      const junosPeak = 175 * Math.exp(-distJunosSq / 36000);
 
-      // 3. FortiOS Ridge (Upper Right Flank)
-      const fortiosRidge = 170 * Math.exp(-Math.pow((x - 380) / 140, 2) - Math.pow((z + 100) / 130, 2));
+      // 3. Upper-Right FortiOS Flank Peak
+      const distFortiosSq = Math.pow(x - 380, 2) + Math.pow(z + 80, 2);
+      const fortiosPeak = 185 * Math.exp(-distFortiosSq / 38000);
 
-      // 4. Cisco Shoulder (Mid-Left Ridge)
-      const ciscoRidge = 130 * Math.exp(-Math.pow((x + 160) / 150, 2) - Math.pow((z + 40) / 130, 2));
+      // 4. Left Cisco Shoulder Ridge
+      const distCiscoSq = Math.pow(x + 140, 2) + Math.pow(z - 40, 2);
+      const ciscoPeak = 135 * Math.exp(-distCiscoSq / 42000);
 
-      // 5. Concentric Elevation Basin / Core Formation
-      const distCoreSq = Math.pow(x - 60, 2) + Math.pow(z - 180, 2);
-      const coreRipples = Math.cos(Math.sqrt(distCoreSq) * 0.05) * 12 * Math.exp(-distCoreSq / 60000);
+      // 5. Connecting Saddle Ridges & Valleys
+      const saddle1 = 70 * Math.exp(-Math.pow((x - 20) / 140, 2) - Math.pow((z + 20) / 120, 2));
+      const saddle2 = 80 * Math.exp(-Math.pow((x - 260) / 150, 2) - Math.pow((z - 40) / 130, 2));
 
       if (prefersReducedMotion) {
-        return -(apexPeak + junosRidge + fortiosRidge + ciscoRidge + coreRipples);
+        return -(foregroundCone + junosPeak + fortiosPeak + ciscoPeak + saddle1 + saddle2);
       }
 
-      // Gentle continuous organic wave undulation
-      const wave = 10 * Math.sin(x * 0.009 - t * 0.35) * Math.cos(z * 0.008 + t * 0.3);
-      return -(apexPeak + junosRidge + fortiosRidge + ciscoRidge + coreRipples + wave);
+      // Continuous subtle organic wave ripples
+      const wave = 9 * Math.sin(x * 0.008 - t * 0.35) * Math.cos(z * 0.007 + t * 0.3);
+      return -(foregroundCone + junosPeak + fortiosPeak + ciscoPeak + saddle1 + saddle2 + wave);
     };
 
-    // 3D Perspective Rotation & Projection Math
+    // 3D Perspective Projection Function
     const project3D = (
       x: number,
       y: number,
@@ -147,27 +141,27 @@ export default function TopographicScene() {
       rotX: number,
       rotY: number
     ) => {
-      // Y-axis Yaw Rotation
+      // Y-axis Yaw
       const cosY = Math.cos(rotY);
       const sinY = Math.sin(rotY);
       const x1 = x * cosY - z * sinY;
       const z1 = x * sinY + z * cosY;
 
-      // X-axis Pitch Rotation
+      // X-axis Pitch
       const cosX = Math.cos(rotX);
       const sinX = Math.sin(rotX);
       const y2 = y * cosX - z1 * sinX;
       const z2 = y * sinX + z1 * cosX;
 
-      const fov = 640;
-      const cameraDist = 780;
+      const fov = 660;
+      const cameraDist = 800;
       const pz = z2 + cameraDist;
 
       if (pz <= 10) return null;
 
       const scale = fov / pz;
       const screenX = width * 0.54 + x1 * scale;
-      const screenY = height * 0.50 + y2 * scale;
+      const screenY = height * 0.52 + y2 * scale;
 
       return { x: screenX, y: screenY, scale, pz, rawX: x1, rawY: y2, rawZ: z2 };
     };
@@ -178,26 +172,26 @@ export default function TopographicScene() {
 
       if (!prefersReducedMotion) {
         time += 0.006;
-        targetRotX += (0.46 + mouseY * 0.04 - targetRotX) * 0.04;
+        targetRotX += (0.45 + mouseY * 0.04 - targetRotX) * 0.04;
         targetRotY += (-0.20 + mouseX * 0.05 - targetRotY) * 0.04;
       } else {
-        targetRotX = 0.46;
+        targetRotX = 0.45;
         targetRotY = -0.20;
       }
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Soft Ambient Cyan/Teal Illumination Center
+      // 1. Soft Ambient Teal/Cyan Atmospheric Illumination Center
       const centerGlow = ctx.createRadialGradient(
-        width * 0.65,
-        height * 0.38,
-        20,
-        width * 0.65,
-        height * 0.42,
-        width * 0.65
+        width * 0.64,
+        height * 0.46,
+        25,
+        width * 0.64,
+        height * 0.50,
+        width * 0.66
       );
-      centerGlow.addColorStop(0, "rgba(0, 217, 255, 0.10)");
-      centerGlow.addColorStop(0.4, "rgba(0, 201, 139, 0.03)");
+      centerGlow.addColorStop(0, "rgba(0, 217, 255, 0.12)");
+      centerGlow.addColorStop(0.4, "rgba(0, 201, 139, 0.035)");
       centerGlow.addColorStop(1, "rgba(3, 7, 12, 0)");
       ctx.fillStyle = centerGlow;
       ctx.fillRect(0, 0, width, height);
@@ -222,7 +216,7 @@ export default function TopographicScene() {
       // 3. Render 3D Wireframe Latitudinal Contour Lines
       for (let r = 0; r < gridRows; r++) {
         const depthRatio = r / (gridRows - 1);
-        const lineAlpha = 0.05 + Math.pow(depthRatio, 1.3) * 0.38;
+        const lineAlpha = 0.05 + Math.pow(depthRatio, 1.3) * 0.42;
 
         ctx.beginPath();
         let started = false;
@@ -244,10 +238,10 @@ export default function TopographicScene() {
           }
         }
 
-        const isPeakRow = r === 8 || r === 14 || r === 22 || r === 30 || r === gridRows - 1;
+        const isPeakRow = r === 10 || r === 16 || r === 24 || r === 32 || r === gridRows - 1;
         if (isPeakRow && depthRatio > 0.25) {
-          ctx.shadowColor = "rgba(0, 217, 255, 0.55)";
-          ctx.shadowBlur = 7;
+          ctx.shadowColor = "rgba(0, 217, 255, 0.6)";
+          ctx.shadowBlur = 8;
         } else {
           ctx.shadowBlur = 0;
         }
@@ -277,22 +271,22 @@ export default function TopographicScene() {
         }
 
         const colDepth = Math.abs(c - gridCols / 2) / (gridCols / 2);
-        const ribAlpha = 0.04 + (1 - colDepth) * 0.06;
+        const ribAlpha = 0.035 + (1 - colDepth) * 0.06;
         ctx.strokeStyle = `rgba(0, 201, 139, ${ribAlpha})`;
         ctx.lineWidth = 0.7;
         ctx.stroke();
       }
 
-      // 5. Concentric Elevation Contour Rings Around Security Engine (Foreground)
-      for (let radius = 25; radius <= 160; radius += 28) {
+      // 5. Concentric Elevation Contour Rings Around Foreground Beacon Peak
+      for (let radius = 20; radius <= 180; radius += 25) {
         ctx.beginPath();
         let ringStarted = false;
-        const ringSegments = 36;
+        const ringSegments = 40;
 
         for (let a = 0; a <= ringSegments; a++) {
           const angle = (a / ringSegments) * Math.PI * 2;
-          const rx = 60 + Math.cos(angle) * radius * 1.5;
-          const rz = 180 + Math.sin(angle) * radius * 0.9;
+          const rx = 160 + Math.cos(angle) * radius * 1.35;
+          const rz = 160 + Math.sin(angle) * radius * 0.95;
           const ry = getElevation(rx, rz, time) - 2;
 
           const pt = project3D(rx, ry, rz, width, height, targetRotX, targetRotY);
@@ -306,8 +300,9 @@ export default function TopographicScene() {
           }
         }
 
-        ctx.strokeStyle = `rgba(0, 217, 255, ${0.12 + (160 - radius) * 0.0015})`;
-        ctx.lineWidth = 0.9;
+        const ringAlpha = 0.14 + (180 - radius) * 0.0016;
+        ctx.strokeStyle = `rgba(0, 217, 255, ${ringAlpha})`;
+        ctx.lineWidth = 0.95;
         ctx.stroke();
       }
 
@@ -343,7 +338,7 @@ export default function TopographicScene() {
         });
       }
 
-      // 7. Render Luminous Curved Network Splines & Traveling Light Packets
+      // 7. Render Luminous Curved Spline Arcs & Traveling Light Telemetry Packets
       for (const conn of connections) {
         const n1 = projectedNodes[conn.from];
         const n2 = projectedNodes[conn.to];
@@ -352,11 +347,11 @@ export default function TopographicScene() {
         ctx.beginPath();
         ctx.moveTo(n1.x, n1.y);
         const midX = (n1.x + n2.x) / 2;
-        const midY = Math.min(n1.y, n2.y) - 22;
+        const midY = Math.min(n1.y, n2.y) - 26;
         ctx.quadraticCurveTo(midX, midY, n2.x, n2.y);
 
-        ctx.strokeStyle = "rgba(0, 217, 255, 0.28)";
-        ctx.lineWidth = 1.1;
+        ctx.strokeStyle = "rgba(0, 217, 255, 0.32)";
+        ctx.lineWidth = 1.15;
         ctx.setLineDash([3, 5]);
         ctx.stroke();
         ctx.setLineDash([]);
@@ -368,10 +363,10 @@ export default function TopographicScene() {
           const py = Math.pow(1 - packetT, 2) * n1.y + 2 * (1 - packetT) * packetT * midY + Math.pow(packetT, 2) * n2.y;
 
           ctx.beginPath();
-          ctx.arc(px, py, 2.6, 0, Math.PI * 2);
+          ctx.arc(px, py, 2.8, 0, Math.PI * 2);
           ctx.fillStyle = "#FFFFFF";
           ctx.shadowColor = "#00D9FF";
-          ctx.shadowBlur = 10;
+          ctx.shadowBlur = 12;
           ctx.fill();
           ctx.shadowBlur = 0;
         }
@@ -383,70 +378,70 @@ export default function TopographicScene() {
         if (!pn) continue;
 
         // A. Glowing Node Dot
-        if (pn.node.isApex) {
-          // Dominant Peak Radiant Apex Beacon
+        if (pn.node.isBeacon) {
+          // Radiant White-Cyan Foreground Beacon Node
           ctx.beginPath();
-          ctx.arc(pn.x, pn.y, 4.5 * pn.scale * pn.pulse, 0, Math.PI * 2);
+          ctx.arc(pn.x, pn.y, 4.8 * pn.scale * pn.pulse, 0, Math.PI * 2);
           ctx.fillStyle = "#FFFFFF";
           ctx.shadowColor = "#00D9FF";
-          ctx.shadowBlur = 20;
+          ctx.shadowBlur = 24;
           ctx.fill();
           ctx.shadowBlur = 0;
         } else {
           ctx.beginPath();
-          ctx.arc(pn.x, pn.y, (pn.node.isCore ? 4.0 : 2.8) * pn.scale * pn.pulse, 0, Math.PI * 2);
+          ctx.arc(pn.x, pn.y, 3.2 * pn.scale * pn.pulse, 0, Math.PI * 2);
           ctx.fillStyle = pn.node.color;
           ctx.shadowColor = pn.node.color;
-          ctx.shadowBlur = 12 * pn.scale;
+          ctx.shadowBlur = 14 * pn.scale;
           ctx.fill();
           ctx.shadowBlur = 0;
         }
 
         // B. Vertical Connector Line to Floating Chip
-        if (pn.node.label) {
+        if (pn.node.label && pn.node.lineDir === "up") {
           const chipX = pn.x + pn.node.chipOffset.x;
           const chipY = pn.y + pn.node.chipOffset.y;
 
           ctx.beginPath();
           ctx.moveTo(pn.x, pn.y);
-          ctx.lineTo(chipX, chipY + (pn.node.lineUp ? 12 : -12));
-          ctx.strokeStyle = "rgba(0, 217, 255, 0.45)";
-          ctx.lineWidth = 0.85;
+          ctx.lineTo(chipX, chipY + 14);
+          ctx.strokeStyle = "rgba(0, 217, 255, 0.5)";
+          ctx.lineWidth = 0.9;
           ctx.stroke();
 
           // C. HUD Chip Container
-          const fontSize = Math.max(9, Math.floor(10 * pn.scale));
+          const fontSize = Math.max(9.5, Math.floor(10.5 * pn.scale));
           ctx.font = `600 ${fontSize}px ui-monospace, monospace`;
 
           const textMetrics = ctx.measureText(pn.node.label);
-          const chipW = textMetrics.width + 14;
-          const chipH = fontSize + 8;
+          const chipW = textMetrics.width + 16;
+          const chipH = fontSize + 9;
           const rectX = chipX - chipW / 2;
           const rectY = chipY - chipH / 2;
 
           // Chip Background
-          ctx.fillStyle = "rgba(5, 12, 22, 0.92)";
+          ctx.fillStyle = "rgba(5, 12, 22, 0.94)";
           ctx.fillRect(rectX, rectY, chipW, chipH);
 
-          // Chip Border (Special highlight for FAIL vs normal)
+          // Chip Border
           if (pn.node.isFail) {
-            ctx.strokeStyle = "rgba(255, 77, 77, 0.45)";
+            ctx.strokeStyle = "rgba(255, 77, 77, 0.5)";
           } else {
-            ctx.strokeStyle = "rgba(0, 217, 255, 0.35)";
+            ctx.strokeStyle = "rgba(0, 217, 255, 0.4)";
           }
-          ctx.lineWidth = 0.85;
+          ctx.lineWidth = 0.9;
           ctx.strokeRect(rectX, rectY, chipW, chipH);
 
           // Chip Text
           if (pn.node.isFail) {
             ctx.fillStyle = "#00D9FF";
-            ctx.fillText("CIS-1.2.1 / ", rectX + 7, rectY + fontSize);
+            ctx.fillText("CIS-1.2.1 / ", rectX + 8, rectY + fontSize + 1);
             const prefixW = ctx.measureText("CIS-1.2.1 / ").width;
             ctx.fillStyle = "#FF4D4D";
-            ctx.fillText("FAIL", rectX + 7 + prefixW, rectY + fontSize);
+            ctx.fillText("FAIL", rectX + 8 + prefixW, rectY + fontSize + 1);
           } else {
             ctx.fillStyle = pn.node.color;
-            ctx.fillText(pn.node.label, rectX + 7, rectY + fontSize);
+            ctx.fillText(pn.node.label, rectX + 8, rectY + fontSize + 1);
           }
         }
       }
