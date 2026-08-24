@@ -172,8 +172,22 @@ class JuniperParser(BaseConfigurationParser):
                 telnet_enabled_val = (False, raw_line, line_no)
                 tracker.mark_matched(line_no)
                 continue
-            elif re.search(r"system\s+services\s+telnet|services\s*\{\s*telnet|^\s*telnet\s*\{", line, re.IGNORECASE):
+            elif re.search(r"system\s+services\s+telnet|services\s*\{\s*telnet|^\s*telnet\b", line, re.IGNORECASE):
                 telnet_enabled_val = (True, raw_line, line_no)
+                tracker.mark_matched(line_no)
+                continue
+
+            # Web Management HTTP / HTTPS
+            if re.search(r"delete\s+system\s+services\s+web-management\s+http", line, re.IGNORECASE):
+                http_server_val = (False, raw_line, line_no)
+                tracker.mark_matched(line_no)
+                continue
+            elif re.search(r"(?:set\s+system\s+services\s+web-management\s+http|web-management\s*\{[^}]*http|^\s*http\b)", line, re.IGNORECASE):
+                http_server_val = (True, raw_line, line_no)
+                tracker.mark_matched(line_no)
+                continue
+            elif re.search(r"(?:set\s+system\s+services\s+web-management\s+https|web-management\s*\{[^}]*https|^\s*https\b)", line, re.IGNORECASE):
+                https_server_val = (True, raw_line, line_no)
                 tracker.mark_matched(line_no)
                 continue
 
@@ -330,6 +344,16 @@ class JuniperParser(BaseConfigurationParser):
         if telnet_enabled_val is not None:
             profile.remote_access.telnet_enabled = SecurityFact.create(
                 telnet_enabled_val[0], [telnet_enabled_val[1]], [telnet_enabled_val[2]]
+            )
+            facts_count += 1
+        if http_server_val is not None:
+            profile.remote_access.http_server_enabled = SecurityFact.create(
+                http_server_val[0], [http_server_val[1]], [http_server_val[2]]
+            )
+            facts_count += 1
+        if https_server_val is not None:
+            profile.remote_access.https_server_enabled = SecurityFact.create(
+                https_server_val[0], [https_server_val[1]], [https_server_val[2]]
             )
             facts_count += 1
 

@@ -68,6 +68,9 @@ class FortinetParser(BaseConfigurationParser):
         ssh_version = 2
         ssh_evidence: List[str] = []
         ssh_lines: List[int] = []
+        http_enabled = False
+        http_evidence: List[str] = []
+        http_lines: List[int] = []
         https_enabled = False
         https_evidence: List[str] = []
         https_lines: List[int] = []
@@ -197,15 +200,30 @@ class FortinetParser(BaseConfigurationParser):
                     elif key == "strong-crypto" and "enable" in val.lower():
                         strong_crypto_val = (True, raw_line, line_no)
                         tracker.mark_matched(line_no)
-                        continue
-                    elif key == "admin-ssh-v1" and "disable" in val.lower():
-                        ssh_version = 2
-                        ssh_enabled = True
+                    elif key == "admin-ssh-v1":
+                        if "enable" in val.lower():
+                            ssh_version = 1
+                            ssh_enabled = True
+                        else:
+                            ssh_version = 2
+                            ssh_enabled = True
                         ssh_evidence.append(raw_line)
                         ssh_lines.append(line_no)
                         tracker.mark_matched(line_no)
                         continue
-                    elif key in ["admin-sport", "admin-ssh-port"]:
+                    elif key == "admin-sport":
+                        port_num = int(val.strip("\"'")) if val.strip("\"'").isdigit() else 80
+                        if port_num == 80:
+                            http_enabled = True
+                            http_evidence.append(raw_line)
+                            http_lines.append(line_no)
+                        elif port_num == 443:
+                            https_enabled = True
+                            https_evidence.append(raw_line)
+                            https_lines.append(line_no)
+                        tracker.mark_matched(line_no)
+                        continue
+                    elif key in ["admin-ssh-port"]:
                         tracker.mark_matched(line_no)
                         continue
 
@@ -289,6 +307,9 @@ class FortinetParser(BaseConfigurationParser):
         profile.remote_access.telnet_enabled = SecurityFact.create(False, ["[FortiOS: Telnet is deactivated by default]"])
         facts_count += 3
 
+        if http_enabled:
+            profile.remote_access.http_server_enabled = SecurityFact.create(True, http_evidence, http_lines)
+            facts_count += 1
         if https_enabled:
             profile.remote_access.https_server_enabled = SecurityFact.create(True, https_evidence, https_lines)
             facts_count += 1

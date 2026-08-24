@@ -102,11 +102,19 @@ export default function GoldenDemoPresenterPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3 font-mono">
+        <div className="flex items-center gap-2.5 font-mono">
+          <Link
+            href="/demo/multi-vendor"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0E0E0E] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] text-xs font-semibold transition-all"
+          >
+            <Layers className="w-3.5 h-3.5 text-[#00D9FF]" />
+            <span>Multi-Vendor Proof →</span>
+          </Link>
+
           <button
             onClick={() => launchMutation.mutate()}
             disabled={launchMutation.isPending}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#0B0B0B] hover:bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/50 hover:border-[#00D9FF] font-semibold text-xs transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0B0B0B] hover:bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/50 hover:border-[#00D9FF] font-semibold text-xs transition-all disabled:opacity-50"
           >
             {launchMutation.isPending ? (
               <Activity className="w-4 h-4 animate-spin text-[#00D9FF]" />
