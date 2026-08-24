@@ -6,31 +6,31 @@ import { Shield, Play, Sparkles, Activity } from "lucide-react";
 
 export default function LandingNavbar() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A0C10]/80 backdrop-blur-md border-b border-white/5 font-mono text-xs">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#050709]/85 backdrop-blur-md border-b border-white/[0.06] font-mono text-xs">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        {/* Brand Logo & Identifier */}
+        {/* Brand Logo & Precision Identifier */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-lg bg-[#0E131F] border border-[#10B981]/30 flex items-center justify-center text-[#10B981] group-hover:border-[#10B981] transition-colors">
+          <div className="w-7 h-7 rounded-md bg-[#0B0F19] border border-[#00C896]/30 flex items-center justify-center text-[#00C896] group-hover:border-[#00C896] transition-colors duration-150">
             <Shield className="w-3.5 h-3.5" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="font-bold text-sm tracking-wider text-white">NETVIGIL</span>
-            <span className="text-[10px] text-[#06B6D4] font-semibold">CORE</span>
+            <span className="font-bold text-sm tracking-wider text-[#F5F7FA]">NETVIGIL</span>
+            <span className="text-[10px] text-[#00D9FF] font-semibold px-1.5 py-0.5 rounded bg-[#00D9FF]/10 border border-[#00D9FF]/20">CORE</span>
           </div>
         </Link>
 
         {/* Navigation Anchors */}
-        <nav className="hidden md:flex items-center gap-6 text-[#A3A3A3]">
-          <Link href="#architecture" className="hover:text-white transition-colors">
+        <nav className="hidden md:flex items-center gap-6 text-[#94A3B8]">
+          <Link href="#architecture" className="hover:text-[#F5F7FA] transition-colors duration-150">
             Architecture
           </Link>
-          <Link href="#ai-boundary" className="hover:text-white transition-colors">
+          <Link href="#ai-boundary" className="hover:text-[#F5F7FA] transition-colors duration-150">
             AI Boundary
           </Link>
-          <Link href="#multi-vendor" className="hover:text-white transition-colors">
+          <Link href="#multi-vendor" className="hover:text-[#F5F7FA] transition-colors duration-150">
             Multi-Vendor Proof
           </Link>
-          <Link href="/demo/judge" className="hover:text-[#06B6D4] transition-colors flex items-center gap-1">
+          <Link href="/demo/judge" className="hover:text-[#00D9FF] transition-colors duration-150 flex items-center gap-1.5">
             <Play className="w-3 h-3 fill-current" />
             <span>Judge Mode</span>
           </Link>
@@ -40,15 +40,15 @@ export default function LandingNavbar() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/demo"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0E131F] border border-white/10 hover:border-white/20 text-[#D4D4D4] hover:text-white transition-all"
+            className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0B0F19] border border-white/[0.08] hover:border-white/[0.2] text-[#E2E8F0] hover:text-white transition-all duration-150"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#06B6D4]" />
+            <Sparkles className="w-3.5 h-3.5 text-[#00D9FF]" />
             <span>Golden Demo</span>
           </Link>
 
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#10B981] hover:bg-[#059669] text-black font-bold transition-all shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-md bg-[#00C896] hover:bg-[#00B383] text-[#050709] font-bold transition-all duration-150 active:translate-y-[0.5px] shadow-[0_0_12px_rgba(0,200,150,0.18)]"
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Launch SOC →</span>
