@@ -648,7 +648,7 @@ export default function EvidenceExplorerPage() {
               {/* 1. Control Details Card */}
               <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-3 text-xs">
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-                  <span className="text-[10px] text-[#64748B] uppercase">SECURITY CONTROL</span>
+                  <span className="text-[10px] text-[#64748B] uppercase font-bold">CONTROL VERDICT</span>
                   <span className="text-[#00D9FF] font-bold">{selectedFinding.control_id}</span>
                 </div>
 
@@ -657,25 +657,45 @@ export default function EvidenceExplorerPage() {
                   <div className="font-bold text-[#F8FAFC] font-sans mt-0.5">{selectedFinding.title}</div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.04]">
-                    <div className="text-[9px] text-[#64748B] uppercase">EXPECTED</div>
-                    <div className="font-semibold text-[#10B981] mt-0.5">
-                      {selectedFinding.expected_value || "SSH Version 2"}
-                    </div>
+                {/* Provenance Chain Differentiator */}
+                <div className="p-2.5 rounded bg-[#03060A] border border-white/[0.06] space-y-1.5 text-[10px] font-mono">
+                  <div className="text-[9px] text-[#64748B] uppercase font-bold tracking-wider">
+                    DETERMINISTIC PROVENANCE CHAIN
                   </div>
-
-                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.04]">
-                    <div className="text-[9px] text-[#64748B] uppercase">OBSERVED</div>
-                    <div className="font-semibold text-[#EF4444] mt-0.5">
-                      {selectedFinding.actual_value || selectedFinding.evidence || "SSH Version 1"}
+                  <div className="flex flex-col gap-1 text-[#94A3B8]">
+                    <div className="flex items-center justify-between">
+                      <span>1. SOURCE:</span>
+                      <span className="text-white font-semibold">{configDetail?.original_filename || "Configuration"}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>2. EVIDENCE:</span>
+                      <span className="text-[#EF4444] font-semibold">
+                        {evidenceLines.length > 0 ? `Line ${evidenceLines[0]}` : "Source cited"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>3. NORMALIZED FACT:</span>
+                      <span className="text-[#F59E0B] font-semibold">
+                        {selectedFinding.actual_value || selectedFinding.finding_metadata?.rule_id || "Observed directive"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>4. EXPECTED:</span>
+                      <span className="text-[#10B981] font-semibold">{selectedFinding.expected_value || "Hardened standard"}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-white/[0.06] pt-1 mt-0.5">
+                      <span>5. VERDICT:</span>
+                      <span className="text-[#EF4444] font-extrabold">{selectedFinding.status} ({selectedFinding.severity})</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-2 rounded bg-[#0B0F19] border border-red-500/30 flex items-center justify-between">
-                  <span className="text-[10px] text-[#64748B] uppercase">DETERMINISTIC VERDICT</span>
-                  <span className="font-extrabold text-[#EF4444]">{selectedFinding.status}</span>
+                {/* Human-Readable Why Failed Explanation */}
+                <div className="p-2.5 rounded bg-[#0B0F19] border border-white/[0.04] space-y-1">
+                  <div className="text-[9px] text-[#64748B] uppercase font-bold">WHY FAILED?</div>
+                  <p className="text-[11px] text-[#E2E8F0] font-sans leading-relaxed">
+                    {selectedFinding.description || `The configuration violates baseline security control ${selectedFinding.control_id}. Required standard is not met.`}
+                  </p>
                 </div>
               </div>
 

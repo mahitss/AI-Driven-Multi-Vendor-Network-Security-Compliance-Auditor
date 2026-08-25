@@ -43,22 +43,20 @@ interface NavItem {
 const navItems: NavItem[] = [
   // Overview
   { label: "Security Posture", href: "/dashboard", icon: Activity, category: "Overview" },
+  { label: "Audit Configuration", href: "/configurations", icon: FileCode2, category: "Overview", badge: "Audit" },
 
   // Operations
-  { label: "Security Operations", href: "/operations", icon: Activity, category: "Operations", badge: "SOC" },
   { label: "Evidence Explorer", href: "/findings", icon: AlertTriangle, category: "Operations" },
   { label: "Risk Intelligence", href: "/risk", icon: Flame, category: "Operations" },
   { label: "Remediation Center", href: "/remediation", icon: Wrench, category: "Operations", badge: "Fix" },
+  { label: "Compliance Audits", href: "/audits", icon: Shield, category: "Operations" },
   { label: "Infrastructure Assets", href: "/devices", icon: Server, category: "Operations" },
-  { label: "Audits", href: "/audits", icon: Shield, category: "Operations" },
-  { label: "Configurations", href: "/configurations", icon: FileCode2, category: "Operations", badge: "Ingest" },
 
   // Intelligence
   { label: "Multi-Vendor Engine", href: "/multi-vendor", icon: Layers, category: "Intelligence", badge: "Multi-OS" },
   { label: "AI Boundary", href: "/ai-boundary", icon: Lock, category: "Intelligence", badge: "Trust" },
   { label: "AI Co-pilot", href: "/ai-assistant", icon: Bot, category: "Intelligence" },
   { label: "Adaptive Training", href: "/adaptive-training", icon: Sparkles, category: "Intelligence" },
-  { label: "Pipeline Inspector", href: "/demo", icon: Sparkles, category: "Intelligence", badge: "Live" },
 
   // Governance & Compliance
   { label: "CIS Benchmarks", href: "/compliance/cis", icon: Layers, category: "Governance & Compliance" },
@@ -69,7 +67,6 @@ const navItems: NavItem[] = [
 
   // Platform
   { label: "Settings", href: "/settings", icon: SettingsIcon, category: "Platform" },
-  { label: "Landing Home", href: "/", icon: Shield, category: "Platform" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

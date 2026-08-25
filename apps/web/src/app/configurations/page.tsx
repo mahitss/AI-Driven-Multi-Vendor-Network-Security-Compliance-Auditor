@@ -841,64 +841,137 @@ export default function ConfigurationsPage() {
       {/* 4. Active Analysis Workspace (Rendered when activeAnalysisId exists or sample is loaded) */}
       {activeAnalysisId ? (
         <div className="space-y-6">
-          {/* Posture KPI Strip */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 font-mono">
-            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
-              <div className="text-[10px] text-[#64748B] uppercase">COMPLIANCE SCORE</div>
-              <div className="text-xl font-black text-[#F8FAFC]">
-                {analysisStatus?.compliance_score !== undefined
-                  ? `${analysisStatus.compliance_score.toFixed(1)}%`
-                  : "--"}
+          {/* Polished Enterprise Audit Result Summary Header */}
+          <div className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 font-mono">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#10B981]/15 border border-[#10B981]/30 flex items-center justify-center text-[#10B981]">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-[#F8FAFC] tracking-wider uppercase">AUDIT COMPLETE</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#00D9FF]/15 text-[#00D9FF] border border-[#00D9FF]/30">
+                      {detectedVendorState.vendor.toUpperCase() || analysisStatus?.vendor?.toUpperCase() || "CISCO"}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-[#64748B] flex items-center gap-2 mt-0.5">
+                    <span>Target: <strong className="text-[#E2E8F0]">{configFilename.replace(/\.[^/.]+$/, "") || "DEVICE-01"}</strong></span>
+                    <span>•</span>
+                    <span>File: <strong className="text-[#E2E8F0]">{configFilename}</strong></span>
+                  </div>
+                </div>
               </div>
-              <div className="text-[9px] text-[#10B981]">CIS • NIST • STIG • ISO</div>
+
+              {/* Fast Action Links */}
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  onClick={() => {
+                    const el = document.getElementById("panel-findings");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#00D9FF] font-bold transition-all flex items-center gap-1.5"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>INVESTIGATE FINDINGS</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setCenterTab("evidence");
+                    const el = document.getElementById("panel-evidence");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#00D9FF] font-bold transition-all flex items-center gap-1.5"
+                >
+                  <FileCode2 className="w-3.5 h-3.5" />
+                  <span>VIEW EVIDENCE</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const el = document.getElementById("panel-remediation");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#10B981] font-bold transition-all flex items-center gap-1.5"
+                >
+                  <Wrench className="w-3.5 h-3.5" />
+                  <span>REVIEW REMEDIATION</span>
+                </button>
+
+                <button
+                  onClick={handleReanalyzeWithRemediation}
+                  disabled={isReanalyzing}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#10B981] hover:bg-[#0ea371] text-black font-extrabold transition-all shadow-md shadow-[#10B981]/20 flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <RotateCcw className={cn("w-3.5 h-3.5", isReanalyzing && "animate-spin")} />
+                  <span>RE-ANALYZE</span>
+                </button>
+              </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
-              <div className="text-[10px] text-[#64748B] uppercase">EVALUATED CONTROLS</div>
-              <div className="text-xl font-black text-[#F8FAFC]">
-                {analysisStatus?.controls_evaluated_count ?? findings.length}
-              </div>
-              <div className="text-[9px] text-[#64748B]">
-                <strong className="text-[#10B981]">{analysisStatus?.pass_count ?? 0} PASS</strong> •{" "}
-                <strong className="text-[#EF4444]">{analysisStatus?.fail_count ?? 0} FAIL</strong>
-              </div>
+            {/* SHA-256 Fingerprint */}
+            <div className="flex items-center justify-between text-[11px] bg-[#03060A] px-3 py-2 rounded-lg border border-white/[0.04]">
+              <span className="text-[#64748B]">CRYPTOGRAPHIC HASH (SHA-256):</span>
+              <span className="text-[#00D9FF] font-mono select-all">
+                {clientHash || (analysisStatus as any)?.file_hash || (analysisStatus as any)?.config_hash || "Computing..."}
+              </span>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
-              <div className="text-[10px] text-[#64748B] uppercase">DERIVED RISK SCORE</div>
-              <div className="text-xl font-black text-[#EF4444]">
-                {riskReport?.risk_score !== undefined
-                  ? `${riskReport.risk_score.toFixed(0)}/100`
-                  : "--"}
+            {/* Posture KPI Strip */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">COMPLIANCE</div>
+                <div className="text-2xl font-black text-[#F8FAFC]">
+                  {analysisStatus?.compliance_score !== undefined
+                    ? `${analysisStatus.compliance_score.toFixed(1)}%`
+                    : "--"}
+                </div>
+                <div className="text-[9px] text-[#10B981]">CIS • NIST • STIG • ISO</div>
               </div>
-              <div className="text-[9px] text-[#EF4444] font-bold">
-                PRIORITY: {riskReport?.risk_level || "P0"} ({riskReport?.likelihood || "HIGH"} LIKELIHOOD)
-              </div>
-            </div>
 
-            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
-              <div className="text-[10px] text-[#64748B] uppercase">PARSER STATUS</div>
-              <div className="text-xl font-black text-[#00D9FF]">
-                {analysisStatus?.facts_extracted_count ?? 0} FACTS
+              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">RISK INDEX</div>
+                <div className="text-2xl font-black text-[#EF4444]">
+                  {riskReport?.risk_score !== undefined
+                    ? `${riskReport.risk_score.toFixed(1)}/100`
+                    : "--"}
+                </div>
+                <div className="text-[9px] text-[#EF4444] font-bold">
+                  PRIORITY: {riskReport?.risk_level || "P0"} CRITICAL
+                </div>
               </div>
-              <div className="text-[9px] text-[#64748B]">
-                {analysisStatus?.vendor?.toUpperCase()} AST v1.0.0
-              </div>
-            </div>
 
-            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
-              <div className="text-[10px] text-[#64748B] uppercase">SAFE REMEDIATION</div>
-              <div className="text-xl font-black text-[#10B981]">
-                {findings.filter((f) => f.status === "FAIL" && f.remediation_proposal).length} PATCHES
+              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">FAILED CONTROLS</div>
+                <div className="text-2xl font-black text-[#EF4444]">
+                  {analysisStatus?.fail_count ?? findings.filter(f => f.status === "FAIL").length}
+                </div>
+                <div className="text-[9px] text-[#EF4444]">VIOLATIONS DETECTED</div>
               </div>
-              <div className="text-[9px] text-[#10B981]">READ-ONLY ADVISORY</div>
+
+              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">PASSED CONTROLS</div>
+                <div className="text-2xl font-black text-[#10B981]">
+                  {analysisStatus?.pass_count ?? findings.filter(f => f.status === "PASS").length}
+                </div>
+                <div className="text-[9px] text-[#10B981]">HARDENED COMPLIANT</div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">NORMALIZED FACTS</div>
+                <div className="text-2xl font-black text-[#00D9FF]">
+                  {analysisStatus?.facts_extracted_count ?? evidenceItems.length}
+                </div>
+                <div className="text-[9px] text-[#00D9FF]">UNIVERSAL MODEL AST</div>
+              </div>
             </div>
           </div>
 
           {/* 3-Panel Audit Engine Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Panel 1: Left Findings Navigator (4 cols) */}
-            <div className="lg:col-span-4 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
+            <div id="panel-findings" className="lg:col-span-4 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
               <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
@@ -1043,7 +1116,7 @@ export default function ConfigurationsPage() {
             </div>
 
             {/* Panel 2: Center Interactive Evidence & Source Viewer (5 cols) */}
-            <div className="lg:col-span-5 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
+            <div id="panel-evidence" className="lg:col-span-5 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
               <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
                 <div className="flex items-center gap-2">
                   <Code2 className="w-4 h-4 text-[#00D9FF]" />
@@ -1184,11 +1257,11 @@ export default function ConfigurationsPage() {
             </div>
 
             {/* Panel 3: Right Context, Deterministic Risk & Safe Re-Analysis (3 cols) */}
-            <div className="lg:col-span-3 space-y-4 font-mono">
+            <div id="panel-remediation" className="lg:col-span-3 space-y-4 font-mono">
               {selectedFinding ? (
                 <>
-                  {/* Selected Finding Context Card */}
-                  <div className="p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-2.5 text-xs">
+                  {/* Selected Finding Provenance & Verdict Card */}
+                  <div className="p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 text-xs">
                     <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
                       <span className="text-[10px] text-[#00D9FF] uppercase font-bold">
                         {selectedFinding.control_id}
@@ -1209,8 +1282,49 @@ export default function ConfigurationsPage() {
                       {selectedFinding.title}
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04] text-[11px] text-[#94A3B8] font-sans leading-relaxed">
-                      {selectedFinding.why_it_failed || "Deterministic rule evaluation failure."}
+                    {/* Deterministic Provenance Chain */}
+                    <div className="p-2.5 rounded-lg bg-[#03060A] border border-white/[0.06] space-y-1.5 text-[10px]">
+                      <div className="text-[9px] text-[#64748B] uppercase font-bold tracking-wider">
+                        DETERMINISTIC PROVENANCE CHAIN
+                      </div>
+                      <div className="flex flex-col gap-1 text-[#94A3B8]">
+                        <div className="flex items-center justify-between">
+                          <span>SOURCE:</span>
+                          <span className="text-white font-semibold">{configFilename}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>EVIDENCE:</span>
+                          <span className="text-[#EF4444] font-semibold">
+                            {selectedFinding.evidence_lines?.length
+                              ? `Line ${selectedFinding.evidence_lines.map((e) => e.line).join(", ")}`
+                              : "Cited Directive"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>OBSERVED:</span>
+                          <span className="text-[#F59E0B] font-semibold">
+                            {selectedFinding.actual_value || "Insecure Directive"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>EXPECTED:</span>
+                          <span className="text-[#10B981] font-semibold">
+                            {selectedFinding.expected_value || "Hardened Standard"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-white/[0.06] pt-1 mt-0.5">
+                          <span>VERDICT:</span>
+                          <span className="text-[#EF4444] font-extrabold">{selectedFinding.status} ({selectedFinding.severity})</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Why Failed Explanation */}
+                    <div className="p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04] space-y-1">
+                      <div className="text-[9px] text-[#64748B] uppercase font-bold">WHY FAILED?</div>
+                      <p className="text-[11px] text-[#E2E8F0] font-sans leading-relaxed">
+                        {selectedFinding.why_it_failed || "Deterministic security rule evaluation identified a violation against baseline control specifications."}
+                      </p>
                     </div>
                   </div>
 
@@ -1221,32 +1335,43 @@ export default function ConfigurationsPage() {
                         <Wrench className="w-3.5 h-3.5" />
                         <span>SAFE REMEDIATION</span>
                       </div>
-                      <span className="text-[9px] text-[#64748B]">ALLOWLISTED</span>
+                      <span className="text-[9px] text-[#64748B]">READ-ONLY ADVISORY</span>
                     </div>
 
-                    {/* Diff Preview */}
-                    <div className="p-2.5 rounded-lg bg-[#03060A] border border-white/[0.06] text-[11px] font-mono space-y-1">
-                      {selectedFinding.remediation_diff?.diff_lines ? (
-                        selectedFinding.remediation_diff.diff_lines.map((dl: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className={cn(
-                              dl.type === "REMOVE"
-                                ? "text-[#EF4444]"
-                                : dl.type === "ADD"
-                                ? "text-[#10B981]"
-                                : "text-[#64748B]"
-                            )}
-                          >
-                            {dl.type === "REMOVE" ? "- " : dl.type === "ADD" ? "+ " : "  "}
-                            {dl.line}
+                    {/* Diff Preview: Current vs Proposed */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-[#64748B]">
+                        <span>CURRENT vs PROPOSED DIFF</span>
+                        <span className="text-[#10B981] font-bold">ALLOWLISTED</span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-[#03060A] border border-white/[0.06] text-[11px] font-mono space-y-1 select-text">
+                        {selectedFinding.remediation_diff?.diff_lines ? (
+                          selectedFinding.remediation_diff.diff_lines.map((dl: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className={cn(
+                                dl.type === "REMOVE"
+                                  ? "text-[#EF4444]"
+                                  : dl.type === "ADD"
+                                  ? "text-[#10B981]"
+                                  : "text-[#64748B]"
+                              )}
+                            >
+                              {dl.type === "REMOVE" ? "- " : dl.type === "ADD" ? "+ " : "  "}
+                              {dl.line}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-[#10B981] whitespace-pre-wrap">
+                            {selectedFinding.remediation_proposal || "! Standard baseline patch"}
                           </div>
-                        ))
-                      ) : (
-                        <div className="text-[#10B981] whitespace-pre-wrap">
-                          {selectedFinding.remediation_proposal || "! Standard baseline patch"}
-                        </div>
-                      )}
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] text-[#64748B] flex items-center justify-between pt-1">
+                      <span>NETWORK PUSH:</span>
+                      <span className="text-[#EF4444] font-bold">DISABLED (LOCAL DIFF ONLY)</span>
                     </div>
 
                     <div className="space-y-1.5 pt-1">

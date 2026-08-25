@@ -438,7 +438,7 @@ export default function RemediationCenterPage() {
 
                     <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-1 border-t border-white/[0.04]">
                       <span>Confidence: {(r.confidence * 100).toFixed(0)}%</span>
-                      <span>Asset: CORE-RTR-01</span>
+                      <span>Target: {r.vendor.toUpperCase()}</span>
                     </div>
                   </button>
                 );
