@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, Play, Sparkles, Activity } from "lucide-react";
+import { Shield, Activity, Compass } from "lucide-react";
 
 export default function LandingNavbar() {
   return (
@@ -24,26 +24,25 @@ export default function LandingNavbar() {
           <Link href="#architecture" className="hover:text-[#F5F7FA] transition-colors duration-150">
             Architecture
           </Link>
-          <Link href="#ai-boundary" className="hover:text-[#F5F7FA] transition-colors duration-150">
-            AI Boundary
+          <Link href="#security-intelligence" className="hover:text-[#F5F7FA] transition-colors duration-150">
+            Security Intelligence
           </Link>
           <Link href="#multi-vendor" className="hover:text-[#F5F7FA] transition-colors duration-150">
-            Multi-Vendor Proof
+            Multi-Vendor
           </Link>
-          <Link href="/demo/judge" className="hover:text-[#00D9FF] transition-colors duration-150 flex items-center gap-1.5">
-            <Play className="w-3 h-3 fill-current" />
-            <span>Judge Mode</span>
+          <Link href="#ai-boundary" className="hover:text-[#F5F7FA] transition-colors duration-150">
+            AI Boundary
           </Link>
         </nav>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5">
           <Link
-            href="/demo"
+            href="/demo/multi-vendor"
             className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0B0F19] border border-white/[0.08] hover:border-white/[0.2] text-[#E2E8F0] hover:text-white transition-all duration-150"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#00D9FF]" />
-            <span>Golden Demo</span>
+            <Compass className="w-3.5 h-3.5 text-[#00D9FF]" />
+            <span>Explore Platform</span>
           </Link>
 
           <Link
@@ -51,7 +50,7 @@ export default function LandingNavbar() {
             className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-md bg-[#00C896] hover:bg-[#00B383] text-[#050709] font-bold transition-all duration-150 active:translate-y-[0.5px] shadow-[0_0_12px_rgba(0,200,150,0.18)]"
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>Launch SOC →</span>
+            <span>Open Security Console →</span>
           </Link>
         </div>
       </div>

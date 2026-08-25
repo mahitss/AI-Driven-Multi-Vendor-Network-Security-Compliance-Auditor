@@ -36,7 +36,7 @@ export default function NetVigilLandingPage() {
         {/* 7. Multi-Vendor Cross-OS Equivalence Proof */}
         <MultiVendorProofSection />
 
-        {/* 8. Canonical Golden Demo & Judge Mode Callout */}
+        {/* 8. Security Intelligence Showcase */}
         <GoldenDemoCalloutSection />
       </main>
 

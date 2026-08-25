@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Play, ArrowRight, Shield } from "lucide-react";
+import { Activity, ArrowRight, Shield } from "lucide-react";
 
 export default function LandingFooterCTA() {
   return (
@@ -14,20 +14,20 @@ export default function LandingFooterCTA() {
 
         <div className="space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#F5F5F5] tracking-tight">
-            SEE NETVIGIL IN ACTION
+            DEPLOY DETERMINISTIC NETWORK SECURITY
           </h2>
           <p className="text-xs sm:text-sm text-[#8A8A8A]">
-            Experience multi-vendor AST parsing, 60-control compliance evaluation, line-level evidence, and allowlisted remediation in our 2-minute presenter workspace.
+            Experience multi-vendor AST parsing, 60-control compliance evaluation, line-level evidence, and allowlisted remediation across enterprise infrastructure.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2 font-mono">
           <Link
-            href="/demo"
+            href="/dashboard"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00D9FF] text-[#050505] font-bold text-xs hover:bg-[#33E0FF] transition-all shadow-[0_0_20px_rgba(0,217,255,0.25)]"
           >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>RUN GOLDEN DEMO</span>
+            <Activity className="w-3.5 h-3.5" />
+            <span>OPEN SECURITY CONSOLE →</span>
           </Link>
 
           <Link

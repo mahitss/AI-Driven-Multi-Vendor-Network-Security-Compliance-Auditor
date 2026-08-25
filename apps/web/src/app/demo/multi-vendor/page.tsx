@@ -77,7 +77,7 @@ export default function MultiVendorProofPage() {
         <div>
           <div className="flex items-center gap-2 mb-1.5 font-mono">
             <span className="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-[#111111] text-[#00D9FF] border border-[#00D9FF]/30">
-              SIH26155 • NTRO EVALUATION
+              ENTERPRISE SECURITY INTELLIGENCE
             </span>
             <span className="px-2.5 py-0.5 rounded text-[10px] bg-[#111111] text-[#22C55E] border border-[#22C55E]/30 font-semibold">
               DETERMINISTIC MULTI-VENDOR ENGINE
@@ -97,7 +97,7 @@ export default function MultiVendorProofPage() {
             href="/demo"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0E0E0E] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] transition-colors"
           >
-            <span>← Cisco Golden Demo</span>
+            <span>← Pipeline Inspector</span>
           </Link>
 
           <button

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Activity } from "lucide-react";
 import TopographicScene from "./TopographicScene";
 import TelemetryBackground from "./TelemetryBackground";
 
@@ -52,14 +52,14 @@ export default function LandingHero() {
         <div className="flex flex-wrap items-center gap-4 font-mono text-xs mb-8">
           {/* Primary: Tactical Chamfered Solid Emerald Button */}
           <Link
-            href="/demo"
+            href="/dashboard"
             className="group relative inline-flex items-center justify-center gap-2.5 px-6 h-12 bg-[#00E5AA] hover:bg-[#00F5B6] text-[#03070C] font-bold text-[12px] tracking-wider transition-all duration-200 active:scale-[0.98] shadow-[0_0_20px_rgba(0,229,170,0.3)] hover:shadow-[0_0_28px_rgba(0,229,170,0.45)]"
             style={{
               clipPath: "polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)",
             }}
           >
-            <Play className="w-3.5 h-3.5 fill-current transition-transform group-hover:translate-x-0.5" />
-            <span>LAUNCH GOLDEN DEMO →</span>
+            <Activity className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            <span>OPEN SECURITY CONSOLE →</span>
           </Link>
 
           {/* Secondary: Tactical Chamfered Dark Glass Button with 1px Cyan Frame */}

@@ -41,9 +41,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "SOC Overview", href: "/dashboard", icon: Activity, category: "Core Operations" },
-  { label: "Judge Demo Mode", href: "/demo/judge", icon: Play, category: "Core Operations", badge: "Judge" },
-  { label: "Golden Demo", href: "/demo", icon: Sparkles, category: "Core Operations", badge: "2-Min" },
-  { label: "Multi-Vendor Proof", href: "/demo/multi-vendor", icon: Layers, category: "Core Operations", badge: "Multi-OS" },
+  { label: "Multi-Vendor Engine", href: "/demo/multi-vendor", icon: Layers, category: "Core Operations", badge: "Multi-OS" },
+  { label: "Pipeline Inspector", href: "/demo", icon: Sparkles, category: "Core Operations", badge: "Live" },
   { label: "Audits", href: "/audits", icon: Shield, category: "Core Operations" },
   { label: "Configurations", href: "/configurations", icon: FileCode2, category: "Core Operations", badge: "Ingest" },
   { label: "Devices", href: "/devices", icon: Server, category: "Core Operations" },
@@ -163,7 +162,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           <span
                             className={cn(
                               "text-[10px] font-mono px-1.5 py-0.2 rounded font-semibold",
-                              item.badge === "2-Min"
+                              item.badge === "Live"
                                 ? "bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/30"
                                 : item.badge === "Co-pilot"
                                 ? "bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/30"
@@ -246,13 +245,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Presenter Mode Link */}
+            {/* Multi-Vendor Engine Link */}
             <Link
-              href="/demo"
+              href="/demo/multi-vendor"
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#00D9FF]/40 hover:border-[#00D9FF] hover:bg-[#141414] text-[#00D9FF] text-xs font-mono font-semibold transition-colors"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Golden Demo</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>Multi-Vendor</span>
             </Link>
 
             {/* Quick Upload CTA */}

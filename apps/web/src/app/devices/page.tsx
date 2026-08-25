@@ -172,7 +172,7 @@ export default function DevicesPage() {
             <Server className="w-8 h-8 text-[#555555] mx-auto" />
             <div className="text-sm font-bold text-[#F5F5F5]">NO DEVICES INGESTED</div>
             <p className="text-xs text-[#8A8A8A] max-w-sm mx-auto">
-              Upload a configuration file or execute the Golden Demo to ingest and audit a network device.
+              Upload a configuration file or ingest devices to audit your network infrastructure.
             </p>
             <Link
               href="/configurations"

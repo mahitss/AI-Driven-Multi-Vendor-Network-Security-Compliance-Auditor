@@ -87,36 +87,28 @@ export default function GoldenDemoPresenterPage() {
         <div>
           <div className="flex items-center gap-2 mb-1.5 font-mono">
             <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#111111] text-[#00D9FF] border border-[#00D9FF]/30">
-              SIH26155 • NTRO EVALUATION
+              SECURITY INTELLIGENCE
             </span>
             <span className="px-2 py-0.5 rounded text-[11px] bg-[#111111] text-[#22C55E] border border-[#22C55E]/30">
-              PRESENTER MODE
+              PIPELINE INSPECTOR
             </span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#F5F5F5] flex items-center gap-2">
-            NetVigil Golden Demonstration
+            NetVigil Pipeline Inspector
           </h1>
           <p className="text-sm text-[#A3A3A3] mt-1 max-w-2xl">
-            2-Minute interactive demonstration flow showcasing multi-vendor normalization, deterministic compliance, line-level evidence, allowlisted remediation, and adaptive training.
+            Interactive pipeline verification showcasing multi-vendor normalization, deterministic compliance, line-level evidence, allowlisted remediation, and adaptive training.
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 font-mono">
           <Link
-            href="/demo/judge"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-[#00D9FF] border border-[#00D9FF]/40 text-xs font-semibold transition-all"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>Judge Mode →</span>
-          </Link>
-
-          <Link
             href="/demo/multi-vendor"
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0E0E0E] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] text-xs font-semibold transition-all"
           >
             <Layers className="w-3.5 h-3.5 text-[#00D9FF]" />
-            <span>Multi-Vendor Proof →</span>
+            <span>Multi-Vendor Engine →</span>
           </Link>
 
           <button
@@ -129,7 +121,7 @@ export default function GoldenDemoPresenterPage() {
             ) : (
               <Play className="w-4 h-4 fill-[#00D9FF] text-[#00D9FF]" />
             )}
-            {demoState ? "Re-Launch Golden Demo" : "Launch 2-Min Demo"}
+            {demoState ? "Re-Run Pipeline Verification" : "Execute Pipeline Verification"}
           </button>
 
           <button
@@ -232,9 +224,9 @@ export default function GoldenDemoPresenterPage() {
             <Play className="w-8 h-8 fill-[#00D9FF] text-[#00D9FF]" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#F5F5F5]">Golden Demo Ready to Launch</h3>
+            <h3 className="text-lg font-bold text-[#F5F5F5]">Pipeline Verification Ready</h3>
             <p className="text-xs text-[#A3A3A3] max-w-md mx-auto mt-1">
-              Click &quot;Launch 2-Min Demo&quot; to execute the live deterministic pipeline on canonical gateway CORE-RTR-01.
+              Click &quot;Execute Pipeline Verification&quot; to execute the live deterministic pipeline on canonical gateway CORE-RTR-01.
             </p>
           </div>
           <button
@@ -242,7 +234,7 @@ export default function GoldenDemoPresenterPage() {
             className="px-6 py-2.5 rounded-lg bg-[#0B0B0B] border border-[#00D9FF]/60 hover:border-[#00D9FF] hover:bg-[#141414] text-[#00D9FF] font-semibold text-xs transition-all inline-flex items-center gap-2"
           >
             <Play className="w-4 h-4 fill-[#00D9FF] text-[#00D9FF]" />
-            Launch Golden Demo
+            Execute Pipeline Verification
           </button>
         </div>
       ) : (
