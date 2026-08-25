@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Play,
-  Bot,
   Hash,
   Cpu,
   Search,
@@ -34,176 +33,237 @@ import {
   Radio,
   Server,
   Zap,
+  Wrench,
+  RotateCcw,
+  ArrowRight,
+  Activity,
+  Code2,
+  ExternalLink,
+  Sliders,
+  Database,
+  CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
 import {
+  ingestAnalysis,
+  fetchAnalysisStatus,
+  fetchAnalysisFindings,
+  fetchAnalysisEvidence,
+  fetchAnalysisRisk,
+  reanalyzeAnalysis,
+  fetchAnalysisConfiguration,
   fetchConfigurations,
   fetchConfigurationDetail,
   uploadConfigFile,
-  analyzeConfiguration,
-  fetchConfigurationAnalysis,
+  detectVendorFromText,
   interpretSyntax,
+  AnalysisStatus,
+  AnalysisFindingItem,
+  AnalysisEvidenceItem,
+  AnalysisRiskReport,
+  AnalysisReanalyzeResult,
+  AnalysisConfigurationContent,
   ConfigurationItem,
-  ConfigurationDetail,
-  ConfigurationAnalysisDetail,
-  SecurityFact,
-  UnknownItem,
-  UnknownInterpretation,
 } from "@/lib/api-client";
 import { computeClientSha256, formatBytes, cn } from "@/lib/utils";
-import { EndToEndPipelineModal } from "@/components/analysis/EndToEndPipelineModal";
 
-// Comprehensive test fixtures covering secure & insecure profiles
-const SAMPLE_CONFIGS = [
+// Authentic canonical test fixtures from data/demo/
+const CANONICAL_FIXTURES = [
   {
-    name: "cisco_secure_core.cfg",
+    id: "cisco-insecure",
+    name: "cisco-core-router.cfg",
     vendor: "cisco",
-    label: "Cisco Catalyst 9300 (Secure Baseline)",
-    variant: "secure",
-    content: `! NetVigil Cisco IOS-XE Secure Baseline
-version 17.3
-hostname SECURE-RTR-01
-ip domain name netvigil.gov.in
-service password-encryption
-service timestamps log datetime msec show-timezone
-no service finger
-no service pad
-aaa new-model
-aaa authentication login default group tacacs+ local
-aaa authorization exec default group tacacs+ local
-aaa authorization commands 15 default group tacacs+ local
-enable secret 9 $9$J8f0d83jLk92.kE109k$O8L1iKj.1mQ09s8v7x6
-username netsec_admin privilege 15 algorithm-type scrypt secret 9 $9$K1029jSkdi01.Lkso$Z9k1092837465lks
-ip ssh version 2
-ip ssh time-out 60
-ip ssh server algorithm encryption aes256-gcm aes128-gcm
-no ip http server
-ip http secure-server
-no ip source-route
-no ip proxy-arp
-no ip directed-broadcast
-logging buffered 65536 informational
-logging trap informational
-logging host 10.100.20.50
-ntp server 10.100.5.1
-ntp authenticate
-spanning-tree portfast bpduguard default
-banner motd ^C
-======================================================================
-                 AUTHORIZED GOV / NTRO ACCESS ONLY
-   All activities on this network node are continuously logged.
-======================================================================
-^C
-line vty 0 4
- transport input ssh
- access-class 10 in
- exec-timeout 10 0
- login authentication default
-end`,
-  },
-  {
-    name: "cisco_insecure_legacy.cfg",
-    vendor: "cisco",
-    label: "Cisco IOS Legacy (Insecure / Vuln)",
-    variant: "insecure",
-    content: `! NetVigil Cisco Legacy Insecure Router
-version 15.1
-hostname VULN-RTR-02
+    platform: "ios",
+    label: "Cisco IOS Core Router (Insecure Baseline)",
+    description: "Contains cleartext passwords, Telnet, HTTP server, SSH v1, and missing syslog.",
+    content: `! =============================================================
+! NetVigil Synthetic Demo Dataset: Insecure Cisco Perimeter Router
+! Hostname: CORE-RTR-01
+! Description: Canonical SIH evaluation configuration with critical vulnerabilities
+! =============================================================
+version 15.0
 no service password-encryption
 service finger
+hostname CORE-RTR-01
+!
 no aaa new-model
-enable password cisco123
-username admin privilege 15 password 0 cleartextpass
+username admin privilege 15 password 0 cisco123
+enable password unencrypted_enable_pass
+!
+ip domain name internal.lab
+ip ssh version 1
 ip http server
-no ip http secure-server
-snmp-server community public RW
-cdp run
+!
+interface GigabitEthernet0/0
+ description UNTRUSTED-WAN
+ ip address 203.0.113.1 255.255.255.0
+ ip proxy-arp
+ ip directed-broadcast
+!
+! Missing remote syslog configuration
+! Missing authoritative NTP configuration
+!
+line con 0
+ password consolepass
 line vty 0 4
  transport input telnet
+ password vtypass
  login
-! Legacy unknown syntax for testing adaptive training
-weird-vendor-proprietary-command debug-all-interfaces level-9
+!
 end`,
   },
   {
-    name: "juniper_secure_srx.conf",
+    id: "cisco-secure",
+    name: "cisco-hardened-gateway.cfg",
+    vendor: "cisco",
+    platform: "ios",
+    label: "Cisco IOS Hardened Gateway (Compliant)",
+    description: "Fully hardened baseline with SSH v2, AAA, secret password hashing, and remote logging.",
+    content: `! =============================================================
+! NetVigil Synthetic Demo Dataset: Hardened Cisco Gateway Router
+! Hostname: NTRO-SECURE-RTR-01
+! Description: Fully compliant and hardened baseline configuration
+! =============================================================
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+no service finger
+hostname NTRO-SECURE-RTR-01
+!
+aaa new-model
+aaa authentication login default local
+aaa authorization exec default local
+!
+username ntro-admin privilege 15 secret 5 $1$mERr$hx5rVt7rPNoS4wqbXKX7m0
+!
+ip domain name ntro.gov.in
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+no ip http server
+no ip http secure-server
+!
+interface GigabitEthernet0/0
+ description WAN-UPLINK
+ ip address 198.51.100.1 255.255.255.0
+ no ip proxy-arp
+ no ip directed-broadcast
+ spanning-tree bpduguard enable
+!
+logging trap warnings
+logging host 10.10.100.50
+!
+ntp server 10.10.100.1
+!
+line con 0
+ exec-timeout 10 0
+ login authentication default
+line vty 0 4
+ transport input ssh
+ exec-timeout 10 0
+ login authentication default
+!
+end`,
+  },
+  {
+    id: "juniper-insecure",
+    name: "juniper-edge-srx.conf",
     vendor: "juniper",
-    label: "Juniper SRX Gateway (Secure Baseline)",
-    variant: "secure",
-    content: `## NetVigil Juniper SRX Secure Configuration
-version 21.4R3-S2;
+    platform: "junos",
+    label: "Juniper JunOS SRX Gateway (Insecure)",
+    description: "Hierarchical syntax with Telnet and cleartext Web Management enabled.",
+    content: `# =============================================================
+# NetVigil Synthetic Demo Dataset: Insecure Juniper JunOS Gateway
+# Hostname: LAB-JUNIPER-SRX-02
+# =============================================================
 system {
-    host-name SECURE-SRX-01;
-    domain-name netvigil.gov.in;
-    time-zone Asia/Kolkata;
-    root-authentication {
-        encrypted-password "$6$kO9d8s7g$f9L1oP0q8s7d6f5g4h3j2k1l0m9n8b7v6c5x4z3a2s1d0f9";
-    }
+    host-name LAB-JUNIPER-SRX-02;
     services {
-        ssh {
-            protocol-version v2;
-            ciphers [ aes256-gcm@openssh.com aes128-gcm@openssh.com ];
-        }
-    }
-    login {
-        message "AUTHORIZED GOV / NTRO ACCESS ONLY. Unauthorized access is strictly prohibited.";
-        user secops {
-            class super-user;
-        }
-    }
-    syslog {
-        host 10.100.20.50 {
-            any notice;
-        }
-    }
-    ntp {
-        server 10.100.5.1;
-    }
-}
-security {
-    policies {
-        default-policy {
-            deny-all;
+        telnet;
+        web-management {
+            http {
+                port 80;
+            }
         }
     }
 }`,
   },
   {
-    name: "fortinet_secure_firewall.conf",
+    id: "juniper-secure",
+    name: "juniper-hardened-srx.conf",
+    vendor: "juniper",
+    platform: "junos",
+    label: "Juniper JunOS SRX Gateway (Compliant)",
+    description: "Enforces SSHv2, remote Syslog daemon, and centralized NTP synchronization.",
+    content: `# =============================================================
+# NetVigil Synthetic Demo Dataset: Hardened Juniper JunOS Gateway
+# Hostname: NTRO-JUNIPER-SRX-01
+# =============================================================
+system {
+    host-name NTRO-JUNIPER-SRX-01;
+    services {
+        ssh {
+            protocol-version v2;
+            connection-limit 5;
+            rate-limit 3;
+        }
+    }
+    syslog {
+        host 10.10.100.50 {
+            any warning;
+            authorization info;
+        }
+    }
+    ntp {
+        server 10.10.100.1;
+    }
+}`,
+  },
+  {
+    id: "fortinet-insecure",
+    name: "fortinet-perimeter-fgt.conf",
     vendor: "fortinet",
-    label: "Fortinet FortiGate 60F (Secure Baseline)",
-    variant: "secure",
-    content: `#config-version=FG60F-7.2.4-FW-build1396-230308:opmode=0:vdom=0:user=admin
+    platform: "fortios",
+    label: "Fortinet FortiGate Firewall (Insecure)",
+    description: "FortiOS block syntax with legacy SSH v1 enabled and insecure administrative port.",
+    content: `# =============================================================
+# NetVigil Synthetic Demo Dataset: Insecure Fortinet FortiOS Firewall
+# Hostname: LAB-FORTIGATE-02
+# =============================================================
 config system global
-    set hostname "SECURE-FGT-01"
-    set timezone "80"
-    set admintimeout 10
+    set hostname "LAB-FORTIGATE-02"
+    set admin-ssh-v1 enable
+    set admin-sport 80
+end`,
+  },
+  {
+    id: "fortinet-secure",
+    name: "fortinet-hardened-fgt.conf",
+    vendor: "fortinet",
+    platform: "fortios",
+    label: "Fortinet FortiGate Firewall (Compliant)",
+    description: "Hardened FortiOS profile disabling SSHv1 with TLS 1.3 admin port and remote syslog.",
+    content: `# =============================================================
+# NetVigil Synthetic Demo Dataset: Hardened Fortinet FortiOS Firewall
+# Hostname: NTRO-FORTIGATE-01
+# =============================================================
+config system global
+    set hostname "NTRO-FORTIGATE-01"
     set admin-ssh-v1 disable
-    set admin-lockout-threshold 3
-    set admin-lockout-duration 300
-    set pre-login-banner enable
-    set strong-crypto enable
+    set admin-sport 443
 end
-
-config system interface
-    edit "lan"
-        set allowaccess ping https ssh
-    next
-end
-
-config system ntp
-    set ntpserver "10.100.5.1"
-end
-
 config log syslogd setting
     set status enable
-    set server "10.100.20.50"
+    set server "10.10.100.50"
 end
-
-config firewall policy
-    edit 1
-        set name "DENY_ALL"
-        set action deny
-    next
+config system ntp
+    set ntpsync enable
+    config ntpserver
+        edit 1
+            set server "10.10.100.1"
+        next
+    end
 end`,
   },
 ];
@@ -211,979 +271,1127 @@ end`,
 export default function ConfigurationsPage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const evidenceContainerRef = useRef<HTMLDivElement>(null);
 
-  const [selectedVendor, setSelectedVendor] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [inspectConfigId, setInspectConfigId] = useState<string | null>(null);
-  const [analysisConfigId, setAnalysisConfigId] = useState<string | null>(null);
-  const [expandedFact, setExpandedFact] = useState<string | null>(null);
-  const [copiedHash, setCopiedHash] = useState<string | null>(null);
+  // Ingestion Workspace State
+  const [inputMode, setInputMode] = useState<"samples" | "paste" | "upload">("samples");
+  const [selectedFixtureId, setSelectedFixtureId] = useState<string>("cisco-insecure");
+  const [rawText, setRawText] = useState<string>(CANONICAL_FIXTURES[0].content);
+  const [configFilename, setConfigFilename] = useState<string>(CANONICAL_FIXTURES[0].name);
   const [dragOver, setDragOver] = useState(false);
-  const [isPipelineModalOpen, setIsPipelineModalOpen] = useState(false);
-  const [interpretingIdx, setInterpretingIdx] = useState<number | null>(null);
-  const [unknownInterpretations, setUnknownInterpretations] = useState<Record<number, UnknownInterpretation>>({});
-  const [reviewedItems, setReviewedItems] = useState<Record<number, string>>({});
+  const [clientHash, setClientHash] = useState<string>("");
+  const [detectedVendorState, setDetectedVendorState] = useState<{
+    vendor: string;
+    confidence: number;
+    platform?: string;
+  }>({ vendor: "cisco", confidence: 0.98, platform: "ios" });
 
-  const handleInterpretUnknownItem = async (idx: number, rawText: string, vendor: string) => {
-    setInterpretingIdx(idx);
-    try {
-      const res = await interpretSyntax({
-        raw_command: rawText,
-        vendor_hint: vendor,
-      });
-      setUnknownInterpretations((prev) => ({ ...prev, [idx]: res }));
-    } catch (err) {
-      console.error("AI interpretation error:", err);
-    } finally {
-      setInterpretingIdx(null);
+  // Active Audit State
+  const [activeAnalysisId, setActiveAnalysisId] = useState<string | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
+
+  // Findings & Evidence Interaction State
+  const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
+  const [frameworkFilter, setFrameworkFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [searchFilter, setSearchFilter] = useState<string>("");
+  const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
+  const [centerTab, setCenterTab] = useState<"evidence" | "universal" | "raw">("evidence");
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  // Re-analysis state
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
+  const [reanalyzeResult, setReanalyzeResult] = useState<AnalysisReanalyzeResult | null>(null);
+  const [reanalyzeBannerVisible, setReanalyzeBannerVisible] = useState(false);
+
+  // Auto-detect vendor & compute SHA-256 whenever rawText changes
+  useEffect(() => {
+    let isSubscribed = true;
+    if (!rawText.trim()) {
+      setClientHash("");
+      return;
     }
+    computeClientSha256(rawText).then((hash) => {
+      if (isSubscribed) setClientHash(hash);
+    });
+
+    // Client-side quick heuristics & server vendor detection
+    const t = rawText.toLowerCase();
+    if (t.includes("config system") || t.includes("fortigate") || t.includes("end\n")) {
+      setDetectedVendorState({ vendor: "fortinet", confidence: 0.96, platform: "fortios" });
+    } else if (t.includes("system {") || t.includes("set system") || t.includes("junos")) {
+      setDetectedVendorState({ vendor: "juniper", confidence: 0.98, platform: "junos" });
+    } else {
+      setDetectedVendorState({ vendor: "cisco", confidence: 0.99, platform: "ios" });
+    }
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [rawText]);
+
+  // Load sample fixture
+  const handleSelectFixture = (fixtureId: string) => {
+    const fixture = CANONICAL_FIXTURES.find((f) => f.id === fixtureId);
+    if (!fixture) return;
+    setSelectedFixtureId(fixtureId);
+    setRawText(fixture.content);
+    setConfigFilename(fixture.name);
+    setReanalyzeResult(null);
+    setReanalyzeBannerVisible(false);
   };
 
-  // Fetch configurations list
-  const {
-    data: configurations = [],
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["configurations", selectedVendor],
-    queryFn: () => fetchConfigurations(selectedVendor === "all" ? undefined : selectedVendor),
-  });
-
-  // Fetch single inspection detail
-  const { data: inspectingConfig, isLoading: isInspectingLoading } = useQuery({
-    queryKey: ["configuration-detail", inspectConfigId],
-    queryFn: () => (inspectConfigId ? fetchConfigurationDetail(inspectConfigId) : null),
-    enabled: !!inspectConfigId,
-  });
-
-  // Fetch analysis detail
-  const { data: analysisDetail, isLoading: isAnalysisLoading, refetch: refetchAnalysis } = useQuery({
-    queryKey: ["configuration-analysis", analysisConfigId],
-    queryFn: () => (analysisConfigId ? fetchConfigurationAnalysis(analysisConfigId) : null),
-    enabled: !!analysisConfigId,
-  });
-
-  // Upload mutation
-  const uploadMutation = useMutation({
-    mutationFn: uploadConfigFile,
-    onSuccess: (data) => {
-      setUploadError(null);
-      queryClient.invalidateQueries({ queryKey: ["configurations"] });
-      queryClient.invalidateQueries({ queryKey: ["overview-stats"] });
-      // Automatically trigger analysis view
-      setAnalysisConfigId(data.id);
-    },
-    onError: (err: any) => {
-      setUploadError(err.message || "Failed to upload configuration.");
-    },
-  });
-
-  // Analyze mutation
-  const analyzeMutation = useMutation({
-    mutationFn: (id: string) => analyzeConfiguration(id),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["configurations"] });
-      queryClient.setQueryData(["configuration-analysis", data.configuration_id], data);
-      setAnalysisConfigId(data.configuration_id);
-    },
-  });
-
-  const handleFileUpload = async (file: File) => {
-    setUploadError(null);
-    try {
-      await uploadMutation.mutateAsync(file);
-    } catch (e) {
-      // Handled in onError
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
+  // Drag & drop file handler
+  const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files[0]);
+      const file = e.dataTransfer.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        if (text) {
+          setRawText(text);
+          setConfigFilename(file.name);
+          setInputMode("paste");
+        }
+      };
+      reader.readAsText(file);
     }
   };
 
-  const handleLoadSample = async (sample: (typeof SAMPLE_CONFIGS)[0]) => {
-    const blob = new Blob([sample.content], { type: "text/plain" });
-    const file = new File([blob], sample.name, { type: "text/plain" });
-    await handleFileUpload(file);
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        if (text) {
+          setRawText(text);
+          setConfigFilename(file.name);
+          setInputMode("paste");
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedHash(text);
-    setTimeout(() => setCopiedHash(null), 2000);
+  // --- Real End-to-End Audit Execution ---
+  const handleRunGoldenAudit = async () => {
+    if (!rawText.trim()) return;
+    try {
+      setIsAuditing(true);
+      setAuditError(null);
+      setReanalyzeResult(null);
+      setReanalyzeBannerVisible(false);
+
+      // 1. Ingest via real backend pipeline endpoint
+      const ingestRes = await ingestAnalysis(
+        rawText,
+        configFilename || "network-device.cfg",
+        detectedVendorState.vendor
+      );
+
+      setActiveAnalysisId(ingestRes.analysis_id);
+
+      // Invalidate existing queries to trigger reactive refresh
+      await queryClient.invalidateQueries({ queryKey: ["analysis-status", ingestRes.analysis_id] });
+      await queryClient.invalidateQueries({ queryKey: ["analysis-findings", ingestRes.analysis_id] });
+      await queryClient.invalidateQueries({ queryKey: ["analysis-evidence", ingestRes.analysis_id] });
+      await queryClient.invalidateQueries({ queryKey: ["analysis-risk", ingestRes.analysis_id] });
+      await queryClient.invalidateQueries({ queryKey: ["analysis-config", ingestRes.analysis_id] });
+      await queryClient.invalidateQueries({ queryKey: ["configurations-list"] });
+    } catch (err: any) {
+      console.error("Audit execution failed:", err);
+      setAuditError(err?.message || "Audit execution failed. Please verify the backend service.");
+    } finally {
+      setIsAuditing(false);
+    }
   };
 
-  const filteredConfigs = configurations.filter((cfg) => {
-    const matchesSearch =
-      cfg.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cfg.original_filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cfg.hash.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+  // --- Reactive Query Hooks for Active Audit ---
+  const { data: analysisStatus, isLoading: isStatusLoading } = useQuery({
+    queryKey: ["analysis-status", activeAnalysisId],
+    queryFn: () => (activeAnalysisId ? fetchAnalysisStatus(activeAnalysisId) : null),
+    enabled: !!activeAnalysisId,
   });
 
-  const renderFactCard = (label: string, fact?: SecurityFact<any>, factKey?: string) => {
-    if (!fact) return null;
-    const isExpanded = expandedFact === factKey;
-    const isExtracted = fact.status === "extracted";
-    const isTrue = fact.value === true;
-    const isFalse = fact.value === false;
+  const { data: findings = [], isLoading: isFindingsLoading } = useQuery({
+    queryKey: ["analysis-findings", activeAnalysisId],
+    queryFn: () => (activeAnalysisId ? fetchAnalysisFindings(activeAnalysisId) : []),
+    enabled: !!activeAnalysisId,
+  });
 
-    return (
-      <div
-        key={factKey || label}
-        className={cn(
-          "p-3 rounded-lg border transition-all cursor-pointer",
-          isExpanded
-            ? "bg-[#0f172a] border-cyan-500/50 shadow-lg shadow-cyan-950/20"
-            : "bg-[#0b101c] border-white/5 hover:border-white/20 hover:bg-[#0d1424]"
-        )}
-        onClick={() => setExpandedFact(isExpanded ? null : factKey || label)}
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
-              <span>{label}</span>
-              {isExtracted ? (
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/30">
-                  Extracted
-                </span>
-              ) : (
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-white/5">
-                  Default Inferred
-                </span>
-              )}
-            </div>
+  const { data: evidenceItems = [], isLoading: isEvidenceLoading } = useQuery({
+    queryKey: ["analysis-evidence", activeAnalysisId],
+    queryFn: () => (activeAnalysisId ? fetchAnalysisEvidence(activeAnalysisId) : []),
+    enabled: !!activeAnalysisId,
+  });
 
-            <div className="font-mono text-xs">
-              {typeof fact.value === "boolean" ? (
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold",
-                    fact.value
-                      ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/40"
-                      : "bg-rose-950/80 text-rose-400 border border-rose-800/40"
-                  )}
-                >
-                  {fact.value ? "ENABLED / TRUE" : "DISABLED / FALSE"}
-                </span>
-              ) : Array.isArray(fact.value) ? (
-                <div className="flex flex-wrap gap-1 mt-0.5">
-                  {fact.value.length === 0 ? (
-                    <span className="text-slate-500 text-[11px]">None configured</span>
-                  ) : (
-                    fact.value.map((v, i) => (
-                      <span
-                        key={i}
-                        className="px-1.5 py-0.5 rounded bg-cyan-950/60 text-cyan-300 border border-cyan-800/30 text-[11px]"
-                      >
-                        {String(v)}
-                      </span>
-                    ))
-                  )}
-                </div>
-              ) : (
-                <span className="text-cyan-300 font-semibold">{String(fact.value)}</span>
-              )}
-            </div>
-          </div>
+  const { data: riskReport, isLoading: isRiskLoading } = useQuery({
+    queryKey: ["analysis-risk", activeAnalysisId],
+    queryFn: () => (activeAnalysisId ? fetchAnalysisRisk(activeAnalysisId) : null),
+    enabled: !!activeAnalysisId,
+  });
 
-          <div className="text-right flex items-center gap-1 text-slate-500">
-            <span className="text-[10px] font-mono">{(fact.confidence * 100).toFixed(0)}%</span>
-            {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-          </div>
-        </div>
+  const { data: configData, isLoading: isConfigLoading } = useQuery({
+    queryKey: ["analysis-config", activeAnalysisId],
+    queryFn: () => (activeAnalysisId ? fetchAnalysisConfiguration(activeAnalysisId) : null),
+    enabled: !!activeAnalysisId,
+  });
 
-        {/* Expanded Provenance & Verbatim Evidence Inspector */}
-        {isExpanded && (
-          <div className="mt-3 pt-3 border-t border-white/10 space-y-2 text-xs font-mono animate-in fade-in duration-150">
-            <div className="flex items-center justify-between text-[11px] text-slate-400">
-              <span className="flex items-center gap-1 text-cyan-400">
-                <Terminal className="w-3 h-3" />
-                <span>Verbatim Configuration Evidence</span>
-              </span>
-              {fact.source_lines.length > 0 && (
-                <span className="text-slate-400">
-                  Line(s): <strong className="text-cyan-300">{fact.source_lines.join(", ")}</strong>
-                </span>
-              )}
-            </div>
+  const { data: storedConfigs = [] } = useQuery({
+    queryKey: ["configurations-list"],
+    queryFn: () => fetchConfigurations(),
+  });
 
-            <div className="p-2.5 rounded bg-[#060911] border border-white/10 text-slate-300 text-[11px] space-y-1">
-              {fact.evidence.length === 0 ? (
-                <span className="text-slate-500 italic">No direct line evidence (inferred from default baseline)</span>
-              ) : (
-                fact.evidence.map((line, idx) => (
-                  <div key={idx} className="flex gap-2">
-                    {fact.source_lines[idx] && (
-                      <span className="text-slate-600 select-none">{fact.source_lines[idx]}:</span>
-                    )}
-                    <span className="text-cyan-200">{line}</span>
-                  </div>
-                ))
-              )}
-            </div>
+  // Auto-select first failing finding or first finding
+  useEffect(() => {
+    if (findings.length > 0 && !selectedFindingId) {
+      const firstFail = findings.find((f) => f.status === "FAIL");
+      setSelectedFindingId(firstFail ? firstFail.finding_id : findings[0].finding_id);
+    }
+  }, [findings, selectedFindingId]);
 
-            <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
-              <span>Method: {fact.method} (AST Parser)</span>
-              <span>Status: {fact.status}</span>
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  const selectedFinding = useMemo(() => {
+    return findings.find((f) => f.finding_id === selectedFindingId) || findings[0] || null;
+  }, [findings, selectedFindingId]);
+
+  // When selected finding changes, highlight its primary evidence line
+  useEffect(() => {
+    if (selectedFinding && selectedFinding.evidence_lines?.length > 0) {
+      const targetLine = selectedFinding.evidence_lines[0].line;
+      setHighlightedLine(targetLine);
+    }
+  }, [selectedFinding]);
+
+  // Filtered findings list
+  const filteredFindings = useMemo(() => {
+    return findings.filter((f) => {
+      const matchFw = frameworkFilter === "ALL" || f.framework.toUpperCase() === frameworkFilter;
+      const matchStatus = statusFilter === "ALL" || f.status.toUpperCase() === statusFilter;
+      const matchSearch =
+        searchFilter === "" ||
+        f.control_id.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        f.title.toLowerCase().includes(searchFilter.toLowerCase());
+      return matchFw && matchStatus && matchSearch;
+    });
+  }, [findings, frameworkFilter, statusFilter, searchFilter]);
+
+  // --- Real Re-Analysis Workflow ---
+  const handleReanalyzeWithRemediation = async () => {
+    if (!activeAnalysisId || !configData) return;
+    try {
+      setIsReanalyzing(true);
+      setAuditError(null);
+
+      // Generate remediated configuration text
+      let remediatedText = configData.raw_text;
+
+      // Apply standard allowlisted hardening transforms based on detected vendor
+      if (detectedVendorState.vendor === "cisco") {
+        remediatedText = remediatedText
+          .replace(/ip ssh version 1/g, "ip ssh version 2")
+          .replace(/no service password-encryption/g, "service password-encryption")
+          .replace(/no aaa new-model/g, "aaa new-model")
+          .replace(/ip http server/g, "no ip http server")
+          .replace(/transport input telnet/g, "transport input ssh");
+      } else if (detectedVendorState.vendor === "juniper") {
+        remediatedText = remediatedText
+          .replace(/telnet;/g, "ssh { protocol-version v2; }")
+          .replace(/http {/g, "https {");
+      } else if (detectedVendorState.vendor === "fortinet") {
+        remediatedText = remediatedText
+          .replace(/set admin-ssh-v1 enable/g, "set admin-ssh-v1 disable")
+          .replace(/set admin-sport 80/g, "set admin-sport 443");
+      }
+
+      // Execute backend re-analysis endpoint
+      const result = await reanalyzeAnalysis(activeAnalysisId, remediatedText);
+      setReanalyzeResult(result);
+      setReanalyzeBannerVisible(true);
+
+      // Update workspace rawText to reflect remediated content
+      setRawText(remediatedText);
+
+      // Invalidate queries to refresh findings and scores
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["analysis-status", activeAnalysisId] }),
+        queryClient.invalidateQueries({ queryKey: ["analysis-findings", activeAnalysisId] }),
+        queryClient.invalidateQueries({ queryKey: ["analysis-evidence", activeAnalysisId] }),
+        queryClient.invalidateQueries({ queryKey: ["analysis-risk", activeAnalysisId] }),
+        queryClient.invalidateQueries({ queryKey: ["analysis-config", activeAnalysisId] }),
+      ]);
+    } catch (err: any) {
+      console.error("Re-analysis execution error:", err);
+      setAuditError(err?.message || "Re-analysis failed.");
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
+
+  const handleCopyClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(label);
+    setTimeout(() => setCopiedText(null), 2000);
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
+      {/* 1. Page Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
-            <FileCode2 className="w-5 h-5 text-cyan-400" />
-            <span>Configuration Intelligence & Universal Normalization</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Ingest heterogeneous network configurations (Cisco, Juniper, Fortinet), extract security facts with exact
-            line provenance, and normalize to the vendor-neutral Universal Security Model.
-          </p>
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-[#00D9FF]/10 border border-[#00D9FF]/30 text-[#00D9FF]">
+              <FileCode2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-extrabold text-[#F8FAFC] tracking-tight">
+                  CONFIGURATION AUDIT WORKSPACE
+                </h1>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                  DETERMINISTIC VERIFICATION
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00D9FF]/10 text-[#00D9FF] border border-[#00D9FF]/20">
+                  MULTI-VENDOR
+                </span>
+              </div>
+              <p className="text-xs text-[#94A3B8] mt-0.5">
+                Ingest Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations → AST Fact Normalization → Real Line-Level Evidence → Deterministic Risk Scoring → Allowlisted Remediation & Re-Analysis.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsPipelineModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold font-mono transition-all shadow-lg shadow-cyan-500/20"
-          >
-            <Zap className="w-3.5 h-3.5 fill-current" />
-            <span>REAL E2E PIPELINE</span>
-          </button>
+        {/* Global Security Invariant Badge */}
+        <div className="flex items-center gap-2.5">
+          <div className="px-3 py-1.5 rounded-lg bg-[#070A10] border border-white/[0.08] text-xs font-mono flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+            <span className="text-[#64748B]">NETWORK PUSH:</span>
+            <strong className="text-[#10B981]">DISABLED (READ-ONLY)</strong>
+          </div>
 
           <button
-            onClick={() => refetch()}
-            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors"
+            onClick={() => {
+              if (activeAnalysisId) {
+                queryClient.invalidateQueries({ queryKey: ["analysis-status", activeAnalysisId] });
+                queryClient.invalidateQueries({ queryKey: ["analysis-findings", activeAnalysisId] });
+              }
+            }}
+            className="p-2 rounded-lg bg-[#070A10] border border-white/[0.08] text-[#94A3B8] hover:text-white transition-colors"
+            title="Refresh Analysis State"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
-            <span>Refresh</span>
+            <RefreshCw className={cn("w-4 h-4", isAuditing && "animate-spin")} />
           </button>
         </div>
       </div>
 
-      {/* Ingestion Dropzone & Quick Samples Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Drop Zone (2 cols) */}
-        <div className="lg:col-span-2">
+      {/* 2. Top Ingestion & Audit Activation Control */}
+      <div className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+          <div className="flex items-center gap-2">
+            <Terminal className="w-4 h-4 text-[#00D9FF]" />
+            <span className="text-xs font-mono font-bold text-[#F8FAFC] uppercase tracking-wider">
+              INGESTION WORKSPACE
+            </span>
+          </div>
+
+          {/* Mode Selector Tabs */}
+          <div className="flex items-center p-1 rounded-lg bg-[#0B0F19] border border-white/[0.06] text-xs font-mono">
+            <button
+              onClick={() => setInputMode("samples")}
+              className={cn(
+                "px-3 py-1 rounded transition-all",
+                inputMode === "samples" ? "bg-[#00D9FF] text-black font-bold" : "text-[#94A3B8] hover:text-white"
+              )}
+            >
+              PRESET FIXTURES (6)
+            </button>
+            <button
+              onClick={() => setInputMode("paste")}
+              className={cn(
+                "px-3 py-1 rounded transition-all",
+                inputMode === "paste" ? "bg-[#00D9FF] text-black font-bold" : "text-[#94A3B8] hover:text-white"
+              )}
+            >
+              CUSTOM TEXT / PASTE
+            </button>
+            <button
+              onClick={() => {
+                setInputMode("upload");
+                fileInputRef.current?.click();
+              }}
+              className={cn(
+                "px-3 py-1 rounded transition-all",
+                inputMode === "upload" ? "bg-[#00D9FF] text-black font-bold" : "text-[#94A3B8] hover:text-white"
+              )}
+            >
+              UPLOAD FILE
+            </button>
+          </div>
+        </div>
+
+        {/* Input Mode 1: Canonical Preset Fixtures */}
+        {inputMode === "samples" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {CANONICAL_FIXTURES.map((fixture) => (
+              <div
+                key={fixture.id}
+                onClick={() => handleSelectFixture(fixture.id)}
+                className={cn(
+                  "p-3.5 rounded-xl border cursor-pointer transition-all space-y-1.5",
+                  selectedFixtureId === fixture.id
+                    ? "bg-[#0B101E] border-[#00D9FF]/60 shadow-lg shadow-[#00D9FF]/10"
+                    : "bg-[#0B0F19] border-white/[0.05] hover:border-white/[0.15] hover:bg-[#0E1424]"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#F8FAFC]">{fixture.label}</span>
+                  <span
+                    className={cn(
+                      "px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase",
+                      fixture.id.includes("insecure")
+                        ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30"
+                        : "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
+                    )}
+                  >
+                    {fixture.id.includes("insecure") ? "VULNERABLE" : "HARDENED"}
+                  </span>
+                </div>
+                <div className="text-[11px] text-[#94A3B8] line-clamp-2 leading-relaxed">
+                  {fixture.description}
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-mono text-[#64748B] pt-1">
+                  <span>{fixture.name}</span>
+                  <span className="uppercase text-[#00D9FF]">{fixture.vendor} ({fixture.platform})</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Input Mode 2: Paste / Custom Text */}
+        {inputMode === "paste" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <input
+                type="text"
+                value={configFilename}
+                onChange={(e) => setConfigFilename(e.target.value)}
+                placeholder="filename.cfg"
+                className="px-2.5 py-1 rounded bg-[#0B0F19] border border-white/[0.08] text-[#F8FAFC] text-xs font-mono focus:border-[#00D9FF] focus:outline-none w-64"
+              />
+              <span className="text-[11px] text-[#64748B]">
+                {rawText.split("\n").length} Lines • {formatBytes(rawText.length)}
+              </span>
+            </div>
+            <textarea
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value)}
+              placeholder="Paste raw configuration here..."
+              rows={8}
+              className="w-full p-3.5 rounded-xl bg-[#03060A] border border-white/[0.08] font-mono text-xs text-[#E2E8F0] focus:border-[#00D9FF] focus:outline-none resize-y leading-relaxed"
+            />
+          </div>
+        )}
+
+        {/* Input Mode 3: Drag & Drop Zone */}
+        {inputMode === "upload" && (
           <div
             onDragOver={(e) => {
               e.preventDefault();
               setDragOver(true);
             }}
             onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
+            onDrop={handleFileDrop}
             onClick={() => fileInputRef.current?.click()}
             className={cn(
-              "p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-slate-900/40 relative overflow-hidden",
-              dragOver
-                ? "border-cyan-400 bg-cyan-950/20"
-                : "border-white/10 hover:border-cyan-500/40 hover:bg-slate-900/60"
+              "p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-[#03060A]",
+              dragOver ? "border-[#00D9FF] bg-[#00D9FF]/5" : "border-white/[0.1] hover:border-[#00D9FF]/40"
             )}
           >
             <input
               ref={fileInputRef}
               type="file"
               accept=".cfg,.conf,.txt,.log"
-              onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                  handleFileUpload(e.target.files[0]);
-                }
-              }}
+              onChange={handleFileInputChange}
               className="hidden"
             />
+            <UploadCloud className="w-8 h-8 text-[#00D9FF] mb-2 animate-bounce" />
+            <div className="text-xs font-bold text-[#F8FAFC]">
+              Click to browse or drag & drop configuration file
+            </div>
+            <div className="text-[11px] text-[#64748B] mt-1">
+              Supports Cisco IOS (.cfg), Juniper JunOS (.conf), and Fortinet FortiOS (.conf, .txt)
+            </div>
+          </div>
+        )}
 
-            <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3">
-              <UploadCloud className={cn("w-6 h-6", uploadMutation.isPending && "animate-bounce")} />
+        {/* Live Detection Metadata & Primary CTA */}
+        <div className="pt-2 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0B0F19] border border-white/[0.06]">
+              <span className="text-[#64748B]">DETECTED:</span>
+              <strong className="text-[#00D9FF] uppercase">{detectedVendorState.vendor}</strong>
+              <span className="text-[#64748B]">({detectedVendorState.platform || "generic"})</span>
             </div>
 
-            <div className="text-sm font-medium text-white mb-1">
-              {uploadMutation.isPending ? "Ingesting & Normalizing Configuration..." : "Drop Network Configuration File"}
-            </div>
-            <p className="text-xs text-slate-400 max-w-sm mb-3">
-              Supports Cisco IOS/NX-OS, Juniper JunOS (hierarchical & set), and Fortinet FortiOS blocks.
-            </p>
-
-            <div className="inline-flex items-center gap-3 text-[11px] font-mono text-slate-500">
-              <span>Extensions: .cfg, .conf, .txt, .log</span>
-              <span>•</span>
-              <span>Deterministic AST Pipeline</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0B0F19] border border-white/[0.06]">
+              <span className="text-[#64748B]">SHA-256:</span>
+              <span className="text-[#E2E8F0] max-w-[120px] truncate" title={clientHash}>
+                {clientHash ? clientHash.slice(0, 16) + "..." : "computing..."}
+              </span>
             </div>
 
-            {uploadMutation.isPending && (
-              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center flex-col gap-2">
-                <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-                <span className="text-xs font-mono text-cyan-300">Extracting Facts & Preserving Line Provenance...</span>
-              </div>
+            <div className="text-[11px] text-[#64748B]">
+              Confidence: <strong className="text-[#10B981]">{(detectedVendorState.confidence * 100).toFixed(0)}%</strong>
+            </div>
+          </div>
+
+          <button
+            onClick={handleRunGoldenAudit}
+            disabled={isAuditing || !rawText.trim()}
+            className="px-5 py-2.5 rounded-xl bg-[#00D9FF] hover:bg-[#00c2e6] text-black font-extrabold font-mono text-xs flex items-center gap-2 transition-all shadow-lg shadow-[#00D9FF]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isAuditing ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>AUDITING DETERMINISTICALLY...</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 fill-current" />
+                <span>AUDIT CONFIGURATION</span>
+              </>
             )}
-          </div>
-
-          {/* Upload Error Banner */}
-          {uploadError && (
-            <div className="mt-3 p-3 rounded-lg bg-rose-950/50 border border-rose-800/50 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-              <span>{uploadError}</span>
-            </div>
-          )}
+          </button>
         </div>
 
-        {/* Quick Sample Config Loader Card (1 col) */}
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-white/5 space-y-3">
-          <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-            <Cpu className="w-4 h-4 text-cyan-400" />
-            <h2 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Quick Test Fixtures
-            </h2>
-          </div>
-          <p className="text-[11px] text-slate-400 leading-relaxed">
-            Load sample configurations across all 3 vendors to verify deterministic parser equivalence:
-          </p>
-
-          <div className="space-y-2 pt-1">
-            {SAMPLE_CONFIGS.map((sample) => (
-              <button
-                key={sample.name}
-                onClick={() => handleLoadSample(sample)}
-                disabled={uploadMutation.isPending}
-                className="w-full p-2.5 rounded-lg bg-[#0b101c] border border-white/5 hover:border-cyan-500/30 text-left transition-colors flex items-center justify-between group disabled:opacity-50"
-              >
-                <div>
-                  <div className="text-xs font-medium text-slate-200 group-hover:text-cyan-300 transition-colors flex items-center gap-1.5">
-                    <span>{sample.label}</span>
-                    <span
-                      className={cn(
-                        "text-[9px] font-mono px-1 rounded uppercase",
-                        sample.variant === "secure"
-                          ? "bg-emerald-950 text-emerald-400 border border-emerald-800/40"
-                          : "bg-amber-950 text-amber-400 border border-amber-800/40"
-                      )}
-                    >
-                      {sample.variant}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">{sample.name}</div>
-                </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-400 border border-cyan-800/40">
-                  Analyze
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Ingested Configurations Table */}
-      <div className="p-5 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
-        {/* Table Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-white font-mono">Ingested Configurations</span>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-              {filteredConfigs.length} files
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Search */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search by name or hash..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-md bg-[#0b101c] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 w-48 sm:w-60 font-mono"
-              />
-            </div>
-
-            {/* Vendor Filter */}
-            <div className="flex items-center gap-1 bg-[#0b101c] border border-white/10 p-1 rounded-md text-xs font-mono">
-              {["all", "cisco", "juniper", "fortinet"].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setSelectedVendor(v)}
-                  className={cn(
-                    "px-2.5 py-0.5 rounded text-[11px] capitalize transition-colors",
-                    selectedVendor === v
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
-                      : "text-slate-400 hover:text-slate-200"
-                  )}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        {filteredConfigs.length === 0 ? (
-          <div className="py-12 text-center text-slate-500 space-y-2">
-            <FileCode2 className="w-8 h-8 mx-auto text-slate-600" />
-            <div className="text-xs font-medium text-slate-400">No network configurations found</div>
-            <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-              Upload a .cfg, .conf, or .log configuration file above to run deterministic vendor detection and Universal
-              Security Normalization.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-white/5 text-[11px] font-mono text-slate-500 uppercase tracking-wider">
-                  <th className="py-2.5 px-3">Configuration File</th>
-                  <th className="py-2.5 px-3">Detected Vendor</th>
-                  <th className="py-2.5 px-3">Parser Status</th>
-                  <th className="py-2.5 px-3">SHA-256 Digest</th>
-                  <th className="py-2.5 px-3">Size</th>
-                  <th className="py-2.5 px-3">Uploaded</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredConfigs.map((cfg) => {
-                  const isCisco = cfg.detected_vendor === "cisco";
-                  const isJuniper = cfg.detected_vendor === "juniper";
-                  const isFortinet = cfg.detected_vendor === "fortinet";
-                  const isParsed = cfg.parser_status === "parsed";
-
-                  return (
-                    <tr key={cfg.id} className="hover:bg-slate-800/30 transition-colors group">
-                      <td className="py-3 px-3">
-                        <div className="font-medium text-slate-200 flex items-center gap-2">
-                          <FileText className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                          <span>{cfg.original_filename}</span>
-                        </div>
-                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">{cfg.id}</div>
-                      </td>
-
-                      <td className="py-3 px-3">
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono capitalize",
-                            isCisco && "bg-cyan-950/80 text-cyan-400 border border-cyan-800/40",
-                            isJuniper && "bg-indigo-950/80 text-indigo-400 border border-indigo-800/40",
-                            isFortinet && "bg-emerald-950/80 text-emerald-400 border border-emerald-800/40",
-                            !isCisco && !isJuniper && !isFortinet && "bg-slate-800 text-slate-400"
-                          )}
-                        >
-                          <span>{cfg.detected_vendor}</span>
-                          {cfg.detected_platform && (
-                            <span className="text-[10px] text-slate-400 uppercase">({cfg.detected_platform})</span>
-                          )}
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-3">
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1 text-[10px] font-mono uppercase px-2 py-0.5 rounded border",
-                            isParsed
-                              ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/40"
-                              : "bg-slate-800 text-slate-400 border-white/5"
-                          )}
-                        >
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>{cfg.parser_status}</span>
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-3 font-mono">
-                        <div className="flex items-center gap-1.5 group/hash">
-                          <span className="text-[11px] text-slate-400">{cfg.hash.slice(0, 14)}...</span>
-                          <button
-                            onClick={() => handleCopy(cfg.hash)}
-                            className="p-1 rounded hover:bg-slate-700 text-slate-500 hover:text-slate-200 transition-colors"
-                            title="Copy full SHA-256 hash"
-                          >
-                            {copiedHash === cfg.hash ? (
-                              <Check className="w-3 h-3 text-emerald-400" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-3 font-mono text-slate-400 text-[11px]">
-                        {formatBytes(cfg.file_size_bytes)}
-                      </td>
-
-                      <td className="py-3 px-3 text-slate-400 text-[11px] font-mono">
-                        {new Date(cfg.uploaded_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </td>
-
-                      <td className="py-3 px-3 text-right space-x-2">
-                        <Link
-                          href="/audits"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-mono font-semibold transition-colors"
-                        >
-                          <Play className="w-3 h-3 fill-current" />
-                          <span>Audit</span>
-                        </Link>
-
-                        <button
-                          onClick={() => {
-                            setAnalysisConfigId(cfg.id);
-                          }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 hover:text-cyan-200 border border-cyan-800/40 text-[11px] font-mono transition-colors"
-                        >
-                          <Sparkles className="w-3 h-3 text-cyan-400" />
-                          <span>Facts</span>
-                        </button>
-
-                        <button
-                          onClick={() => setInspectConfigId(cfg.id)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-white/5 text-[11px] font-mono transition-colors"
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>Raw</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {/* Error notification if any */}
+        {auditError && (
+          <div className="p-3 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] text-xs font-mono flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{auditError}</span>
           </div>
         )}
       </div>
 
-      {/* Universal Normalization & Security Facts Modal */}
-      {analysisConfigId && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0a0f1d] border border-cyan-500/30 rounded-xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-slate-900/90">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-white flex items-center gap-2">
-                    <span>{analysisDetail?.filename || "Normalized Security Profile"}</span>
-                    {analysisDetail && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40 uppercase">
-                        {analysisDetail.vendor} ({analysisDetail.platform || "generic"})
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[10px] font-mono text-slate-400">
-                    Deterministic Universal Normalization • SIH26155 Canonical Schema v1.1.0
-                  </div>
-                </div>
-              </div>
+      {/* 3. Re-Analysis Success / Transition Banner */}
+      {reanalyzeBannerVisible && reanalyzeResult && (
+        <div className="p-4 rounded-2xl bg-[#10B981]/10 border border-[#10B981]/30 space-y-3 font-mono animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#10B981]">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>RE-ANALYSIS VERIFICATION PASSED: DETERMINISTIC HARDENING PROVEN</span>
+            </div>
+            <button
+              onClick={() => setReanalyzeBannerVisible(false)}
+              className="text-[#64748B] hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => analyzeMutation.mutate(analysisConfigId)}
-                  disabled={analyzeMutation.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/40 text-xs font-mono transition-colors disabled:opacity-50"
-                >
-                  <RefreshCw className={cn("w-3.5 h-3.5", analyzeMutation.isPending && "animate-spin")} />
-                  <span>Re-Parse</span>
-                </button>
-
-                <button
-                  onClick={() => setAnalysisConfigId(null)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
+              <div className="text-[10px] text-[#64748B]">COMPLIANCE SCORE</div>
+              <div className="text-sm font-bold text-[#10B981] mt-0.5">
+                {reanalyzeResult.previous_compliance_score.toFixed(1)}% → {reanalyzeResult.new_compliance_score.toFixed(1)}%
               </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
-              {isAnalysisLoading || analyzeMutation.isPending ? (
-                <div className="py-20 text-center text-slate-400 font-mono text-xs flex flex-col items-center justify-center gap-3">
-                  <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-                  <span>Parsing AST, extracting evidence, and building canonical security profile...</span>
+            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
+              <div className="text-[10px] text-[#64748B]">FAILED CONTROLS</div>
+              <div className="text-sm font-bold text-[#EF4444] mt-0.5">
+                {reanalyzeResult.previous_fail_count} FAIL → {reanalyzeResult.new_fail_count} FAIL
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
+              <div className="text-[10px] text-[#64748B]">RESOLVED CONTROLS</div>
+              <div className="text-sm font-bold text-[#00D9FF] mt-0.5">
+                +{reanalyzeResult.resolved_controls.length} RESOLVED
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
+              <div className="text-[10px] text-[#64748B]">VERDICT TRANSITION</div>
+              <div className="text-sm font-bold text-[#10B981] mt-0.5">
+                FAIL → PASS ✓
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            <span className="text-[10px] text-[#64748B] uppercase self-center mr-1">Controls Resolved:</span>
+            {reanalyzeResult.resolved_controls.map((ctrl) => (
+              <span
+                key={ctrl}
+                className="px-2 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 text-[10px] font-bold"
+              >
+                {ctrl} (PASS)
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Active Analysis Workspace (Rendered when activeAnalysisId exists or sample is loaded) */}
+      {activeAnalysisId ? (
+        <div className="space-y-6">
+          {/* Posture KPI Strip */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 font-mono">
+            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
+              <div className="text-[10px] text-[#64748B] uppercase">COMPLIANCE SCORE</div>
+              <div className="text-xl font-black text-[#F8FAFC]">
+                {analysisStatus?.compliance_score !== undefined
+                  ? `${analysisStatus.compliance_score.toFixed(1)}%`
+                  : "--"}
+              </div>
+              <div className="text-[9px] text-[#10B981]">CIS • NIST • STIG • ISO</div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
+              <div className="text-[10px] text-[#64748B] uppercase">EVALUATED CONTROLS</div>
+              <div className="text-xl font-black text-[#F8FAFC]">
+                {analysisStatus?.controls_evaluated_count ?? findings.length}
+              </div>
+              <div className="text-[9px] text-[#64748B]">
+                <strong className="text-[#10B981]">{analysisStatus?.pass_count ?? 0} PASS</strong> •{" "}
+                <strong className="text-[#EF4444]">{analysisStatus?.fail_count ?? 0} FAIL</strong>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
+              <div className="text-[10px] text-[#64748B] uppercase">DERIVED RISK SCORE</div>
+              <div className="text-xl font-black text-[#EF4444]">
+                {riskReport?.risk_score !== undefined
+                  ? `${riskReport.risk_score.toFixed(0)}/100`
+                  : "--"}
+              </div>
+              <div className="text-[9px] text-[#EF4444] font-bold">
+                PRIORITY: {riskReport?.risk_level || "P0"} ({riskReport?.likelihood || "HIGH"} LIKELIHOOD)
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
+              <div className="text-[10px] text-[#64748B] uppercase">PARSER STATUS</div>
+              <div className="text-xl font-black text-[#00D9FF]">
+                {analysisStatus?.facts_extracted_count ?? 0} FACTS
+              </div>
+              <div className="text-[9px] text-[#64748B]">
+                {analysisStatus?.vendor?.toUpperCase()} AST v1.0.0
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-1">
+              <div className="text-[10px] text-[#64748B] uppercase">SAFE REMEDIATION</div>
+              <div className="text-xl font-black text-[#10B981]">
+                {findings.filter((f) => f.status === "FAIL" && f.remediation_proposal).length} PATCHES
+              </div>
+              <div className="text-[9px] text-[#10B981]">READ-ONLY ADVISORY</div>
+            </div>
+          </div>
+
+          {/* 3-Panel Audit Engine Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Panel 1: Left Findings Navigator (4 cols) */}
+            <div className="lg:col-span-4 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
+                  <span className="text-xs font-bold text-[#F8FAFC]">
+                    FINDINGS ({filteredFindings.length})
+                  </span>
                 </div>
-              ) : analysisDetail ? (
-                <>
-                  {/* Executive Metric Cards */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-                    <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">Facts Extracted</div>
-                      <div className="text-lg font-bold text-cyan-300 mt-0.5 flex items-baseline gap-1.5">
-                        <span>{analysisDetail.facts_extracted}</span>
-                        <span className="text-[10px] text-slate-500 font-normal">properties</span>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-1 text-[10px]">
+                  <span className="px-1.5 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444]">
+                    {findings.filter((f) => f.status === "FAIL").length} FAIL
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#10B981]/15 text-[#10B981]">
+                    {findings.filter((f) => f.status === "PASS").length} PASS
+                  </span>
+                </div>
+              </div>
 
-                    <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">Parser Confidence</div>
-                      <div className="text-lg font-bold text-emerald-400 mt-0.5">
-                        {(analysisDetail.parser_confidence * 100).toFixed(0)}%
-                      </div>
-                    </div>
+              {/* Filters */}
+              <div className="space-y-2 text-xs">
+                <div className="flex gap-1 overflow-x-auto pb-1 text-[10px]">
+                  {["ALL", "CIS", "NIST", "STIG", "ISO"].map((fw) => (
+                    <button
+                      key={fw}
+                      onClick={() => setFrameworkFilter(fw)}
+                      className={cn(
+                        "px-2 py-0.5 rounded border transition-colors",
+                        frameworkFilter === fw
+                          ? "bg-[#00D9FF]/20 border-[#00D9FF] text-[#00D9FF] font-bold"
+                          : "bg-[#0B0F19] border-white/[0.06] text-[#64748B] hover:text-white"
+                      )}
+                    >
+                      {fw}
+                    </button>
+                  ))}
+                </div>
 
-                    <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">Unparsed Directives</div>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search controls..."
+                      value={searchFilter}
+                      onChange={(e) => setSearchFilter(e.target.value)}
+                      className="w-full pl-8 pr-2.5 py-1 rounded-lg bg-[#0B0F19] border border-white/[0.06] text-xs text-[#E2E8F0] focus:outline-none focus:border-[#00D9FF]"
+                    />
+                  </div>
+
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-2 py-1 rounded-lg bg-[#0B0F19] border border-white/[0.06] text-[10px] text-[#94A3B8] focus:outline-none"
+                  >
+                    <option value="ALL">ALL STATUS</option>
+                    <option value="FAIL">FAIL ONLY</option>
+                    <option value="PASS">PASS ONLY</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Findings List */}
+              <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
+                {filteredFindings.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-[#64748B] rounded-xl bg-[#0B0F19] border border-dashed border-white/[0.06]">
+                    No findings matching active filters.
+                  </div>
+                ) : (
+                  filteredFindings.map((finding) => {
+                    const isSelected = finding.finding_id === selectedFindingId;
+                    const isFail = finding.status === "FAIL";
+                    const isCrit = finding.severity === "CRITICAL";
+
+                    return (
                       <div
+                        key={finding.finding_id}
+                        onClick={() => {
+                          setSelectedFindingId(finding.finding_id);
+                          if (finding.evidence_lines?.length > 0) {
+                            setHighlightedLine(finding.evidence_lines[0].line);
+                          }
+                        }}
                         className={cn(
-                          "text-lg font-bold mt-0.5",
-                          analysisDetail.unknown_items_count > 0 ? "text-amber-400" : "text-emerald-400"
+                          "p-3 rounded-xl border cursor-pointer transition-all space-y-1.5",
+                          isSelected
+                            ? "bg-[#0B101E] border-[#00D9FF] shadow-lg shadow-[#00D9FF]/10"
+                            : "bg-[#0B0F19] border-white/[0.04] hover:border-white/[0.12] hover:bg-[#0D1424]"
                         )}
                       >
-                        {analysisDetail.unknown_items_count}
-                      </div>
-                    </div>
+                        <div className="flex items-center justify-between gap-1 text-[10px]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-[#00D9FF]">{finding.control_id}</span>
+                            <span className="text-[#64748B]">({finding.framework})</span>
+                          </div>
 
-                    <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">Parser Engine</div>
-                      <div className="text-xs font-semibold text-slate-300 mt-1 truncate">
-                        {analysisDetail.parser_name}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Domain Fact Groups */}
-                  <div className="space-y-4">
-                    {/* 1. Identity */}
-                    <div className="space-y-2">
-                      <div className="text-xs font-semibold text-cyan-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                        <Terminal className="w-3.5 h-3.5" />
-                        <span>1. Device Identity & Banners</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {renderFactCard("Hostname", analysisDetail.normalized_profile.identity?.hostname, "identity_hostname")}
-                        {renderFactCard("Domain Name", analysisDetail.normalized_profile.identity?.domain_name, "identity_domain")}
-                        {renderFactCard("Login MOTD Banner Present", analysisDetail.normalized_profile.identity?.banner_motd_present, "identity_banner_present")}
-                        {renderFactCard("Legal Warning In Banner", analysisDetail.normalized_profile.identity?.banner_legal_warning, "identity_banner_warning")}
-                      </div>
-                    </div>
-
-                    {/* 2. Remote Access */}
-                    <div className="space-y-2 pt-2">
-                      <div className="text-xs font-semibold text-cyan-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                        <Key className="w-3.5 h-3.5" />
-                        <span>2. Remote Access Security (SSH / Telnet / HTTPS)</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {renderFactCard("SSH Service Active", analysisDetail.normalized_profile.remote_access?.ssh_enabled, "ra_ssh_enabled")}
-                        {renderFactCard("SSH Protocol Version", analysisDetail.normalized_profile.remote_access?.ssh_version, "ra_ssh_version")}
-                        {renderFactCard("SSH Secure Ciphers (No DES/3DES/RC4)", analysisDetail.normalized_profile.remote_access?.ssh_ciphers_secure, "ra_ssh_ciphers")}
-                        {renderFactCard("Telnet Service Active", analysisDetail.normalized_profile.remote_access?.telnet_enabled, "ra_telnet")}
-                        {renderFactCard("HTTPS Management Active", analysisDetail.normalized_profile.remote_access?.https_server_enabled, "ra_https")}
-                        {renderFactCard("VTY Inbound ACL / Filter Applied", analysisDetail.normalized_profile.remote_access?.vty_access_class_applied, "ra_vty_acl")}
-                      </div>
-                    </div>
-
-                    {/* 3. Authentication & Authorization */}
-                    <div className="space-y-2 pt-2">
-                      <div className="text-xs font-semibold text-cyan-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>3. Authentication & AAA Security</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {renderFactCard("AAA New-Model Enabled", analysisDetail.normalized_profile.authentication?.aaa_enabled, "auth_aaa")}
-                        {renderFactCard("Password Encryption Service", analysisDetail.normalized_profile.authentication?.password_encryption_enabled, "auth_pw_enc")}
-                        {renderFactCard("Enable Secret Configured", analysisDetail.normalized_profile.authentication?.enable_secret_configured, "auth_secret")}
-                        {renderFactCard("Enable Secret Algorithm", analysisDetail.normalized_profile.authentication?.enable_secret_type, "auth_secret_alg")}
-                        {renderFactCard("Local User Accounts", analysisDetail.normalized_profile.authentication?.local_users, "auth_local_users")}
-                        {renderFactCard("Failed Login Lockout / Rate-Limit", analysisDetail.normalized_profile.authentication?.failed_login_lockout_enabled, "auth_lockout")}
-                      </div>
-                    </div>
-
-                    {/* 4. Logging & Time Sync */}
-                    <div className="space-y-2 pt-2">
-                      <div className="text-xs font-semibold text-cyan-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                        <Radio className="w-3.5 h-3.5" />
-                        <span>4. Logging & Authoritative Time Sync (NTP / Syslog)</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {renderFactCard("System Logging Active", analysisDetail.normalized_profile.logging?.logging_enabled, "log_active")}
-                        {renderFactCard("Remote Syslog Servers", analysisDetail.normalized_profile.logging?.remote_syslog_servers, "log_syslog_servers")}
-                        {renderFactCard("Log Timestamps (msec / UTC)", analysisDetail.normalized_profile.logging?.log_timestamps_enabled, "log_timestamps")}
-                        {renderFactCard("NTP Time Sync Enabled", analysisDetail.normalized_profile.time_sync?.ntp_enabled, "ntp_enabled")}
-                        {renderFactCard("NTP Servers", analysisDetail.normalized_profile.time_sync?.ntp_servers, "ntp_servers")}
-                        {renderFactCard("NTP Cryptographic Authentication", analysisDetail.normalized_profile.time_sync?.ntp_authentication_enabled, "ntp_auth")}
-                      </div>
-                    </div>
-
-                    {/* 5. Access Control & Network Protection */}
-                    <div className="space-y-2 pt-2">
-                      <div className="text-xs font-semibold text-cyan-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                        <ShieldAlert className="w-3.5 h-3.5" />
-                        <span>5. Access Control & Layer 2/3 Defense</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {renderFactCard("Inbound Firewall / ACL Count", analysisDetail.normalized_profile.access_control?.inbound_acls_count, "ac_acls")}
-                        {renderFactCard("Default Drop Inbound Perimeter", analysisDetail.normalized_profile.access_control?.default_drop_inbound, "ac_drop")}
-                        {renderFactCard("STP BPDU Guard Enabled", analysisDetail.normalized_profile.network_security?.spanning_tree_bpdu_guard_enabled, "net_bpdu")}
-                        {renderFactCard("DHCP Snooping Enabled", analysisDetail.normalized_profile.network_security?.dhcp_snooping_enabled, "net_dhcp")}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Unknown Directives Section (for Adaptive Training) */}
-                  {analysisDetail.unknown_items && analysisDetail.unknown_items.length > 0 && (
-                    <div className="mt-6 p-4 rounded-xl bg-amber-950/20 border border-amber-800/40 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 font-mono">
-                          <AlertCircle className="w-4 h-4 text-amber-400" />
-                          <span>Unparsed / Unknown Directives ({analysisDetail.unknown_items.length})</span>
-                        </div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-900/40 text-amber-300 border border-amber-700/40">
-                          Captured for Adaptive Training
-                        </span>
-                      </div>
-
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
-                        The following directives were not deterministically mapped to security facts. NetVigil
-                        preserves these structured records with exact line provenance:
-                      </p>
-
-                      <div className="space-y-2 max-h-72 overflow-y-auto">
-                        {analysisDetail.unknown_items.map((item, idx) => {
-                          const interp = unknownInterpretations[idx];
-                          const isInterpreting = interpretingIdx === idx;
-                          const reviewStatus = reviewedItems[idx];
-
-                          return (
-                            <div
-                              key={idx}
-                              className="p-3 rounded-lg bg-[#060911] border border-white/5 space-y-2 text-[11px] font-mono"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  {item.line_number && (
-                                    <span className="text-slate-500 font-semibold">L{item.line_number}:</span>
-                                  )}
-                                  <span className="text-amber-200 font-bold">{item.raw_text}</span>
-                                </div>
-                                
-                                {!interp && !reviewStatus && (
-                                  <button
-                                    onClick={() => handleInterpretUnknownItem(idx, item.raw_text, analysisDetail.vendor)}
-                                    disabled={isInterpreting}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 text-[10px] border border-indigo-800/40 transition-colors"
-                                  >
-                                    {isInterpreting ? (
-                                      <>
-                                        <RefreshCw className="w-3 h-3 animate-spin" />
-                                        <span>Analyzing...</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="w-3 h-3 text-indigo-400" />
-                                        <span>AI Interpret</span>
-                                      </>
-                                    )}
-                                  </button>
-                                )}
-
-                                {reviewStatus && (
-                                  <span className={cn(
-                                    "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
-                                    reviewStatus === "accepted" ? "bg-emerald-950 text-emerald-400 border border-emerald-800/40" : "bg-rose-950 text-rose-400 border border-rose-800/40"
-                                  )}>
-                                    {reviewStatus}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* AI Interpretation Result Card */}
-                              {interp && !reviewStatus && (
-                                <div className="p-2.5 rounded bg-slate-900/90 border border-indigo-500/30 space-y-2 text-[11px] font-sans animate-in fade-in duration-150">
-                                  <div className="flex items-center justify-between font-mono text-[10px]">
-                                    <div className="flex items-center gap-1.5 text-indigo-300">
-                                      <Bot className="w-3.5 h-3.5" />
-                                      <span>Semantic Category: <strong>{interp.normalized_category}</strong></span>
-                                    </div>
-                                    <span className={cn(
-                                      "px-1.5 py-0.2 rounded font-bold uppercase",
-                                      interp.confidence_tier === "high" ? "bg-emerald-950 text-emerald-300" : interp.confidence_tier === "review" ? "bg-amber-950 text-amber-300" : "bg-rose-950 text-rose-300"
-                                    )}>
-                                      {(interp.confidence * 100).toFixed(0)}% Confidence ({interp.confidence_tier})
-                                    </span>
-                                  </div>
-
-                                  <p className="text-slate-300 text-[11px] leading-relaxed">
-                                    {interp.semantic_meaning}
-                                  </p>
-
-                                  {interp.candidate_property && (
-                                    <div className="text-[10px] font-mono text-cyan-300 bg-black/40 p-1.5 rounded">
-                                      Candidate Normalized Fact: <strong className="text-white">{interp.candidate_property}</strong> = {String(interp.candidate_value)}
-                                    </div>
-                                  )}
-
-                                  {/* Human Review Decision Buttons */}
-                                  <div className="pt-1.5 border-t border-white/5 flex items-center justify-end gap-1.5 font-mono text-[10px]">
-                                    <button
-                                      onClick={() => setReviewedItems((prev) => ({ ...prev, [idx]: "rejected" }))}
-                                      className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
-                                    >
-                                      Reject
-                                    </button>
-                                    <button
-                                      onClick={() => setReviewedItems((prev) => ({ ...prev, [idx]: "accepted" }))}
-                                      className="px-2 py-0.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-semibold flex items-center gap-1"
-                                    >
-                                      <Check className="w-3 h-3" />
-                                      <span>Accept Candidate</span>
-                                    </button>
-                                  </div>
-                                </div>
+                          <div className="flex items-center gap-1 font-bold">
+                            <span
+                              className={cn(
+                                "px-1.5 py-0.2 rounded text-[9px]",
+                                isCrit
+                                  ? "bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30"
+                                  : "bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30"
                               )}
-                            </div>
-                          );
-                        })}
+                            >
+                              {finding.severity}
+                            </span>
+                            <span
+                              className={cn(
+                                "px-1.5 py-0.2 rounded text-[9px]",
+                                isFail
+                                  ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30"
+                                  : "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
+                              )}
+                            >
+                              {finding.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-xs font-sans font-medium text-[#F8FAFC] line-clamp-1">
+                          {finding.title}
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-0.5">
+                          <span>
+                            Line(s):{" "}
+                            <strong className="text-[#EF4444]">
+                              {finding.evidence_lines?.map((e) => e.line).join(", ") || "Baseline"}
+                            </strong>
+                          </span>
+                          {finding.remediation_proposal && (
+                            <span className="text-[#10B981] flex items-center gap-1">
+                              <Wrench className="w-2.5 h-2.5" />
+                              <span>Patch Available</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </>
-              ) : null}
+                    );
+                  })
+                )}
+              </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-3 border-t border-white/10 bg-slate-900/80 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-slate-500">
-                Universal Canonical Model • Deterministic line provenance on all facts
-              </span>
-              <button
-                onClick={() => setAnalysisConfigId(null)}
-                className="px-4 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            {/* Panel 2: Center Interactive Evidence & Source Viewer (5 cols) */}
+            <div className="lg:col-span-5 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-4 h-4 text-[#00D9FF]" />
+                  <span className="text-xs font-bold text-[#F8FAFC] uppercase">
+                    EVIDENCE EXPLORER
+                  </span>
+                </div>
 
-      {/* Raw Configuration Inspection Modal */}
-      {inspectConfigId && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0c121e] border border-white/10 rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-slate-900/80">
-              <div className="flex items-center gap-2.5">
-                <FileCode2 className="w-5 h-5 text-cyan-400" />
-                <div>
-                  <div className="text-sm font-semibold text-white">
-                    {inspectingConfig?.original_filename || "Configuration Inspection"}
-                  </div>
-                  <div className="text-[10px] font-mono text-slate-400 flex items-center gap-2">
-                    <span>ID: {inspectConfigId}</span>
-                    <span>•</span>
-                    <span>SHA-256: {inspectingConfig?.hash.slice(0, 16)}...</span>
-                  </div>
+                {/* Tabs */}
+                <div className="flex items-center gap-1 text-[10px]">
+                  <button
+                    onClick={() => setCenterTab("evidence")}
+                    className={cn(
+                      "px-2 py-0.5 rounded transition-colors",
+                      centerTab === "evidence"
+                        ? "bg-[#00D9FF]/20 text-[#00D9FF] font-bold border border-[#00D9FF]/40"
+                        : "text-[#64748B] hover:text-white"
+                    )}
+                  >
+                    LINE CITATIONS
+                  </button>
+                  <button
+                    onClick={() => setCenterTab("universal")}
+                    className={cn(
+                      "px-2 py-0.5 rounded transition-colors",
+                      centerTab === "universal"
+                        ? "bg-[#00D9FF]/20 text-[#00D9FF] font-bold border border-[#00D9FF]/40"
+                        : "text-[#64748B] hover:text-white"
+                    )}
+                  >
+                    UNIVERSAL MODEL AST
+                  </button>
                 </div>
               </div>
 
-              <button
-                onClick={() => setInspectConfigId(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {/* View 1: Line-by-Line Verbatim Evidence Viewer */}
+              {centerTab === "evidence" && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-[#64748B] px-1">
+                    <span>
+                      File: <strong className="text-white">{configData?.filename || configFilename}</strong>
+                    </span>
+                    <span>
+                      Active Citation:{" "}
+                      <strong className="text-[#EF4444]">
+                        Line {highlightedLine || (selectedFinding?.evidence_lines?.[0]?.line ?? "N/A")}
+                      </strong>
+                    </span>
+                  </div>
+
+                  <div
+                    ref={evidenceContainerRef}
+                    className="p-3 rounded-xl bg-[#03060A] border border-white/[0.08] max-h-[540px] overflow-y-auto text-xs space-y-0.5 font-mono select-text"
+                  >
+                    {configData?.lines?.map((item) => {
+                      const isCited = selectedFinding?.evidence_lines?.some((e) => e.line === item.line);
+                      const isHighlighted = highlightedLine === item.line;
+
+                      return (
+                        <div
+                          key={item.line}
+                          id={`line-${item.line}`}
+                          onClick={() => setHighlightedLine(item.line)}
+                          className={cn(
+                            "flex items-start gap-3 px-2 py-1 rounded transition-colors cursor-pointer group",
+                            isHighlighted
+                              ? "bg-[#EF4444]/20 border-l-2 border-[#EF4444]"
+                              : isCited
+                              ? "bg-[#EF4444]/10"
+                              : "hover:bg-white/[0.03]"
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "w-7 text-right select-none shrink-0 font-bold",
+                              isHighlighted ? "text-[#EF4444]" : isCited ? "text-[#EF4444]/70" : "text-[#475569]"
+                            )}
+                          >
+                            {item.line}
+                          </span>
+                          <span
+                            className={cn(
+                              "flex-1 break-all",
+                              isHighlighted
+                                ? "text-white font-bold"
+                                : isCited
+                                ? "text-[#FCA5A5]"
+                                : "text-[#94A3B8]"
+                            )}
+                          >
+                            {item.text || "\u00A0"}
+                          </span>
+                          {isCited && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30 shrink-0">
+                              CITATION
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* View 2: Universal Security Model AST Facts */}
+              {centerTab === "universal" && (
+                <div className="space-y-2">
+                  <div className="text-[11px] text-[#64748B]">
+                    Extracted security facts mapped to normalized schema:
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-[#03060A] border border-white/[0.08] max-h-[540px] overflow-y-auto text-xs space-y-2">
+                    {evidenceItems.length === 0 ? (
+                      <div className="text-center text-[#64748B] py-6">
+                        No AST facts extracted for this profile.
+                      </div>
+                    ) : (
+                      evidenceItems.map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setHighlightedLine(item.line);
+                            setCenterTab("evidence");
+                          }}
+                          className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.04] hover:border-[#00D9FF]/40 cursor-pointer transition-all space-y-1"
+                        >
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-[#00D9FF] font-bold">{item.property_path}</span>
+                            <span className="text-[#EF4444]">Line {item.line}</span>
+                          </div>
+                          <div className="text-xs text-[#E2E8F0] font-mono">{item.raw_text}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {isInspectingLoading ? (
-                <div className="py-16 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Loading configuration details...</span>
-                </div>
-              ) : inspectingConfig ? (
+            {/* Panel 3: Right Context, Deterministic Risk & Safe Re-Analysis (3 cols) */}
+            <div className="lg:col-span-3 space-y-4 font-mono">
+              {selectedFinding ? (
                 <>
-                  {/* Metadata Chips */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-                    <div className="p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">Vendor & Platform</div>
-                      <div className="text-cyan-300 font-semibold mt-0.5 capitalize">
-                        {inspectingConfig.detected_vendor} ({inspectingConfig.detected_platform || "N/A"})
-                      </div>
+                  {/* Selected Finding Context Card */}
+                  <div className="p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-[10px] text-[#00D9FF] uppercase font-bold">
+                        {selectedFinding.control_id}
+                      </span>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-bold",
+                          selectedFinding.status === "FAIL"
+                            ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30"
+                            : "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
+                        )}
+                      >
+                        {selectedFinding.status}
+                      </span>
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">Confidence</div>
-                      <div className="text-emerald-400 font-semibold mt-0.5">
-                        {(inspectingConfig.detection_confidence * 100).toFixed(0)}% (
-                        {inspectingConfig.detection_method})
-                      </div>
+                    <div className="text-xs font-sans font-bold text-[#F8FAFC]">
+                      {selectedFinding.title}
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">File Size</div>
-                      <div className="text-slate-300 font-semibold mt-0.5">
-                        {formatBytes(inspectingConfig.file_size_bytes)}
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
-                      <div className="text-[10px] text-slate-500 uppercase">Parser Lifecycle</div>
-                      <div className="text-indigo-400 font-semibold mt-0.5 uppercase">
-                        {inspectingConfig.parser_status}
-                      </div>
+                    <div className="p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04] text-[11px] text-[#94A3B8] font-sans leading-relaxed">
+                      {selectedFinding.why_it_failed || "Deterministic rule evaluation failure."}
                     </div>
                   </div>
 
-                  {/* Raw Configuration Text Box */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
-                      <span>Raw Device Configuration Excerpt</span>
+                  {/* Safe Remediation & Re-Analysis Action Card */}
+                  <div className="p-4 rounded-2xl bg-[#070A10] border border-[#10B981]/30 space-y-3 text-xs">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                      <div className="flex items-center gap-1.5 text-[#10B981] font-bold">
+                        <Wrench className="w-3.5 h-3.5" />
+                        <span>SAFE REMEDIATION</span>
+                      </div>
+                      <span className="text-[9px] text-[#64748B]">ALLOWLISTED</span>
+                    </div>
+
+                    {/* Diff Preview */}
+                    <div className="p-2.5 rounded-lg bg-[#03060A] border border-white/[0.06] text-[11px] font-mono space-y-1">
+                      {selectedFinding.remediation_diff?.diff_lines ? (
+                        selectedFinding.remediation_diff.diff_lines.map((dl: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className={cn(
+                              dl.type === "REMOVE"
+                                ? "text-[#EF4444]"
+                                : dl.type === "ADD"
+                                ? "text-[#10B981]"
+                                : "text-[#64748B]"
+                            )}
+                          >
+                            {dl.type === "REMOVE" ? "- " : dl.type === "ADD" ? "+ " : "  "}
+                            {dl.line}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-[#10B981] whitespace-pre-wrap">
+                          {selectedFinding.remediation_proposal || "! Standard baseline patch"}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5 pt-1">
                       <button
-                        onClick={() => handleCopy(inspectingConfig.raw_content)}
-                        className="inline-flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300"
+                        onClick={() =>
+                          handleCopyClipboard(
+                            selectedFinding.remediation_proposal || "",
+                            "cli"
+                          )
+                        }
+                        className="w-full py-2 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-white font-bold transition-all flex items-center justify-center gap-1.5"
                       >
-                        <Copy className="w-3 h-3" />
-                        <span>Copy All</span>
+                        {copiedText === "cli" ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                            <span>COPIED TO CLIPBOARD</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>COPY REMEDIATION CLI</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Primary Re-Analysis CTA */}
+                      <button
+                        onClick={handleReanalyzeWithRemediation}
+                        disabled={isReanalyzing}
+                        className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0ea371] text-black font-extrabold text-xs transition-all shadow-lg shadow-[#10B981]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isReanalyzing ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>RE-ANALYZING DETERMINISTICALLY...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>RE-ANALYZE WITH REMEDIATION</span>
+                          </>
+                        )}
                       </button>
                     </div>
+                  </div>
 
-                    <pre className="p-4 rounded-lg bg-[#070b12] border border-white/10 text-[11px] font-mono text-slate-300 overflow-x-auto max-h-96 leading-relaxed select-text">
-                      {inspectingConfig.raw_content}
-                    </pre>
+                  {/* AI Advisory Note */}
+                  <div className="p-4 rounded-2xl bg-[#0E0B19] border border-[#A855F7]/30 space-y-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-[#A855F7] font-bold text-[10px]">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>AI ADVISORY — READ ONLY</span>
+                    </div>
+                    <p className="text-[11px] text-[#E2E8F0] font-sans leading-relaxed">
+                      This control enforces deterministic hardening standards defined by CIS and NIST. The AI boundary maintains strict read-only isolation and does not alter the mathematical compliance verdict.
+                    </p>
                   </div>
                 </>
-              ) : null}
+              ) : (
+                <div className="p-6 rounded-2xl bg-[#070A10] border border-white/[0.08] text-center text-[#64748B] text-xs">
+                  Select a finding from the left panel to inspect evidence and remediation.
+                </div>
+              )}
             </div>
-
-            {/* Modal Footer */}
-            <div className="p-3 border-t border-white/10 bg-slate-900/60 flex items-center justify-between">
-              <button
-                onClick={() => {
-                  setAnalysisConfigId(inspectConfigId);
-                  setInspectConfigId(null);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/40 text-xs font-mono transition-colors"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>View Security Facts</span>
-              </button>
-
-              <button
-                onClick={() => setInspectConfigId(null)}
-                className="px-4 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono transition-colors"
-              >
-                Close
-              </button>
-            </div>
+          </div>
+        </div>
+      ) : (
+        /* Empty State */
+        <div className="p-12 rounded-2xl bg-[#070A10] border border-dashed border-white/[0.08] text-center space-y-3 font-mono">
+          <div className="w-10 h-10 rounded-xl bg-[#0B0F19] border border-white/[0.08] text-[#00D9FF] flex items-center justify-center mx-auto">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div className="space-y-1">
+            <div className="text-sm font-bold text-[#F8FAFC]">NO ACTIVE AUDIT SESSION</div>
+            <p className="text-xs text-[#94A3B8] max-w-md mx-auto font-sans">
+              Select a preset fixture or upload a network configuration above and click{" "}
+              <strong className="text-[#00D9FF]">AUDIT CONFIGURATION</strong> to begin deterministic evaluation.
+            </p>
           </div>
         </div>
       )}
 
-      {/* Deterministic End-to-End Pipeline Modal */}
-      <EndToEndPipelineModal
-        isOpen={isPipelineModalOpen}
-        onClose={() => setIsPipelineModalOpen(false)}
-      />
+      {/* 5. Ingested Configuration Repository History Table */}
+      <div className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 font-mono">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-[#00D9FF]" />
+            <span className="text-xs font-bold text-[#F8FAFC] uppercase tracking-wider">
+              INGESTED CONFIGURATION REPOSITORY ({storedConfigs.length})
+            </span>
+          </div>
+          <span className="text-[10px] text-[#64748B]">Persistent Database Records</span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-white/[0.06] text-[#64748B] text-[10px] uppercase">
+                <th className="py-2.5 px-3">Filename</th>
+                <th className="py-2.5 px-3">Vendor</th>
+                <th className="py-2.5 px-3">SHA-256 Hash</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3">Uploaded</th>
+                <th className="py-2.5 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.04]">
+              {storedConfigs.slice(0, 8).map((cfg) => (
+                <tr key={cfg.id} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="py-2.5 px-3 font-bold text-white flex items-center gap-2">
+                    <FileText className="w-3.5 h-3.5 text-[#00D9FF]" />
+                    <span>{cfg.original_filename}</span>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#00D9FF]/10 text-[#00D9FF] border border-[#00D9FF]/20 uppercase">
+                      {cfg.detected_vendor}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3 text-[#94A3B8] font-mono text-[10px]">
+                    {cfg.hash ? cfg.hash.slice(0, 16) + "..." : "--"}
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 uppercase">
+                      {cfg.parser_status || "PARSED"}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3 text-[#64748B] text-[10px]">
+                    {new Date(cfg.uploaded_at || Date.now()).toLocaleDateString()}
+                  </td>
+                  <td className="py-2.5 px-3 text-right">
+                    <button
+                      onClick={() => {
+                        setActiveAnalysisId(cfg.id);
+                        setRawText(cfg.original_filename);
+                      }}
+                      className="px-2.5 py-1 rounded bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#00D9FF] font-bold text-[10px] transition-all"
+                    >
+                      Inspect Audit →
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

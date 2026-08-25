@@ -14,8 +14,11 @@ export function formatBytes(bytes: number, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
 
-export async function computeClientSha256(file: File): Promise<string> {
-  const buffer = await file.arrayBuffer();
+export async function computeClientSha256(input: File | string): Promise<string> {
+  const buffer =
+    typeof input === "string"
+      ? new TextEncoder().encode(input)
+      : await input.arrayBuffer();
   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");

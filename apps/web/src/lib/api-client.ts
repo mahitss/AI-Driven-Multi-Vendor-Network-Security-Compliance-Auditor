@@ -1733,6 +1733,28 @@ export async function fetchAnalysisConfiguration(
   return res.json();
 }
 
+export interface VendorDetectionResult {
+  vendor: string;
+  confidence: number;
+  platform?: string;
+  matched_patterns?: string[];
+}
+
+export async function detectVendorFromText(
+  content: string,
+  filename?: string
+): Promise<VendorDetectionResult> {
+  const res = await fetchWithTimeout(`${API_BASE}/api/v1/configurations/detect-vendor`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, filename }),
+  });
+  if (!res.ok) {
+    throw new Error(`Vendor detection failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 
 
 
