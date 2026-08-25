@@ -19,7 +19,7 @@ export default function LandingHero() {
 
       {/* 3. Left Content: Premium Editorial Security Messaging (Z-20, Max 520px) */}
       <div className="relative z-20 w-full max-w-[480px] lg:max-w-[520px] flex flex-col items-start text-left">
-        
+
         {/* Institutional Status Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0B132B]/90 border border-[#00D9FF]/20 text-[11px] font-mono text-[#94A3B8] shadow-sm mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF] animate-pulse" />
