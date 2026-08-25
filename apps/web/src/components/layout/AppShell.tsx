@@ -26,6 +26,7 @@ import {
   X,
   Search,
   Play,
+  Lock,
 } from "lucide-react";
 import { fetchHealth } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ const navItems: NavItem[] = [
   { label: "Findings", href: "/findings", icon: AlertTriangle, category: "Intelligence & Analysis" },
   { label: "Risk Intelligence", href: "/risk", icon: Flame, category: "Intelligence & Analysis" },
   { label: "Remediation Center", href: "/remediation", icon: Wrench, category: "Intelligence & Analysis", badge: "Fix" },
+  { label: "AI Boundary", href: "/ai-boundary", icon: Lock, category: "Intelligence & Analysis", badge: "Trust" },
   { label: "AI Assistant", href: "/ai-assistant", icon: Bot, category: "Intelligence & Analysis", badge: "Co-pilot" },
   { label: "Adaptive Training", href: "/adaptive-training", icon: Sparkles, category: "Intelligence & Analysis" },
 
