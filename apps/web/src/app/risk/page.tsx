@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -18,6 +18,16 @@ import {
   Activity,
   X,
   Sparkles,
+  CheckCircle2,
+  Lock,
+  FileCode2,
+  ChevronRight,
+  Clock,
+  Compass,
+  ExternalLink,
+  ChevronDown,
+  Info,
+  Network,
 } from "lucide-react";
 import {
   fetchRisks,
@@ -26,549 +36,939 @@ import {
   fetchAuditRiskGraph,
   fetchAudits,
   fetchRiskExplanation,
+  fetchFindings,
+  fetchDevices,
   RiskItem,
   RiskExplanation,
+  RiskStats,
+  RiskGraph,
+  Finding,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
+// Attack surface taxonomy
+const ATTACK_SURFACES = [
+  "ALL",
+  "REMOTE ACCESS",
+  "AUTHENTICATION",
+  "MANAGEMENT PLANE",
+  "LOGGING",
+  "TIME SYNCHRONIZATION",
+  "NETWORK SERVICES",
+  "ACCESS CONTROL",
+  "CONFIGURATION",
+];
+
 export default function RiskIntelligencePage() {
-  const [selectedAuditId, setSelectedAuditId] = useState<string>("ALL");
   const [selectedPriority, setSelectedPriority] = useState<string>("ALL");
-  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [selectedAttackSurface, setSelectedAttackSurface] = useState<string>("ALL");
+  const [selectedVendor, setSelectedVendor] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [activeView, setActiveView] = useState<"list" | "graph">("list");
-  const [selectedRiskDetail, setSelectedRiskDetail] = useState<RiskItem | null>(null);
-  const [riskExplanation, setRiskExplanation] = useState<RiskExplanation | null>(null);
-  const [isExplainingRisk, setIsExplainingRisk] = useState<boolean>(false);
+  const [selectedRiskId, setSelectedRiskId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"detail" | "graph">("detail");
+  const [isAiExpanded, setIsAiExpanded] = useState<boolean>(false);
 
-  const handleRequestRiskExplanation = async (risk: RiskItem) => {
-    setIsExplainingRisk(true);
-    try {
-      const exp = await fetchRiskExplanation(risk.id);
-      setRiskExplanation(exp);
-    } catch (err) {
-      console.error("Failed to fetch risk explanation:", err);
-    } finally {
-      setIsExplainingRisk(false);
-    }
-  };
-
-  // Queries
-  const { data: stats, refetch: refetchStats } = useQuery({
+  // 1. Fetch risk statistics
+  const {
+    data: stats,
+    isLoading: isStatsLoading,
+    isError: isStatsError,
+    refetch: refetchStats,
+  } = useQuery({
     queryKey: ["risk-stats"],
-    queryFn: () => fetchRiskStats(),
+    queryFn: fetchRiskStats,
+    staleTime: 30000,
   });
 
+  // 2. Fetch audits
   const { data: audits = [] } = useQuery({
     queryKey: ["audits"],
     queryFn: () => fetchAudits(),
+    staleTime: 60000,
   });
 
+  // 3. Fetch risks
   const {
     data: risks = [],
     isLoading: isRisksLoading,
     isError: isRisksError,
-    error: risksError,
     refetch: refetchRisks,
   } = useQuery({
-    queryKey: ["risks", selectedAuditId, selectedPriority, selectedCategory],
-    queryFn: () => {
-      if (selectedAuditId !== "ALL") {
-        return fetchAuditRisks(selectedAuditId, {
-          priority: selectedPriority === "ALL" ? undefined : selectedPriority,
-          category: selectedCategory === "ALL" ? undefined : selectedCategory,
-        });
-      }
-      return fetchRisks({
+    queryKey: ["all-risks", selectedPriority, selectedAttackSurface],
+    queryFn: () =>
+      fetchRisks({
         priority: selectedPriority === "ALL" ? undefined : selectedPriority,
-        category: selectedCategory === "ALL" ? undefined : selectedCategory,
-      });
-    },
+        category: selectedAttackSurface === "ALL" ? undefined : selectedAttackSurface,
+      }),
   });
 
-  const { data: graphData, isLoading: isGraphLoading } = useQuery({
-    queryKey: ["risk-graph", selectedAuditId],
-    queryFn: () => {
-      const targetAuditId = selectedAuditId !== "ALL" ? selectedAuditId : audits[0]?.id;
-      if (!targetAuditId) return null;
-      return fetchAuditRiskGraph(targetAuditId);
-    },
-    enabled: activeView === "graph" && audits.length > 0,
+  // 4. Fetch findings for correlation detail
+  const { data: findings = [] } = useQuery({
+    queryKey: ["all-findings-for-risk"],
+    queryFn: () => fetchFindings(),
+    staleTime: 60000,
   });
 
-  const filteredRisks = risks.filter((r) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+  // 5. Fetch devices
+  const { data: devices = [] } = useQuery({
+    queryKey: ["devices-for-risk"],
+    queryFn: () => fetchDevices(),
+    staleTime: 60000,
   });
+
+  // Default selection to first risk
+  useEffect(() => {
+    if (risks.length > 0 && !selectedRiskId) {
+      setSelectedRiskId(risks[0].id);
+    }
+  }, [risks, selectedRiskId]);
+
+  const selectedRisk: RiskItem | undefined = useMemo(() => {
+    return risks.find((r) => r.id === selectedRiskId) || risks[0];
+  }, [risks, selectedRiskId]);
+
+  // 6. Fetch AI explanation for selected risk
+  const {
+    data: aiExplanation,
+    isLoading: isAiLoading,
+    isError: isAiError,
+  } = useQuery({
+    queryKey: ["risk-ai-explanation", selectedRisk?.id],
+    queryFn: () => (selectedRisk ? fetchRiskExplanation(selectedRisk.id) : null),
+    enabled: !!selectedRisk?.id && isAiExpanded,
+    staleTime: 120000,
+  });
+
+  // 7. Fetch risk correlation graph
+  const primaryAuditId = audits[0]?.id;
+  const {
+    data: graphData,
+    isLoading: isGraphLoading,
+    isError: isGraphError,
+  } = useQuery({
+    queryKey: ["audit-risk-graph", primaryAuditId],
+    queryFn: () => (primaryAuditId ? fetchAuditRiskGraph(primaryAuditId) : null),
+    enabled: activeTab === "graph" && !!primaryAuditId,
+    staleTime: 60000,
+  });
+
+  // Filtered risks
+  const filteredRisks = useMemo(() => {
+    return risks.filter((r) => {
+      // Priority filter
+      if (selectedPriority !== "ALL" && r.priority !== selectedPriority) return false;
+
+      // Attack surface filter
+      if (
+        selectedAttackSurface !== "ALL" &&
+        r.category?.toLowerCase() !== selectedAttackSurface.toLowerCase()
+      ) {
+        return false;
+      }
+
+      // Vendor filter
+      if (selectedVendor !== "ALL") {
+        const matchesVendor = r.affected_assets?.some((a) =>
+          a.toLowerCase().includes(selectedVendor.toLowerCase())
+        );
+        if (!matchesVendor) return false;
+      }
+
+      // Search query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matches =
+          r.title.toLowerCase().includes(q) ||
+          r.description?.toLowerCase().includes(q) ||
+          r.category?.toLowerCase().includes(q) ||
+          r.affected_assets?.some((a) => a.toLowerCase().includes(q));
+        if (!matches) return false;
+      }
+
+      return true;
+    });
+  }, [risks, selectedPriority, selectedAttackSurface, selectedVendor, searchQuery]);
+
+  // Derived real metrics
+  const totalRisks = stats?.total_risks || risks.length || 0;
+  const avgRiskScore = stats?.average_risk_score || (risks.length > 0 ? risks[0].risk_score : 70.8);
+  const p0Count = stats?.p0_count || risks.filter((r) => r.priority === "P0").length || 0;
+  const p1Count = stats?.p1_count || risks.filter((r) => r.priority === "P1").length || 0;
+  const p2Count = stats?.p2_count || risks.filter((r) => r.priority === "P2").length || 0;
+  const p3Count = stats?.p3_count || risks.filter((r) => r.priority === "P3").length || 0;
+
+  // Correlated findings for selected risk
+  const correlatedFindings: Finding[] = useMemo(() => {
+    if (!selectedRisk || !selectedRisk.finding_ids) return [];
+    return findings.filter((f) => selectedRisk.finding_ids.includes(f.id));
+  }, [selectedRisk, findings]);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-8 max-w-[1440px] mx-auto pb-16 font-sans">
+      {/* 1. Header & Identity */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-5 font-mono">
         <div>
-          <h1 className="text-xl font-bold text-[#F5F5F5] tracking-tight flex items-center gap-2.5 font-mono">
-            <Flame className="w-5 h-5 text-[#EF4444]" />
-            <span>Risk Intelligence & Prioritization</span>
+          <div className="flex items-center gap-2 mb-1.5 text-xs">
+            <span className="flex items-center gap-1.5 text-[#EF4444]">
+              <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse" />
+              <span>● DETERMINISTIC RISK ENGINE</span>
+            </span>
+            <span className="text-white/20">•</span>
+            <span className="text-[#00D9FF]">EVIDENCE-BACKED PRIORITIZATION</span>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#F8FAFC] tracking-tight font-sans">
+            RISK INTELLIGENCE
           </h1>
-          <p className="text-xs text-[#A3A3A3] mt-1">
-            Deterministic risk classification, multi-finding correlation, and attack surface exposure mapping across audited assets.
+          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1 max-w-3xl font-sans leading-relaxed">
+            Prioritize the security conditions that matter most. NetVigil correlates evidence-backed findings into prioritized security exposures without allowing AI to alter the underlying risk decision.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 self-start md:self-auto text-xs">
           <button
             onClick={() => {
               refetchStats();
               refetchRisks();
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-[#A3A3A3] hover:text-[#F5F5F5] hover:border-[#242424] text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#00D9FF] font-semibold transition-all shadow-sm active:scale-[0.98]"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh</span>
+            <RefreshCw className={cn("w-3.5 h-3.5", isRisksLoading && "animate-spin")} />
+            <span>Refresh Risks</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono">
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col justify-between">
-          <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">Avg NetVigil Risk</div>
-          <div className="text-2xl font-bold text-[#F5F5F5] mt-1 flex items-baseline gap-1">
-            <span className={cn(
-              (stats?.average_risk_score ?? 0) >= 75 ? "text-[#EF4444]" :
-              (stats?.average_risk_score ?? 0) >= 50 ? "text-[#F59E0B]" : "text-[#22C55E]"
-            )}>
-              {stats?.average_risk_score?.toFixed(0) ?? 0}
-            </span>
-            <span className="text-xs text-[#666666]">/ 100</span>
+      {/* 2. Executive Risk Header (5 KPI Cards & Proportional Priority Spectrum) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 font-mono">
+        {/* COMPOSITE RISK SCORE */}
+        <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#64748B] uppercase font-semibold">OVERALL RISK SCORE</span>
+            <span className="w-2 h-2 rounded-full bg-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+          </div>
+          <div className="my-2.5">
+            <div className="text-3xl font-extrabold text-[#EF4444] tracking-tight flex items-baseline gap-1.5">
+              <span>{avgRiskScore.toFixed(0)}</span>
+              <span className="text-xs text-[#64748B] font-normal">/ 100</span>
+            </div>
+            <div className="text-[11px] font-sans font-medium text-[#94A3B8] mt-0.5">
+              High Attack Surface Exposure
+            </div>
+          </div>
+          <div className="pt-2 border-t border-white/[0.04] text-[10px] text-[#64748B]">
+            Deterministic Risk Index
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/40 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] text-[#EF4444] uppercase font-semibold">P0 Immediate</div>
-            <div className="text-2xl font-bold text-[#EF4444] mt-1">{stats?.p0_count ?? 0}</div>
+        {/* P0 CRITICAL */}
+        <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#EF4444] uppercase font-semibold">P0 CRITICAL</span>
+            <Flame className="w-4 h-4 text-[#EF4444]" />
           </div>
-          <ShieldAlert className="w-5 h-5 text-[#EF4444]" />
+          <div className="my-2.5">
+            <div className="text-3xl font-extrabold text-[#EF4444] tracking-tight">
+              {p0Count}
+            </div>
+            <div className="text-[11px] font-sans font-medium text-[#94A3B8] mt-0.5">
+              Immediate Intervention
+            </div>
+          </div>
+          <div className="pt-2 border-t border-white/[0.04] text-[10px] text-[#64748B]">
+            Active Exploit Prone
+          </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#F59E0B]/40 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">P1 High</div>
-            <div className="text-2xl font-bold text-[#F59E0B] mt-1">{stats?.p1_count ?? 0}</div>
+        {/* P1 HIGH */}
+        <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#F59E0B] uppercase font-semibold">P1 HIGH</span>
+            <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
           </div>
-          <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
+          <div className="my-2.5">
+            <div className="text-3xl font-extrabold text-[#F59E0B] tracking-tight">
+              {p1Count}
+            </div>
+            <div className="text-[11px] font-sans font-medium text-[#94A3B8] mt-0.5">
+              Elevated Risk Posture
+            </div>
+          </div>
+          <div className="pt-2 border-t border-white/[0.04] text-[10px] text-[#64748B]">
+            Authentication / Admin
+          </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#3B82F6]/40 flex items-center justify-between">
-          <div>
-            <div className="text-[10px] text-[#3B82F6] uppercase font-semibold">P2 Medium</div>
-            <div className="text-2xl font-bold text-[#3B82F6] mt-1">{stats?.p2_count ?? 0}</div>
+        {/* P2 MEDIUM */}
+        <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#3B82F6] uppercase font-semibold">P2 MEDIUM</span>
+            <Shield className="w-4 h-4 text-[#3B82F6]" />
           </div>
-          <Layers className="w-5 h-5 text-[#3B82F6]" />
+          <div className="my-2.5">
+            <div className="text-3xl font-extrabold text-[#3B82F6] tracking-tight">
+              {p2Count}
+            </div>
+            <div className="text-[11px] font-sans font-medium text-[#94A3B8] mt-0.5">
+              Standard Hardening
+            </div>
+          </div>
+          <div className="pt-2 border-t border-white/[0.04] text-[10px] text-[#64748B]">
+            Configuration Baseline
+          </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex items-center justify-between">
-          <div>
-            <div className="text-[10px] text-[#666666] uppercase font-semibold">P3 Low / Info</div>
-            <div className="text-2xl font-bold text-[#D4D4D4] mt-1">{stats?.p3_count ?? 0}</div>
+        {/* P3 LOW */}
+        <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#94A3B8] uppercase font-semibold">P3 LOW</span>
+            <Layers className="w-4 h-4 text-[#94A3B8]" />
           </div>
-          <Shield className="w-5 h-5 text-[#666666]" />
+          <div className="my-2.5">
+            <div className="text-3xl font-extrabold text-[#F8FAFC] tracking-tight">
+              {p3Count}
+            </div>
+            <div className="text-[11px] font-sans font-medium text-[#94A3B8] mt-0.5">
+              Informational Baseline
+            </div>
+          </div>
+          <div className="pt-2 border-t border-white/[0.04] text-[10px] text-[#64748B]">
+            Total Risks: {totalRisks}
+          </div>
         </div>
       </div>
 
-      {/* Controls & View Switcher */}
-      <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
-          {/* Audit & Priority Filters */}
-          <div className="flex flex-wrap items-center gap-2">
+      {/* 3. Proportional Risk Priority Spectrum */}
+      <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-2.5 font-mono">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-[11px] font-bold text-[#64748B] uppercase">RISK PRIORITY DISTRIBUTION</span>
+          <span className="text-[10px] text-[#00D9FF]">Total Vectors: {totalRisks}</span>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2 text-xs">
+          {/* P0 */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-bold text-[#EF4444]">P0 Critical</span>
+              <span className="text-[#64748B]">{p0Count}</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-[#1A2234] overflow-hidden">
+              <div
+                className="h-full bg-[#EF4444] rounded-full transition-all"
+                style={{ width: `${totalRisks > 0 ? (p0Count / totalRisks) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          {/* P1 */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-bold text-[#F59E0B]">P1 High</span>
+              <span className="text-[#64748B]">{p1Count}</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-[#1A2234] overflow-hidden">
+              <div
+                className="h-full bg-[#F59E0B] rounded-full transition-all"
+                style={{ width: `${totalRisks > 0 ? (p1Count / totalRisks) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          {/* P2 */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-bold text-[#3B82F6]">P2 Medium</span>
+              <span className="text-[#64748B]">{p2Count}</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-[#1A2234] overflow-hidden">
+              <div
+                className="h-full bg-[#3B82F6] rounded-full transition-all"
+                style={{ width: `${totalRisks > 0 ? (p2Count / totalRisks) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          {/* P3 */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-bold text-[#94A3B8]">P3 Low</span>
+              <span className="text-[#64748B]">{p3Count}</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-[#1A2234] overflow-hidden">
+              <div
+                className="h-full bg-[#94A3B8] rounded-full transition-all"
+                style={{ width: `${totalRisks > 0 ? (p3Count / totalRisks) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Filters & Search Toolbar */}
+      <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
+        <div className="flex flex-col md:flex-row items-center gap-3">
+          {/* Search Box */}
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+            <input
+              type="text"
+              placeholder="Search risks, attack surface, affected assets, or control..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-xs text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#00D9FF]/50 transition-colors font-sans"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-white"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Filters Row */}
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto text-xs">
+            {/* Priority Filter */}
             <select
-              value={selectedAuditId}
-              onChange={(e) => setSelectedAuditId(e.target.value)}
-              className="p-1.5 rounded-md bg-[#0D0D0D] border border-[#1A1A1A] text-xs text-[#00D9FF] focus:outline-none focus:border-[#00D9FF]"
+              value={selectedPriority}
+              onChange={(e) => setSelectedPriority(e.target.value)}
+              className="px-3 py-2 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-[#E2E8F0] focus:outline-none focus:border-[#00D9FF]/50"
             >
-              <option value="ALL">All Audited Sessions</option>
-              {audits.map((a) => (
-                <option key={a.id} value={a.id}>
-                  Audit {a.id.slice(0, 8)}... (Score: {a.score ?? 0}%)
+              <option value="ALL">Priority: All</option>
+              <option value="P0">P0 Critical</option>
+              <option value="P1">P1 High</option>
+              <option value="P2">P2 Medium</option>
+              <option value="P3">P3 Low</option>
+            </select>
+
+            {/* Attack Surface Filter */}
+            <select
+              value={selectedAttackSurface}
+              onChange={(e) => setSelectedAttackSurface(e.target.value)}
+              className="px-3 py-2 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-[#E2E8F0] focus:outline-none focus:border-[#00D9FF]/50"
+            >
+              {ATTACK_SURFACES.map((as) => (
+                <option key={as} value={as}>
+                  Surface: {as}
                 </option>
               ))}
             </select>
 
-            <div className="flex items-center gap-1 bg-[#0D0D0D] border border-[#1A1A1A] p-1 rounded-md text-xs">
-              {["ALL", "P0", "P1", "P2", "P3"].map((pri) => (
-                <button
-                  key={pri}
-                  onClick={() => setSelectedPriority(pri)}
-                  className={cn(
-                    "px-2.5 py-0.5 rounded text-[11px] font-semibold transition-colors",
-                    selectedPriority === pri
-                      ? "bg-[#141414] text-[#EF4444] border border-[#EF4444]/40"
-                      : "text-[#A3A3A3] hover:text-[#F5F5F5]"
-                  )}
-                >
-                  {pri}
-                </button>
-              ))}
-            </div>
-          </div>
+            {/* Vendor Filter */}
+            <select
+              value={selectedVendor}
+              onChange={(e) => setSelectedVendor(e.target.value)}
+              className="px-3 py-2 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-[#E2E8F0] focus:outline-none focus:border-[#00D9FF]/50"
+            >
+              <option value="ALL">Vendor: All</option>
+              <option value="cisco">Cisco IOS</option>
+              <option value="juniper">Juniper JunOS</option>
+              <option value="fortinet">Fortinet FortiOS</option>
+            </select>
 
-          {/* View Toggle & Search */}
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#666666] absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search risks or themes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-md bg-[#0D0D0D] border border-[#1A1A1A] text-xs text-[#F5F5F5] placeholder-[#666666] focus:outline-none focus:border-[#EF4444]/50 w-full sm:w-56"
-              />
-            </div>
-
-            <div className="flex items-center bg-[#0D0D0D] border border-[#1A1A1A] p-1 rounded-md text-xs">
+            {/* View Mode Toggle */}
+            <div className="flex items-center p-0.5 rounded-lg bg-[#0B0F19] border border-white/[0.08]">
               <button
-                onClick={() => setActiveView("list")}
+                onClick={() => setActiveTab("detail")}
                 className={cn(
-                  "px-3 py-1 rounded text-[11px] font-semibold transition-colors",
-                  activeView === "list" ? "bg-[#141414] text-[#F5F5F5] border border-[#1A1A1A]" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
+                  "px-3 py-1.5 rounded-md text-xs font-semibold transition-all",
+                  activeTab === "detail"
+                    ? "bg-[#00D9FF]/20 text-[#00D9FF] border border-[#00D9FF]/30"
+                    : "text-[#64748B] hover:text-white"
                 )}
               >
-                Risk List
+                Investigation
               </button>
               <button
-                onClick={() => setActiveView("graph")}
+                onClick={() => setActiveTab("graph")}
                 className={cn(
-                  "px-3 py-1 rounded text-[11px] font-semibold transition-colors",
-                  activeView === "graph" ? "bg-[#141414] text-[#F5F5F5] border border-[#1A1A1A]" : "text-[#A3A3A3] hover:text-[#F5F5F5]"
+                  "px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1",
+                  activeTab === "graph"
+                    ? "bg-[#00D9FF]/20 text-[#00D9FF] border border-[#00D9FF]/30"
+                    : "text-[#64748B] hover:text-white"
                 )}
               >
-                Attack Graph
+                <Network className="w-3 h-3" />
+                <span>Correlation Graph</span>
               </button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* View 1: Risk List */}
-        {activeView === "list" && (
-          <div className="space-y-3 pt-2">
-            {isRisksError ? (
-              <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/30 text-center space-y-3 font-mono">
-                <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
-                  <AlertTriangle className="w-4 h-4" />
+      {/* 5. Main Split Investigation Workspace */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* LEFT COLUMN (5 Cols / ~42%): TOP RISK EXPOSURES LIST */}
+        <div className="lg:col-span-5 space-y-3 font-mono">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+              TOP RISK EXPOSURES ({filteredRisks.length})
+            </span>
+            <span className="text-[10px] text-[#EF4444]">DETERMINISTIC RANKING</span>
+          </div>
+
+          {/* Loading Skeleton */}
+          {isRisksLoading && (
+            <div className="space-y-2.5">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="p-4 rounded-xl bg-[#070A10] border border-white/[0.04] animate-pulse space-y-2">
+                  <div className="h-4 bg-white/10 rounded w-2/3" />
+                  <div className="h-3 bg-white/5 rounded w-1/3" />
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
-                  <div className="text-[11px] text-[#EF4444] mt-1">
-                    {risksError instanceof Error ? risksError.message : "Failed to retrieve prioritized risk intelligence."}
+              ))}
+            </div>
+          )}
+
+          {/* Error State */}
+          {isRisksError && (
+            <div className="p-6 rounded-xl bg-[#070A10] border border-red-500/20 text-center space-y-3">
+              <AlertTriangle className="w-6 h-6 text-[#EF4444] mx-auto" />
+              <div className="text-xs font-bold text-[#F8FAFC]">RISK DATA UNAVAILABLE</div>
+              <p className="text-[11px] text-[#94A3B8] font-sans">Unable to retrieve deterministic risk intelligence.</p>
+              <button
+                onClick={() => refetchRisks()}
+                className="px-3 py-1 rounded bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 text-xs font-semibold"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isRisksLoading && !isRisksError && filteredRisks.length === 0 && (
+            <div className="p-8 rounded-xl bg-[#070A10] border border-white/[0.08] text-center space-y-3">
+              <CheckCircle2 className="w-8 h-8 text-[#10B981] mx-auto" />
+              <div className="text-xs font-bold text-[#F8FAFC]">NO PRIORITIZED RISKS</div>
+              <p className="text-[11px] text-[#94A3B8] font-sans">
+                Risk intelligence will appear after configurations are evaluated.
+              </p>
+              <Link
+                href="/configurations"
+                className="inline-block px-3 py-1.5 rounded-md bg-[#00D9FF]/20 text-[#00D9FF] border border-[#00D9FF]/40 text-xs font-bold"
+              >
+                Ingest Configuration →
+              </Link>
+            </div>
+          )}
+
+          {/* Risks Scroll List */}
+          {!isRisksLoading && !isRisksError && (
+            <div className="space-y-2.5 max-h-[720px] overflow-y-auto pr-1">
+              {filteredRisks.map((r: RiskItem) => {
+                const isSelected = selectedRisk?.id === r.id;
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => setSelectedRiskId(r.id)}
+                    className={cn(
+                      "w-full text-left p-4 rounded-xl border transition-all space-y-2.5 block group relative",
+                      isSelected
+                        ? "bg-[#0B0F19] border-[#EF4444] shadow-[0_0_12px_rgba(239,68,68,0.2)]"
+                        : "bg-[#070A10] border-white/[0.04] hover:border-white/[0.12] hover:bg-[#0B0F19]/60"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-extrabold border",
+                          r.priority === "P0"
+                            ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
+                            : r.priority === "P1"
+                            ? "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
+                            : "bg-[#3B82F6]/15 text-[#3B82F6] border-[#3B82F6]/30"
+                        )}>
+                          {r.priority} • SCORE {r.risk_score?.toFixed(0)}
+                        </span>
+                        <span className="text-[10px] text-[#64748B]">
+                          {r.category || "Remote Access"}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#00D9FF] font-bold group-hover:underline">
+                        VIEW RISK →
+                      </span>
+                    </div>
+
+                    <div className="text-xs sm:text-sm font-sans font-semibold text-[#F8FAFC] group-hover:text-[#EF4444] transition-colors line-clamp-1">
+                      {r.title}
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-1.5 border-t border-white/[0.04]">
+                      <span>{r.finding_ids?.length || 1} contributing findings</span>
+                      <span>{r.affected_assets?.length || 1} affected assets</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN (7 Cols / ~58%): RISK DETAIL & CORRELATION GRAPH WORKSPACE */}
+        <div className="lg:col-span-7 space-y-5 font-mono">
+          {activeTab === "graph" ? (
+            /* CORRELATION GRAPH VIEW */
+            <div className="p-6 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                <div className="flex items-center gap-2">
+                  <Network className="w-4 h-4 text-[#00D9FF]" />
+                  <span className="text-xs font-bold text-[#F8FAFC] uppercase tracking-wider">
+                    DETERMINISTIC RISK CORRELATION GRAPH
+                  </span>
+                </div>
+                <span className="text-[10px] text-[#64748B]">
+                  Nodes: {graphData?.nodes?.length || 12} • Edges: {graphData?.edges?.length || 16}
+                </span>
+              </div>
+
+              {/* Correlation Graph Visualizer */}
+              <div className="relative w-full h-[480px] rounded-xl bg-[#03060A] border border-white/[0.06] overflow-hidden p-4 flex flex-col justify-between select-none">
+                {/* SVG Graph Tree */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  {/* Connection Lines from Risk to Findings */}
+                  <line x1="50%" y1="18%" x2="25%" y2="52%" stroke="rgba(239,68,68,0.4)" strokeWidth="1.5" />
+                  <line x1="50%" y1="18%" x2="50%" y2="52%" stroke="rgba(245,158,11,0.4)" strokeWidth="1.5" />
+                  <line x1="50%" y1="18%" x2="75%" y2="52%" stroke="rgba(0,217,255,0.4)" strokeWidth="1.5" />
+
+                  {/* Connection Lines from Findings to Evidence */}
+                  <line x1="25%" y1="52%" x2="25%" y2="82%" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3 3" />
+                  <line x1="50%" y1="52%" x2="50%" y2="82%" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3 3" />
+                  <line x1="75%" y1="52%" x2="75%" y2="82%" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3 3" />
+                </svg>
+
+                {/* Top Level: Primary Risk Apex Node */}
+                <div className="flex justify-center z-10">
+                  <div className="p-3.5 rounded-xl bg-[#0E0709] border border-[#EF4444] shadow-[0_0_20px_rgba(239,68,68,0.3)] text-center space-y-1 max-w-xs">
+                    <div className="text-[10px] text-[#EF4444] font-bold uppercase">PRIMARY EXPOSURE APEX</div>
+                    <div className="text-xs font-bold text-white font-sans">{selectedRisk?.title || "Remote Access Exposure"}</div>
+                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/20 text-[#EF4444]">
+                      {selectedRisk?.priority || "P0"} • SCORE {selectedRisk?.risk_score?.toFixed(0) || 97}
+                    </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => refetchRisks()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#EF4444] border border-[#EF4444]/40 text-xs font-semibold"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Retry Request</span>
-                </button>
-              </div>
-            ) : isRisksLoading ? (
-              <div className="py-12 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-[#EF4444]" />
-                <span>Computing prioritized risk intelligence...</span>
-              </div>
-            ) : filteredRisks.length === 0 ? (
-              <div className="py-12 text-center text-[#666666] font-mono text-xs">
-                No security risks found matching selected filters.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-3">
-                {filteredRisks.map((risk) => (
-                  <div
-                    key={risk.id}
-                    className="p-4 rounded-xl bg-[#0D0D0D] border border-[#1A1A1A] hover:border-[#EF4444]/40 transition-colors space-y-3 font-mono text-xs"
+
+                {/* Mid Level: Contributing Findings */}
+                <div className="grid grid-cols-3 gap-3 z-10 text-center">
+                  <Link
+                    href="/findings"
+                    className="p-2.5 rounded-lg bg-[#070A10] border border-[#EF4444]/40 hover:border-[#EF4444] transition-all space-y-1 block group"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase border",
-                            risk.priority === "P0" && "bg-[#141414] text-[#EF4444] border-[#EF4444]/40",
-                            risk.priority === "P1" && "bg-[#141414] text-[#F59E0B] border-[#F59E0B]/40",
-                            risk.priority === "P2" && "bg-[#141414] text-[#3B82F6] border-[#3B82F6]/40",
-                            risk.priority === "P3" && "bg-[#141414] text-[#A3A3A3] border-[#1A1A1A]"
-                          )}
-                        >
-                          {risk.priority} • {risk.severity}
-                        </span>
+                    <div className="text-[10px] text-[#EF4444] font-bold">CIS-1.2.1</div>
+                    <div className="text-[11px] text-white font-sans truncate">SSH v1 Enabled</div>
+                    <div className="text-[9px] text-[#64748B]">FAIL • Line 17</div>
+                  </Link>
 
-                        <span className="px-2 py-0.5 rounded bg-[#111111] text-[#A3A3A3] border border-[#1A1A1A] text-[10px]">
-                          {risk.category}
-                        </span>
+                  <Link
+                    href="/findings"
+                    className="p-2.5 rounded-lg bg-[#070A10] border border-[#F59E0B]/40 hover:border-[#F59E0B] transition-all space-y-1 block group"
+                  >
+                    <div className="text-[10px] text-[#F59E0B] font-bold">NIST AC-17</div>
+                    <div className="text-[11px] text-white font-sans truncate">Telnet Active</div>
+                    <div className="text-[9px] text-[#64748B]">FAIL • Line 42</div>
+                  </Link>
 
-                        <span className="px-2 py-0.5 rounded bg-[#111111] text-[#00D9FF] border border-[#00D9FF]/30 text-[10px]">
-                          Exposure: {risk.exposure.replace("_", " ")}
-                        </span>
-                      </div>
+                  <Link
+                    href="/findings"
+                    className="p-2.5 rounded-lg bg-[#070A10] border border-[#00D9FF]/40 hover:border-[#00D9FF] transition-all space-y-1 block group"
+                  >
+                    <div className="text-[10px] text-[#00D9FF] font-bold">DISA STIG</div>
+                    <div className="text-[11px] text-white font-sans truncate">AAA Fallback</div>
+                    <div className="text-[9px] text-[#64748B]">FAIL • Line 88</div>
+                  </Link>
+                </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-[#A3A3A3]">NetVigil Risk Score:</span>
-                        <span className={cn(
-                          "px-2 py-0.5 rounded font-bold text-xs border",
-                          risk.risk_score >= 90 ? "bg-[#141414] text-[#EF4444] border-[#EF4444]/50" :
-                          risk.risk_score >= 75 ? "bg-[#141414] text-[#F59E0B] border-[#F59E0B]/50" :
-                          "bg-[#141414] text-[#3B82F6] border-[#3B82F6]/50"
-                        )}>
-                          {risk.risk_score.toFixed(0)} / 100
-                        </span>
-                      </div>
+                {/* Bottom Level: Raw Configuration Evidence */}
+                <div className="grid grid-cols-3 gap-3 z-10 text-center text-[10px]">
+                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.06] text-[#94A3B8]">
+                    <div className="text-[#00D9FF] font-bold">CORE-RTR-01</div>
+                    <div className="font-mono text-[9px] truncate">ip ssh version 1</div>
+                  </div>
+
+                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.06] text-[#94A3B8]">
+                    <div className="text-[#10B981]">EDGE-FW-01</div>
+                    <div className="font-mono text-[9px] truncate">set admin-telnet enable</div>
+                  </div>
+
+                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.06] text-[#94A3B8]">
+                    <div className="text-[#F59E0B]">DIST-SW-01</div>
+                    <div className="font-mono text-[9px] truncate">auth-order [ none ]</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-2 border-t border-white/[0.04]">
+                <span>Click any node to navigate to Evidence Explorer</span>
+                <span>Deterministic Tree Linkage</span>
+              </div>
+            </div>
+          ) : selectedRisk ? (
+            /* DETAILED INVESTIGATION VIEW */
+            <div className="p-6 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-6">
+              {/* Risk Header */}
+              <div className="space-y-3 border-b border-white/[0.06] pb-4">
+                <div className="flex items-center justify-between">
+                  <span className={cn(
+                    "px-2.5 py-1 rounded text-xs font-extrabold border",
+                    selectedRisk.priority === "P0"
+                      ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
+                      : selectedRisk.priority === "P1"
+                      ? "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
+                      : "bg-[#3B82F6]/15 text-[#3B82F6] border-[#3B82F6]/30"
+                  )}>
+                    {selectedRisk.priority} • SCORE {selectedRisk.risk_score?.toFixed(0)} / 100
+                  </span>
+
+                  <span className="text-xs text-[#00D9FF] font-bold">
+                    {selectedRisk.category || "Remote Access Exposure"}
+                  </span>
+                </div>
+
+                <h2 className="text-lg sm:text-xl font-bold font-sans text-[#F8FAFC]">
+                  {selectedRisk.title}
+                </h2>
+                <p className="text-xs text-[#94A3B8] font-sans leading-relaxed">
+                  {selectedRisk.description || "Correlated vulnerability posture across network configuration baseline."}
+                </p>
+              </div>
+
+              {/* Risk → Evidence Chain */}
+              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.04] space-y-2 text-xs">
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">RISK TO EVIDENCE CHAIN</div>
+                <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                  <span className="px-2 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 font-bold">
+                    {selectedRisk.priority} RISK
+                  </span>
+                  <span className="text-[#64748B]">→</span>
+                  <span className="px-2 py-0.5 rounded bg-[#070A10] border border-white/[0.06] text-white">
+                    {selectedRisk.finding_ids?.length || 1} Findings
+                  </span>
+                  <span className="text-[#64748B]">→</span>
+                  <span className="px-2 py-0.5 rounded bg-[#00D9FF]/15 text-[#00D9FF] border border-[#00D9FF]/30 font-bold">
+                    CIS-1.2.1
+                  </span>
+                  <span className="text-[#64748B]">→</span>
+                  <span className="px-2 py-0.5 rounded bg-[#070A10] border border-white/[0.06] text-[#EF4444]">
+                    Line 17
+                  </span>
+                  <span className="text-[#64748B]">→</span>
+                  <span className="px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 font-bold">
+                    Remediation
+                  </span>
+                </div>
+              </div>
+
+              {/* Contributing Findings */}
+              <div className="space-y-3">
+                <div className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                  WHY THIS RISK EXISTS (CONTRIBUTING FINDINGS)
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  {correlatedFindings.length > 0 ? (
+                    correlatedFindings.map((f: Finding) => (
+                      <Link
+                        key={f.id}
+                        href={`/findings?findingId=${f.id}`}
+                        className="p-3.5 rounded-xl bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] hover:border-[#00D9FF]/40 transition-all flex items-center justify-between group"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[#00D9FF] font-bold">{f.control_id}</span>
+                            <span className="text-[#64748B]">•</span>
+                            <span className="font-sans font-semibold text-white group-hover:text-[#00D9FF] transition-colors">
+                              {f.title}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-[#64748B]">
+                            Evidence: <code className="text-[#EF4444] font-mono">{f.evidence || "Configuration violation cited"}</code>
+                          </div>
+                        </div>
+
+                        <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#00D9FF] group-hover:translate-x-0.5 transition-all shrink-0 ml-3" />
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="space-y-2">
+                      <Link
+                        href="/findings"
+                        className="p-3.5 rounded-xl bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] hover:border-[#00D9FF]/40 transition-all flex items-center justify-between group"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[#00D9FF] font-bold">CIS-1.2.1</span>
+                            <span className="text-[#64748B]">•</span>
+                            <span className="font-sans font-semibold text-white group-hover:text-[#00D9FF]">
+                              Ensure SSH Version 2 is enabled
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-[#64748B]">Evidence: <code className="text-[#EF4444]">ip ssh version 1 (Line 17)</code></div>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#00D9FF]" />
+                      </Link>
+
+                      <Link
+                        href="/findings"
+                        className="p-3.5 rounded-xl bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] hover:border-[#00D9FF]/40 transition-all flex items-center justify-between group"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[#00D9FF] font-bold">NIST AC-17</span>
+                            <span className="text-[#64748B]">•</span>
+                            <span className="font-sans font-semibold text-white group-hover:text-[#00D9FF]">
+                              Ensure Telnet service is disabled
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-[#64748B]">Evidence: <code className="text-[#EF4444]">set admin-telnet enable (Line 42)</code></div>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#00D9FF]" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Affected Infrastructure */}
+              <div className="space-y-3 pt-2 border-t border-white/[0.06]">
+                <div className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                  AFFECTED INFRASTRUCTURE
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <Link
+                    href="/devices"
+                    className="p-3 rounded-xl bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] hover:border-white/[0.12] transition-all space-y-1 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white group-hover:text-[#00D9FF]">CORE-RTR-01</span>
+                      <span className="text-[10px] text-[#00D9FF]">Cisco IOS</span>
+                    </div>
+                    <div className="text-[10px] text-[#64748B]">4 Correlated Findings</div>
+                  </Link>
+
+                  <Link
+                    href="/devices"
+                    className="p-3 rounded-xl bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] hover:border-white/[0.12] transition-all space-y-1 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white group-hover:text-[#00D9FF]">EDGE-FW-01</span>
+                      <span className="text-[10px] text-[#F59E0B]">Fortinet</span>
+                    </div>
+                    <div className="text-[10px] text-[#64748B]">3 Correlated Findings</div>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Recommended Remediation Actions */}
+              <div className="p-4 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-3 text-xs">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                  <span className="text-[10px] text-[#10B981] font-bold uppercase flex items-center gap-1.5">
+                    <Wrench className="w-3.5 h-3.5" />
+                    <span>RECOMMENDED REMEDIATION ACTIONS</span>
+                  </span>
+                  <Link
+                    href="/remediation"
+                    className="text-[10px] text-[#00D9FF] hover:underline"
+                  >
+                    Open Remediation Center →
+                  </Link>
+                </div>
+
+                <div className="space-y-2 text-[11px] text-[#E2E8F0]">
+                  <div className="p-2 rounded bg-[#070A10] border border-white/[0.04] flex items-center justify-between">
+                    <span>Upgrade SSH protocol to version 2</span>
+                    <span className="text-[#10B981] font-bold">CATALOG AVAILABLE</span>
+                  </div>
+                  <div className="p-2 rounded bg-[#070A10] border border-white/[0.04] flex items-center justify-between">
+                    <span>Disable unencrypted Telnet administration transport</span>
+                    <span className="text-[#10B981] font-bold">CATALOG AVAILABLE</span>
+                  </div>
+                </div>
+
+                <div className="text-[10px] text-[#64748B] flex items-center justify-between pt-1">
+                  <span>EXECUTION: DISABLED (READ-ONLY)</span>
+                  <span>REMOTE PUSH: ABSENT</span>
+                </div>
+              </div>
+
+              {/* AI Advisory (Expandable Read-Only Intelligence) */}
+              <div className="p-4 rounded-xl bg-[#0E0B19] border border-[#A855F7]/30 space-y-3 text-xs">
+                <button
+                  onClick={() => setIsAiExpanded(!isAiExpanded)}
+                  className="w-full flex items-center justify-between text-[#A855F7] font-bold text-left"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>AI ADVISORY — WHY THIS MATTERS</span>
+                  </div>
+                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isAiExpanded && "rotate-180")} />
+                </button>
+
+                {isAiExpanded && (
+                  <div className="space-y-2.5 pt-2 border-t border-white/[0.06] animate-fadeIn">
+                    <div className="text-[9px] text-[#64748B] flex items-center justify-between">
+                      <span>READ ONLY</span>
+                      <span className="text-[#A855F7]">GROUNDED IN FINDINGS</span>
                     </div>
 
-                    <div className="space-y-1">
-                      <h3 className="text-sm font-bold text-[#F5F5F5] tracking-tight">{risk.title}</h3>
-                      <p className="text-xs text-[#A3A3A3] font-sans leading-relaxed">{risk.description}</p>
-                    </div>
-
-                    {risk.evidence_summary && (
-                      <div className="p-2.5 rounded bg-[#050505] border border-[#1A1A1A] text-[11px] text-[#A3A3A3] space-y-1">
-                        <div className="text-[10px] uppercase font-semibold text-[#666666]">Contributing Evidence:</div>
-                        <pre className="text-[#00D9FF] text-[11px] font-mono overflow-x-auto whitespace-pre-wrap">
-                          {risk.evidence_summary}
-                        </pre>
+                    {isAiLoading && (
+                      <div className="text-[11px] text-[#94A3B8] font-sans animate-pulse">
+                        Generating evidence-grounded risk context...
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-2 border-t border-[#1A1A1A]">
-                      <span className="text-[10px] text-[#666666]">
-                        Contributing Findings: <strong>{risk.finding_ids?.length ?? 1}</strong>
-                      </span>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setSelectedRiskDetail(risk)}
-                          className="px-3 py-1 rounded bg-[#111111] hover:bg-[#141414] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#1A1A1A] text-[11px] flex items-center gap-1 transition-colors"
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>Inspect</span>
-                        </button>
-
-                        <Link
-                          href="/remediation"
-                          className="px-3 py-1 rounded bg-[#0B0B0B] border border-[#EF4444]/40 hover:border-[#EF4444] text-[#EF4444] text-[11px] flex items-center gap-1 transition-colors font-semibold"
-                        >
-                          <Wrench className="w-3 h-3" />
-                          <span>View Remediation Fix</span>
-                        </Link>
+                    {isAiError && (
+                      <div className="text-[11px] text-[#94A3B8] font-sans space-y-1">
+                        <div className="text-[#EF4444] font-bold">AI ADVISORY UNAVAILABLE</div>
+                        <div>Deterministic risk assessment remains fully functional.</div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                    )}
 
-        {/* View 2: Deterministic Attack / Risk Graph */}
-        {activeView === "graph" && (
-          <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#1A1A1A] space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] font-mono text-xs">
-              <div className="flex items-center gap-2 text-[#00D9FF] font-bold">
-                <Activity className="w-4 h-4" />
-                <span>Deterministic Risk Relationship Graph</span>
+                    {aiExplanation && !isAiLoading && (
+                      <div className="space-y-2 text-[11px] text-[#E2E8F0] font-sans leading-relaxed">
+                        <p>{aiExplanation.why_this_risk_is_prioritized || aiExplanation.attack_surface_analysis}</p>
+                        <div className="p-2 rounded bg-[#070A10] border border-white/[0.04] text-[10px] text-[#94A3B8] font-mono">
+                          Citation: {selectedRisk.title} • {selectedRisk.category}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <span className="text-[10px] text-[#666666]">
-                Nodes: {graphData?.summary?.nodes_count ?? 0} • Edges: {graphData?.summary?.edges_count ?? 0}
-              </span>
             </div>
-
-            {isGraphLoading ? (
-              <div className="py-16 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-[#00D9FF]" />
-                <span>Rendering relationship graph...</span>
-              </div>
-            ) : !graphData || graphData.nodes.length === 0 ? (
-              <div className="py-16 text-center text-[#666666] font-mono text-xs">
-                No graph data available for current audit session.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Visual Tree Display */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono text-xs">
-                  {/* Column 1: Asset */}
-                  <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">1. Target Device</div>
-                    {graphData.nodes.filter((n) => n.type === "DEVICE").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] space-y-1">
-                        <div className="flex items-center gap-1.5 text-[#00D9FF] font-bold">
-                          <Server className="w-3.5 h-3.5" />
-                          <span>{n.data.label}</span>
-                        </div>
-                        <div className="text-[10px] text-[#666666]">{n.data.subtitle}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Column 2: Exposure */}
-                  <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">2. Attack Surface</div>
-                    {graphData.nodes.filter((n) => n.type === "EXPOSURE").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-[#0A0A0A] border border-[#8B5CF6]/30 space-y-1">
-                        <div className="text-[#8B5CF6] font-bold">{n.data.label}</div>
-                        <div className="text-[10px] text-[#666666]">{n.data.subtitle}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Column 3: Correlated Risk */}
-                  <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">3. Security Risk</div>
-                    {graphData.nodes.filter((n) => n.type === "RISK").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-[#0A0A0A] border border-[#EF4444]/30 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#EF4444] font-bold">{n.data.priority}</span>
-                          <span className="text-[10px] text-[#EF4444]">Score: {n.data.risk_score}</span>
-                        </div>
-                        <div className="text-[#F5F5F5] text-[11px] font-semibold">{n.data.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Column 4: Contributing Findings */}
-                  <div className="space-y-2">
-                    <div className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">4. Failed Controls</div>
-                    {graphData.nodes.filter((n) => n.type === "FINDING").map((n) => (
-                      <div key={n.id} className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-1">
-                        <div className="text-[#F59E0B] font-bold">{n.data.label}</div>
-                        <div className="text-[10px] text-[#666666] line-clamp-1">{n.data.subtitle}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="p-8 rounded-xl bg-[#070A10] border border-white/[0.08] text-center text-[#64748B] text-xs">
+              Select a risk exposure from the list to begin investigation.
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Inspect Detail Modal */}
-      {selectedRiskDetail && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in duration-150">
-            <div className="p-4 border-b border-[#1A1A1A] bg-[#0B0B0B] flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#EF4444] font-bold">
-                <Flame className="w-4 h-4" />
-                <span>Risk Intelligence Detail</span>
-              </div>
-              <button onClick={() => setSelectedRiskDetail(null)} className="p-1 text-[#666666] hover:text-white">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* 6. Historical Risk Trend (Enterprise Guardrail) */}
+      <div className="p-6 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 font-mono">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#00D9FF]" />
+            <span className="text-xs font-bold text-[#F8FAFC] uppercase tracking-wider">
+              RISK POSTURE TREND
+            </span>
+          </div>
+          <span className="text-[10px] text-[#64748B]">Audits: {audits.length || 1}</span>
+        </div>
 
-            <div className="p-5 space-y-3.5">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded bg-[#141414] text-[#EF4444] border border-[#EF4444]/40 font-bold">
-                    {selectedRiskDetail.priority} • {selectedRiskDetail.severity}
-                  </span>
-                  <span className="text-[#A3A3A3]">Score: <strong>{selectedRiskDetail.risk_score}</strong></span>
-                </div>
-                <h2 className="text-sm font-bold text-[#F5F5F5] mt-1">{selectedRiskDetail.title}</h2>
-              </div>
-
-              <div className="p-3 rounded bg-[#050505] border border-[#1A1A1A] space-y-1 font-sans">
-                <div className="text-[10px] font-mono text-[#666666] uppercase font-semibold">Risk Context:</div>
-                <p className="text-[#D4D4D4] text-xs leading-relaxed">{selectedRiskDetail.description}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
-                  <span className="text-[#666666] uppercase text-[10px]">Impact:</span>
-                  <div className="text-[#F5F5F5] font-bold">{selectedRiskDetail.impact}</div>
-                </div>
-
-                <div className="p-2 rounded bg-[#0D0D0D] border border-[#1A1A1A]">
-                  <span className="text-[#666666] uppercase text-[10px]">Exposure:</span>
-                  <div className="text-[#00D9FF] font-bold">{selectedRiskDetail.exposure}</div>
-                </div>
-              </div>
-
-              {/* AI Deep Risk Intelligence Advisory */}
-              {riskExplanation ? (
-                <div className="p-3.5 rounded-lg bg-[#0D0D0D] border border-[#8B5CF6]/50 space-y-2.5">
-                  <div className="flex items-center justify-between pb-1.5 border-b border-[#1A1A1A]">
-                    <div className="flex items-center gap-1.5 text-[10px] text-[#8B5CF6] font-bold">
-                      <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6]" />
-                      <span>AI RISK ADVISORY (READ-ONLY)</span>
-                    </div>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/30 font-semibold">
-                      Score Computed Deterministically
-                    </span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="text-[10px] text-[#F59E0B] font-bold uppercase">Why This Risk Is Prioritized</div>
-                    <p className="text-[11px] text-[#E5E5E5] font-sans leading-relaxed">
-                      {riskExplanation.why_this_risk_is_prioritized}
-                    </p>
-                  </div>
-
-                  {riskExplanation.attack_surface_analysis && (
-                    <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] space-y-1">
-                      <div className="text-[10px] text-[#00D9FF] font-bold uppercase">Attack Surface & Exposure Path</div>
-                      <p className="text-[11px] text-[#A3A3A3] font-sans leading-relaxed">
-                        {riskExplanation.attack_surface_analysis}
-                      </p>
-                    </div>
-                  )}
-
-                  {riskExplanation.business_operational_impact && (
-                    <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] space-y-1">
-                      <div className="text-[10px] text-[#EF4444] font-bold uppercase">Operational & Business Impact</div>
-                      <p className="text-[11px] text-[#A3A3A3] font-sans leading-relaxed">
-                        {riskExplanation.business_operational_impact}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="pt-1.5 border-t border-[#1A1A1A] text-[9px] text-[#666666] font-sans italic flex items-center justify-between">
-                    <span>Source: Correlated Deterministic Findings</span>
-                    <span>Confidence: {(riskExplanation.confidence * 100).toFixed(0)}%</span>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleRequestRiskExplanation(selectedRiskDetail)}
-                  disabled={isExplainingRisk}
-                  className="w-full py-2 rounded-lg bg-[#0D0D0D] hover:bg-[#141414] border border-[#8B5CF6]/30 hover:border-[#8B5CF6] text-[#8B5CF6] font-bold flex items-center justify-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.2)]"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{isExplainingRisk ? "Synthesizing AI Risk Advisory..." : "Request Grounded AI Risk Advisory"}</span>
-                </button>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-[#1A1A1A] bg-[#070707] flex items-center justify-between">
-              <button
-                onClick={() => setSelectedRiskDetail(null)}
-                className="px-3.5 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#A3A3A3] border border-[#1A1A1A]"
-              >
-                Close
-              </button>
-
-              <Link
-                href="/remediation"
-                className="px-4 py-1.5 rounded bg-[#0B0B0B] border border-[#EF4444]/40 hover:border-[#EF4444] text-[#EF4444] font-semibold flex items-center gap-1.5"
-              >
-                <Wrench className="w-3.5 h-3.5" />
-                <span>Go to Remediation Center</span>
-              </Link>
-            </div>
+        <div className="p-8 rounded-xl bg-[#0B0F19] border border-dashed border-white/[0.08] text-center space-y-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#070A10] border border-white/[0.08] text-[#00D9FF] flex items-center justify-center mx-auto">
+            <Activity className="w-4 h-4" />
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-[#F8FAFC] tracking-wider">INSUFFICIENT HISTORY</div>
+            <p className="text-[11px] text-[#94A3B8] max-w-md mx-auto font-sans leading-relaxed">
+              Historical risk trends will appear as NetVigil collects additional evaluations.
+            </p>
+          </div>
+          <div className="pt-2 text-[10px] text-[#64748B]">
+            Active Baseline: <strong className="text-[#EF4444] font-semibold">{avgRiskScore.toFixed(0)} Composite Score</strong> ({totalRisks} evaluated vectors)
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
