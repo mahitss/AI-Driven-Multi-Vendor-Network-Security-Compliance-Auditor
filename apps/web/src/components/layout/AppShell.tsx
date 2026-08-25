@@ -41,6 +41,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { label: "Security Operations", href: "/operations", icon: Activity, category: "Core Operations", badge: "SOC" },
   { label: "SOC Overview", href: "/dashboard", icon: Activity, category: "Core Operations" },
   { label: "Multi-Vendor Engine", href: "/demo/multi-vendor", icon: Layers, category: "Core Operations", badge: "Multi-OS" },
   { label: "Pipeline Inspector", href: "/demo", icon: Sparkles, category: "Core Operations", badge: "Live" },
