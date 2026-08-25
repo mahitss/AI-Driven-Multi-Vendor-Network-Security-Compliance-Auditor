@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 interface MultiVendorTerrainViewProps {
@@ -20,6 +20,32 @@ export default function MultiVendorTerrainView({
 }: MultiVendorTerrainViewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [isEvidenceHovered, setIsEvidenceHovered] = useState(false);
+  const [evidenceTooltipPos, setEvidenceTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
+  // Camera Orbit State
+  const camState = useRef({
+    yaw: 0,
+    pitch: 0.52,
+    dist: 560,
+    targetYaw: 0,
+    targetPitch: 0.52,
+    targetDist: 560,
+    isDragging: false,
+    dragStartX: 0,
+    dragStartY: 0,
+    lastYaw: 0,
+    lastPitch: 0.52,
+  });
+
+  const resetCamera = useCallback(() => {
+    camState.current.targetYaw = 0;
+    camState.current.targetPitch = 0.52;
+    camState.current.targetDist = 560;
+    onSelectVendor(null);
+    onSelectFramework(null);
+    if (onSelectNodeInfo) onSelectNodeInfo(null);
+  }, [onSelectVendor, onSelectFramework, onSelectNodeInfo]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -33,8 +59,8 @@ export default function MultiVendorTerrainView({
 
     const resizeCanvas = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const width = canvas.parentElement?.clientWidth || 720;
-      const height = canvas.parentElement?.clientHeight || 620;
+      const width = canvas.parentElement?.clientWidth || 740;
+      const height = canvas.parentElement?.clientHeight || 640;
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -47,148 +73,92 @@ export default function MultiVendorTerrainView({
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // 3D Grid Parameters (Wider & more detailed)
-    const gridCols = 52;
-    const gridRows = 44;
-    const gridWidth = 1100;
-    const gridDepth = 900;
+    // 3D Topographic Mesh Parameters (Substantial, deep & expansive)
+    const gridCols = 54;
+    const gridRows = 46;
+    const gridWidth = 1180;
+    const gridDepth = 980;
 
-    let mouseX = 0;
-    let mouseY = 0;
-    let targetRotX = 0;
-    let targetRotY = 0;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.clientX - rect.left;
-      const clientY = e.clientY - rect.top;
-
-      if (!prefersReducedMotion) {
-        const normX = (clientX - rect.width / 2) / (rect.width / 2);
-        const normY = (clientY - rect.height / 2) / (rect.height / 2);
-        mouseX = normX;
-        mouseY = normY;
-      }
-
-      // Check hover on projected nodes
-      let found: string | null = null;
-      for (const node of projectedNodes) {
-        const dist = Math.hypot(clientX - node.screenX, clientY - node.screenY);
-        if (dist < 32) {
-          found = node.node.id;
-          break;
-        }
-      }
-      setHoveredNodeId(found);
-      canvas.style.cursor = found ? "pointer" : "default";
-    };
-
-    const handleCanvasClick = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      // Check click against projected node positions
-      for (const node of projectedNodes) {
-        const dist = Math.hypot(clickX - node.screenX, clickY - node.screenY);
-        if (dist < 32) {
-          if (node.vendorId) {
-            onSelectVendor(selectedVendor === node.vendorId ? null : (node.vendorId as any));
-          } else if (node.frameworkId) {
-            onSelectFramework(selectedFramework === node.frameworkId ? null : (node.frameworkId as any));
-          }
-          if (onSelectNodeInfo) {
-            onSelectNodeInfo({
-              title: node.title,
-              category: node.category,
-              description: node.desc,
-              verdict: node.verdict,
-              line: node.line,
-            });
-          }
-          return;
-        }
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    canvas.addEventListener("click", handleCanvasClick);
-
-    // 3D Node Map: Well-spaced layout with zero overlapping labels
+    // 3D Nodes: Structured Architectural Hierarchy
     const terrainNodes = [
-      // 0: Central Universal Security Model (Peak 1 - Glowing Hub)
+      // 0: Central Universal Security Model (Primary Summit)
       {
         id: "usm",
         x: 0,
         z: -10,
         title: "UNIVERSAL SECURITY MODEL",
-        subtitle: "NORMALIZED AST SEMANTICS",
+        subtitle: "AST NORMALIZATION",
         category: "CANONICAL MODEL",
-        desc: "Normalized multi-vendor AST representation across Cisco, Juniper & Fortinet",
+        desc: "Unified deterministic security facts extracted from vendor configurations",
         color: "#00D9FF",
         isHub: true,
-        chipOffset: { x: 0, y: -68 },
+        priority: 1,
+        chipOffset: { x: 0, y: -72 },
       },
-      // 1: Cisco IOS (West Peak)
+      // 1: Cisco IOS (West Mountain Summit)
       {
         id: "cisco",
         vendorId: "cisco",
-        x: -320,
+        x: -340,
         z: -90,
         title: "CISCO IOS",
         subtitle: "CLI Native Parser",
         category: "VENDOR INGEST",
         desc: "ip ssh version 1 → remote_access.ssh_version = 1",
         color: "#00D9FF",
-        chipOffset: { x: -15, y: -50 },
+        priority: 2,
+        chipOffset: { x: -18, y: -52 },
       },
-      // 2: Juniper JunOS (North Peak)
+      // 2: Juniper JunOS (North Mountain Summit)
       {
         id: "juniper",
         vendorId: "juniper",
         x: 0,
-        z: -330,
+        z: -340,
         title: "JUNIPER JUNOS",
         subtitle: "Set / Hierarchical Parser",
         category: "VENDOR INGEST",
         desc: "set system services ssh protocol-version v1 → remote_access.ssh_version = 1",
         color: "#10B981",
-        chipOffset: { x: 0, y: -50 },
+        priority: 2,
+        chipOffset: { x: 0, y: -52 },
       },
-      // 3: Fortinet FortiOS (East Peak)
+      // 3: Fortinet FortiOS (East Mountain Summit)
       {
         id: "fortinet",
         vendorId: "fortinet",
-        x: 320,
+        x: 340,
         z: -90,
         title: "FORTINET FORTIOS",
         subtitle: "Config Tree Parser",
         category: "VENDOR INGEST",
         desc: "set admin-ssh-v1 enable → remote_access.ssh_version = 1",
         color: "#F59E0B",
-        chipOffset: { x: 15, y: -50 },
+        priority: 2,
+        chipOffset: { x: 18, y: -52 },
       },
-      // 4: CIS Benchmark (Far South-West)
+      // 4: CIS Benchmark (Downstream South-West Ridge)
       {
         id: "cis",
         frameworkId: "CIS",
-        x: -280,
-        z: 220,
+        x: -300,
+        z: 230,
         title: "CIS BENCHMARK",
-        subtitle: "CIS-1.2.1 • LINE 17",
+        subtitle: "CIS-1.2.1 / FAIL",
         category: "FRAMEWORK",
         desc: "CIS-1.2.1: SSH Version 1 is strictly prohibited (Evaluated: FAIL)",
         color: "#EF4444",
         verdict: "FAIL",
         line: 17,
-        chipOffset: { x: -15, y: -46 },
+        priority: 3,
+        chipOffset: { x: -15, y: -48 },
       },
-      // 5: NIST SP 800-53 (South-Mid-West)
+      // 5: NIST SP 800-53 (Downstream South-Mid-West Ridge)
       {
         id: "nist",
         frameworkId: "NIST",
-        x: -95,
-        z: 260,
+        x: -100,
+        z: 270,
         title: "NIST SP 800-53",
         subtitle: "NIST AC-17 • LINE 17",
         category: "FRAMEWORK",
@@ -196,14 +166,15 @@ export default function MultiVendorTerrainView({
         color: "#EF4444",
         verdict: "FAIL",
         line: 17,
-        chipOffset: { x: -5, y: -46 },
+        priority: 3,
+        chipOffset: { x: -6, y: -48 },
       },
-      // 6: DISA STIG (South-Mid-East)
+      // 6: DISA STIG (Downstream South-Mid-East Ridge)
       {
         id: "stig",
         frameworkId: "STIG",
-        x: 95,
-        z: 260,
+        x: 100,
+        z: 270,
         title: "DISA STIG",
         subtitle: "STIG NET-001 • LINE 17",
         category: "FRAMEWORK",
@@ -211,14 +182,15 @@ export default function MultiVendorTerrainView({
         color: "#EF4444",
         verdict: "FAIL",
         line: 17,
-        chipOffset: { x: 5, y: -46 },
+        priority: 3,
+        chipOffset: { x: 6, y: -48 },
       },
-      // 7: ISO 27001 (Far South-East)
+      // 7: ISO 27001 (Downstream South-East Ridge)
       {
         id: "iso",
         frameworkId: "ISO",
-        x: 280,
-        z: 220,
+        x: 300,
+        z: 230,
         title: "ISO/IEC 27001",
         subtitle: "ISO A.13.1 • LINE 17",
         category: "FRAMEWORK",
@@ -226,14 +198,15 @@ export default function MultiVendorTerrainView({
         color: "#EF4444",
         verdict: "FAIL",
         line: 17,
-        chipOffset: { x: 15, y: -46 },
+        priority: 3,
+        chipOffset: { x: 15, y: -48 },
       },
-      // 8: Dedicated Evidence Marker (Cisco Line 17 AST Proof)
+      // 8: AST Evidence Marker (Cisco Line 17 AST Proof)
       {
         id: "ev_cisco",
-        x: -390,
-        z: 40,
-        title: "EVIDENCE: LINE 17",
+        x: -410,
+        z: 50,
+        title: "EVIDENCE: [LINE 17]",
         subtitle: "SOURCE: CISCO IOS",
         category: "EVIDENCE",
         desc: "ip ssh version 1 [AST Line 17] → CIS-1.2.1: FAIL",
@@ -241,28 +214,66 @@ export default function MultiVendorTerrainView({
         verdict: "FAIL",
         line: 17,
         isEvidence: true,
-        chipOffset: { x: -10, y: -42 },
+        priority: 4,
+        chipOffset: { x: -10, y: -44 },
       },
     ];
 
-    // Spline Flow Connections
+    // Intermediate AST Gates on Convergence Paths
+    const astGates = [
+      { id: "ast-cisco", x: -160, z: -50, vendor: "cisco", label: "AST PARSE: CISCO" },
+      { id: "ast-juniper", x: 0, z: -170, vendor: "juniper", label: "AST PARSE: JUNOS" },
+      { id: "ast-fortinet", x: 160, z: -50, vendor: "fortinet", label: "AST PARSE: FORTIOS" },
+    ];
+
+    // Spline Flow Pipelines
     const flowPipes = [
-      // Vendor to USM Hub
-      { from: 1, to: 0, vendor: "cisco", speed: 0.009, offset: 0 },
-      { from: 2, to: 0, vendor: "juniper", speed: 0.009, offset: 0.33 },
-      { from: 3, to: 0, vendor: "fortinet", speed: 0.009, offset: 0.66 },
-      // USM Hub to Frameworks
+      // Vendors -> AST Gates -> Universal Model
+      { from: 1, to: 0, vendor: "cisco", speed: 0.008, offset: 0 },
+      { from: 2, to: 0, vendor: "juniper", speed: 0.008, offset: 0.33 },
+      { from: 3, to: 0, vendor: "fortinet", speed: 0.008, offset: 0.66 },
+      // Evidence Link to Cisco path
+      { from: 8, to: 1, vendor: "cisco", speed: 0.006, offset: 0.5 },
+      // Universal Model -> Security Frameworks
       { from: 0, to: 4, framework: "CIS", speed: 0.007, offset: 0.12 },
       { from: 0, to: 5, framework: "NIST", speed: 0.007, offset: 0.36 },
       { from: 0, to: 6, framework: "STIG", speed: 0.007, offset: 0.6 },
       { from: 0, to: 7, framework: "ISO", speed: 0.007, offset: 0.84 },
     ];
 
+    // Realistic Elevation Model: High Central Mountain, 3 Flank Peaks, South Framework Ridge
+    const getElevation = (x: number, z: number, timeSec: number): number => {
+      // 1. Central Dominant Universal Security Model Summit
+      const distUSM = Math.hypot(x, z - (-10));
+      const hUSM = 210 * Math.exp(-Math.pow(distUSM / 175, 1.85));
+
+      // 2. Cisco West Flank Peak
+      const distCisco = Math.hypot(x - (-340), z - (-90));
+      const hCisco = 140 * Math.exp(-Math.pow(distCisco / 130, 1.8));
+
+      // 3. Juniper North Flank Peak
+      const distJuniper = Math.hypot(x - 0, z - (-340));
+      const hJuniper = 140 * Math.exp(-Math.pow(distJuniper / 130, 1.8));
+
+      // 4. Fortinet East Flank Peak
+      const distFortinet = Math.hypot(x - 340, z - (-90));
+      const hFortinet = 140 * Math.exp(-Math.pow(distFortinet / 130, 1.8));
+
+      // 5. Downstream Framework Ridge (South)
+      const distSouth = Math.hypot(x, z - 250);
+      const hSouth = 60 * Math.exp(-Math.pow(distSouth / 280, 1.6));
+
+      // Subtle Harmonic Breathing Wave
+      const wave = prefersReducedMotion ? 0 : 3.5 * Math.sin(Math.hypot(x, z) / 80 - timeSec * 1.2);
+
+      return hUSM + hCisco + hJuniper + hFortinet + hSouth + wave;
+    };
+
     let projectedNodes: Array<{
       screenX: number;
       screenY: number;
       depth: number;
-      node: typeof terrainNodes[0];
+      node: (typeof terrainNodes)[0];
       vendorId?: string;
       frameworkId?: string;
       title: string;
@@ -272,90 +283,170 @@ export default function MultiVendorTerrainView({
       line?: number;
     }> = [];
 
-    // Terrain Elevation Function: High dramatic peaks with smooth valleys
-    const getElevation = (x: number, z: number): number => {
-      // 1. Central USM Majestic Peak
-      const distUSM = Math.hypot(x, z - (-10));
-      const hUSM = 190 * Math.exp(-Math.pow(distUSM / 160, 1.8));
-
-      // 2. Cisco West Peak
-      const distCisco = Math.hypot(x - (-320), z - (-90));
-      const hCisco = 135 * Math.exp(-Math.pow(distCisco / 125, 1.8));
-
-      // 3. Juniper North Peak
-      const distJuniper = Math.hypot(x - 0, z - (-330));
-      const hJuniper = 135 * Math.exp(-Math.pow(distJuniper / 125, 1.8));
-
-      // 4. Fortinet East Peak
-      const distFortinet = Math.hypot(x - 320, z - (-90));
-      const hFortinet = 135 * Math.exp(-Math.pow(distFortinet / 125, 1.8));
-
-      // 5. Downstream Framework Ridge (South)
-      const distSouth = Math.hypot(x, z - 240);
-      const hSouth = 55 * Math.exp(-Math.pow(distSouth / 260, 1.6));
-
-      return hUSM + hCisco + hJuniper + hFortinet + hSouth;
+    // Mouse Interaction Handlers (Orbit Drag & Zoom)
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      camState.current.isDragging = true;
+      camState.current.dragStartX = e.clientX;
+      camState.current.dragStartY = e.clientY;
+      camState.current.lastYaw = camState.current.targetYaw;
+      camState.current.lastPitch = camState.current.targetPitch;
     };
+
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+
+      if (camState.current.isDragging && !prefersReducedMotion) {
+        const deltaX = e.clientX - camState.current.dragStartX;
+        const deltaY = e.clientY - camState.current.dragStartY;
+        camState.current.targetYaw = camState.current.lastYaw + deltaX * 0.005;
+        camState.current.targetPitch = Math.max(0.25, Math.min(0.85, camState.current.lastPitch + deltaY * 0.003));
+      }
+
+      // Check hover on projected nodes
+      let found: string | null = null;
+      let evidenceHover = false;
+      for (const pNode of projectedNodes) {
+        const dist = Math.hypot(clientX - pNode.screenX, clientY - pNode.screenY);
+        if (dist < 34) {
+          found = pNode.node.id;
+          if (pNode.node.id === "ev_cisco") {
+            evidenceHover = true;
+            setEvidenceTooltipPos({ x: pNode.screenX, y: pNode.screenY });
+          }
+          break;
+        }
+      }
+      setHoveredNodeId(found);
+      setIsEvidenceHovered(evidenceHover);
+      canvas.style.cursor = found ? "pointer" : camState.current.isDragging ? "grabbing" : "grab";
+    };
+
+    const onMouseUp = () => {
+      camState.current.isDragging = false;
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomDelta = e.deltaY * 0.35;
+      camState.current.targetDist = Math.max(380, Math.min(780, camState.current.targetDist + zoomDelta));
+    };
+
+    const onCanvasClick = (e: MouseEvent) => {
+      if (Math.abs(e.clientX - camState.current.dragStartX) > 6 || Math.abs(e.clientY - camState.current.dragStartY) > 6) {
+        return; // was a drag, not a click
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      for (const pNode of projectedNodes) {
+        const dist = Math.hypot(clickX - pNode.screenX, clickY - pNode.screenY);
+        if (dist < 34) {
+          if (pNode.node.isHub) {
+            // Focus on summit
+            camState.current.targetYaw = 0;
+            camState.current.targetPitch = 0.52;
+            camState.current.targetDist = 520;
+            onSelectVendor(null);
+            onSelectFramework(null);
+          } else if (pNode.vendorId) {
+            onSelectVendor(selectedVendor === pNode.vendorId ? null : (pNode.vendorId as any));
+          } else if (pNode.frameworkId) {
+            onSelectFramework(selectedFramework === pNode.frameworkId ? null : (pNode.frameworkId as any));
+          }
+
+          if (onSelectNodeInfo) {
+            onSelectNodeInfo({
+              title: pNode.title,
+              category: pNode.category,
+              description: pNode.desc,
+              verdict: pNode.verdict,
+              line: pNode.line,
+            });
+          }
+          return;
+        }
+      }
+    };
+
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    window.addEventListener("mouseup", onMouseUp);
+    canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.addEventListener("click", onCanvasClick);
 
     let tick = 0;
 
+    // Render Loop
     const render = () => {
       tick += 1;
-      const width = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
-      const height = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
+      const timeSec = tick * 0.016;
+      const width = canvas.width / Math.min(window.devicePixelRatio || 1, 2);
+      const height = canvas.height / Math.min(window.devicePixelRatio || 1, 2);
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Draw Ambient Radial Glow in the Center of Viewport
-      const bgGlow = ctx.createRadialGradient(width * 0.5, height * 0.45, 10, width * 0.5, height * 0.45, width * 0.55);
-      bgGlow.addColorStop(0, "rgba(0, 217, 255, 0.08)");
-      bgGlow.addColorStop(0.4, "rgba(16, 185, 129, 0.03)");
-      bgGlow.addColorStop(1, "rgba(3, 6, 10, 0)");
-      ctx.fillStyle = bgGlow;
-      ctx.fillRect(0, 0, width, height);
+      // Smooth Camera Interpolation (Damping)
+      const cs = camState.current;
+      cs.yaw += (cs.targetYaw - cs.yaw) * 0.08;
+      cs.pitch += (cs.targetPitch - cs.pitch) * 0.08;
+      cs.dist += (cs.targetDist - cs.dist) * 0.08;
 
-      // Smooth camera interpolation
-      if (!prefersReducedMotion) {
-        targetRotX += (mouseX * 0.09 - targetRotX) * 0.05;
-        targetRotY += (mouseY * 0.07 - targetRotY) * 0.05;
-      }
+      const cosYaw = Math.cos(cs.yaw);
+      const sinYaw = Math.sin(cs.yaw);
+      const cosPitch = Math.cos(cs.pitch);
+      const sinPitch = Math.sin(cs.pitch);
 
-      // Camera parameters centered directly on the terrain
-      const camHeight = 225;
-      const camPitch = 0.51 + targetRotY * 0.12;
-      const camYaw = targetRotX * 0.22;
-
-      const cosYaw = Math.cos(camYaw);
-      const sinYaw = Math.sin(camYaw);
-      const cosPitch = Math.cos(camPitch);
-      const sinPitch = Math.sin(camPitch);
-
-      const fov = 520; // Larger FOV makes graph bigger & more prominent
+      const fov = 540;
       const centerX = width * 0.5;
-      const centerY = height * 0.45; // Perfectly vertically centered
+      const centerY = height * 0.44; // Placed dead-center in the 640px box
+      const camHeight = 220;
 
-      // Project 3D coordinate to 2D screen
+      // Project 3D coordinate to 2D Screen
       const project = (x3: number, y3: number, z3: number) => {
-        // Rotate Yaw
+        // Yaw Rotation
         const xRot = x3 * cosYaw - z3 * sinYaw;
         const zRot = x3 * sinYaw + z3 * cosYaw;
 
-        // Rotate Pitch
+        // Pitch Rotation
         const yCam = -y3 + camHeight;
         const yRot = yCam * cosPitch - zRot * sinPitch;
-        const depth = yCam * sinPitch + zRot * cosPitch + 500;
+        const depth = yCam * sinPitch + zRot * cosPitch + cs.dist;
 
-        const scale = fov / Math.max(depth, 40);
+        const scale = fov / Math.max(depth, 30);
         const screenX = centerX + xRot * scale;
         const screenY = centerY + yRot * scale;
 
         return { x: screenX, y: screenY, depth, scale };
       };
 
-      // 2. Draw 3D Topographic Contour Grid
+      // 1. LAYER 1: Very Dark Black-Blue Background with Subtle Radial Center Glow
+      const bgGlow = ctx.createRadialGradient(centerX, centerY, 20, centerX, centerY, width * 0.55);
+      bgGlow.addColorStop(0, "rgba(0, 217, 255, 0.09)");
+      bgGlow.addColorStop(0.35, "rgba(16, 185, 129, 0.03)");
+      bgGlow.addColorStop(0.7, "rgba(7, 12, 24, 0.4)");
+      bgGlow.addColorStop(1, "rgba(3, 6, 10, 0)");
+      ctx.fillStyle = bgGlow;
+      ctx.fillRect(0, 0, width, height);
+
+      // Subtle Precision Grid Lines along Horizon
+      ctx.strokeStyle = "rgba(0, 217, 255, 0.035)";
+      ctx.lineWidth = 1;
+      for (let i = -width; i < width * 2; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, height * 0.15);
+        ctx.lineTo(i + 120, height * 0.95);
+        ctx.stroke();
+      }
+
+      // 2. LAYER 2: 3D Topographic Terrain Contours with Depth and Elevation Shading
       ctx.lineWidth = 1;
 
-      // Lateral Contour lines
+      // Lateral Contour Curves
       for (let r = 0; r < gridRows; r++) {
         const normR = r / (gridRows - 1);
         const z = -gridDepth / 2 + normR * gridDepth;
@@ -366,7 +457,7 @@ export default function MultiVendorTerrainView({
         for (let c = 0; c < gridCols; c++) {
           const normC = c / (gridCols - 1);
           const x = -gridWidth / 2 + normC * gridWidth;
-          const elev = getElevation(x, z);
+          const elev = getElevation(x, z, timeSec);
           const p = project(x, elev, z);
 
           if (p.depth > 0) {
@@ -379,13 +470,21 @@ export default function MultiVendorTerrainView({
           }
         }
 
-        // Elevation-based glow gradient for topographic ridges
-        const depthFade = Math.max(0.06, 0.38 - normR * 0.22);
-        ctx.strokeStyle = `rgba(0, 217, 255, ${depthFade * 0.55})`;
+        // Depth-based Opacity & Elevation Ridge Highlights
+        const depthRatio = Math.max(0.08, Math.min(0.48, 0.42 - normR * 0.25));
+        const isMajorContour = r % 4 === 0;
+
+        if (isMajorContour) {
+          ctx.strokeStyle = `rgba(0, 217, 255, ${depthRatio * 0.75})`;
+          ctx.lineWidth = 1.2;
+        } else {
+          ctx.strokeStyle = `rgba(0, 217, 255, ${depthRatio * 0.45})`;
+          ctx.lineWidth = 0.8;
+        }
         ctx.stroke();
       }
 
-      // Longitudinal Perspective Lines
+      // Longitudinal Perspective Ridge Lines
       for (let c = 0; c < gridCols; c += 2) {
         const normC = c / (gridCols - 1);
         const x = -gridWidth / 2 + normC * gridWidth;
@@ -396,7 +495,7 @@ export default function MultiVendorTerrainView({
         for (let r = 0; r < gridRows; r++) {
           const normR = r / (gridRows - 1);
           const z = -gridDepth / 2 + normR * gridDepth;
-          const elev = getElevation(x, z);
+          const elev = getElevation(x, z, timeSec);
           const p = project(x, elev, z);
 
           if (p.depth > 0) {
@@ -409,13 +508,14 @@ export default function MultiVendorTerrainView({
           }
         }
 
-        ctx.strokeStyle = "rgba(0, 217, 255, 0.08)";
+        ctx.strokeStyle = "rgba(0, 217, 255, 0.055)";
+        ctx.lineWidth = 0.8;
         ctx.stroke();
       }
 
-      // 3. Project Nodes
+      // 3. LAYER 3: Project Nodes & Coordinate Markers
       projectedNodes = terrainNodes.map((n) => {
-        const elev = getElevation(n.x, n.z);
+        const elev = getElevation(n.x, n.z, timeSec);
         const p = project(n.x, elev, n.z);
         return {
           screenX: p.x,
@@ -432,7 +532,7 @@ export default function MultiVendorTerrainView({
         };
       });
 
-      // 4. Draw Flowing Splines & Packets
+      // 4. LAYER 4: Surface-Following Vendor Convergence Paths & AST Transformation Gates
       flowPipes.forEach((pipe) => {
         const srcNode = projectedNodes[pipe.from];
         const dstNode = projectedNodes[pipe.to];
@@ -441,63 +541,113 @@ export default function MultiVendorTerrainView({
         const isHighlighted =
           (selectedVendor && pipe.vendor === selectedVendor) ||
           (selectedFramework && pipe.framework === selectedFramework) ||
-          (!selectedVendor && !selectedFramework);
+          (hoveredNodeId === srcNode.node.id || hoveredNodeId === dstNode.node.id) ||
+          (!selectedVendor && !selectedFramework && !hoveredNodeId);
 
-        const alpha = isHighlighted ? 0.85 : 0.2;
+        const alpha = isHighlighted ? 0.9 : 0.18;
         const pipeColor =
           pipe.vendor === "fortinet"
             ? "rgba(245, 158, 11,"
             : pipe.vendor === "juniper"
             ? "rgba(16, 185, 129,"
+            : pipe.framework === "CIS" || pipe.from === 8
+            ? "rgba(239, 68, 68,"
             : "rgba(0, 217, 255,";
 
-        // Draw Spline Curve
+        // Draw Spline Curve hugging the terrain
         ctx.beginPath();
         ctx.moveTo(srcNode.screenX, srcNode.screenY);
         const midX = (srcNode.screenX + dstNode.screenX) * 0.5;
-        const midY = (srcNode.screenY + dstNode.screenY) * 0.5 - 28;
+        const midY = (srcNode.screenY + dstNode.screenY) * 0.5 - 32;
         ctx.quadraticCurveTo(midX, midY, dstNode.screenX, dstNode.screenY);
         ctx.strokeStyle = `${pipeColor} ${alpha})`;
         ctx.lineWidth = isHighlighted ? 2.5 : 1.2;
         ctx.stroke();
 
-        // Draw Moving Light Packets
+        // Flowing Luminescent Energy Particles
         if (!prefersReducedMotion) {
           const t = ((tick * pipe.speed + pipe.offset) % 1 + 1) % 1;
           const omt = 1 - t;
           const pktX = omt * omt * srcNode.screenX + 2 * omt * t * midX + t * t * dstNode.screenX;
           const pktY = omt * omt * srcNode.screenY + 2 * omt * t * midY + t * t * dstNode.screenY;
 
-          // Glowing light packet
+          // Glowing Particle Core
           ctx.beginPath();
           ctx.arc(pktX, pktY, isHighlighted ? 4 : 2.5, 0, Math.PI * 2);
           ctx.fillStyle = "#FFFFFF";
           ctx.shadowColor = pipe.vendor === "fortinet" ? "#F59E0B" : pipe.vendor === "juniper" ? "#10B981" : "#00D9FF";
-          ctx.shadowBlur = isHighlighted ? 12 : 4;
+          ctx.shadowBlur = isHighlighted ? 14 : 4;
           ctx.fill();
           ctx.shadowBlur = 0;
+
+          // Subtle Particle Trail
+          const trailT = Math.max(0, t - 0.04);
+          const trailOmt = 1 - trailT;
+          const trailX = trailOmt * trailOmt * srcNode.screenX + 2 * trailOmt * trailT * midX + trailT * trailT * dstNode.screenX;
+          const trailY = trailOmt * trailOmt * srcNode.screenY + 2 * trailOmt * trailT * midY + trailT * trailT * dstNode.screenY;
+          ctx.beginPath();
+          ctx.arc(trailX, trailY, isHighlighted ? 2.5 : 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = `${pipeColor} ${alpha * 0.6})`;
+          ctx.fill();
         }
       });
 
-      // 5. Draw Glowing Beacon Column at USM Hub
+      // 5. LAYER 5: Central Universal Security Model Summit Beacon & Orbiting Data Satellites
       const hubNode = projectedNodes[0];
       if (hubNode) {
-        const beaconGrad = ctx.createLinearGradient(hubNode.screenX, hubNode.screenY, hubNode.screenX, hubNode.screenY - 70);
-        beaconGrad.addColorStop(0, "rgba(0, 217, 255, 0.45)");
+        // Vertical Cyan Signal Beam
+        const beaconGrad = ctx.createLinearGradient(hubNode.screenX, hubNode.screenY, hubNode.screenX, hubNode.screenY - 80);
+        beaconGrad.addColorStop(0, "rgba(0, 217, 255, 0.55)");
+        beaconGrad.addColorStop(0.6, "rgba(0, 217, 255, 0.15)");
         beaconGrad.addColorStop(1, "rgba(0, 217, 255, 0)");
         ctx.fillStyle = beaconGrad;
-        ctx.fillRect(hubNode.screenX - 2, hubNode.screenY - 70, 4, 70);
+        ctx.fillRect(hubNode.screenX - 2.5, hubNode.screenY - 80, 5, 80);
 
-        // Pulsing ground ripple
-        const rippleScale = (tick * 0.03) % 1;
+        // Concentric Pulsing Contour Rings at Summit
+        const ringT = (tick * 0.02) % 1;
         ctx.beginPath();
-        ctx.arc(hubNode.screenX, hubNode.screenY, 14 + rippleScale * 18, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 217, 255, ${0.4 * (1 - rippleScale)})`;
+        ctx.arc(hubNode.screenX, hubNode.screenY, 12 + ringT * 22, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 217, 255, ${0.5 * (1 - ringT)})`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(hubNode.screenX, hubNode.screenY, 8 + ((ringT + 0.5) % 1) * 22, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 217, 255, ${0.4 * (1 - ((ringT + 0.5) % 1))})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Orbiting Data Satellites around Summit
+        if (!prefersReducedMotion) {
+          const orbitAngle1 = timeSec * 1.5;
+          const orbitRadius1 = 26;
+          const sat1X = hubNode.screenX + Math.cos(orbitAngle1) * orbitRadius1;
+          const sat1Y = hubNode.screenY + Math.sin(orbitAngle1) * (orbitRadius1 * 0.45);
+
+          ctx.beginPath();
+          ctx.arc(sat1X, sat1Y, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#00D9FF";
+          ctx.shadowColor = "#00D9FF";
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          const orbitAngle2 = -timeSec * 1.2 + Math.PI;
+          const orbitRadius2 = 36;
+          const sat2X = hubNode.screenX + Math.cos(orbitAngle2) * orbitRadius2;
+          const sat2Y = hubNode.screenY + Math.sin(orbitAngle2) * (orbitRadius2 * 0.45);
+
+          ctx.beginPath();
+          ctx.arc(sat2X, sat2Y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = "#10B981";
+          ctx.shadowColor = "#10B981";
+          ctx.shadowBlur = 6;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
       }
 
-      // 6. Draw Nodes, Rings, and Floating Chips
+      // 6. LAYER 6 & 7: Render Nodes, Precision Pins, and Monospace Label Chips
       projectedNodes.forEach((pn) => {
         const { screenX, screenY, node } = pn;
         const isSelected =
@@ -506,16 +656,21 @@ export default function MultiVendorTerrainView({
           (node.isHub && !selectedVendor && !selectedFramework);
 
         const isHovered = hoveredNodeId === node.id;
+        const isDimmed =
+          (selectedVendor && node.vendorId && node.vendorId !== selectedVendor) ||
+          (selectedFramework && node.frameworkId && node.frameworkId !== selectedFramework);
 
-        // Ground Ring
-        const ringRadius = node.isHub ? (isHovered ? 18 : 15) : (isHovered ? 12 : 9);
+        const nodeAlpha = isDimmed ? 0.35 : 1;
+
+        // Ground Target Ring
+        const ringRadius = node.isHub ? (isHovered ? 18 : 15) : isHovered ? 12 : 9;
         ctx.beginPath();
         ctx.arc(screenX, screenY, ringRadius, 0, Math.PI * 2);
         ctx.strokeStyle = isSelected || isHovered ? "#FFFFFF" : node.color;
         ctx.lineWidth = isSelected || isHovered ? 2.5 : 1.5;
         ctx.stroke();
 
-        // Center Glowing Core
+        // Core Glowing Dot
         ctx.beginPath();
         ctx.arc(screenX, screenY, node.isHub ? 6 : 4, 0, Math.PI * 2);
         ctx.fillStyle = isSelected || isHovered ? "#FFFFFF" : node.color;
@@ -524,18 +679,18 @@ export default function MultiVendorTerrainView({
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Vertical Pin Line to Floating Chip
+        // Clean Vertical Pin Line to Floating Chip
         const chipX = screenX + node.chipOffset.x;
         const chipY = screenY + node.chipOffset.y;
 
         ctx.beginPath();
         ctx.moveTo(screenX, screenY - (node.isHub ? 10 : 7));
         ctx.lineTo(chipX, chipY + 14);
-        ctx.strokeStyle = isSelected || isHovered ? "rgba(0, 217, 255, 0.6)" : "rgba(255, 255, 255, 0.25)";
+        ctx.strokeStyle = isSelected || isHovered ? "rgba(0, 217, 255, 0.6)" : "rgba(255, 255, 255, 0.22)";
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        // Floating Chip Label Box
+        // Monospace Floating Label Box
         ctx.font = "bold 10px monospace";
         const titleWidth = ctx.measureText(node.title).width;
         ctx.font = "9px monospace";
@@ -545,8 +700,8 @@ export default function MultiVendorTerrainView({
         const boxLeft = chipX - boxWidth * 0.5;
         const boxTop = chipY - boxHeight * 0.5;
 
-        // Glassmorphism Card Background
-        ctx.fillStyle = isSelected ? "#070F22" : isHovered ? "#0B152A" : "#060911";
+        // Glassmorphism Dark Charcoal Backing
+        ctx.fillStyle = isSelected ? "rgba(7, 15, 34, 0.95)" : isHovered ? "rgba(11, 21, 42, 0.95)" : "rgba(6, 10, 18, 0.88)";
         if (ctx.roundRect) {
           ctx.beginPath();
           ctx.roundRect(boxLeft, boxTop, boxWidth, boxHeight, 6);
@@ -555,13 +710,15 @@ export default function MultiVendorTerrainView({
           ctx.fillRect(boxLeft, boxTop, boxWidth, boxHeight);
         }
 
-        // Glowing Card Border
+        // 1px Subtle Border
         ctx.strokeStyle = isSelected
           ? "#00D9FF"
           : isHovered
           ? "#38BDF8"
           : (node as any).isEvidence
-          ? "rgba(239, 68, 68, 0.5)"
+          ? "rgba(239, 68, 68, 0.6)"
+          : (node as any).verdict === "FAIL"
+          ? "rgba(239, 68, 68, 0.4)"
           : "rgba(255, 255, 255, 0.16)";
         ctx.lineWidth = isSelected ? 1.8 : isHovered ? 1.4 : 1;
 
@@ -573,7 +730,7 @@ export default function MultiVendorTerrainView({
           ctx.strokeRect(boxLeft, boxTop, boxWidth, boxHeight);
         }
 
-        // Text rendering
+        // Typography
         ctx.textAlign = "center";
         if (node.subtitle) {
           ctx.font = "bold 10px monospace";
@@ -581,7 +738,7 @@ export default function MultiVendorTerrainView({
             ? "#FFFFFF"
             : isHovered
             ? "#F8FAFC"
-            : (node as any).isEvidence
+            : (node as any).isEvidence || (node as any).verdict === "FAIL"
             ? "#EF4444"
             : "#E2E8F0";
           ctx.fillText(node.title, chipX, chipY - 4);
@@ -605,49 +762,80 @@ export default function MultiVendorTerrainView({
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("click", handleCanvasClick);
+      window.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("click", onCanvasClick);
     };
   }, [selectedVendor, selectedFramework, onSelectVendor, onSelectFramework, onSelectNodeInfo, hoveredNodeId]);
 
   return (
-    <div className="relative w-full h-[520px] sm:h-[580px] lg:h-[640px] rounded-2xl bg-[#03060A] border border-white/[0.08] overflow-hidden select-none shadow-[0_0_30px_rgba(0,0,0,0.6)]">
+    <div className="relative w-full h-[540px] sm:h-[600px] lg:h-[660px] rounded-2xl bg-[#03060A] border border-white/[0.08] overflow-hidden select-none shadow-[0_0_40px_rgba(0,0,0,0.8)]">
       {/* 3D Canvas Viewport */}
-      <canvas ref={canvasRef} className="w-full h-full block" />
+      <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
-      {/* Viewport Overlay Controls */}
+      {/* Top Left Viewport Overlay & Orbit Controls Hint */}
       <div className="absolute top-4 left-4 font-mono text-[11px] space-y-1 pointer-events-none">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#00D9FF] animate-pulse" />
-          <span className="text-[#00D9FF] font-extrabold tracking-wider text-xs">3D SECURITY TERRAIN</span>
+          <span className="text-[#00D9FF] font-extrabold tracking-wider text-xs">
+            3D SECURITY TERRAIN
+          </span>
         </div>
-        <div className="text-[#94A3B8] text-[10px]">CLICK OR HOVER NODES TO TRACE CONVERGENCE</div>
+        <div className="text-[#94A3B8] text-[10px]">
+          CLICK OR DRAG TO ROTATE • SCROLL TO ZOOM
+        </div>
       </div>
 
-      {/* Reset Camera / Filter Button */}
-      {(selectedVendor || selectedFramework) && (
-        <button
-          onClick={() => {
-            onSelectVendor(null);
-            onSelectFramework(null);
-            if (onSelectNodeInfo) onSelectNodeInfo(null);
+      {/* Top Right Reset View Action */}
+      <button
+        onClick={resetCamera}
+        className="absolute top-4 right-4 px-3.5 py-1.5 rounded-lg bg-[#070A10]/90 hover:bg-[#0B152A] border border-white/[0.12] hover:border-[#00D9FF]/50 text-[#00D9FF] text-xs font-mono font-bold transition-all shadow-lg active:scale-95 flex items-center gap-1.5"
+      >
+        <span>Reset View</span>
+        <span className="text-[10px]">↺</span>
+      </button>
+
+      {/* Evidence Hover Tooltip Card (Line 17 AST Proof) */}
+      {isEvidenceHovered && evidenceTooltipPos && (
+        <div
+          className="absolute z-20 pointer-events-none p-3 rounded-xl bg-[#070C18]/95 border border-[#EF4444]/60 shadow-[0_0_20px_rgba(239,68,68,0.25)] text-xs font-mono space-y-1.5 min-w-[230px] animate-fadeIn"
+          style={{
+            left: Math.min(evidenceTooltipPos.x + 20, 480),
+            top: Math.max(evidenceTooltipPos.y - 120, 20),
           }}
-          className="absolute top-4 right-4 px-3.5 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#141B2D] border border-white/[0.12] text-[#00D9FF] text-xs font-mono font-bold transition-all shadow-lg active:scale-95"
         >
-          Reset View ↺
-        </button>
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5">
+            <span className="text-[#EF4444] font-bold text-[10px]">EVIDENCE: LINE 17</span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EF4444]/20 text-[#EF4444] font-extrabold">FAIL</span>
+          </div>
+          <div className="space-y-1 text-[11px]">
+            <div className="text-[#94A3B8]">Vendor: <strong className="text-white">Cisco IOS</strong></div>
+            <div className="text-[#94A3B8]">Raw Line: <span className="text-[#EF4444] font-bold">ip ssh version 1</span></div>
+            <div className="text-[#94A3B8]">Normalized Fact: <span className="text-[#00D9FF]">remote_access.ssh_version = 1</span></div>
+            <div className="text-[#94A3B8]">Control: <strong className="text-white">CIS-1.2.1 / NIST AC-17</strong></div>
+          </div>
+          <div className="text-[9px] text-[#64748B] pt-0.5 border-t border-white/[0.04]">
+            Deterministic SHA-256 AST Provenance
+          </div>
+        </div>
       )}
 
-      {/* Downstream Invariant Footnote */}
+      {/* Bottom Architectural Readout (System Readout Bar) */}
       <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between font-mono text-[10px] text-[#64748B] pointer-events-none border-t border-white/[0.06] pt-2">
-        <div className="flex items-center gap-3">
-          <span>[3 VENDORS]</span>
-          <span className="text-white/30">→</span>
-          <span className="text-[#00D9FF] font-bold">[1 UNIVERSAL MODEL]</span>
-          <span className="text-white/30">→</span>
-          <span>[4 FRAMEWORKS]</span>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <span className="text-[#94A3B8]">[3 VENDORS]</span>
+          <span className="text-white/20">→</span>
+          <span className="text-[#94A3B8]">[AST NORMALIZATION]</span>
+          <span className="text-white/20">→</span>
+          <span className="text-[#00D9FF] font-bold">[UNIVERSAL SECURITY MODEL]</span>
+          <span className="text-white/20">→</span>
+          <span className="text-[#94A3B8]">[4 FRAMEWORKS]</span>
         </div>
-        <div className="text-[#10B981] font-semibold">IMMUTABLE AST PROOF</div>
+        <div className="text-[#10B981] font-bold tracking-wider hidden sm:block">
+          IMMUTABLE AST PROOF
+        </div>
       </div>
     </div>
   );
