@@ -157,11 +157,11 @@ export default function RemediationCenterPage() {
   }, [remediations, selectedVendorFilter, selectedStatusFilter, searchQuery, linkedFinding]);
 
   // Real backend-derived metrics
-  const totalCount = stats?.total_proposals || remediations.length;
-  const reviewedCount = stats?.reviewed_count || remediations.filter((r) => r.is_reviewed).length;
+  const totalCount = stats?.total_proposals ?? remediations.length;
+  const reviewedCount = stats?.reviewed_count ?? remediations.filter((r) => r.is_reviewed).length;
   const readyCount = totalCount - reviewedCount;
-  const criticalCount = findings.filter((f) => f.severity === "CRITICAL").length || 3;
-  const highCount = findings.filter((f) => f.severity === "HIGH").length || 5;
+  const criticalCount = findings.filter((f) => f.severity === "CRITICAL").length;
+  const highCount = findings.filter((f) => f.severity === "HIGH").length;
 
   const handleCopyApply = () => {
     if (!selectedRemediation?.remediation_commands) return;
@@ -491,7 +491,7 @@ export default function RemediationCenterPage() {
                   {/* Removed configuration */}
                   <div className="p-2 rounded bg-[#EF4444]/10 border-l-2 border-[#EF4444] text-[#EF4444] flex items-center gap-2">
                     <span className="font-bold select-none">-</span>
-                    <span>{selectedRemediation.diff_preview?.diff_lines?.find(d => d.type === "REMOVE")?.line || "ip ssh version 1"}</span>
+                    <span>{selectedRemediation.diff_preview?.diff_lines?.find(d => d.type === "REMOVE")?.line || "! No removal commands"}</span>
                   </div>
 
                   {/* Added configuration */}
@@ -597,7 +597,7 @@ export default function RemediationCenterPage() {
             </div>
 
             <pre className="p-2.5 rounded bg-[#03060A] border border-white/[0.04] text-[10px] text-[#F59E0B] font-mono overflow-x-auto whitespace-pre">
-              {selectedRemediation?.rollback_commands || "no ip ssh version 2\nip ssh version 1"}
+              {selectedRemediation?.rollback_commands || "! No rollback commands provided for this template"}
             </pre>
 
             <button

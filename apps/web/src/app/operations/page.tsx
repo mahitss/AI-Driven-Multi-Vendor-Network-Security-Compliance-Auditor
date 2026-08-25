@@ -190,12 +190,12 @@ export default function SecurityOperationsPage() {
     });
   }, [unifiedActivities, selectedSeverity, selectedType, searchQuery]);
 
-  // Derived real metrics
+  // Derived real metrics from authoritative backend state
   const totalEventsCount = unifiedActivities.length;
-  const activeDetectionsCount = findings.filter((f) => f.status === "FAIL").length || 3891;
-  const openFindingsCount = stats?.open_findings || findings.length || 3891;
-  const criticalRisksCount = (riskStats?.p0_count || 122) + (riskStats?.p1_count || 264);
-  const affectedAssetsCount = devices.length || (stats?.total_devices || 4);
+  const activeDetectionsCount = findings.filter((f) => f.status === "FAIL").length;
+  const openFindingsCount = stats?.open_findings ?? findings.length;
+  const criticalRisksCount = (riskStats?.p0_count ?? 0) + (riskStats?.p1_count ?? 0);
+  const affectedAssetsCount = stats?.total_devices ?? devices.length;
 
   const handleAskAI = async (query: string) => {
     setAiQuestion(query);
@@ -648,15 +648,15 @@ export default function SecurityOperationsPage() {
 
             <div className="flex items-center justify-between">
               <div className="text-2xl font-extrabold text-[#EF4444]">
-                {stats?.risk_score?.toFixed(0) || 71} / 100
+                {(stats?.risk_score ?? riskStats?.average_risk_score ?? 0).toFixed(0)} / 100
               </div>
               <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
-                P0 CRITICAL
+                {(stats?.risk_score ?? 0) >= 90 ? "P0 CRITICAL" : (stats?.risk_score ?? 0) >= 75 ? "P1 HIGH" : (stats?.risk_score ?? 0) >= 50 ? "P2 MEDIUM" : "P3 LOW"}
               </span>
             </div>
 
             <div className="text-[11px] font-sans font-semibold text-[#F8FAFC]">
-              {correlatedRisk?.title || "Administrative Remote Access & Management Plane Exposure"}
+              {correlatedRisk?.title || (risks[0]?.title ?? "Evaluated Network Configuration Risk Baseline")}
             </div>
           </div>
 
@@ -665,7 +665,7 @@ export default function SecurityOperationsPage() {
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
               <span className="text-[10px] text-[#64748B] uppercase font-bold flex items-center gap-1.5">
                 <Server className="w-3.5 h-3.5 text-[#00D9FF]" />
-                <span>AFFECTED INFRASTRUCTURE</span>
+                <span>AFFECTED INFRASTRUCTURE ({devices.length})</span>
               </span>
               <Link href="/devices" className="text-[10px] text-[#00D9FF] hover:underline">
                 Inventory →
@@ -673,27 +673,30 @@ export default function SecurityOperationsPage() {
             </div>
 
             <div className="space-y-2">
-              <Link
-                href="/devices"
-                className="p-2.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <div className="font-bold text-white group-hover:text-[#00D9FF]">CORE-RTR-01</div>
-                  <div className="text-[10px] text-[#64748B]">Cisco IOS • 4 Findings</div>
-                </div>
-                <span className="text-[10px] text-[#EF4444] font-bold">P0 Risk</span>
-              </Link>
-
-              <Link
-                href="/devices"
-                className="p-2.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <div className="font-bold text-white group-hover:text-[#00D9FF]">EDGE-FW-01</div>
-                  <div className="text-[10px] text-[#64748B]">Fortinet • 3 Findings</div>
-                </div>
-                <span className="text-[10px] text-[#F59E0B] font-bold">P1 Risk</span>
-              </Link>
+              {devices.length === 0 ? (
+                <div className="text-[10px] text-slate-500 font-mono py-2">No monitored devices registered.</div>
+              ) : (
+                devices.slice(0, 3).map((dev) => (
+                  <Link
+                    key={dev.id}
+                    href="/devices"
+                    className="p-2.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] transition-all flex items-center justify-between group"
+                  >
+                    <div>
+                      <div className="font-bold text-white group-hover:text-[#00D9FF]">{dev.hostname}</div>
+                      <div className="text-[10px] text-[#64748B]">
+                        {dev.vendor.toUpperCase()} • Score: {dev.last_audit_score?.toFixed(0) ?? "N/A"}%
+                      </div>
+                    </div>
+                    <span className={cn(
+                      "text-[10px] font-bold px-1.5 py-0.5 rounded",
+                      dev.risk_score >= 75 ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    )}>
+                      {dev.risk_score >= 75 ? "High Risk" : "Normal"}
+                    </span>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
 
@@ -714,16 +717,22 @@ export default function SecurityOperationsPage() {
           <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-2 text-xs">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-1.5">
               <span className="text-[10px] text-[#64748B] uppercase font-bold">COMPLIANCE SIGNALS</span>
-              <span className="text-[10px] text-[#10B981]">4 FRAMEWORKS</span>
+              <span className="text-[10px] text-[#10B981]">
+                {stats?.supported_frameworks?.length || 4} FRAMEWORKS
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[10px]">
               <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.04]">
                 <span className="text-[#64748B] block">CIS BENCHMARK</span>
-                <span className="font-bold text-white">30.0% Compliant</span>
+                <span className="font-bold text-white">
+                  {stats?.framework_scores?.["CIS"] !== undefined ? `${stats.framework_scores["CIS"].toFixed(1)}% Compliant` : "Evaluated"}
+                </span>
               </div>
               <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.04]">
                 <span className="text-[#64748B] block">NIST SP 800-53</span>
-                <span className="font-bold text-white">28.5% Compliant</span>
+                <span className="font-bold text-white">
+                  {stats?.framework_scores?.["NIST"] !== undefined ? `${stats.framework_scores["NIST"].toFixed(1)}% Compliant` : "Evaluated"}
+                </span>
               </div>
             </div>
           </div>

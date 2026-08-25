@@ -189,13 +189,13 @@ export default function RiskIntelligencePage() {
     });
   }, [risks, selectedPriority, selectedAttackSurface, selectedVendor, searchQuery]);
 
-  // Derived real metrics
-  const totalRisks = stats?.total_risks || risks.length || 0;
-  const avgRiskScore = stats?.average_risk_score || (risks.length > 0 ? risks[0].risk_score : 70.8);
-  const p0Count = stats?.p0_count || risks.filter((r) => r.priority === "P0").length || 0;
-  const p1Count = stats?.p1_count || risks.filter((r) => r.priority === "P1").length || 0;
-  const p2Count = stats?.p2_count || risks.filter((r) => r.priority === "P2").length || 0;
-  const p3Count = stats?.p3_count || risks.filter((r) => r.priority === "P3").length || 0;
+  // Derived real metrics from authoritative backend state
+  const totalRisks = stats?.total_risks ?? risks.length;
+  const avgRiskScore = stats?.average_risk_score ?? (risks.length > 0 ? (risks.reduce((acc, r) => acc + r.risk_score, 0) / risks.length) : 0);
+  const p0Count = stats?.p0_count ?? risks.filter((r) => r.priority === "P0").length;
+  const p1Count = stats?.p1_count ?? risks.filter((r) => r.priority === "P1").length;
+  const p2Count = stats?.p2_count ?? risks.filter((r) => r.priority === "P2").length;
+  const p3Count = stats?.p3_count ?? risks.filter((r) => r.priority === "P3").length;
 
   // Correlated findings for selected risk
   const correlatedFindings: Finding[] = useMemo(() => {
@@ -593,8 +593,8 @@ export default function RiskIntelligencePage() {
                     </div>
 
                     <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-1.5 border-t border-white/[0.04]">
-                      <span>{r.finding_ids?.length || 1} contributing findings</span>
-                      <span>{r.affected_assets?.length || 1} affected assets</span>
+                      <span>{r.finding_ids?.length ?? 0} contributing findings</span>
+                      <span>{r.affected_assets?.length ?? 0} affected assets</span>
                     </div>
                   </button>
                 );
@@ -616,83 +616,61 @@ export default function RiskIntelligencePage() {
                   </span>
                 </div>
                 <span className="text-[10px] text-[#64748B]">
-                  Nodes: {graphData?.nodes?.length || 12} • Edges: {graphData?.edges?.length || 16}
+                  Contributing Findings: {correlatedFindings.length}
                 </span>
               </div>
 
               {/* Correlation Graph Visualizer */}
-              <div className="relative w-full h-[480px] rounded-xl bg-[#03060A] border border-white/[0.06] overflow-hidden p-4 flex flex-col justify-between select-none">
-                {/* SVG Graph Tree */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {/* Connection Lines from Risk to Findings */}
-                  <line x1="50%" y1="18%" x2="25%" y2="52%" stroke="rgba(239,68,68,0.4)" strokeWidth="1.5" />
-                  <line x1="50%" y1="18%" x2="50%" y2="52%" stroke="rgba(245,158,11,0.4)" strokeWidth="1.5" />
-                  <line x1="50%" y1="18%" x2="75%" y2="52%" stroke="rgba(0,217,255,0.4)" strokeWidth="1.5" />
-
-                  {/* Connection Lines from Findings to Evidence */}
-                  <line x1="25%" y1="52%" x2="25%" y2="82%" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3 3" />
-                  <line x1="50%" y1="52%" x2="50%" y2="82%" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3 3" />
-                  <line x1="75%" y1="52%" x2="75%" y2="82%" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3 3" />
-                </svg>
-
+              <div className="relative w-full min-h-[480px] rounded-xl bg-[#03060A] border border-white/[0.06] overflow-hidden p-4 flex flex-col justify-between select-none space-y-4">
                 {/* Top Level: Primary Risk Apex Node */}
                 <div className="flex justify-center z-10">
-                  <div className="p-3.5 rounded-xl bg-[#0E0709] border border-[#EF4444] shadow-[0_0_20px_rgba(239,68,68,0.3)] text-center space-y-1 max-w-xs">
+                  <div className="p-3.5 rounded-xl bg-[#0E0709] border border-[#EF4444] shadow-[0_0_20px_rgba(239,68,68,0.3)] text-center space-y-1 max-w-sm">
                     <div className="text-[10px] text-[#EF4444] font-bold uppercase">PRIMARY EXPOSURE APEX</div>
-                    <div className="text-xs font-bold text-white font-sans">{selectedRisk?.title || "Remote Access Exposure"}</div>
-                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/20 text-[#EF4444]">
-                      {selectedRisk?.priority || "P0"} • SCORE {selectedRisk?.risk_score?.toFixed(0) || 97}
-                    </span>
+                    <div className="text-xs font-bold text-white font-sans">{selectedRisk?.title || "No Risk Selected"}</div>
+                    {selectedRisk && (
+                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/20 text-[#EF4444]">
+                        {selectedRisk.priority} • SCORE {selectedRisk.risk_score.toFixed(0)}
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Mid Level: Contributing Findings */}
-                <div className="grid grid-cols-3 gap-3 z-10 text-center">
-                  <Link
-                    href="/findings"
-                    className="p-2.5 rounded-lg bg-[#070A10] border border-[#EF4444]/40 hover:border-[#EF4444] transition-all space-y-1 block group"
-                  >
-                    <div className="text-[10px] text-[#EF4444] font-bold">CIS-1.2.1</div>
-                    <div className="text-[11px] text-white font-sans truncate">SSH v1 Enabled</div>
-                    <div className="text-[9px] text-[#64748B]">FAIL • Line 17</div>
-                  </Link>
-
-                  <Link
-                    href="/findings"
-                    className="p-2.5 rounded-lg bg-[#070A10] border border-[#F59E0B]/40 hover:border-[#F59E0B] transition-all space-y-1 block group"
-                  >
-                    <div className="text-[10px] text-[#F59E0B] font-bold">NIST AC-17</div>
-                    <div className="text-[11px] text-white font-sans truncate">Telnet Active</div>
-                    <div className="text-[9px] text-[#64748B]">FAIL • Line 42</div>
-                  </Link>
-
-                  <Link
-                    href="/findings"
-                    className="p-2.5 rounded-lg bg-[#070A10] border border-[#00D9FF]/40 hover:border-[#00D9FF] transition-all space-y-1 block group"
-                  >
-                    <div className="text-[10px] text-[#00D9FF] font-bold">DISA STIG</div>
-                    <div className="text-[11px] text-white font-sans truncate">AAA Fallback</div>
-                    <div className="text-[9px] text-[#64748B]">FAIL • Line 88</div>
-                  </Link>
-                </div>
+                {correlatedFindings.length === 0 ? (
+                  <div className="text-center py-6 text-xs text-[#64748B]">
+                    No direct contributing findings linked to this risk.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 z-10 text-center">
+                    {correlatedFindings.slice(0, 3).map((f) => (
+                      <Link
+                        key={f.id}
+                        href="/findings"
+                        className="p-2.5 rounded-lg bg-[#070A10] border border-[#EF4444]/40 hover:border-[#EF4444] transition-all space-y-1 block group"
+                      >
+                        <div className="text-[10px] text-[#EF4444] font-bold">{f.control_id}</div>
+                        <div className="text-[11px] text-white font-sans truncate">{f.title}</div>
+                        <div className="text-[9px] text-[#64748B]">
+                          {f.status} • {f.finding_metadata?.source_lines?.[0] ? `Line ${f.finding_metadata.source_lines[0]}` : f.framework}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
 
                 {/* Bottom Level: Raw Configuration Evidence */}
-                <div className="grid grid-cols-3 gap-3 z-10 text-center text-[10px]">
-                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.06] text-[#94A3B8]">
-                    <div className="text-[#00D9FF] font-bold">CORE-RTR-01</div>
-                    <div className="font-mono text-[9px] truncate">ip ssh version 1</div>
+                {correlatedFindings.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 z-10 text-center text-[10px]">
+                    {correlatedFindings.slice(0, 3).map((f) => (
+                      <div key={`ev-${f.id}`} className="p-2 rounded bg-[#0B0F19] border border-white/[0.06] text-[#94A3B8]">
+                        <div className="text-[#00D9FF] font-bold">{f.framework}</div>
+                        <div className="font-mono text-[9px] truncate text-[#EF4444]">
+                          {f.evidence || "Violation verified"}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.06] text-[#94A3B8]">
-                    <div className="text-[#10B981]">EDGE-FW-01</div>
-                    <div className="font-mono text-[9px] truncate">set admin-telnet enable</div>
-                  </div>
-
-                  <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.06] text-[#94A3B8]">
-                    <div className="text-[#F59E0B]">DIST-SW-01</div>
-                    <div className="font-mono text-[9px] truncate">auth-order [ none ]</div>
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-2 border-t border-white/[0.04]">
@@ -739,16 +717,22 @@ export default function RiskIntelligencePage() {
                   </span>
                   <span className="text-[#64748B]">→</span>
                   <span className="px-2 py-0.5 rounded bg-[#070A10] border border-white/[0.06] text-white">
-                    {selectedRisk.finding_ids?.length || 1} Findings
+                    {correlatedFindings.length} Contributing Findings
                   </span>
-                  <span className="text-[#64748B]">→</span>
-                  <span className="px-2 py-0.5 rounded bg-[#00D9FF]/15 text-[#00D9FF] border border-[#00D9FF]/30 font-bold">
-                    CIS-1.2.1
-                  </span>
-                  <span className="text-[#64748B]">→</span>
-                  <span className="px-2 py-0.5 rounded bg-[#070A10] border border-white/[0.06] text-[#EF4444]">
-                    Line 17
-                  </span>
+                  {correlatedFindings[0] && (
+                    <>
+                      <span className="text-[#64748B]">→</span>
+                      <span className="px-2 py-0.5 rounded bg-[#00D9FF]/15 text-[#00D9FF] border border-[#00D9FF]/30 font-bold">
+                        {correlatedFindings[0].control_id}
+                      </span>
+                      <span className="text-[#64748B]">→</span>
+                      <span className="px-2 py-0.5 rounded bg-[#070A10] border border-white/[0.06] text-[#EF4444]">
+                        {correlatedFindings[0].finding_metadata?.source_lines?.[0]
+                          ? `Line ${correlatedFindings[0].finding_metadata.source_lines[0]}`
+                          : correlatedFindings[0].framework}
+                      </span>
+                    </>
+                  )}
                   <span className="text-[#64748B]">→</span>
                   <span className="px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 font-bold">
                     Remediation
@@ -951,7 +935,7 @@ export default function RiskIntelligencePage() {
               RISK POSTURE TREND
             </span>
           </div>
-          <span className="text-[10px] text-[#64748B]">Audits: {audits.length || 1}</span>
+          <span className="text-[10px] text-[#64748B]">Audits: {audits.length}</span>
         </div>
 
         <div className="p-8 rounded-xl bg-[#0B0F19] border border-dashed border-white/[0.08] text-center space-y-2.5">

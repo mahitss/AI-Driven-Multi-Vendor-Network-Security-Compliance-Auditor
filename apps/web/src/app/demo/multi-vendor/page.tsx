@@ -233,7 +233,7 @@ export default function MultiVendorSecurityPage() {
                   <div className="flex items-center gap-2 font-bold">
                     <span className="text-[#EF4444]">{activeVendorData.total_findings} FAIL</span>
                     <span className="text-white/20">•</span>
-                    <span className="text-[#10B981]">{Math.max(1, Math.round(activeVendorData.total_findings * (activeVendorData.compliance_score / (100 - activeVendorData.compliance_score || 1))))} PASS</span>
+                    <span className="text-[#10B981]">{activeVendorData.passed_controls ?? 3} PASS</span>
                   </div>
                 </div>
 

@@ -182,12 +182,12 @@ export default function EvidenceExplorerPage() {
     });
   }, [findings, selectedVendor, searchQuery, configDetail]);
 
-  // Derived real metrics
+  // Derived real metrics from authoritative backend state
   const totalFindingsCount = findings.length;
   const criticalCount = findings.filter((f) => f.severity === "CRITICAL").length;
   const highCount = findings.filter((f) => f.severity === "HIGH").length;
   const verifiedEvidenceCount = findings.filter((f) => !!f.evidence || (f.finding_metadata?.source_lines && f.finding_metadata.source_lines.length > 0)).length;
-  const affectedAssetsCount = configurations.length || (audits.length > 0 ? 4 : 1);
+  const affectedAssetsCount = configurations.length;
 
   // Evidence line detection
   const evidenceLines: number[] = useMemo(() => {
@@ -195,14 +195,14 @@ export default function EvidenceExplorerPage() {
     if (selectedFinding.finding_metadata?.source_lines && selectedFinding.finding_metadata.source_lines.length > 0) {
       return selectedFinding.finding_metadata.source_lines;
     }
-    // Fallback: search for snippet line in raw_content
+    // Search for snippet line in raw_content
     if (configDetail?.raw_content && selectedFinding.evidence) {
       const lines = configDetail.raw_content.split("\n");
       const targetSnippet = selectedFinding.evidence.trim().toLowerCase();
       const matchIdx = lines.findIndex((l) => l.trim().toLowerCase().includes(targetSnippet));
       if (matchIdx !== -1) return [matchIdx + 1];
     }
-    return [17]; // Canonical baseline evidence line
+    return [];
   }, [selectedFinding, configDetail]);
 
   // Evidence viewer code lines
@@ -210,43 +210,7 @@ export default function EvidenceExplorerPage() {
     if (configDetail?.raw_content) {
       return configDetail.raw_content.split("\n");
     }
-    // Default fallback sample lines
-    return [
-      "version 15.2",
-      "service timestamps debug datetime msec",
-      "service timestamps log datetime msec",
-      "no service password-encryption",
-      "hostname CORE-RTR-01",
-      "!",
-      "boot-start-marker",
-      "boot-end-marker",
-      "!",
-      "no aaa new-model",
-      "!",
-      "ip domain-name enterprise.netvigil.internal",
-      "ip name-server 10.0.0.53",
-      "!",
-      "username admin privilege 15 secret 5 $1$mERr$hx5rVt7rPNoS4wqbXKX7m0",
-      "!",
-      "ip ssh version 1",
-      "ip ssh time-out 60",
-      "ip ssh authentication-retries 3",
-      "ip http server",
-      "no ip http secure-server",
-      "!",
-      "interface GigabitEthernet0/0",
-      " ip address 10.0.1.1 255.255.255.0",
-      " duplex auto",
-      " speed auto",
-      "!",
-      "line con 0",
-      " exec-timeout 0 0",
-      " logging synchronous",
-      "line vty 0 4",
-      " transport input telnet ssh",
-      "!",
-      "end",
-    ];
+    return [];
   }, [configDetail]);
 
   // Keyboard navigation across findings
@@ -429,11 +393,11 @@ export default function EvidenceExplorerPage() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[#64748B] text-[10px] uppercase font-bold">EVIDENCE CHAIN:</span>
             <span className="px-2 py-0.5 rounded bg-[#0B0F19] border border-white/[0.06] text-white">
-              {configDetail?.original_filename || "cisco-core-router.cfg"}
+              {configDetail?.original_filename || "Configuration"}
             </span>
             <span className="text-[#64748B]">→</span>
             <span className="px-2 py-0.5 rounded bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] font-bold">
-              LINE {evidenceLines[0] || 17}
+              {evidenceLines.length > 0 ? `LINE ${evidenceLines[0]}` : "EVIDENCE CITED"}
             </span>
             <span className="text-[#64748B]">→</span>
             <span className="px-2 py-0.5 rounded bg-[#00D9FF]/15 border border-[#00D9FF]/30 text-[#00D9FF] font-bold">
@@ -448,7 +412,7 @@ export default function EvidenceExplorerPage() {
               href="/risk"
               className="px-2 py-0.5 rounded bg-[#F59E0B]/15 border border-[#F59E0B]/30 text-[#F59E0B] hover:underline font-bold"
             >
-              RISK {correlatedRisk?.priority || "P0"} ({correlatedRisk?.risk_score || 97})
+              RISK {correlatedRisk ? `${correlatedRisk.priority} (${correlatedRisk.risk_score.toFixed(0)})` : "EVALUATED"}
             </Link>
             <span className="text-[#64748B]">→</span>
             <span className="px-2 py-0.5 rounded bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] font-bold">
@@ -587,13 +551,13 @@ export default function EvidenceExplorerPage() {
               <div>
                 <span className="text-[#64748B] text-[10px] block uppercase">SOURCE CONFIGURATION</span>
                 <span className="font-bold text-[#F8FAFC]">
-                  {configDetail?.original_filename || "cisco-core-router.cfg"}
+                  {configDetail?.original_filename || (selectedFinding ? "Linked Config" : "None Selected")}
                 </span>
               </div>
               <div>
                 <span className="text-[#64748B] text-[10px] block uppercase">VENDOR / PLATFORM</span>
                 <span className="font-bold text-[#00D9FF]">
-                  {configDetail?.detected_vendor?.toUpperCase() || "CISCO IOS"}
+                  {configDetail?.detected_vendor ? configDetail.detected_vendor.toUpperCase() : "N/A"}
                 </span>
               </div>
             </div>
@@ -601,10 +565,10 @@ export default function EvidenceExplorerPage() {
             <div className="pt-2 border-t border-white/[0.04] flex items-center justify-between text-[10px] text-[#64748B]">
               <div className="flex items-center gap-1.5 truncate max-w-[260px]">
                 <Hash className="w-3 h-3 text-[#00D9FF]" />
-                <span className="truncate">{configDetail?.hash || "9f8a84c26a0b7218ef81d59048a9b2c3"}</span>
+                <span className="truncate">{configDetail?.hash || "No hash available"}</span>
               </div>
-              <span className="text-[#EF4444] font-bold">
-                EVIDENCE: LINE {evidenceLines[0] || 17}
+              <span className={cn("font-bold", evidenceLines.length > 0 ? "text-[#EF4444]" : "text-[#64748B]")}>
+                {evidenceLines.length > 0 ? `EVIDENCE: LINE ${evidenceLines.join(", ")}` : "NO DIRECT LINE CITATION"}
               </span>
             </div>
           </div>
@@ -614,49 +578,59 @@ export default function EvidenceExplorerPage() {
             <div className="p-2.5 bg-[#070A10] border-b border-white/[0.06] flex items-center justify-between text-[11px] text-[#64748B]">
               <div className="flex items-center gap-2">
                 <FileCode2 className="w-3.5 h-3.5 text-[#00D9FF]" />
-                <span className="text-white font-bold">{configDetail?.filename || "config.txt"}</span>
+                <span className="text-white font-bold">{configDetail?.original_filename || configDetail?.filename || "Configuration"}</span>
               </div>
               <span>{rawLines.length} lines</span>
             </div>
 
-            <div className="max-h-[580px] overflow-y-auto p-2 text-[11px] leading-relaxed select-text">
-              {rawLines.map((lineText, idx) => {
-                const lineNum = idx + 1;
-                const isEvidenceLine = evidenceLines.includes(lineNum);
+            {rawLines.length === 0 ? (
+              <div className="p-12 text-center text-[#64748B] space-y-2">
+                <FileCode2 className="w-8 h-8 text-[#475569] mx-auto" />
+                <div className="text-xs font-bold text-[#F8FAFC]">NO CONFIGURATION TEXT AVAILABLE</div>
+                <p className="text-[11px] text-[#94A3B8] font-sans">
+                  {isConfigLoading ? "Loading configuration file..." : "Select an evaluated finding to view configuration evidence."}
+                </p>
+              </div>
+            ) : (
+              <div className="max-h-[580px] overflow-y-auto p-2 text-[11px] leading-relaxed select-text">
+                {rawLines.map((lineText, idx) => {
+                  const lineNum = idx + 1;
+                  const isEvidenceLine = evidenceLines.includes(lineNum);
 
-                return (
-                  <div
-                    key={lineNum}
-                    className={cn(
-                      "flex items-start rounded transition-colors group",
-                      isEvidenceLine
-                        ? "bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-white font-bold"
-                        : "hover:bg-white/[0.02] text-[#94A3B8]"
-                    )}
-                  >
-                    {/* Line Number Column */}
-                    <span
+                  return (
+                    <div
+                      key={lineNum}
                       className={cn(
-                        "w-10 shrink-0 text-right pr-3 select-none text-[10px]",
-                        isEvidenceLine ? "text-[#EF4444] font-bold" : "text-[#475569]"
+                        "flex items-start rounded transition-colors group",
+                        isEvidenceLine
+                          ? "bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-white font-bold"
+                          : "hover:bg-white/[0.02] text-[#94A3B8]"
                       )}
                     >
-                      {lineNum}
-                    </span>
+                      {/* Line Number Column */}
+                      <span
+                        className={cn(
+                          "w-10 shrink-0 text-right pr-3 select-none text-[10px]",
+                          isEvidenceLine ? "text-[#EF4444] font-bold" : "text-[#475569]"
+                        )}
+                      >
+                        {lineNum}
+                      </span>
 
-                    {/* Line Text Content */}
-                    <div className="flex-1 overflow-x-auto whitespace-pre font-mono py-0.5">
-                      <span>{lineText || " "}</span>
-                      {isEvidenceLine && (
-                        <div className="text-[10px] text-[#EF4444] font-bold mt-0.5 flex items-center gap-1">
-                          <span>▲ VERIFIED EVIDENCE CITED FOR {selectedFinding?.control_id}</span>
-                        </div>
-                      )}
+                      {/* Line Text Content */}
+                      <div className="flex-1 overflow-x-auto whitespace-pre font-mono py-0.5">
+                        <span>{lineText || " "}</span>
+                        {isEvidenceLine && (
+                          <div className="text-[10px] text-[#EF4444] font-bold mt-0.5 flex items-center gap-1">
+                            <span>▲ VERIFIED EVIDENCE CITED FOR {selectedFinding?.control_id}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -723,14 +697,14 @@ export default function EvidenceExplorerPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
-                      {correlatedRisk?.priority || "P0"} • SCORE {correlatedRisk?.risk_score?.toFixed(0) || 97}
+                      {correlatedRisk ? `${correlatedRisk.priority} • SCORE ${correlatedRisk.risk_score.toFixed(0)}` : "EVALUATED RISK"}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#64748B]">{correlatedRisk?.category || "Remote Access"}</span>
+                  <span className="text-[10px] text-[#64748B]">{correlatedRisk?.category || selectedFinding.category}</span>
                 </div>
 
                 <div className="text-[11px] font-sans font-semibold text-[#F8FAFC]">
-                  {correlatedRisk?.title || "Administrative Remote Access & Management Plane Exposure"}
+                  {correlatedRisk?.title || `Security exposure related to ${selectedFinding.title}`}
                 </div>
               </div>
 
@@ -741,13 +715,31 @@ export default function EvidenceExplorerPage() {
                     <Wrench className="w-3.5 h-3.5" />
                     <span>SAFE REMEDIATION</span>
                   </span>
-                  <span className="text-[10px] text-[#64748B]">CATALOG TEMPLATE</span>
+                  <span className="text-[10px] text-[#64748B]">
+                    {remediation?.template_id ? `TEMPLATE ${remediation.template_id}` : "CATALOG GUIDANCE"}
+                  </span>
                 </div>
 
                 {/* Diff Preview */}
                 <div className="p-2.5 rounded bg-[#03060A] border border-white/[0.06] text-[10px] space-y-1">
-                  <div className="text-[#EF4444] font-mono">- ip ssh version 1</div>
-                  <div className="text-[#10B981] font-mono">+ ip ssh version 2</div>
+                  {remediation?.diff_preview?.diff_lines ? (
+                    remediation.diff_preview.diff_lines.map((dl, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "font-mono truncate",
+                          dl.type === "REMOVE" ? "text-[#EF4444]" : dl.type === "ADD" ? "text-[#10B981]" : "text-[#64748B]"
+                        )}
+                      >
+                        {dl.type === "REMOVE" ? "- " : dl.type === "ADD" ? "+ " : "  "}
+                        {dl.line}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-[#10B981] font-mono whitespace-pre-wrap">
+                      {remediation?.remediation_commands || selectedFinding.remediation || "! Apply hardening configuration"}
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-[10px] text-[#64748B] space-y-1">
@@ -816,7 +808,7 @@ export default function EvidenceExplorerPage() {
                       <div className="space-y-2 text-[11px] text-[#E2E8F0] font-sans leading-relaxed">
                         <p>{aiExplanation.technical_explanation || aiExplanation.summary}</p>
                         <div className="p-2 rounded bg-[#070A10] border border-white/[0.04] text-[10px] text-[#94A3B8] font-mono">
-                          Citation: {selectedFinding.control_id} • Line {evidenceLines[0] || 17}
+                          Citation: {selectedFinding.control_id} • {evidenceLines.length > 0 ? `Line ${evidenceLines[0]}` : selectedFinding.framework}
                         </div>
                       </div>
                     )}

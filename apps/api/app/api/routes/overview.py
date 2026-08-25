@@ -589,6 +589,8 @@ async def init_multivendor_demo(db: DatabaseDep) -> Dict[str, Any]:
             "compliance_score": audit.score,
             "framework_scores": {fw: s.score for fw, s in summary.framework_scores.items()},
             "total_findings": len(results),
+            "passed_controls": summary.status_breakdown.get("PASS", 0),
+            "total_controls_evaluated": sum(summary.status_breakdown.values()),
             "critical_findings": summary.severity_breakdown.critical,
             "high_findings": summary.severity_breakdown.high,
             "medium_findings": summary.severity_breakdown.medium,
