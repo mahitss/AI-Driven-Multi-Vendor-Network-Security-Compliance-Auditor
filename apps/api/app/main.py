@@ -10,6 +10,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.routes import (
     ai,
+    analysis,
     audits,
     configurations,
     devices,
@@ -98,6 +99,7 @@ app.include_router(health.router)
 app.include_router(health.router, prefix=settings.API_PREFIX)
 
 # API v1 Domain Routes
+app.include_router(analysis.router, prefix=settings.API_PREFIX)
 app.include_router(configurations.router, prefix=settings.API_PREFIX)
 app.include_router(audits.router, prefix=settings.API_PREFIX)
 app.include_router(devices.router, prefix=settings.API_PREFIX)

@@ -50,6 +50,7 @@ import {
   UnknownInterpretation,
 } from "@/lib/api-client";
 import { computeClientSha256, formatBytes, cn } from "@/lib/utils";
+import { EndToEndPipelineModal } from "@/components/analysis/EndToEndPipelineModal";
 
 // Comprehensive test fixtures covering secure & insecure profiles
 const SAMPLE_CONFIGS = [
@@ -219,6 +220,7 @@ export default function ConfigurationsPage() {
   const [expandedFact, setExpandedFact] = useState<string | null>(null);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [isPipelineModalOpen, setIsPipelineModalOpen] = useState(false);
   const [interpretingIdx, setInterpretingIdx] = useState<number | null>(null);
   const [unknownInterpretations, setUnknownInterpretations] = useState<Record<number, UnknownInterpretation>>({});
   const [reviewedItems, setReviewedItems] = useState<Record<number, string>>({});
@@ -451,13 +453,23 @@ export default function ConfigurationsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => refetch()}
-          className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors"
-        >
-          <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsPipelineModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold font-mono transition-all shadow-lg shadow-cyan-500/20"
+          >
+            <Zap className="w-3.5 h-3.5 fill-current" />
+            <span>REAL E2E PIPELINE</span>
+          </button>
+
+          <button
+            onClick={() => refetch()}
+            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Ingestion Dropzone & Quick Samples Section */}
@@ -1166,6 +1178,12 @@ export default function ConfigurationsPage() {
           </div>
         </div>
       )}
+
+      {/* Deterministic End-to-End Pipeline Modal */}
+      <EndToEndPipelineModal
+        isOpen={isPipelineModalOpen}
+        onClose={() => setIsPipelineModalOpen(false)}
+      />
     </div>
   );
 }
