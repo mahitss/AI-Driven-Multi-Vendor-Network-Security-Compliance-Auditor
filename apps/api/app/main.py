@@ -93,8 +93,9 @@ app.add_exception_handler(NetVigilException, netvigil_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
-# Health endpoint (at root level /health)
+# Health endpoint (at root level /health and /api/v1/health)
 app.include_router(health.router)
+app.include_router(health.router, prefix=settings.API_PREFIX)
 
 # API v1 Domain Routes
 app.include_router(configurations.router, prefix=settings.API_PREFIX)

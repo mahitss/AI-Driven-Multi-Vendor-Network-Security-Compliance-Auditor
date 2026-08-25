@@ -41,29 +41,35 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "Security Operations", href: "/operations", icon: Activity, category: "Core Operations", badge: "SOC" },
-  { label: "SOC Overview", href: "/dashboard", icon: Activity, category: "Core Operations" },
-  { label: "Multi-Vendor Engine", href: "/demo/multi-vendor", icon: Layers, category: "Core Operations", badge: "Multi-OS" },
-  { label: "Pipeline Inspector", href: "/demo", icon: Sparkles, category: "Core Operations", badge: "Live" },
-  { label: "Audits", href: "/audits", icon: Shield, category: "Core Operations" },
-  { label: "Configurations", href: "/configurations", icon: FileCode2, category: "Core Operations", badge: "Ingest" },
-  { label: "Devices", href: "/devices", icon: Server, category: "Core Operations" },
+  // Overview
+  { label: "Security Posture", href: "/dashboard", icon: Activity, category: "Overview" },
 
-  { label: "CIS Benchmarks", href: "/compliance/cis", icon: Layers, category: "Compliance Frameworks" },
-  { label: "NIST SP 800-53", href: "/compliance/nist", icon: Layers, category: "Compliance Frameworks" },
-  { label: "DISA STIG", href: "/compliance/stig", icon: Layers, category: "Compliance Frameworks" },
-  { label: "ISO 27001", href: "/compliance/iso", icon: Layers, category: "Compliance Frameworks" },
+  // Operations
+  { label: "Security Operations", href: "/operations", icon: Activity, category: "Operations", badge: "SOC" },
+  { label: "Evidence Explorer", href: "/findings", icon: AlertTriangle, category: "Operations" },
+  { label: "Risk Intelligence", href: "/risk", icon: Flame, category: "Operations" },
+  { label: "Remediation Center", href: "/remediation", icon: Wrench, category: "Operations", badge: "Fix" },
+  { label: "Infrastructure Assets", href: "/devices", icon: Server, category: "Operations" },
+  { label: "Audits", href: "/audits", icon: Shield, category: "Operations" },
+  { label: "Configurations", href: "/configurations", icon: FileCode2, category: "Operations", badge: "Ingest" },
 
-  { label: "Findings", href: "/findings", icon: AlertTriangle, category: "Intelligence & Analysis" },
-  { label: "Risk Intelligence", href: "/risk", icon: Flame, category: "Intelligence & Analysis" },
-  { label: "Remediation Center", href: "/remediation", icon: Wrench, category: "Intelligence & Analysis", badge: "Fix" },
-  { label: "AI Boundary", href: "/ai-boundary", icon: Lock, category: "Intelligence & Analysis", badge: "Trust" },
-  { label: "AI Assistant", href: "/ai-assistant", icon: Bot, category: "Intelligence & Analysis", badge: "Co-pilot" },
-  { label: "Adaptive Training", href: "/adaptive-training", icon: Sparkles, category: "Intelligence & Analysis" },
+  // Intelligence
+  { label: "Multi-Vendor Engine", href: "/multi-vendor", icon: Layers, category: "Intelligence", badge: "Multi-OS" },
+  { label: "AI Boundary", href: "/ai-boundary", icon: Lock, category: "Intelligence", badge: "Trust" },
+  { label: "AI Co-pilot", href: "/ai-assistant", icon: Bot, category: "Intelligence" },
+  { label: "Adaptive Training", href: "/adaptive-training", icon: Sparkles, category: "Intelligence" },
+  { label: "Pipeline Inspector", href: "/demo", icon: Sparkles, category: "Intelligence", badge: "Live" },
 
-  { label: "Reports", href: "/reports", icon: FileText, category: "Governance" },
-  { label: "Settings", href: "/settings", icon: SettingsIcon, category: "Governance" },
-  { label: "Landing Home", href: "/", icon: Shield, category: "Governance" },
+  // Governance & Compliance
+  { label: "CIS Benchmarks", href: "/compliance/cis", icon: Layers, category: "Governance & Compliance" },
+  { label: "NIST SP 800-53", href: "/compliance/nist", icon: Layers, category: "Governance & Compliance" },
+  { label: "DISA STIG", href: "/compliance/stig", icon: Layers, category: "Governance & Compliance" },
+  { label: "ISO 27001", href: "/compliance/iso", icon: Layers, category: "Governance & Compliance" },
+  { label: "Executive Reports", href: "/reports", icon: FileText, category: "Governance & Compliance" },
+
+  // Platform
+  { label: "Settings", href: "/settings", icon: SettingsIcon, category: "Platform" },
+  { label: "Landing Home", href: "/", icon: Shield, category: "Platform" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
