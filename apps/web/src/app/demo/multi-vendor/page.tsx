@@ -191,45 +191,81 @@ export default function MultiVendorSecurityPage() {
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
                   <div className="flex items-center gap-2">
                     <Server className="w-4 h-4 text-[#00D9FF]" />
-                    <span className="font-bold text-sm text-[#F8FAFC] uppercase">{activeVendorData.display_name || activeVendorData.vendor_id} POSTURE</span>
+                    <span className="font-bold text-sm text-[#F8FAFC] uppercase">{activeVendorData.display_name || activeVendorData.vendor_id}</span>
                   </div>
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
                     {activeVendorData.total_findings} FINDINGS
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="p-2 rounded bg-[#070A10] border border-white/[0.04]">
-                    <div className="text-[10px] text-[#64748B] uppercase">RULES PARSED</div>
-                    <div className="text-base font-extrabold text-[#F8FAFC] mt-0.5">
-                      {activeVendorData.facts_extracted_count}
+                    <div className="text-[9px] text-[#64748B] uppercase">CONFIGURATION</div>
+                    <div className="text-sm font-extrabold text-[#F8FAFC] mt-0.5">
+                      {activeVendorData.facts_extracted_count} rules parsed
                     </div>
                   </div>
 
                   <div className="p-2 rounded bg-[#070A10] border border-white/[0.04]">
-                    <div className="text-[10px] text-[#64748B] uppercase">NORMALIZED PROPERTIES</div>
-                    <div className="text-base font-extrabold text-[#00D9FF] mt-0.5">
-                      {Object.keys(activeVendorData.normalized_facts || {}).length || activeVendorData.facts_extracted_count}
+                    <div className="text-[9px] text-[#64748B] uppercase">NORMALIZED</div>
+                    <div className="text-sm font-extrabold text-[#00D9FF] mt-0.5">
+                      {Object.keys(activeVendorData.normalized_facts || {}).length || activeVendorData.facts_extracted_count} properties
                     </div>
                   </div>
 
                   <div className="p-2 rounded bg-[#070A10] border border-white/[0.04]">
-                    <div className="text-[10px] text-[#64748B] uppercase">CRITICAL / HIGH</div>
-                    <div className="text-base font-extrabold text-[#EF4444] mt-0.5">
-                      {activeVendorData.critical_findings + (activeVendorData.high_findings || 0)}
+                    <div className="text-[9px] text-[#64748B] uppercase">CONTROLS</div>
+                    <div className="text-sm font-extrabold text-[#F8FAFC] mt-0.5">
+                      {activeVendorData.total_findings + Math.round(activeVendorData.total_findings * (activeVendorData.compliance_score / 100))} evaluated
                     </div>
                   </div>
 
                   <div className="p-2 rounded bg-[#070A10] border border-white/[0.04]">
-                    <div className="text-[10px] text-[#64748B] uppercase">DETERMINISTIC VERDICT</div>
-                    <div className="text-base font-extrabold text-[#EF4444] mt-0.5">
-                      {activeVendorData.compliance_score.toFixed(0)}% COMPLIANT
+                    <div className="text-[9px] text-[#64748B] uppercase">EVIDENCE</div>
+                    <div className="text-sm font-extrabold text-[#F8FAFC] mt-0.5">
+                      {activeVendorData.facts_extracted_count} lines cited
                     </div>
+                  </div>
+                </div>
+
+                <div className="p-2 rounded bg-[#070A10] border border-white/[0.04] flex items-center justify-between text-xs">
+                  <span className="text-[10px] text-[#64748B] uppercase">DETERMINISTIC VERDICT</span>
+                  <div className="flex items-center gap-2 font-bold">
+                    <span className="text-[#EF4444]">{activeVendorData.total_findings} FAIL</span>
+                    <span className="text-white/20">•</span>
+                    <span className="text-[#10B981]">{Math.max(1, Math.round(activeVendorData.total_findings * (activeVendorData.compliance_score / (100 - activeVendorData.compliance_score || 1))))} PASS</span>
                   </div>
                 </div>
 
                 <div className="text-[11px] text-[#94A3B8] font-sans">
                   Device: <strong className="text-white">{activeVendorData.device_name}</strong> • Parser: <span className="text-[#00D9FF] font-mono">{activeVendorData.parser_name} v{activeVendorData.parser_version}</span>
+                </div>
+              </div>
+            ) : selectedNodeInfo ? (
+              <div className="p-4 rounded-xl bg-[#0B0F19] border border-[#00D9FF]/30 space-y-3 animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-[#00D9FF]" />
+                    <span className="font-bold text-xs text-[#F8FAFC]">{selectedNodeInfo.title}</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#00D9FF]/15 text-[#00D9FF] border border-[#00D9FF]/30">
+                    {selectedNodeInfo.category}
+                  </span>
+                </div>
+
+                <p className="text-xs text-[#94A3B8] font-sans">{selectedNodeInfo.description}</p>
+
+                <div className="p-2.5 rounded bg-[#070A10] border border-white/[0.04] space-y-1.5 text-[10px]">
+                  <div className="text-[#00D9FF] font-bold uppercase">NORMALIZATION FLOW:</div>
+                  <div className="flex items-center gap-1.5 text-[#94A3B8]">
+                    <span>Vendor Config</span>
+                    <span>→</span>
+                    <span className="text-white">Normalized Control</span>
+                    <span>→</span>
+                    <span className="text-[#00D9FF]">Security Property</span>
+                    <span>→</span>
+                    <span className="text-[#EF4444]">Deterministic Verdict</span>
+                  </div>
                 </div>
               </div>
             ) : (

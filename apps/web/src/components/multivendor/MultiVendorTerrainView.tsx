@@ -101,21 +101,23 @@ export default function MultiVendorTerrainView({
     // 3D Node Map: Vendors -> Universal Model -> Frameworks & Evidence
     const terrainNodes = [
       // 0: Central Universal Security Model (Peak 1)
-      { id: "usm", x: 0, z: 0, title: "UNIVERSAL SECURITY MODEL", category: "NORMALIZED HUB", desc: "Canonical AST slot representation across all vendors", color: "#00D9FF", isHub: true, chipOffset: { x: 0, y: -50 } },
+      { id: "usm", x: 0, z: 0, title: "UNIVERSAL SECURITY MODEL", subtitle: "NORMALIZED SECURITY SEMANTICS", category: "NORMALIZED HUB", desc: "Canonical AST slot representation across all vendors", color: "#00D9FF", isHub: true, chipOffset: { x: 0, y: -54 } },
       // 1: Cisco IOS (West Peak)
-      { id: "cisco", vendorId: "cisco", x: -260, z: -80, title: "CISCO IOS / XE", category: "VENDOR INGEST", desc: "ip ssh version 1 → remote_access.ssh_version=1", color: "#00D9FF", chipOffset: { x: -10, y: -42 } },
+      { id: "cisco", vendorId: "cisco", x: -260, z: -80, title: "CISCO IOS", subtitle: "CLI Native", category: "VENDOR INGEST", desc: "ip ssh version 1 → remote_access.ssh_version=1", color: "#00D9FF", chipOffset: { x: -10, y: -44 } },
       // 2: Juniper JunOS (North Peak)
-      { id: "juniper", vendorId: "juniper", x: 0, z: -260, title: "JUNIPER JUNOS", category: "VENDOR INGEST", desc: "set system services ssh protocol-version v1", color: "#10B981", chipOffset: { x: 0, y: -42 } },
+      { id: "juniper", vendorId: "juniper", x: 0, z: -260, title: "JUNIPER JUNOS", subtitle: "Set Hierarchy", category: "VENDOR INGEST", desc: "set system services ssh protocol-version v1", color: "#10B981", chipOffset: { x: 0, y: -44 } },
       // 3: Fortinet FortiOS (East Peak)
-      { id: "fortinet", vendorId: "fortinet", x: 260, z: -80, title: "FORTINET FORTIOS", category: "VENDOR INGEST", desc: "set admin-ssh-v1 enable → remote_access.ssh_version=1", color: "#F59E0B", chipOffset: { x: 10, y: -42 } },
+      { id: "fortinet", vendorId: "fortinet", x: 260, z: -80, title: "FORTINET FORTIOS", subtitle: "Config Tree", category: "VENDOR INGEST", desc: "set admin-ssh-v1 enable → remote_access.ssh_version=1", color: "#F59E0B", chipOffset: { x: 10, y: -44 } },
       // 4: CIS Benchmark (South-West)
-      { id: "cis", frameworkId: "CIS", x: -180, z: 180, title: "CIS BENCHMARK", category: "FRAMEWORK", desc: "CIS-1.2.1: SSH v1 prohibited (Evaluated: FAIL)", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: -10, y: -38 } },
+      { id: "cis", frameworkId: "CIS", x: -180, z: 180, title: "CIS BENCHMARK", subtitle: "CIS-1.2.1 • LINE 17", category: "FRAMEWORK", desc: "CIS-1.2.1: SSH v1 prohibited (Evaluated: FAIL)", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: -10, y: -40 } },
       // 5: NIST SP 800-53 (South-Mid-Left)
-      { id: "nist", frameworkId: "NIST", x: -60, z: 220, title: "NIST SP 800-53", category: "FRAMEWORK", desc: "NIST AC-17: Remote access control validation", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: 0, y: -38 } },
+      { id: "nist", frameworkId: "NIST", x: -60, z: 220, title: "NIST SP 800-53", subtitle: "NIST AC-17 • LINE 17", category: "FRAMEWORK", desc: "NIST AC-17: Remote access control validation", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: 0, y: -40 } },
       // 6: DISA STIG (South-Mid-Right)
-      { id: "stig", frameworkId: "STIG", x: 60, z: 220, title: "DISA STIG", category: "FRAMEWORK", desc: "STIG NET-001: Cryptographic transport posture", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: 0, y: -38 } },
+      { id: "stig", frameworkId: "STIG", x: 60, z: 220, title: "DISA STIG", subtitle: "STIG NET-001 • LINE 17", category: "FRAMEWORK", desc: "STIG NET-001: Cryptographic transport posture", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: 0, y: -40 } },
       // 7: ISO 27001 (South-East)
-      { id: "iso", frameworkId: "ISO", x: 180, z: 180, title: "ISO/IEC 27001", category: "FRAMEWORK", desc: "ISO A.13.1: Network security services control", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: 10, y: -38 } },
+      { id: "iso", frameworkId: "ISO", x: 180, z: 180, title: "ISO/IEC 27001", subtitle: "ISO A.13.1 • LINE 17", category: "FRAMEWORK", desc: "ISO A.13.1: Network security services control", color: "#EF4444", verdict: "FAIL", line: 17, chipOffset: { x: 10, y: -40 } },
+      // 8: Dedicated Evidence Marker (Cisco Line 17 Evidence)
+      { id: "ev_cisco", x: -320, z: 20, title: "EVIDENCE: LINE 17", subtitle: "SOURCE: CISCO IOS", category: "EVIDENCE", desc: "ip ssh version 1 [AST Line 17] → CIS-1.2.1: FAIL", color: "#EF4444", verdict: "FAIL", line: 17, isEvidence: true, chipOffset: { x: -10, y: -36 } },
     ];
 
     // Spline Flow Connections
@@ -374,8 +376,10 @@ export default function MultiVendorTerrainView({
         // Floating Chip Label Box
         ctx.font = "bold 10px monospace";
         const titleWidth = ctx.measureText(node.title).width;
-        const boxWidth = Math.max(titleWidth + 18, 90);
-        const boxHeight = 22;
+        ctx.font = "9px monospace";
+        const subWidth = node.subtitle ? ctx.measureText(node.subtitle).width : 0;
+        const boxWidth = Math.max(Math.max(titleWidth, subWidth) + 20, 95);
+        const boxHeight = node.subtitle ? 34 : 22;
         const boxLeft = chipX - boxWidth * 0.5;
         const boxTop = chipY - boxHeight * 0.5;
 
@@ -384,15 +388,26 @@ export default function MultiVendorTerrainView({
         ctx.fillRect(boxLeft, boxTop, boxWidth, boxHeight);
 
         // Border
-        ctx.strokeStyle = isSelected ? "#00D9FF" : "rgba(255, 255, 255, 0.15)";
+        ctx.strokeStyle = isSelected ? "#00D9FF" : (node as any).isEvidence ? "rgba(239, 68, 68, 0.4)" : "rgba(255, 255, 255, 0.15)";
         ctx.lineWidth = isSelected ? 1.5 : 1;
         ctx.strokeRect(boxLeft, boxTop, boxWidth, boxHeight);
 
         // Text
-        ctx.fillStyle = isSelected ? "#FFFFFF" : "#E2E8F0";
         ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(node.title, chipX, chipY);
+        if (node.subtitle) {
+          ctx.font = "bold 10px monospace";
+          ctx.fillStyle = isSelected ? "#FFFFFF" : (node as any).isEvidence ? "#EF4444" : "#E2E8F0";
+          ctx.fillText(node.title, chipX, chipY - 5);
+
+          ctx.font = "8px monospace";
+          ctx.fillStyle = isSelected ? "#00D9FF" : "#64748B";
+          ctx.fillText(node.subtitle, chipX, chipY + 8);
+        } else {
+          ctx.font = "bold 10px monospace";
+          ctx.fillStyle = isSelected ? "#FFFFFF" : "#E2E8F0";
+          ctx.textBaseline = "middle";
+          ctx.fillText(node.title, chipX, chipY);
+        }
       });
 
       animId = requestAnimationFrame(render);
