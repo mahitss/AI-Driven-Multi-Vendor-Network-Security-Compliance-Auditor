@@ -83,6 +83,15 @@ class Settings(BaseSettings):
             return v
         return ["http://localhost:3000", "http://127.0.0.1:3000"]
 
+    @field_validator("ALLOWED_HOSTS", mode="before")
+    @classmethod
+    def assemble_allowed_hosts(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",") if i.strip()]
+        elif isinstance(v, list):
+            return v
+        return ["*"]
+
     @field_validator("ALLOWED_EXTENSIONS", mode="before")
     @classmethod
     def assemble_allowed_extensions(cls, v: Union[str, List[str]]) -> List[str]:

@@ -7,9 +7,9 @@ services:
     container_name: netvigil-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword_dev_sih26155
-      POSTGRES_DB: netvigil
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-netvigil}
     ports:
       - "5432:5432"
     volumes:
@@ -31,11 +31,12 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ENVIRONMENT: production
-      DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword_dev_sih26155@postgres:5432/netvigil
-      SYNC_DATABASE_URL: postgresql://postgres:postgrespassword_dev_sih26155@postgres:5432/netvigil
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      SECRET_KEY: ${SECRET_KEY:-dev-insecure-secret-key-replace-in-production-sih26155}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres_dev_password}@postgres:5432/netvigil}
+      SYNC_DATABASE_URL: ${SYNC_DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD:-postgres_dev_password}@postgres:5432/netvigil}
       STORAGE_PATH: /app/storage/uploads
-      CORS_ORIGINS: "http://localhost:3000,http://web:3000"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://web:3000}
     ports:
       - "8000:8000"
     volumes:

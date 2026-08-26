@@ -76,8 +76,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+
 # Standard Security Headers Middleware
 app.add_middleware(SecurityHeadersMiddleware)
+
+# Trusted Host Validation Middleware
+if settings.ALLOWED_HOSTS and settings.ALLOWED_HOSTS != ["*"]:
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.ALLOWED_HOSTS if isinstance(settings.ALLOWED_HOSTS, list) else [settings.ALLOWED_HOSTS],
+    )
 
 # Correlation & Request ID Middleware
 app.add_middleware(RequestContextMiddleware)
