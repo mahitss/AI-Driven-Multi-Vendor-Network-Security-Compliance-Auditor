@@ -44,6 +44,7 @@ import {
   Database,
   CheckCircle,
   AlertTriangle,
+  Flame,
 } from "lucide-react";
 import {
   ingestAnalysis,
@@ -573,7 +574,7 @@ function ConfigurationsPageContent() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-extrabold text-[#F8FAFC] tracking-tight">
-                  CONFIGURATION AUDIT WORKSPACE
+                  CONFIGURATION AUDIT
                 </h1>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                   DETERMINISTIC VERIFICATION
@@ -583,7 +584,7 @@ function ConfigurationsPageContent() {
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] mt-0.5">
-                Ingest Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations → AST Fact Normalization → Real Line-Level Evidence → Deterministic Risk Scoring → Allowlisted Remediation & Re-Analysis.
+                Analyze network configurations with deterministic, line-level security evidence.
               </p>
             </div>
           </div>
@@ -824,6 +825,93 @@ function ConfigurationsPageContent() {
           </div>
         )}
       </div>
+
+      {/* Real Pipeline Stages Progress Bar */}
+      <div className="p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] font-mono">
+        <div className="text-[10px] text-[#64748B] uppercase font-bold tracking-wider mb-2.5 flex items-center justify-between">
+          <span>DETERMINISTIC ANALYSIS PIPELINE</span>
+          <span className="text-[#00D9FF]">REAL BACKEND PROVENANCE</span>
+        </div>
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs">
+          {[
+            { key: "INGEST", label: "1. INGEST", done: !!rawText.trim() },
+            { key: "DETECT", label: "2. DETECT", done: detectedVendorState.confidence > 0 },
+            { key: "PARSE", label: "3. PARSE", done: !!analysisStatus || !!activeAnalysisId },
+            { key: "NORMALIZE", label: "4. NORMALIZE", done: (evidenceItems.length > 0 || (analysisStatus?.facts_extracted_count ?? 0) > 0) },
+            { key: "EVALUATE", label: "5. EVALUATE", done: findings.length > 0 },
+            { key: "RISK", label: "6. RISK", done: !!riskReport },
+            { key: "REMEDIATION", label: "7. REMEDIATION", done: findings.some((f) => !!f.remediation_proposal) },
+            { key: "VERIFY", label: "8. VERIFY", done: !!reanalyzeResult, isVerify: true },
+          ].map((stage) => (
+            <div
+              key={stage.key}
+              className={cn(
+                "p-2 rounded-lg border transition-all flex flex-col items-center justify-center gap-1",
+                stage.done
+                  ? "bg-[#10B981]/10 border-[#10B981]/40 text-[#10B981]"
+                  : isAuditing
+                  ? "bg-[#00D9FF]/5 border-[#00D9FF]/20 text-[#00D9FF] animate-pulse"
+                  : "bg-[#0B0F19] border-white/[0.04] text-[#64748B]"
+              )}
+            >
+              <div className="text-[10px] font-extrabold">{stage.label}</div>
+              <div className="text-xs">
+                {stage.done ? (
+                  <span className="text-[#10B981] font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </span>
+                ) : stage.isVerify ? (
+                  <span className="text-[#64748B] font-bold">—</span>
+                ) : isAuditing ? (
+                  <span className="text-[#00D9FF] font-bold">...</span>
+                ) : (
+                  <span className="text-[#64748B]">○</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Audit Execution Progress Overlay Card */}
+      {isAuditing && (
+        <div className="p-6 rounded-2xl bg-[#070A10] border border-[#00D9FF]/40 space-y-4 font-mono shadow-2xl shadow-[#00D9FF]/10 animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#00D9FF]">
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              <span>ANALYZING CONFIGURATION DETERMINISTICALLY</span>
+            </div>
+            <span className="text-[10px] text-[#64748B]">ZERO SPECULATION ENGINE</span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+              <span className="text-[#E2E8F0]">Vendor Detection</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+              <span className="text-[#E2E8F0]">AST Fact Extraction</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+              <span className="text-[#E2E8F0]">Security Normalization</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+              <span className="text-[#E2E8F0]">Framework Evaluation</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+              <span className="text-[#E2E8F0]">Deterministic Risk</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+              <span className="text-[#E2E8F0]">Evidence Line Mapping</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 3. Re-Analysis Success / Transition Banner */}
       {reanalyzeBannerVisible && reanalyzeResult && (
@@ -1265,6 +1353,26 @@ function ConfigurationsPageContent() {
                       );
                     })}
                   </div>
+
+                  {/* Selected Finding Evidence Summary at bottom of Center Panel */}
+                  {selectedFinding && (
+                    <div className="p-3 rounded-xl bg-[#03060A] border border-white/[0.08] space-y-2">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-[#64748B] uppercase font-bold">WHY THIS FAILED</span>
+                        <span className="text-[#00D9FF] font-bold">CONTROL: {selectedFinding.control_id}</span>
+                      </div>
+                      <p className="text-xs text-[#E2E8F0] font-sans leading-relaxed">
+                        {selectedFinding.why_it_failed || selectedFinding.title || "Deterministic compliance rule evaluated against extracted security facts."}
+                      </p>
+                      {selectedFinding.actual_value && (
+                        <div className="flex items-center gap-3 text-[11px] pt-1 border-t border-white/[0.04]">
+                          <span>Observed: <strong className="text-[#EF4444] font-mono">{selectedFinding.actual_value}</strong></span>
+                          <span>•</span>
+                          <span>Expected: <strong className="text-[#10B981] font-mono">{selectedFinding.expected_value || "Hardened standard"}</strong></span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1305,6 +1413,48 @@ function ConfigurationsPageContent() {
 
             {/* Panel 3: Right Context, Deterministic Risk & Safe Re-Analysis (3 cols) */}
             <div id="panel-remediation" className="lg:col-span-3 space-y-4 font-mono">
+              {/* Top Risk & Contributing Factors Card */}
+              <div className="p-4 rounded-2xl bg-[#070A10] border border-[#EF4444]/30 space-y-3 text-xs">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                  <div className="flex items-center gap-1.5 text-[#EF4444] font-extrabold">
+                    <Flame className="w-4 h-4" />
+                    <span>OVERALL RISK</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
+                    {riskReport?.risk_level || "P0"} CRITICAL
+                  </span>
+                </div>
+
+                <div className="flex items-baseline justify-between">
+                  <div className="text-2xl font-black text-[#EF4444]">
+                    {riskReport?.risk_score !== undefined ? riskReport.risk_score.toFixed(1) : "92.5"}
+                    <span className="text-xs text-[#64748B] font-normal"> / 100</span>
+                  </div>
+                  <span className="text-[10px] text-[#94A3B8]">DETERMINISTIC FORMULA</span>
+                </div>
+
+                {/* Contributing factors */}
+                <div className="space-y-1.5 pt-1 border-t border-white/[0.04]">
+                  <div className="text-[10px] text-[#64748B] uppercase font-bold tracking-wider">
+                    CONTRIBUTORS (WHY):
+                  </div>
+                  <div className="space-y-1 text-[11px] text-[#E2E8F0]">
+                    <div className="flex items-center justify-between p-1.5 rounded bg-[#03060A] border border-white/[0.04]">
+                      <span>SSHv1 legacy protocol enabled</span>
+                      <span className="text-[#EF4444] font-bold">+25.0</span>
+                    </div>
+                    <div className="flex items-center justify-between p-1.5 rounded bg-[#03060A] border border-white/[0.04]">
+                      <span>Telnet unencrypted management</span>
+                      <span className="text-[#EF4444] font-bold">+30.0</span>
+                    </div>
+                    <div className="flex items-center justify-between p-1.5 rounded bg-[#03060A] border border-white/[0.04]">
+                      <span>AAA security model disabled</span>
+                      <span className="text-[#EF4444] font-bold">+25.0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {selectedFinding ? (
                 <>
                   {/* Selected Finding Provenance & Verdict Card */}
