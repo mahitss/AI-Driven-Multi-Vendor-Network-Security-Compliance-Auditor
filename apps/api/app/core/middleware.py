@@ -121,3 +121,25 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response.headers["X-RateLimit-Limit"] = str(limit_for_path)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
         return response
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Applies standard enterprise security headers to all HTTP responses:
+    - X-Content-Type-Options: nosniff
+    - X-Frame-Options: DENY
+    - Referrer-Policy: strict-origin-when-cross-origin
+    - Permissions-Policy: camera=(), microphone=(), geolocation=()
+    - X-XSS-Protection: 1; mode=block
+    - Content-Security-Policy: frame-ancestors 'none';
+    """
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
+

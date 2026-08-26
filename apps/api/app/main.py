@@ -29,8 +29,11 @@ from app.core.errors import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
-from app.core.logging import logger
-from app.core.middleware import RequestContextMiddleware, RateLimitMiddleware
+from app.core.middleware import (
+    RequestContextMiddleware,
+    RateLimitMiddleware,
+    SecurityHeadersMiddleware,
+)
 from app.db.session import async_engine
 from app.models.base import Base
 
@@ -72,6 +75,9 @@ app = FastAPI(
     openapi_url=f"{settings.API_PREFIX}/openapi.json",
     lifespan=lifespan,
 )
+
+# Standard Security Headers Middleware
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Correlation & Request ID Middleware
 app.add_middleware(RequestContextMiddleware)
