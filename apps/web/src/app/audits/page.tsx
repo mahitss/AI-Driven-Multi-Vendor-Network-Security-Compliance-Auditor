@@ -32,6 +32,7 @@ import {
   MessageSquare,
   Zap,
   Wrench,
+  FileText,
 } from "lucide-react";
 import {
   fetchAudits,
@@ -236,6 +237,14 @@ export default function AuditsPage() {
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {/* AI Co-Pilot Button */}
+          <Link
+            href={`/reports?auditId=${selectedAuditId || ""}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#00D9FF] hover:text-white text-xs font-mono font-semibold transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Executive Report</span>
+          </Link>
+
           <button
             onClick={() => setIsAssistantOpen(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 hover:text-white hover:bg-indigo-900/80 text-xs font-mono font-semibold transition-colors shadow-sm"

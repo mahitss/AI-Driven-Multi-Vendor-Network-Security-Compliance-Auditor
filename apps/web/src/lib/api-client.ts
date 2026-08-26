@@ -1347,6 +1347,36 @@ export async function fetchReportDetail(reportId: string): Promise<ReportDocumen
   return res.json();
 }
 
+export interface AuditComparisonResult {
+  baseline_audit_id: string;
+  remediated_audit_id: string;
+  baseline_compliance_score: number;
+  remediated_compliance_score: number;
+  compliance_improvement: number;
+  baseline_failed_count: number;
+  remediated_failed_count: number;
+  resolved_count: number;
+  resolved_controls: string[];
+  new_violations_count: number;
+  new_violations: string[];
+  unchanged_failures_count: number;
+}
+
+export async function compareAudits(payload: {
+  baseline_audit_id: string;
+  remediated_audit_id: string;
+}): Promise<AuditComparisonResult> {
+  const res = await fetch(`${API_BASE}/api/v1/reports/compare`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw new Error(`Audit comparison failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 export interface GoldenDemoState {
   status: string;
   demo_mode: boolean;
