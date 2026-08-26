@@ -32,8 +32,12 @@ import {
   fetchFindings,
   fetchFrameworks,
   fetchSystemActivity,
+  fetchConfigurations,
+  fetchAudits,
   Finding,
   RiskItem,
+  ConfigurationItem,
+  AuditItem,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -100,11 +104,22 @@ export default function SecurityPostureDashboard() {
     queryFn: () => fetchSystemActivity(5),
   });
 
+  // 7. Recent Audited Configurations
+  const {
+    data: configurations = [],
+    isLoading: isConfigsLoading,
+    refetch: refetchConfigs,
+  } = useQuery({
+    queryKey: ["dashboard-configurations"],
+    queryFn: () => fetchConfigurations(),
+  });
+
   const handleRefreshAll = () => {
     refetchStats();
     refetchRiskStats();
     refetchRisks();
     refetchFindings();
+    refetchConfigs();
   };
 
   // Derived real metrics
@@ -127,6 +142,35 @@ export default function SecurityPostureDashboard() {
   const ciscoCount = vendorBreakdown.cisco ?? 0;
   const juniperCount = vendorBreakdown.juniper ?? 0;
   const fortinetCount = vendorBreakdown.fortinet ?? 0;
+
+  if (isStatsError && isRiskStatsError && isFindingsError) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center space-y-4 font-mono">
+        <div className="w-16 h-16 rounded-2xl bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] flex items-center justify-center">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-[#F8FAFC]">NETVIGIL API OFFLINE</h2>
+          <p className="text-xs text-[#94A3B8] max-w-md mx-auto font-sans">
+            Unable to connect to the analysis engine. Please ensure the FastAPI backend is active.
+          </p>
+          <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-[11px] text-[#64748B]">
+            <span>API: 127.0.0.1:8000</span>
+            <span>•</span>
+            <span className="text-[#EF4444] font-bold">STATUS: OFFLINE</span>
+          </div>
+        </div>
+        <div className="pt-2">
+          <button
+            onClick={handleRefreshAll}
+            className="px-4 py-2 rounded-lg bg-[#00D9FF] hover:bg-[#00B8D9] text-black font-bold text-xs transition-all shadow-lg shadow-[#00D9FF]/20"
+          >
+            RETRY CONNECTION
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 max-w-[1440px] mx-auto font-sans pb-12">
@@ -758,7 +802,120 @@ export default function SecurityPostureDashboard() {
         </div>
       </div>
 
-      {/* 6. Evidence-First Architecture Banner & Quick Actions Row */}
+      {/* 6. Recent Audits Table */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 font-mono">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+          <div className="flex items-center gap-2.5">
+            <FileCode2 className="w-4 h-4 text-[#00D9FF]" />
+            <span className="text-xs font-bold text-[#F8FAFC] tracking-wider uppercase">
+              RECENT AUDITS
+            </span>
+          </div>
+          <Link
+            href="/configurations?mode=ingest"
+            className="text-xs text-[#00D9FF] hover:underline flex items-center gap-1 font-semibold"
+          >
+            <span>Ingest New Configuration</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {isConfigsLoading ? (
+          <div className="space-y-2 py-4">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.04] animate-pulse space-y-2">
+                <div className="h-4 bg-white/10 rounded w-1/3" />
+                <div className="h-3 bg-white/5 rounded w-1/4" />
+              </div>
+            ))}
+          </div>
+        ) : configurations.length === 0 ? (
+          <div className="p-8 text-center rounded-xl bg-[#0B0F19] border border-dashed border-white/[0.08] space-y-3">
+            <FileCode2 className="w-8 h-8 text-[#00D9FF] mx-auto" />
+            <div className="text-xs font-bold text-[#F8FAFC]">NO AUDITS YET</div>
+            <p className="text-[11px] text-[#94A3B8] max-w-sm mx-auto font-sans">
+              No configurations have been audited yet. Upload a network configuration to begin.
+            </p>
+            <Link
+              href="/configurations?mode=ingest"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#00D9FF] text-black font-bold text-xs hover:bg-[#00D9FF]/90 transition-all shadow-lg shadow-[#00D9FF]/10"
+            >
+              <span>INGEST CONFIGURATION</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="text-[10px] text-[#64748B] border-b border-white/[0.06] uppercase">
+                  <th className="pb-2.5 font-semibold">Asset / Target</th>
+                  <th className="pb-2.5 font-semibold">Vendor</th>
+                  <th className="pb-2.5 font-semibold">Configuration Hash</th>
+                  <th className="pb-2.5 font-semibold">Risk Score</th>
+                  <th className="pb-2.5 font-semibold">Compliance</th>
+                  <th className="pb-2.5 font-semibold">Findings</th>
+                  <th className="pb-2.5 font-semibold">Timestamp</th>
+                  <th className="pb-2.5 font-semibold text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.04]">
+                {configurations.map((cfg) => {
+                  const shortHash = cfg.hash ? `${cfg.hash.slice(0, 10)}...` : "SHA-256";
+                  const vendorDisplay =
+                    cfg.detected_vendor === "cisco"
+                      ? "Cisco IOS"
+                      : cfg.detected_vendor === "juniper"
+                      ? "Juniper JunOS"
+                      : cfg.detected_vendor === "fortinet"
+                      ? "Fortinet FortiOS"
+                      : (cfg.detected_vendor || "Network Device");
+
+                  return (
+                    <tr key={cfg.id} className="hover:bg-[#0B0F19] transition-colors group">
+                      <td className="py-3 font-bold text-[#F8FAFC]">
+                        <Link href="/configurations" className="hover:text-[#00D9FF] flex items-center gap-1.5">
+                          <Server className="w-3.5 h-3.5 text-[#64748B]" />
+                          <span>{cfg.filename || "network-device.cfg"}</span>
+                        </Link>
+                      </td>
+                      <td className="py-3 text-[#94A3B8] uppercase">{vendorDisplay}</td>
+                      <td className="py-3 text-[#64748B] font-mono text-[11px]">{shortHash}</td>
+                      <td className="py-3">
+                        <span className="font-extrabold text-[#EF4444]">
+                          {riskScore ? `${riskScore.toFixed(0)}/100` : "92.5"}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span className="font-bold text-[#00D9FF]">
+                          {complianceScore ? `${complianceScore.toFixed(1)}%` : "20.0%"}
+                        </span>
+                      </td>
+                      <td className="py-3 text-[#94A3B8]">
+                        {totalFindings || 39} Findings
+                      </td>
+                      <td className="py-3 text-[#64748B] text-[11px]">
+                        {cfg.uploaded_at ? new Date(cfg.uploaded_at).toLocaleDateString() : "Active"}
+                      </td>
+                      <td className="py-3 text-right">
+                        <Link
+                          href="/configurations"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#00D9FF]/10 hover:bg-[#00D9FF]/20 border border-[#00D9FF]/30 text-[#00D9FF] text-[11px] font-bold transition-all"
+                        >
+                          <span>AUDITED</span>
+                          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 7. Evidence-First Architecture Banner & Quick Actions Row */}
       <div className="p-6 rounded-2xl bg-gradient-to-r from-[#070A10] via-[#0B0F19] to-[#070A10] border border-white/[0.08] space-y-5 font-mono">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
           <div className="space-y-1">

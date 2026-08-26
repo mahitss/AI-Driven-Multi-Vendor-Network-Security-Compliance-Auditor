@@ -23,9 +23,9 @@ export default function LandingHero() {
         {/* Institutional Status Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0B132B]/90 border border-[#00D9FF]/20 text-[11px] font-mono text-[#94A3B8] shadow-sm mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF] animate-pulse" />
-          <span className="text-[#00D9FF] font-semibold tracking-wide">NTRO</span>
+          <span className="text-[#00D9FF] font-semibold tracking-wide">NETVIGIL SECURITY</span>
           <span className="text-white/20">•</span>
-          <span className="text-[#94A3B8] font-medium tracking-wide">DETERMINISTIC MULTI-VENDOR SECURITY</span>
+          <span className="text-[#94A3B8] font-medium tracking-wide">DETERMINISTIC MULTI-VENDOR AUDITING</span>
         </div>
 
         {/* Scaled Editorial Headline (Bold & Clear) */}
@@ -43,9 +43,7 @@ export default function LandingHero() {
 
         {/* Supporting Architectural Copy */}
         <p className="max-w-[480px] text-[14.5px] sm:text-[15.5px] xl:text-[16.5px] text-[#8B9EB3] leading-[1.6] font-sans font-normal mb-8">
-          NetVigil transforms Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations into
-          one Universal Security Model, evaluates them against shared security frameworks, preserves
-          line-level evidence, and uses grounded AI only where interpretation is required.
+          Turn network configurations into evidence-backed security decisions. NetVigil transforms Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations into one Universal Security Model, evaluates shared compliance frameworks, and delivers deterministic line-level proof.
         </p>
 
         {/* Tactical Chamfered Cut-Corner Action Controls */}
