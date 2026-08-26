@@ -262,7 +262,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Quick Upload CTA */}
             <Link
-              href="/configurations"
+              href="/configurations?mode=ingest"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] hover:border-[#242424] hover:bg-[#111111] text-[#F5F5F5] text-xs font-mono font-semibold transition-colors"
             >
               <Upload className="w-3.5 h-3.5 text-[#00D9FF]" />

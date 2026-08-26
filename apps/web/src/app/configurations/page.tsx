@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   UploadCloud,
@@ -268,10 +269,13 @@ end`,
   },
 ];
 
-export default function ConfigurationsPage() {
+function ConfigurationsPageContent() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const isIngestMode = searchParams.get("mode") === "ingest";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const evidenceContainerRef = useRef<HTMLDivElement>(null);
+  const ingestionRef = useRef<HTMLDivElement>(null);
 
   // Ingestion Workspace State
   const [inputMode, setInputMode] = useState<"samples" | "paste" | "upload">("samples");
@@ -285,6 +289,17 @@ export default function ConfigurationsPage() {
     confidence: number;
     platform?: string;
   }>({ vendor: "cisco", confidence: 0.98, platform: "ios" });
+
+  // Auto-switch to upload mode & scroll when mode=ingest is provided
+  useEffect(() => {
+    if (isIngestMode) {
+      setInputMode("upload");
+      const timer = setTimeout(() => {
+        ingestionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isIngestMode]);
 
   // Active Audit State
   const [activeAnalysisId, setActiveAnalysisId] = useState<string | null>(null);
@@ -588,8 +603,31 @@ export default function ConfigurationsPage() {
         </div>
       </div>
 
+      {/* Ingest Mode State Banner */}
+      {isIngestMode && (
+        <div className="p-4 rounded-xl bg-[#00D9FF]/10 border border-[#00D9FF]/30 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg shadow-[#00D9FF]/5 animate-fadeIn">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <UploadCloud className="w-5 h-5 text-[#00D9FF]" />
+              <h2 className="text-sm font-bold font-mono text-[#F8FAFC] uppercase tracking-wider">
+                INGEST CONFIGURATION
+              </h2>
+            </div>
+            <p className="text-xs text-[#94A3B8]">
+              Upload or paste a network configuration to begin deterministic security analysis.
+            </p>
+          </div>
+          <Link
+            href="/configurations"
+            className="self-start md:self-auto px-3.5 py-1.5 rounded-lg bg-[#0B0F19] border border-white/[0.1] hover:border-white/[0.25] text-xs font-mono font-semibold text-[#94A3B8] hover:text-white transition-colors flex items-center gap-1.5"
+          >
+            <span>← AUDIT WORKSPACE</span>
+          </Link>
+        </div>
+      )}
+
       {/* 2. Top Ingestion & Audit Activation Control */}
-      <div className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 shadow-xl">
+      <div ref={ingestionRef} id="ingestion-workspace" className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 shadow-xl scroll-mt-20">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-[#00D9FF]" />
@@ -1518,5 +1556,19 @@ export default function ConfigurationsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfigurationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-12 text-center text-xs font-mono text-[#666666]">
+          Loading Configuration Audit Workspace...
+        </div>
+      }
+    >
+      <ConfigurationsPageContent />
+    </Suspense>
   );
 }
