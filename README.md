@@ -2,14 +2,14 @@
 
 [![CI Pipeline](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions/workflows/ci.yml/badge.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions)
 [![Tests](https://img.shields.io/badge/Pytest-113%2F113%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
-[![Release](https://img.shields.io/badge/Release-v1.0.0--SIH2026--Production-blue.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Release](https://img.shields.io/badge/Release-v1.0.0--RC1-blue.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
 [![Organization](https://img.shields.io/badge/Organization-NTRO-red.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
 
 **Problem Statement ID:** SIH26155  
 **Title:** AI-Driven Multi-Vendor Network Security Compliance Auditor  
 **Organization:** National Technical Research Organisation (NTRO)  
 **Theme:** Blockchain & Cybersecurity | **Category:** Software  
-**Release:** `v1.0.0-Production-Ready`  
+**Release:** `v1.0.0-RC1`  
 
 ---
 
@@ -20,7 +20,7 @@ Modern critical national infrastructure networks are built using heterogeneous e
 ### The NetVigil Core Invariant:
 "Turn network configurations into evidence-backed, deterministic security decisions."
 
-1. **Deterministic Compliance Core**: 100% mathematical certainty in rule evaluations, grounded line-level evidence citations, and allowlisted remediation diffs.
+1. **Deterministic Compliance Core**: Deterministic rule evaluation, grounded line-level evidence citations, and allowlisted remediation diffs.
 2. **Universal Security Model (USM)**: Translates disparate vendor syntax structures into 8 canonical security domains.
 3. **Strict AI Safety Boundary**: AI acts purely as an advisory co-pilot for human comprehension. AI cannot alter compliance verdicts, severity tiers, or risk scores.
 4. **Air-Gapped Safety Guardrail**: Mandatory enforcement of `NETWORK PUSH: DISABLED (READ-ONLY ADVISORY)`. Zero device-write operations.
@@ -154,7 +154,7 @@ npm run build
 | Guardrail | Enforcement Mechanism |
 | :--- | :--- |
 | **Zero Device Writes** | Air-gapped architecture with zero network push, zero subprocess execution, and zero outbound device credentials. |
-| **Deterministic Core** | Mathematical evaluator determines 100% of PASS/FAIL compliance findings and risk scores. |
+| **Deterministic Core** | Deterministic rule engine evaluates 100% of PASS/FAIL compliance findings and risk scores. |
 | **Sensitive Redaction** | Cryptographic filter scrubs passwords, hashes, SNMP communities, and private keys from all logs, UI views, and reports. |
 | **Property Allowlist** | Adaptive syntax mapping strictly validates candidate properties against `NORMALIZED_PROPERTY_ALLOWLIST`. |
 | **Security Headers** | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Content-Security-Policy`. |
@@ -185,4 +185,4 @@ npm run build
 
 ---
 
-**NetVigil v1.0.0-Production** — *National Technical Research Organisation (NTRO) • SIH26155*
+**NetVigil v1.0.0-RC1** — *National Technical Research Organisation (NTRO) • SIH26155*
