@@ -1,7 +1,7 @@
 # NetVigil — AI-Driven Multi-Vendor Network Security Compliance Auditor
 
 [![CI Pipeline](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions/workflows/ci.yml/badge.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions)
-[![Tests](https://img.shields.io/badge/Pytest-113%2F113%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Tests](https://img.shields.io/badge/Pytest-118%2F118%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
 [![Release](https://img.shields.io/badge/Release-v1.0.0--RC1-blue.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
 [![Organization](https://img.shields.io/badge/Organization-NTRO-red.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
 
@@ -136,7 +136,7 @@ npm run dev
 
 ### Production Build & Verification
 ```bash
-# 1. Run full backend test suite (113/113 passing)
+# 1. Run full backend test suite (118/118 passing)
 pytest apps/api/tests -v
 
 # 2. Typecheck frontend (0 errors)
@@ -172,7 +172,7 @@ npm run build
 │   │   │   ├── models/          # SQLAlchemy Async Database Entities
 │   │   │   ├── schemas/         # Pydantic v2 Request/Response Models
 │   │   │   └── services/        # Parsers (Cisco/Jun/Forti), Evaluators, Risk, Remediation
-│   │   └── tests/               # 113 Pytest Unit, Integration & Golden-Path Tests
+│   │   └── tests/               # 118 Pytest Unit, Integration & Adversarial Tests
 │   └── web/                     # Next.js 15 App Router Frontend (25 Production Routes)
 │       ├── src/app/             # Workspaces (dashboard, configurations, findings, risk, remediation, reports)
 │       ├── src/components/      # UI Shell, Evidence Viewers, Diffs, Global Search
