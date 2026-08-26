@@ -374,10 +374,22 @@ export interface OverviewStats {
   supported_frameworks: string[];
 }
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000").replace(
-  "localhost",
-  "127.0.0.1"
-);
+export function getApiBase(): string {
+  if (typeof window !== "undefined") {
+    // In browser, using window.location.origin routes requests through Next.js proxy rewrites
+    // This prevents ERR_CONNECTION_REFUSED on direct port 8000 and eliminates CORS issues
+    const custom = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (custom && !custom.includes("127.0.0.1:8000") && !custom.includes("localhost:8000")) {
+      return custom.replace(/\/$/, "");
+    }
+    return window.location.origin;
+  }
+  return (process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000")
+    .replace("localhost", "127.0.0.1")
+    .replace(/\/$/, "");
+}
+
+export const API_BASE = getApiBase();
 
 const DEFAULT_TIMEOUT_MS = 12000;
 
@@ -413,12 +425,22 @@ export async function fetchWithTimeout(
       }
     }
 
+    if (res.status === 401) {
+      throw new Error(`AUTHENTICATION REQUIRED: The API rejected this request with HTTP 401.`);
+    }
+    if (res.status === 500) {
+      throw new Error(`API ERROR: The backend returned HTTP 500.`);
+    }
+
     return res;
   } catch (err: any) {
     if (err?.name === "AbortError") {
-      throw new Error(`API request timed out (${timeoutMs / 1000}s): Backend server did not respond.`);
+      throw new Error(`BACKEND TIMEOUT (${timeoutMs / 1000}s): Unable to reach NetVigil API at ${url}.`);
     }
-    throw new Error(`API connection error: ${err?.message || "Backend server unreachable on port 8000"}`);
+    if (err?.message?.startsWith("AUTHENTICATION REQUIRED") || err?.message?.startsWith("API ERROR")) {
+      throw err;
+    }
+    throw new Error(`BACKEND UNAVAILABLE: Unable to connect to NetVigil API at the configured endpoint.`);
   } finally {
     clearTimeout(timer);
   }

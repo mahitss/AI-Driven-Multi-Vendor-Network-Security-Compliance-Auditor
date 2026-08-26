@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     # Storage & Upload Rules
     STORAGE_PATH: str = "./storage/uploads"
     MAX_FILE_SIZE_MB: int = 10
-    ALLOWED_EXTENSIONS: Union[List[str], str] = [".cfg", ".conf", ".txt", ".log"]
+    ALLOWED_EXTENSIONS: Union[List[str], str] = [".cfg", ".conf", ".txt", ".log", ".set"]
 
     # AI Provider Settings (OpenRouter abstraction)
     AI_PROVIDER: str = "openrouter"  # "openrouter", "mock", "local"
