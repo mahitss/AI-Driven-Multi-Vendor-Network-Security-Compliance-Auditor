@@ -401,10 +401,19 @@ function ConfigurationsPageContent() {
       setReanalyzeResult(null);
       setReanalyzeBannerVisible(false);
 
+      let activeName = (configFilename || "").trim();
+      if (!activeName) {
+        if (detectedVendorState.vendor === "juniper") activeName = "juniper-device.set";
+        else if (detectedVendorState.vendor === "fortinet") activeName = "fortinet-device.conf";
+        else activeName = "cisco-device.cfg";
+      } else if (!activeName.includes(".")) {
+        activeName += detectedVendorState.vendor === "juniper" ? ".set" : detectedVendorState.vendor === "fortinet" ? ".conf" : ".cfg";
+      }
+
       // 1. Ingest via real backend pipeline endpoint
       const ingestRes = await ingestAnalysis(
         rawText,
-        configFilename || "network-device.cfg",
+        activeName,
         detectedVendorState.vendor
       );
 

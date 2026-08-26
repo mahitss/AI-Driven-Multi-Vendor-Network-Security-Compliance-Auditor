@@ -146,7 +146,9 @@ async def ingest_configuration_for_analysis(
         raise ValidationError(message="Configuration content cannot be empty.")
 
     content_bytes = raw_content.encode("utf-8")
-    filename = payload.filename or "cisco_edge_router.cfg"
+    filename = (payload.filename or "cisco_edge_router.cfg").strip()
+    if not filename or filename.startswith("."):
+        filename = "cisco_edge_router.cfg"
 
     # Persist via Ingestion Service
     config_record = await ConfigurationIngestionService.ingest_file(
@@ -156,9 +158,10 @@ async def ingest_configuration_for_analysis(
     )
 
     # Dynamic Parser Selection & Deterministic AST Extraction
+    effective_vendor_hint = payload.vendor_hint if (payload.vendor_hint and payload.vendor_hint != "unknown") else config_record.detected_vendor
     parser = parser_registry.get_parser(
         content=raw_content,
-        vendor_hint=config_record.detected_vendor,
+        vendor_hint=effective_vendor_hint,
         filename=filename,
     )
     profile = parser.parse(raw_content, filename=filename)

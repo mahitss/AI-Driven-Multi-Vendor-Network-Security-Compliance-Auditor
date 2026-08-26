@@ -41,6 +41,10 @@ def validate_file_metadata(filename: str, size: int) -> Tuple[str, str]:
     sanitized = sanitize_filename(filename)
     ext = Path(sanitized).suffix.lower()
 
+    if not ext:
+        sanitized = f"{sanitized}.cfg"
+        ext = ".cfg"
+
     if ext not in settings.ALLOWED_EXTENSIONS:
         raise InvalidFileTypeError(
             message=f"File extension '{ext}' is not permitted. Allowed extensions: {', '.join(settings.ALLOWED_EXTENSIONS)}",

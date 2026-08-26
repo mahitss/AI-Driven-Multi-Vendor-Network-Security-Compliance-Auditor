@@ -1678,14 +1678,22 @@ export async function ingestAnalysis(
   filename: string = "cisco_edge_router.cfg",
   vendorHint?: string
 ): Promise<AnalysisIngestResponse> {
+  let cleanFilename = filename?.trim() || "network-config.cfg";
+  if (!cleanFilename.includes(".")) {
+    if (vendorHint === "juniper") cleanFilename += ".set";
+    else if (vendorHint === "fortinet") cleanFilename += ".conf";
+    else cleanFilename += ".cfg";
+  }
+
   const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/ingest`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content, filename, vendor_hint: vendorHint }),
+    body: JSON.stringify({ content, filename: cleanFilename, vendor_hint: vendorHint }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
-    throw new Error(err.detail || err.message || `Ingestion failed (HTTP ${res.status})`);
+    const errorMsg = err?.error?.message || err?.detail || err?.message || `Ingestion failed (HTTP ${res.status})`;
+    throw new Error(errorMsg);
   }
   return res.json();
 }
@@ -1740,7 +1748,8 @@ export async function reanalyzeAnalysis(
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
-    throw new Error(err.detail || err.message || `Re-analysis failed (HTTP ${res.status})`);
+    const errorMsg = err?.error?.message || err?.detail || err?.message || `Re-analysis failed (HTTP ${res.status})`;
+    throw new Error(errorMsg);
   }
   return res.json();
 }
