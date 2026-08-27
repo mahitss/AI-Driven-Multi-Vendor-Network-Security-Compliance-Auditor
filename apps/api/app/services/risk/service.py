@@ -5,7 +5,7 @@ Problem Statement: SIH26155 (NTRO)
 Orchestrates risk computation, grouping, persistence, and graph retrieval.
 """
 from typing import Any, Dict, List, Optional
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.finding import Finding
 from app.models.risk import RiskItem
@@ -135,31 +135,55 @@ class RiskIntelligenceService:
 
     @classmethod
     async def get_risk_summary_stats(cls, db: AsyncSession) -> Dict[str, Any]:
-        """Calculates global risk intelligence KPI statistics."""
-        # Total counts
-        total_stmt = select(func.count(RiskItem.id))
-        total_risks = (await db.execute(total_stmt)).scalar() or 0
+        """Calculates global risk intelligence KPI statistics across active fleet posture."""
+        latest_created_sq = (
+            select(
+                Audit.configuration_id,
+                func.max(Audit.created_at).label("max_created")
+            )
+            .group_by(Audit.configuration_id)
+            .subquery()
+        )
 
-        p0_stmt = select(func.count(RiskItem.id)).where(RiskItem.priority == "P0")
-        p0_count = (await db.execute(p0_stmt)).scalar() or 0
+        latest_audits_stmt = (
+            select(Audit.id)
+            .join(
+                latest_created_sq,
+                (Audit.configuration_id == latest_created_sq.c.configuration_id)
+                & (Audit.created_at == latest_created_sq.c.max_created)
+            )
+        )
+        res = await db.execute(latest_audits_stmt)
+        latest_ids = [r[0] for r in res.all()]
 
-        p1_stmt = select(func.count(RiskItem.id)).where(RiskItem.priority == "P1")
-        p1_count = (await db.execute(p1_stmt)).scalar() or 0
+        if not latest_ids:
+            return {
+                "total_risks": 0,
+                "p0_count": 0,
+                "p1_count": 0,
+                "p2_count": 0,
+                "p3_count": 0,
+                "average_risk_score": 0.0,
+            }
 
-        p2_stmt = select(func.count(RiskItem.id)).where(RiskItem.priority == "P2")
-        p2_count = (await db.execute(p2_stmt)).scalar() or 0
-
-        p3_stmt = select(func.count(RiskItem.id)).where(RiskItem.priority == "P3")
-        p3_count = (await db.execute(p3_stmt)).scalar() or 0
-
-        avg_score_stmt = select(func.avg(RiskItem.risk_score))
-        avg_score = (await db.execute(avg_score_stmt)).scalar() or 0.0
+        risk_stmt = (
+            select(
+                func.count(RiskItem.id).label("total_risks"),
+                func.sum(case((RiskItem.priority == "P0", 1), else_=0)).label("p0"),
+                func.sum(case((RiskItem.priority == "P1", 1), else_=0)).label("p1"),
+                func.sum(case((RiskItem.priority == "P2", 1), else_=0)).label("p2"),
+                func.sum(case((RiskItem.priority == "P3", 1), else_=0)).label("p3"),
+                func.avg(RiskItem.risk_score).label("avg_risk"),
+            )
+            .where(RiskItem.audit_id.in_(latest_ids))
+        )
+        r_res = (await db.execute(risk_stmt)).one()
 
         return {
-            "total_risks": total_risks,
-            "p0_count": p0_count,
-            "p1_count": p1_count,
-            "p2_count": p2_count,
-            "p3_count": p3_count,
-            "average_risk_score": round(float(avg_score), 1),
+            "total_risks": r_res.total_risks or 0,
+            "p0_count": r_res.p0 or 0,
+            "p1_count": r_res.p1 or 0,
+            "p2_count": r_res.p2 or 0,
+            "p3_count": r_res.p3 or 0,
+            "average_risk_score": round(float(r_res.avg_risk), 1) if r_res.avg_risk is not None else 0.0,
         }

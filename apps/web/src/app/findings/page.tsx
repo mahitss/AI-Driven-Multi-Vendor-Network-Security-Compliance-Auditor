@@ -82,12 +82,13 @@ function FindingsContent() {
     isError: isFindingsError,
     refetch: refetchFindings,
   } = useQuery({
-    queryKey: ["all-findings", selectedFramework, selectedSeverity, selectedStatus],
+    queryKey: ["all-findings", selectedFramework, selectedSeverity, selectedStatus, queryParamAnalysisId],
     queryFn: () =>
       fetchFindings({
         framework: selectedFramework === "ALL" ? undefined : selectedFramework,
         severity: selectedSeverity === "ALL" ? undefined : selectedSeverity,
         status: selectedStatus === "ALL" ? undefined : selectedStatus,
+        audit_id: queryParamAnalysisId || undefined,
       }),
   });
 

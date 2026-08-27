@@ -4,7 +4,7 @@ Problem Statement: SIH26155 (NTRO)
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import desc, select
+from sqlalchemy import desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import DatabaseDep
 from app.core.errors import ResourceNotFoundError
@@ -100,11 +100,34 @@ async def list_all_findings(
     severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL, HIGH, MEDIUM, LOW)"),
     status_filter: Optional[str] = Query(None, alias="status", description="Filter by status (PASS, FAIL, UNKNOWN)"),
     category: Optional[str] = Query(None, description="Filter by category"),
-    limit: int = Query(200, ge=1, le=500),
+    audit_id: Optional[str] = Query(None, description="Filter by specific audit ID"),
+    latest_only: bool = Query(True, description="Filter to findings from the latest audit per configuration"),
+    limit: int = Query(500, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ) -> List[FindingResponse]:
-    """Retrieve all findings across all audits with multi-dimensional filtering."""
+    """Retrieve findings across audits with multi-dimensional filtering and active posture scoping."""
     query = select(Finding)
+
+    if audit_id and audit_id.upper() != "ALL":
+        query = query.where(Finding.audit_id == audit_id)
+    elif latest_only:
+        latest_created_sq = (
+            select(
+                Audit.configuration_id,
+                func.max(Audit.created_at).label("max_created")
+            )
+            .group_by(Audit.configuration_id)
+            .subquery()
+        )
+        latest_audits_stmt = (
+            select(Audit.id)
+            .join(
+                latest_created_sq,
+                (Audit.configuration_id == latest_created_sq.c.configuration_id)
+                & (Audit.created_at == latest_created_sq.c.max_created)
+            )
+        )
+        query = query.where(Finding.audit_id.in_(latest_audits_stmt))
 
     if framework and framework.upper() != "ALL":
         query = query.where(Finding.framework == framework.upper())

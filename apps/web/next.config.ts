@@ -10,9 +10,10 @@ const backendUrl = (
   .replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(__dirname),
+  outputFileTracingRoot: path.resolve(__dirname, "../../"),
   reactStrictMode: true,
   poweredByHeader: false,
+  transpilePackages: ["@supabase/ssr", "@supabase/supabase-js"],
   eslint: {
     ignoreDuringBuilds: true,
   },

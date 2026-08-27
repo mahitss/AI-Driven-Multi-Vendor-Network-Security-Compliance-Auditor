@@ -5,7 +5,7 @@ Problem Statement: SIH26155 (NTRO)
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, Query
-from sqlalchemy import func, select, desc, or_
+from sqlalchemy import func, select, desc, or_, case
 
 from app.api.dependencies import DatabaseDep
 from app.models.audit import Audit
@@ -27,25 +27,70 @@ async def get_system_overview_stats(
     total_configs = (await db.execute(select(func.count(Configuration.id)))).scalar() or 0
     total_devices = (await db.execute(select(func.count(Device.id)))).scalar() or 0
     total_audits = (await db.execute(select(func.count(Audit.id)))).scalar() or 0
-    total_findings = (await db.execute(select(func.count(Finding.id)))).scalar() or 0
+    total_findings_lifetime = (await db.execute(select(func.count(Finding.id)))).scalar() or 0
 
-    # Severity distribution
-    crit_count = (await db.execute(select(func.count(Finding.id)).where(Finding.severity == "CRITICAL", Finding.status.in_(["FAIL", "PARTIAL"])))).scalar() or 0
-    high_count = (await db.execute(select(func.count(Finding.id)).where(Finding.severity == "HIGH", Finding.status.in_(["FAIL", "PARTIAL"])))).scalar() or 0
-    med_count = (await db.execute(select(func.count(Finding.id)).where(Finding.severity == "MEDIUM", Finding.status.in_(["FAIL", "PARTIAL"])))).scalar() or 0
-    low_count = (await db.execute(select(func.count(Finding.id)).where(Finding.severity == "LOW", Finding.status.in_(["FAIL", "PARTIAL"])))).scalar() or 0
-    info_count = (await db.execute(select(func.count(Finding.id)).where(Finding.severity == "INFO", Finding.status.in_(["FAIL", "PARTIAL"])))).scalar() or 0
-    open_findings = crit_count + high_count + med_count + low_count + info_count
+    # Subquery to retrieve the latest audit ID for each unique configuration
+    latest_created_sq = (
+        select(
+            Audit.configuration_id,
+            func.max(Audit.created_at).label("max_created")
+        )
+        .group_by(Audit.configuration_id)
+        .subquery()
+    )
 
-    # Average Compliance Score
-    avg_score_stmt = select(func.avg(Audit.score)).where(Audit.score.isnot(None))
-    avg_score = (await db.execute(avg_score_stmt)).scalar()
-    compliance_score = round(float(avg_score), 1) if avg_score is not None else 0.0
+    latest_audits_stmt = (
+        select(Audit.id, Audit.score)
+        .join(
+            latest_created_sq,
+            (Audit.configuration_id == latest_created_sq.c.configuration_id)
+            & (Audit.created_at == latest_created_sq.c.max_created)
+        )
+    )
+    latest_audits_res = await db.execute(latest_audits_stmt)
+    latest_audit_rows = latest_audits_res.all()
+    latest_audit_ids = [r[0] for r in latest_audit_rows]
 
-    # Average Risk Score
-    avg_risk_stmt = select(func.avg(RiskItem.risk_score))
-    avg_risk = (await db.execute(avg_risk_stmt)).scalar()
-    risk_score = round(float(avg_risk), 1) if avg_risk is not None else 0.0
+    # Active Compliance Score (Fleet average of latest audits)
+    valid_scores = [r[1] for r in latest_audit_rows if r[1] is not None]
+    compliance_score = round(sum(valid_scores) / len(valid_scores), 1) if valid_scores else 0.0
+
+    # Active Findings & Severity breakdown
+    if latest_audit_ids:
+        findings_stmt = (
+            select(
+                func.count(Finding.id).label("total"),
+                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]), 1), else_=0)).label("open"),
+                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "CRITICAL"), 1), else_=0)).label("critical"),
+                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "HIGH"), 1), else_=0)).label("high"),
+                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "MEDIUM"), 1), else_=0)).label("medium"),
+                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "LOW"), 1), else_=0)).label("low"),
+                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "INFO"), 1), else_=0)).label("info"),
+            )
+            .where(Finding.audit_id.in_(latest_audit_ids))
+        )
+        f_res = (await db.execute(findings_stmt)).one()
+        active_total_findings = f_res.total or 0
+        open_findings = f_res.open or 0
+        crit_count = f_res.critical or 0
+        high_count = f_res.high or 0
+        med_count = f_res.medium or 0
+        low_count = f_res.low or 0
+        info_count = f_res.info or 0
+
+        # Active Risk Score (Fleet average across latest audits)
+        avg_risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id.in_(latest_audit_ids))
+        avg_risk = (await db.execute(avg_risk_stmt)).scalar()
+        risk_score = round(float(avg_risk), 1) if avg_risk is not None else 0.0
+    else:
+        active_total_findings = 0
+        open_findings = 0
+        crit_count = 0
+        high_count = 0
+        med_count = 0
+        low_count = 0
+        info_count = 0
+        risk_score = 0.0
 
     # Vendor distribution
     vendor_dist_stmt = select(Configuration.detected_vendor, func.count(Configuration.id)).group_by(
@@ -56,8 +101,8 @@ async def get_system_overview_stats(
 
     # Framework scores aggregated across latest audits
     framework_scores = {"CIS": 0.0, "NIST": 0.0, "STIG": 0.0, "ISO": 0.0}
-    latest_audits_stmt = select(Audit).order_by(desc(Audit.created_at)).limit(10)
-    audits_res = await db.execute(latest_audits_stmt)
+    latest_audits_obj_stmt = select(Audit).order_by(desc(Audit.created_at)).limit(10)
+    audits_res = await db.execute(latest_audits_obj_stmt)
     recent_audits = list(audits_res.scalars().all())
 
     fw_accum: Dict[str, List[float]] = {"CIS": [], "NIST": [], "STIG": [], "ISO": []}
@@ -82,8 +127,9 @@ async def get_system_overview_stats(
         "total_configurations": total_configs,
         "total_devices": max(total_devices, total_configs),  # Ingested configs map to evaluated devices
         "total_audits": total_audits,
-        "total_findings": total_findings,
+        "total_findings": active_total_findings,
         "open_findings": open_findings,
+        "lifetime_findings_evaluated": total_findings_lifetime,
         "compliance_score": compliance_score,
         "risk_score": risk_score,
         "score_delta": score_delta,

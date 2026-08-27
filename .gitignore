@@ -80,3 +80,5 @@ storage/uploads/*
 *.sqlite3
 postgres-data/
 apps/api/storage/
+scratch/
+*.tsbuildinfo
