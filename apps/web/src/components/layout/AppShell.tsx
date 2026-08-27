@@ -30,7 +30,7 @@ import {
   LogOut,
   User as UserIcon,
 } from "lucide-react";
-import { fetchHealth } from "@/lib/api-client";
+import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
 import GlobalSearchModal from "@/components/layout/GlobalSearchModal";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -77,6 +77,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { health, isOnline, isOffline } = useSystemHealth();
 
   // If on Landing Page root `/` or Login `/login` or Auth callback `/auth/*`, render clean full-width layout
   const isPublicPage = pathname === "/" || pathname === "/login" || pathname?.startsWith("/auth");
@@ -92,13 +93,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  // Poll system health every 15 seconds
-  const { data: health, isError } = useQuery({
-    queryKey: ["system-health"],
-    queryFn: fetchHealth,
-    refetchInterval: 15000,
-  });
 
   if (isPublicPage) {
     return (
@@ -201,16 +195,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <span
                   className={cn(
                     "w-1.5 h-1.5 rounded-full",
-                    health?.status === "healthy" ? "bg-[#22C55E]" : "bg-[#EF4444]"
+                    isOnline ? "bg-[#22C55E]" : "bg-[#EF4444]"
                   )}
                 />
                 <span
                   className={cn(
                     "font-bold uppercase text-[10px]",
-                    health?.status === "healthy" ? "text-[#22C55E]" : "text-[#EF4444]"
+                    isOnline ? "text-[#22C55E]" : "text-[#EF4444]"
                   )}
                 >
-                  {health?.status === "healthy" ? "ONLINE" : "OFFLINE"}
+                  {isOnline ? "ONLINE" : "OFFLINE"}
                 </span>
               </div>
             </div>

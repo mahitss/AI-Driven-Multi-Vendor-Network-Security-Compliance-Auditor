@@ -40,9 +40,12 @@ import {
   ConfigurationItem,
   AuditItem,
 } from "@/lib/api-client";
+import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
 
 export default function SecurityPostureDashboard() {
+  const { isOffline: isApiOffline, refetch: refetchHealth } = useSystemHealth();
+
   // 1. Overview Posture Metrics
   const {
     data: stats,
@@ -108,6 +111,7 @@ export default function SecurityPostureDashboard() {
   });
 
   const handleRefreshAll = () => {
+    refetchHealth();
     refetchStats();
     refetchRiskStats();
     refetchRisks();
@@ -115,7 +119,6 @@ export default function SecurityPostureDashboard() {
     refetchConfigs();
   };
 
-  const isApiOffline = isStatsError && isRiskStatsError && isConfigsError;
   const hasAudits = (configurations && configurations.length > 0) || (stats && stats.total_configurations > 0);
 
   // Derived real metrics

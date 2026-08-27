@@ -411,18 +411,6 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
   return {};
 }
 
-export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const authHeaders = await getAuthHeaders();
-  const headers = new Headers(init?.headers || {});
-  if (authHeaders.Authorization && !headers.has("Authorization")) {
-    headers.set("Authorization", authHeaders.Authorization);
-  }
-  return fetch(input, {
-    ...init,
-    headers,
-  });
-}
-
 export const DEFAULT_TIMEOUT_MS = 12000;
 
 export async function fetchWithTimeout(
@@ -480,6 +468,11 @@ export async function fetchWithTimeout(
   } finally {
     clearTimeout(timer);
   }
+}
+
+export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
+  return fetchWithTimeout(url, init);
 }
 
 export async function fetchHealth(): Promise<SystemHealth> {

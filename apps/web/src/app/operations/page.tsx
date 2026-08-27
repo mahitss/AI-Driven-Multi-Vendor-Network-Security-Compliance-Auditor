@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import {
   fetchOverviewStats,
-  fetchHealth,
   fetchSystemActivity,
   fetchFindings,
   fetchRisks,
@@ -44,7 +43,9 @@ import {
   RiskItem,
   DeviceItem,
   RemediationProposal,
+  SystemHealth,
 } from "@/lib/api-client";
+import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
 
 export default function SecurityOperationsPage() {
@@ -57,12 +58,8 @@ export default function SecurityOperationsPage() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAiError, setIsAiError] = useState(false);
 
-  // 1. Fetch live system health
-  const { data: health } = useQuery({
-    queryKey: ["health"],
-    queryFn: fetchHealth,
-    staleTime: 15000,
-  });
+  // 1. Authoritative system health
+  const { health } = useSystemHealth();
 
   // 2. Fetch overview posture stats
   const {
