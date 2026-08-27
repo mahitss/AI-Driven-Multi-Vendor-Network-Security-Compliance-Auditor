@@ -59,6 +59,20 @@ Task: Formulate an executive narrative summarizing the findings of a multi-frame
 - Highlight major compliance posture strengths and top deficiency areas.
 - Keep the tone formal, concise, and actionable for security executives.
 """,
+        AITaskType.SECURITY_BRIEFING: """
+Task: Synthesize a comprehensive executive AI Security Briefing from deterministic audit facts:
+- Summarize overall security posture, top risks, attack surface, and security evolution deltas.
+- Every claim must be grounded in supplied finding records, line numbers, and evidence.
+- Never invent line numbers or findings. If evidence is unavailable, state 'Evidence unavailable'.
+- Order recommended investigation checklist strictly by deterministic priority metadata (P0 -> P1 -> P2 -> P3).
+""",
+        AITaskType.ANALYST_COPILOT: """
+Task: Act as an expert SOC Analyst Copilot answering queries grounded in deterministic audit records:
+- Answer operator questions precisely using only supplied facts, findings, and evidence.
+- Format line-level references as [EVIDENCE · LINE X] or cite specific Control IDs (e.g. CIS-1.2.1).
+- If information is not in the provided evidence, state that evidence is unavailable.
+- Never execute network or device changes.
+""",
     }
 
     specific = task_instructions.get(task_type, "Task: Provide grounded technical analysis of the provided network security data.")

@@ -94,3 +94,101 @@ class AIHealthResponse(BaseModel):
     has_api_key: bool
     temperature: float
     timeout_seconds: int
+
+
+class EvidenceCitation(BaseModel):
+    control_id: str = Field(..., description="Target control identifier (e.g. CIS-1.2.1)")
+    framework: str = Field(default="CIS", description="Framework name (CIS, NIST, STIG, ISO)")
+    line_number: Optional[int] = Field(default=None, description="1-indexed configuration line number")
+    evidence_snippet: Optional[str] = Field(default=None, description="Exact configuration evidence text")
+    status: str = Field(default="FAIL", description="Deterministic compliance status (PASS / FAIL)")
+    severity: str = Field(default="HIGH", description="Severity rating (CRITICAL, HIGH, MEDIUM, LOW)")
+    title: Optional[str] = Field(default=None, description="Control or finding title")
+    citation_label: str = Field(default="EVIDENCE", description="Formatted citation label (e.g. EVIDENCE · LINE 17)")
+
+
+class TopRiskBriefItem(BaseModel):
+    control_id: str = Field(..., description="Target control identifier")
+    title: str = Field(..., description="Finding or control title")
+    severity: str = Field(..., description="Finding severity")
+    priority: str = Field(..., description="Deterministic priority band (P0 / P1 / P2 / P3)")
+    why_it_matters: str = Field(..., description="Exploit scenario and technical impact")
+    evidence_citation: Optional[EvidenceCitation] = Field(default=None, description="Grounded line-level citation")
+    recommended_action: str = Field(..., description="Allowlisted remediation action command summary")
+    actual_value: Optional[Any] = Field(default=None, description="Observed non-compliant value")
+    expected_value: Optional[Any] = Field(default=None, description="Expected compliant state")
+
+
+class SecurityEvolutionBrief(BaseModel):
+    baseline_audit_id: str = Field(..., description="Reference baseline audit ID")
+    current_audit_id: str = Field(..., description="Current audit ID")
+    before_score: float = Field(..., description="Baseline compliance score %")
+    after_score: float = Field(..., description="Remediated compliance score %")
+    score_delta: float = Field(..., description="Compliance improvement delta %")
+    risk_delta: float = Field(default=0.0, description="Risk score reduction points")
+    resolved_count: int = Field(default=0, description="Number of resolved controls")
+    regressed_count: int = Field(default=0, description="Number of regressed controls")
+    resolved_controls_summary: List[str] = Field(default_factory=list, description="Resolved control IDs")
+    regressed_controls_summary: List[str] = Field(default_factory=list, description="Regressed control IDs")
+    narrative: str = Field(..., description="Executive narrative of security evolution")
+
+
+class InvestigationOrderStep(BaseModel):
+    step_number: int = Field(..., description="1-indexed step in the investigation checklist")
+    control_id: str = Field(..., description="Target control ID to investigate")
+    priority: str = Field(..., description="Deterministic priority (P0, P1, P2, P3)")
+    action_summary: str = Field(..., description="What the security engineer should verify or configure")
+    target_lines: List[int] = Field(default_factory=list, description="Source lines in configuration")
+    reason: str = Field(..., description="Why this step is ordered at this priority")
+
+
+class AISecurityBriefingRequest(BaseModel):
+    audit_id: str = Field(..., description="Target audit session ID")
+    baseline_audit_id: Optional[str] = Field(None, description="Optional baseline audit for time machine deltas")
+    focus_area: Optional[str] = Field(default="ALL", description="Focus area ('CRITICAL_RISKS', 'COMPLIANCE_GAPS', 'EVOLUTION', 'ALL')")
+
+
+class AISecurityBriefingResponse(BaseModel):
+    advisory_only: bool = Field(default=True, description="Strict invariant that briefing is advisory-only")
+    audit_id: str = Field(default="", description="Audit session ID")
+    baseline_audit_id: Optional[str] = Field(None, description="Baseline audit ID if evolution compared")
+    device_hostname: str = Field(default="Gateway-Node", description="Target asset hostname")
+    detected_vendor: str = Field(default="cisco", description="Detected OS dialect (cisco, juniper, fortinet)")
+    compliance_score: float = Field(default=0.0, description="Authoritative deterministic compliance score %")
+    risk_score: float = Field(default=0.0, description="Authoritative deterministic algorithmic risk score")
+    critical_p0_count: int = Field(default=0, description="Number of P0 / Critical exposures")
+    high_p1_count: int = Field(default=0, description="Number of P1 / High exposures")
+    posture_trend: str = Field(default="CRITICAL_ATTENTION_REQUIRED", description="Deterministic posture trend indicator")
+    executive_summary: str = Field(default="Deterministic audit evaluation completed.", description="Executive overview grounded in deterministic findings")
+    top_risks: List[TopRiskBriefItem] = Field(default_factory=list, description="Ranked top risks with evidence citations")
+    security_evolution: Optional[SecurityEvolutionBrief] = Field(default=None, description="Security Time Machine evolution deltas")
+    recommended_investigation_order: List[InvestigationOrderStep] = Field(default_factory=list, description="Deterministic priority-ordered checklist")
+    suggested_copilot_questions: List[str] = Field(default_factory=list, description="Suggested follow-up analyst questions")
+    grounded_evidence_citations: List[EvidenceCitation] = Field(default_factory=list, description="All grounded evidence citations used")
+    model_used: str = Field(default="openrouter", description="Active AI model identifier")
+    provider: str = Field(default="openrouter", description="AI gateway provider (openrouter or offline_standby)")
+    limitations: str = Field(
+        default="AI is ADVISORY only. Deterministic AST compliance decisions and risk scoring remain authoritative.",
+        description="Explicit limitation disclaimer",
+    )
+
+
+class CopilotChatRequest(BaseModel):
+    query: str = Field(..., min_length=2, max_length=500, description="Analyst question about the audit")
+    audit_id: str = Field(..., description="Active audit session ID")
+    baseline_audit_id: Optional[str] = Field(None, description="Optional baseline audit for time machine context")
+    chat_history: Optional[List[Dict[str, str]]] = Field(default_factory=list, description="Prior conversation turns")
+
+
+class CopilotChatResponse(BaseModel):
+    advisory_only: bool = Field(default=True, description="Advisory-only marker")
+    query: str = Field(default="", description="Echo of user prompt")
+    audit_id: str = Field(default="", description="Active audit ID")
+    answer: str = Field(default="", description="Evidence-grounded response with [EVIDENCE · LINE X] citations")
+    grounded_evidence: List[EvidenceCitation] = Field(default_factory=list, description="Verified evidence citations")
+    suggested_followups: List[str] = Field(default_factory=list, description="Contextual follow-up suggestions")
+    model_used: str = Field(default="openrouter", description="Model used")
+    disclaimer: str = Field(
+        default="AI-assisted response grounded strictly in verified AST audit findings. Zero device write capability."
+    )
+

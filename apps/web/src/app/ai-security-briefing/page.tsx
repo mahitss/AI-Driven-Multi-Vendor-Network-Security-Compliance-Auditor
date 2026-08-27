@@ -1,0 +1,766 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import {
+  Bot,
+  Shield,
+  AlertTriangle,
+  Flame,
+  CheckCircle2,
+  TrendingUp,
+  Sparkles,
+  RefreshCw,
+  Copy,
+  ExternalLink,
+  HelpCircle,
+  FileCode,
+  ArrowRight,
+  History,
+  Lock,
+  Layers,
+  Check,
+  Send,
+  CornerDownLeft,
+  ChevronRight,
+  Info,
+  Terminal,
+} from "lucide-react";
+import AppShell from "@/components/layout/AppShell";
+import {
+  fetchAudits,
+  AuditItem,
+  fetchComparableAuditPairs,
+  ComparableAuditPairItem,
+  generateAISecurityBriefing,
+  AISecurityBriefingResponse,
+  sendCopilotChat,
+  CopilotChatResponse,
+  EvidenceCitation,
+} from "@/lib/api-client";
+import { cn } from "@/lib/utils";
+
+const SUGGESTED_QUESTIONS = [
+  "Why is this audit high risk?",
+  "Show me the most critical finding.",
+  "Why did CIS-1.2.1 fail?",
+  "What changed after remediation?",
+  "Which controls remain unresolved?",
+  "Explain the attack surface.",
+];
+
+export default function AISecurityBriefingPage() {
+  const [audits, setAudits] = useState<AuditItem[]>([]);
+  const [comparablePairs, setComparablePairs] = useState<ComparableAuditPairItem[]>([]);
+  const [selectedAuditId, setSelectedAuditId] = useState<string>("");
+  const [selectedBaselineId, setSelectedBaselineId] = useState<string>("");
+  const [isLoadingBriefing, setIsLoadingBriefing] = useState<boolean>(false);
+  const [briefing, setBriefing] = useState<AISecurityBriefingResponse | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [copiedBriefing, setCopiedBriefing] = useState<boolean>(false);
+
+  // Copilot chat state
+  const [chatInput, setChatInput] = useState<string>("");
+  const [isSendingChat, setIsSendingChat] = useState<boolean>(false);
+  const [chatMessages, setChatMessages] = useState<
+    Array<{ role: "user" | "assistant"; content: string; evidence?: EvidenceCitation[] }>
+  >([]);
+
+  // Evidence preview modal state
+  const [activeCitation, setActiveCitation] = useState<EvidenceCitation | null>(null);
+
+  // Initial Load: Fetch Audits & Candidate Pairs
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [auditsList, pairsList] = await Promise.all([
+          fetchAudits(),
+          fetchComparableAuditPairs(),
+        ]);
+        setAudits(auditsList);
+        setComparablePairs(pairsList);
+
+        if (auditsList.length > 0) {
+          const firstAudit = auditsList[0];
+          setSelectedAuditId(firstAudit.id);
+
+          // If there is a comparable baseline pair matching this audit, auto-populate baseline
+          const matchingPair = pairsList.find((p) => p.remediated_audit_id === firstAudit.id);
+          if (matchingPair) {
+            setSelectedBaselineId(matchingPair.baseline_audit_id);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load audits for briefing:", err);
+      }
+    }
+    loadData();
+  }, []);
+
+  // Trigger Briefing Generation
+  const handleGenerateBriefing = async () => {
+    if (!selectedAuditId) return;
+    setIsLoadingBriefing(true);
+    setErrorMsg(null);
+    try {
+      const res = await generateAISecurityBriefing({
+        audit_id: selectedAuditId,
+        baseline_audit_id: selectedBaselineId || undefined,
+      });
+      setBriefing(res);
+
+      // Add initial greeting to copilot
+      setChatMessages([
+        {
+          role: "assistant",
+          content: `AI Security Briefing synthesized for **${res.device_hostname}** (${res.detected_vendor.toUpperCase()}). Deterministic compliance score is **${res.compliance_score.toFixed(
+            1
+          )}%** with risk score **${res.risk_score.toFixed(1)}/100**. Ask me any technical question about findings or evidence.`,
+          evidence: res.grounded_evidence_citations.slice(0, 3),
+        },
+      ]);
+    } catch (err: any) {
+      console.error("Briefing generation failed:", err);
+      setErrorMsg(err?.message || "Failed to generate AI Security Briefing.");
+    } finally {
+      setIsLoadingBriefing(false);
+    }
+  };
+
+  // Send Copilot Query
+  const handleSendChat = async (queryText?: string) => {
+    const q = queryText || chatInput;
+    if (!q.trim() || !selectedAuditId || isSendingChat) return;
+
+    const userMessage = q.trim();
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setIsSendingChat(true);
+
+    try {
+      const history = chatMessages.map((m) => ({ role: m.role, content: m.content }));
+      const response: CopilotChatResponse = await sendCopilotChat({
+        query: userMessage,
+        audit_id: selectedAuditId,
+        baseline_audit_id: selectedBaselineId || undefined,
+        chat_history: history,
+      });
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: response.answer,
+          evidence: response.grounded_evidence,
+        },
+      ]);
+    } catch (err: any) {
+      console.error("Copilot chat error:", err);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `Unable to process query: ${err?.message || "AI gateway timeout"}. Please retry or consult deterministic finding records.`,
+        },
+      ]);
+    } finally {
+      setIsSendingChat(false);
+    }
+  };
+
+  const handleCopyBriefing = () => {
+    if (!briefing) return;
+    const text = `NETVIGIL AI SECURITY BRIEFING
+Asset: ${briefing.device_hostname} (${briefing.detected_vendor.toUpperCase()})
+Deterministic Compliance Score: ${briefing.compliance_score.toFixed(1)}%
+Risk Score: ${briefing.risk_score.toFixed(1)}/100
+P0 Critical Exposures: ${briefing.critical_p0_count}
+
+EXECUTIVE SUMMARY:
+${briefing.executive_summary}
+
+TOP RISKS:
+${briefing.top_risks.map((r) => `- [${r.priority}] ${r.control_id}: ${r.title}\n  Why it matters: ${r.why_it_matters}\n  Action: ${r.recommended_action}`).join("\n\n")}
+
+RECOMMENDED INVESTIGATION ORDER:
+${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.control_id} (${s.priority}): ${s.action_summary}`).join("\n")}
+`;
+    navigator.clipboard.writeText(text);
+    setCopiedBriefing(true);
+    setTimeout(() => setCopiedBriefing(false), 2000);
+  };
+
+  return (
+    <AppShell>
+      <div className="space-y-6 font-mono max-w-7xl mx-auto pb-16">
+        {/* Top Header & Advisory Notice */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#222] pb-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400">
+                <Bot className="w-5 h-5" />
+              </div>
+              <h1 className="text-xl font-bold tracking-wider text-white">AI SECURITY BRIEFING</h1>
+              <span className="px-2 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] uppercase font-bold">
+                Analyst Copilot
+              </span>
+            </div>
+            <p className="text-neutral-400 text-xs mt-1">
+              Evidence-grounded executive briefing and interactive SOC copilot powered by the multi-model AI gateway.
+            </p>
+          </div>
+
+          {/* Strict Invariant Disclaimer Badge */}
+          <div className="bg-[#111] border border-[#262626] rounded-xl p-3 flex items-center gap-3 text-xs max-w-md">
+            <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 shrink-0">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div className="text-[11px] leading-tight">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-amber-400">AI ADVISORY ONLY</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#1A1A1A] border border-[#333] text-neutral-400">
+                  AST GROUNDED
+                </span>
+              </div>
+              <p className="text-neutral-400 text-[10px] mt-0.5">
+                Deterministic AST compliance decisions and risk scoring remain strictly authoritative. Zero device write capability.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Audit Context Selection Bar */}
+        <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4 flex-1">
+            {/* Primary Audit Selection */}
+            <div className="space-y-1 min-w-[240px]">
+              <label className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center gap-1.5">
+                <FileCode className="w-3.5 h-3.5 text-[#00D9FF]" />
+                Target Audit Session
+              </label>
+              <select
+                value={selectedAuditId}
+                onChange={(e) => setSelectedAuditId(e.target.value)}
+                className="w-full bg-[#141414] border border-[#282828] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00D9FF]"
+              >
+                {audits.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    Audit {a.id.substring(0, 8)}... — Score: {a.score?.toFixed(1) || 0}% ({a.device_id || "Gateway"})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Optional Baseline Evolution Audit */}
+            <div className="space-y-1 min-w-[240px]">
+              <label className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center gap-1.5">
+                <History className="w-3.5 h-3.5 text-purple-400" />
+                Evolution Baseline (Time Machine)
+              </label>
+              <select
+                value={selectedBaselineId}
+                onChange={(e) => setSelectedBaselineId(e.target.value)}
+                className="w-full bg-[#141414] border border-[#282828] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="">None (Single Audit Assessment)</option>
+                {audits
+                  .filter((a) => a.id !== selectedAuditId)
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      Baseline {a.id.substring(0, 8)}... — Score: {a.score?.toFixed(1) || 0}%
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGenerateBriefing}
+              disabled={isLoadingBriefing || !selectedAuditId}
+              className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
+            >
+              {isLoadingBriefing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Synthesizing Facts...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate Security Briefing</span>
+                </>
+              )}
+            </button>
+
+            {briefing && (
+              <button
+                onClick={handleCopyBriefing}
+                className="p-2.5 rounded-xl bg-[#141414] hover:bg-[#1C1C1C] border border-[#262626] text-neutral-300 hover:text-white transition-colors"
+                title="Copy Briefing"
+              >
+                {copiedBriefing ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {errorMsg && (
+          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Hero Posture Row (When Briefing is Active) */}
+        {briefing && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Compliance Score */}
+            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4 relative overflow-hidden">
+              <div className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center justify-between">
+                <span>Compliance Posture</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  AUTHORITATIVE
+                </span>
+              </div>
+              <div className="text-3xl font-black text-white mt-2">
+                {briefing.compliance_score.toFixed(1)}%
+              </div>
+              <div className="text-[10px] text-neutral-500 mt-1">
+                Asset: {briefing.device_hostname} ({briefing.detected_vendor.toUpperCase()})
+              </div>
+            </div>
+
+            {/* Risk Score */}
+            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4">
+              <div className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center justify-between">
+                <span>Algorithmic Risk</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                  DETERMINISTIC
+                </span>
+              </div>
+              <div className="text-3xl font-black text-white mt-2">
+                {briefing.risk_score.toFixed(1)}
+                <span className="text-sm font-normal text-neutral-500"> / 100</span>
+              </div>
+              <div className="text-[10px] text-neutral-500 mt-1">Composite Topological Exposure</div>
+            </div>
+
+            {/* P0 / Critical Exposures */}
+            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4">
+              <div className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center justify-between">
+                <span>Critical / P0 Risks</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                  URGENT
+                </span>
+              </div>
+              <div className="text-3xl font-black text-purple-400 mt-2">
+                {briefing.critical_p0_count}
+              </div>
+              <div className="text-[10px] text-neutral-500 mt-1">
+                {briefing.high_p1_count} High (P1) Exposures
+              </div>
+            </div>
+
+            {/* Posture Trend */}
+            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4">
+              <div className="text-[10px] text-neutral-400 uppercase font-semibold">Posture Evaluation</div>
+              <div className="text-base font-bold text-white mt-2 flex items-center gap-2">
+                <span
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full",
+                    briefing.posture_trend.includes("CRITICAL") ? "bg-rose-500 animate-pulse" : "bg-emerald-500"
+                  )}
+                />
+                <span className="truncate">{briefing.posture_trend.replace(/_/g, " ")}</span>
+              </div>
+              <div className="text-[10px] text-neutral-500 mt-1">Provider: {briefing.provider.toUpperCase()}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Main 2-Column SOC Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column: Briefing Sections (7 Cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            {!briefing && !isLoadingBriefing ? (
+              <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-12 text-center text-neutral-500 space-y-3">
+                <Bot className="w-10 h-10 text-neutral-600 mx-auto" />
+                <h3 className="text-white text-sm font-semibold">No Security Briefing Synthesized</h3>
+                <p className="text-xs text-neutral-400 max-w-md mx-auto">
+                  Select an audit session above and click &quot;Generate Security Briefing&quot; to synthesize an evidence-grounded executive briefing and investigation playbook.
+                </p>
+              </div>
+            ) : isLoadingBriefing ? (
+              /* Loading Skeletons */
+              <div className="space-y-4">
+                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-3 animate-pulse">
+                  <div className="h-4 bg-neutral-800 rounded w-1/3" />
+                  <div className="h-3 bg-neutral-800/60 rounded w-full" />
+                  <div className="h-3 bg-neutral-800/60 rounded w-5/6" />
+                  <div className="h-3 bg-neutral-800/60 rounded w-4/6" />
+                </div>
+                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-3 animate-pulse">
+                  <div className="h-4 bg-neutral-800 rounded w-1/4" />
+                  <div className="h-16 bg-neutral-800/40 rounded-xl" />
+                  <div className="h-16 bg-neutral-800/40 rounded-xl" />
+                </div>
+              </div>
+            ) : briefing ? (
+              <>
+                {/* 1. Executive Summary Narrative */}
+                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-3">
+                  <div className="text-[10px] text-purple-400 uppercase font-semibold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Executive Posture Summary
+                    </span>
+                    <span className="text-neutral-500 text-[9px]">Grounded in AST Facts</span>
+                  </div>
+                  <p className="text-neutral-200 text-xs leading-relaxed whitespace-pre-line">
+                    {briefing.executive_summary}
+                  </p>
+                </div>
+
+                {/* 2. Top Critical Risks & Evidence */}
+                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-4">
+                  <div className="text-[10px] text-rose-400 uppercase font-semibold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      Top Critical Risks ({briefing.top_risks.length})
+                    </span>
+                    <span className="text-neutral-500 text-[9px]">Prioritized Exposures</span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {briefing.top_risks.map((risk) => (
+                      <div
+                        key={risk.control_id}
+                        className="bg-[#121212] border border-[#222] rounded-xl p-4 space-y-2.5"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
+                              {risk.priority}
+                            </span>
+                            <span className="text-white font-bold text-xs">{risk.control_id}</span>
+                            <span className="text-neutral-300 text-xs truncate max-w-xs">{risk.title}</span>
+                          </div>
+                          <span className="text-[10px] text-neutral-500 uppercase">{risk.severity}</span>
+                        </div>
+
+                        <p className="text-neutral-300 text-[11px] leading-relaxed">
+                          {risk.why_it_matters}
+                        </p>
+
+                        {/* Evidence Citation Tag */}
+                        {risk.evidence_citation && (
+                          <div className="pt-2 border-t border-[#1C1C1C] flex items-center justify-between gap-2 flex-wrap text-[10px]">
+                            <button
+                              onClick={() => setActiveCitation(risk.evidence_citation!)}
+                              className="px-2 py-1 rounded bg-[#181818] hover:bg-[#222] border border-[#333] text-[#00D9FF] flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Terminal className="w-3 h-3 text-[#00D9FF]" />
+                              <span>
+                                {risk.evidence_citation.line_number
+                                  ? `[EVIDENCE · LINE ${risk.evidence_citation.line_number}]`
+                                  : "[EVIDENCE · AST PROOF]"}
+                              </span>
+                            </button>
+                            <span className="text-neutral-500 font-mono truncate max-w-sm">
+                              {risk.evidence_citation.evidence_snippet || "Verified AST rule match"}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                          <strong>Allowlisted Action:</strong> {risk.recommended_action}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Security Time Machine Evolution (If Baseline Supplied) */}
+                {briefing.security_evolution && (
+                  <div className="bg-[#0D0D0D] border border-purple-500/30 rounded-2xl p-6 space-y-4">
+                    <div className="text-[10px] text-purple-300 uppercase font-semibold flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <History className="w-3.5 h-3.5 text-purple-400" />
+                        Security Time Machine Evolution
+                      </span>
+                      <Link
+                        href={`/security-time-machine?before_id=${briefing.security_evolution.baseline_audit_id}&after_id=${briefing.security_evolution.current_audit_id}`}
+                        className="text-[10px] text-[#00D9FF] hover:underline flex items-center gap-1"
+                      >
+                        <span>Open Diff Viewer</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="p-3 bg-[#141414] rounded-xl border border-[#222]">
+                        <div className="text-[10px] text-neutral-400">Baseline Score</div>
+                        <div className="text-lg font-bold text-white mt-1">
+                          {briefing.security_evolution.before_score.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="p-3 bg-[#141414] rounded-xl border border-[#222]">
+                        <div className="text-[10px] text-neutral-400">Remediated Score</div>
+                        <div className="text-lg font-bold text-emerald-400 mt-1">
+                          {briefing.security_evolution.after_score.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/30">
+                        <div className="text-[10px] text-purple-300">Posture Delta</div>
+                        <div className="text-lg font-bold text-purple-300 mt-1">
+                          +{briefing.security_evolution.score_delta.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-neutral-300 text-xs leading-relaxed">
+                      {briefing.security_evolution.narrative}
+                    </p>
+
+                    {briefing.security_evolution.resolved_controls_summary.length > 0 && (
+                      <div className="text-[10px] text-neutral-400 flex items-center gap-2 flex-wrap">
+                        <span className="text-emerald-400 font-semibold">Resolved Controls:</span>
+                        {briefing.security_evolution.resolved_controls_summary.map((c) => (
+                          <span key={c} className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. Recommended Investigation Checklist */}
+                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-4">
+                  <div className="text-[10px] text-blue-400 uppercase font-semibold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5" />
+                      Recommended Investigation Order
+                    </span>
+                    <span className="text-neutral-500 text-[9px]">Deterministic Priority Sequence</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {briefing.recommended_investigation_order.map((step) => (
+                      <div
+                        key={step.step_number}
+                        className="p-3 bg-[#121212] border border-[#222] rounded-xl flex items-start gap-3 text-xs"
+                      >
+                        <div className="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                          {step.step_number}
+                        </div>
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-white font-bold">{step.control_id}</span>
+                            <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[9px]">
+                              {step.priority}
+                            </span>
+                            {step.target_lines.length > 0 && (
+                              <span className="text-[10px] text-neutral-400">
+                                Line {step.target_lines.join(", ")}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-neutral-300 text-[11px]">{step.action_summary}</p>
+                          <p className="text-neutral-500 text-[10px]">{step.reason}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          {/* Right Column: Interactive Analyst Copilot (5 Cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-5 flex flex-col h-[720px] sticky top-6">
+              {/* Copilot Header */}
+              <div className="flex items-center justify-between border-b border-[#1E1E1E] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-purple-500/20 text-purple-400">
+                    <Bot className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-white text-xs font-bold">Analyst Copilot</h3>
+                    <div className="text-[9px] text-neutral-400">Grounded in verified AST records</div>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-[#161616] text-neutral-400 border border-[#262626] text-[9px]">
+                  {briefing?.model_used || "OpenRouter Standby"}
+                </span>
+              </div>
+
+              {/* Suggested Questions Chips */}
+              <div className="py-3 border-b border-[#1A1A1A] space-y-1.5">
+                <div className="text-[9px] text-neutral-400 uppercase font-semibold">Suggested Questions:</div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {SUGGESTED_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => handleSendChat(q)}
+                      disabled={isSendingChat || !selectedAuditId}
+                      className="px-2 py-1 rounded-lg bg-[#141414] hover:bg-[#1E1E1E] border border-[#262626] text-[10px] text-neutral-300 hover:text-white transition-colors cursor-pointer text-left"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat Stream History */}
+              <div className="flex-1 overflow-y-auto py-3 space-y-3 pr-1 text-xs">
+                {chatMessages.length === 0 ? (
+                  <div className="text-center py-12 text-neutral-500 space-y-2">
+                    <Bot className="w-8 h-8 text-neutral-600 mx-auto" />
+                    <p className="text-neutral-400">Ask the Analyst Copilot any question about this audit.</p>
+                    <p className="text-[10px] text-neutral-600">
+                      Responses reference verified AST line evidence and deterministic control invariants.
+                    </p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "p-3 rounded-xl border space-y-2",
+                        msg.role === "user"
+                          ? "bg-[#181818] border-[#2A2A2A] text-white ml-6"
+                          : "bg-[#101010] border-[#1E1E1E] text-neutral-200 mr-2"
+                      )}
+                    >
+                      <div className="flex items-center justify-between text-[9px] text-neutral-500 font-semibold">
+                        <span>{msg.role === "user" ? "SECURITY ANALYST" : "NETVIGIL COPILOT"}</span>
+                      </div>
+                      <div className="text-[11px] leading-relaxed whitespace-pre-line">
+                        {msg.content}
+                      </div>
+
+                      {/* Evidence Citations */}
+                      {msg.evidence && msg.evidence.length > 0 && (
+                        <div className="pt-2 border-t border-[#1C1C1C] flex items-center gap-1.5 flex-wrap">
+                          {msg.evidence.map((cit, cIdx) => (
+                            <button
+                              key={cIdx}
+                              onClick={() => setActiveCitation(cit)}
+                              className="px-1.5 py-0.5 rounded bg-[#181818] hover:bg-[#262626] text-[#00D9FF] border border-[#00D9FF]/30 text-[9px] flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Terminal className="w-2.5 h-2.5" />
+                              <span>{cit.citation_label || `[EVIDENCE · ${cit.control_id}]`}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+                {isSendingChat && (
+                  <div className="p-3 rounded-xl bg-[#101010] border border-[#1E1E1E] text-neutral-400 text-xs flex items-center gap-2 animate-pulse">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                    <span>Evaluating AST evidence & synthesizing response...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input Bar */}
+              <div className="pt-3 border-t border-[#1E1E1E] flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Ask copilot about findings, blast radius, or fixes..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendChat();
+                    }
+                  }}
+                  disabled={isSendingChat || !selectedAuditId}
+                  className="flex-1 bg-[#141414] border border-[#282828] rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                />
+                <button
+                  onClick={() => handleSendChat()}
+                  disabled={!chatInput.trim() || isSendingChat || !selectedAuditId}
+                  className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-colors cursor-pointer shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Grounded Evidence Inspector Modal */}
+        {activeCitation && (
+          <div
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setActiveCitation(null)}
+          >
+            <div
+              className="bg-[#0D0D0D] border border-[#282828] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl font-mono text-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-[#1E1E1E] pb-3">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-[#00D9FF]" />
+                  <span className="text-white font-bold">
+                    {activeCitation.control_id} Evidence Inspection
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] uppercase font-semibold">
+                  {activeCitation.status} ({activeCitation.severity})
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[10px] text-neutral-400 uppercase">Framework Standard:</div>
+                <div className="text-neutral-200">
+                  {activeCitation.framework} • Control {activeCitation.control_id}
+                </div>
+              </div>
+
+              {activeCitation.line_number && (
+                <div className="space-y-1">
+                  <div className="text-[10px] text-neutral-400 uppercase">Configuration Line:</div>
+                  <div className="px-2.5 py-1 rounded bg-[#161616] text-[#00D9FF] inline-block font-bold">
+                    Line {activeCitation.line_number}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <div className="text-[10px] text-neutral-400 uppercase">Verbatim Evidence Snippet:</div>
+                <div className="p-3 bg-[#141414] border border-[#222] rounded-xl font-mono text-rose-300 text-xs overflow-x-auto whitespace-pre">
+                  {activeCitation.evidence_snippet || "Evidence verified via AST rule match"}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#1E1E1E] flex items-center justify-between">
+                <Link
+                  href={`/findings?control=${encodeURIComponent(activeCitation.control_id)}`}
+                  className="text-xs text-[#00D9FF] hover:underline flex items-center gap-1"
+                  onClick={() => setActiveCitation(null)}
+                >
+                  <span>Open in Evidence Explorer</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+                <button
+                  onClick={() => setActiveCitation(null)}
+                  className="px-4 py-1.5 rounded-lg bg-[#181818] hover:bg-[#222] text-neutral-300 text-xs transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </AppShell>
+  );
+}

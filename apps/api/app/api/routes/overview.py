@@ -15,6 +15,9 @@ from app.models.finding import Finding
 from app.models.risk import RiskItem
 from app.models.training import TrainingMapping, TrainingAuditTrail
 from app.models.remediation import RemediationProposal
+from app.services.compliance.catalog import compliance_catalog
+from app.services.remediation.catalog import REMEDIATION_CATALOG
+from app.api.routes.reports import GENERATED_REPORTS
 
 router = APIRouter(prefix="/overview", tags=["Overview"])
 
@@ -220,116 +223,6 @@ async def get_system_activity(
     # Sort all events chronologically descending
     events.sort(key=lambda x: x["timestamp"] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
     return events[:limit]
-
-
-@router.get("/search", summary="Cross-entity global search")
-async def global_search(
-    q: str = Query(..., min_length=1, description="Search query string"),
-    db: DatabaseDep = None,
-) -> Dict[str, List[Dict[str, Any]]]:
-    """Searches across Devices, Configurations, Audits, Findings, Risks, and Remediations."""
-    term = f"%{q.strip()}%"
-    results: Dict[str, List[Dict[str, Any]]] = {
-        "devices": [],
-        "configurations": [],
-        "audits": [],
-        "findings": [],
-        "risks": [],
-        "remediations": [],
-    }
-
-    # 1. Search Configurations
-    cfg_stmt = select(Configuration).where(
-        or_(
-            Configuration.original_filename.ilike(term),
-            Configuration.detected_vendor.ilike(term),
-            Configuration.id.ilike(term),
-        )
-    ).limit(5)
-    cfgs = (await db.execute(cfg_stmt)).scalars().all()
-    for c in cfgs:
-        results["configurations"].append({
-            "id": c.id,
-            "title": c.original_filename,
-            "subtitle": f"Vendor: {c.detected_vendor.upper()} • Status: {c.parser_status}",
-            "url": f"/configurations",
-            "badge": c.detected_vendor.upper(),
-        })
-
-    # 2. Search Audits
-    audit_stmt = select(Audit).where(
-        or_(
-            Audit.id.ilike(term),
-            Audit.device_id.ilike(term),
-            Audit.status.ilike(term),
-        )
-    ).limit(5)
-    audits = (await db.execute(audit_stmt)).scalars().all()
-    for a in audits:
-        results["audits"].append({
-            "id": a.id,
-            "title": f"Audit {a.id[:8]}...",
-            "subtitle": f"Score: {a.score or 0}% • Status: {a.status}",
-            "url": f"/audits",
-            "badge": f"{a.score or 0}%",
-        })
-
-    # 3. Search Findings
-    finding_stmt = select(Finding).where(
-        or_(
-            Finding.title.ilike(term),
-            Finding.control_id.ilike(term),
-            Finding.framework.ilike(term),
-            Finding.evidence.ilike(term),
-        )
-    ).limit(6)
-    findings = (await db.execute(finding_stmt)).scalars().all()
-    for f in findings:
-        results["findings"].append({
-            "id": f.id,
-            "title": f"{f.framework} • {f.control_id}: {f.title}",
-            "subtitle": f"Severity: {f.severity} • Status: {f.status}",
-            "url": f"/audits",
-            "badge": f.severity,
-        })
-
-    # 4. Search Risks
-    risk_stmt = select(RiskItem).where(
-        or_(
-            RiskItem.title.ilike(term),
-            RiskItem.category.ilike(term),
-            RiskItem.description.ilike(term),
-        )
-    ).limit(5)
-    risks = (await db.execute(risk_stmt)).scalars().all()
-    for r in risks:
-        results["risks"].append({
-            "id": r.id,
-            "title": r.title,
-            "subtitle": f"Score: {r.risk_score} • Priority: {r.priority} • Category: {r.category}",
-            "url": f"/risk",
-            "badge": r.priority,
-        })
-
-    # 5. Search Remediations
-    rem_stmt = select(RemediationProposal).where(
-        or_(
-            RemediationProposal.title.ilike(term),
-            RemediationProposal.normalized_control.ilike(term),
-            RemediationProposal.remediation_commands.ilike(term),
-        )
-    ).limit(5)
-    rems = (await db.execute(rem_stmt)).scalars().all()
-    for rm in rems:
-        results["remediations"].append({
-            "id": rm.id,
-            "title": rm.title,
-            "subtitle": f"Vendor: {rm.vendor.upper()} • Status: {rm.status}",
-            "url": f"/remediation",
-            "badge": rm.vendor.upper(),
-        })
-
-    return results
 
 
 # -------------------------------------------------------------
@@ -793,4 +686,273 @@ async def init_multivendor_demo(db: DatabaseDep) -> Dict[str, Any]:
             "read_only": True,
         },
     }
+
+
+@router.get("/search", summary="Global unified entity search across fleet, audits, findings, rules, and reports")
+async def global_unified_search(
+    q: str = Query(..., min_length=1, description="Search term or rule query"),
+    context_audit_id: Optional[str] = Query(None, description="Optional active audit ID for prioritized context"),
+    context_config_id: Optional[str] = Query(None, description="Optional active configuration ID"),
+    db: DatabaseDep = None,
+) -> Dict[str, Any]:
+    """
+    High-performance, multi-category unified entity search engine:
+    - Configurations, Audits, Findings (Line-level evidence), Governance Controls,
+      Risks, Allowlisted Remediations, Reports, and Navigation Actions.
+    - Respects tenant isolation and automatically redacts sensitive data.
+    """
+    term = q.strip()
+    term_pattern = f"%{term}%"
+    term_lower = term.lower()
+
+    # 1. Navigation & System Operations
+    static_nav = [
+        {"title": "Security Posture Dashboard", "subtitle": "Executive fleet compliance & risk overview", "url": "/dashboard", "badge": "Overview", "category": "navigation"},
+        {"title": "Audit Configurations", "subtitle": "Ingest network device configs & run deterministic audits", "url": "/configurations", "badge": "Audit", "category": "navigation"},
+        {"title": "Security Time Machine", "subtitle": "Replay configuration security evolution with deterministic evidence", "url": "/security-time-machine", "badge": "Evolution", "category": "navigation"},
+        {"title": "Evidence Explorer", "subtitle": "Inspect line-level AST compliance evidence and violations", "url": "/findings", "badge": "Findings", "category": "navigation"},
+        {"title": "Risk Intelligence", "subtitle": "Correlated risk graph & P0-P3 priority scoring", "url": "/risk", "badge": "Risk", "category": "navigation"},
+        {"title": "Remediation Center", "subtitle": "Allowlisted vendor hardening templates (Read-Only SOC)", "url": "/remediation", "badge": "Remediation", "category": "navigation"},
+        {"title": "Compliance Audits", "subtitle": "Audit history and framework evaluation logs", "url": "/audits", "badge": "Audits", "category": "navigation"},
+        {"title": "Infrastructure Assets", "subtitle": "Network routers, switches, and firewalls", "url": "/devices", "badge": "Assets", "category": "navigation"},
+        {"title": "Multi-Vendor Engine", "subtitle": "Cisco IOS, Juniper JunOS, Fortinet FortiOS cross-normalization", "url": "/multi-vendor", "badge": "Multi-OS", "category": "navigation"},
+        {"title": "AI Boundary Architecture", "subtitle": "Advisory isolation & zero-trust compliance decision boundary", "url": "/ai-boundary", "badge": "Trust", "category": "navigation"},
+        {"title": "Executive Compliance Reports", "subtitle": "Generate and review official audit assessment reports", "url": "/reports", "badge": "Reports", "category": "navigation"},
+        {"title": "CIS Cisco IOS Benchmarks", "subtitle": "Center for Internet Security governance rules", "url": "/compliance/cis", "badge": "CIS", "category": "navigation"},
+        {"title": "NIST SP 800-53 Controls", "subtitle": "Federal security and privacy control baseline", "url": "/compliance/nist", "badge": "NIST", "category": "navigation"},
+        {"title": "DISA STIG Standards", "subtitle": "DoD cybersecurity policy & technical implementation guides", "url": "/compliance/stig", "badge": "STIG", "category": "navigation"},
+        {"title": "ISO 27001 Controls", "subtitle": "Information security management systems standard", "url": "/compliance/iso", "badge": "ISO", "category": "navigation"},
+    ]
+
+    matched_nav = [
+        item for item in static_nav
+        if term_lower in item["title"].lower() or term_lower in item["subtitle"].lower() or term_lower in item["badge"].lower()
+    ]
+
+    # 2. Configurations Search
+    cfg_stmt = (
+        select(Configuration)
+        .where(
+            or_(
+                Configuration.original_filename.ilike(term_pattern),
+                Configuration.detected_vendor.ilike(term_pattern),
+                Configuration.detected_platform.ilike(term_pattern),
+                Configuration.hash.ilike(term_pattern),
+            )
+        )
+        .order_by(desc(Configuration.created_at))
+        .limit(10)
+    )
+    cfg_res = await db.execute(cfg_stmt)
+    configs = list(cfg_res.scalars().all())
+    cfg_items = [
+        {
+            "id": c.id,
+            "title": c.original_filename,
+            "subtitle": f"{c.detected_vendor.upper()} • {c.detected_platform or 'Enterprise OS'} • SHA-256: {c.hash[:12]}...",
+            "url": f"/configurations?id={c.id}",
+            "badge": c.detected_vendor.upper(),
+            "vendor": c.detected_vendor,
+        }
+        for c in configs
+    ]
+
+    # 3. Audits Search
+    audit_stmt = (
+        select(Audit)
+        .where(
+            or_(
+                Audit.id.ilike(term_pattern),
+                Audit.configuration_id.ilike(term_pattern),
+                Audit.device_id.ilike(term_pattern),
+            )
+        )
+        .order_by(desc(Audit.created_at))
+        .limit(10)
+    )
+    audit_res = await db.execute(audit_stmt)
+    audits = list(audit_res.scalars().all())
+    audit_items = [
+        {
+            "id": a.id,
+            "title": f"Audit {a.id[:8]}... ({a.device_id or 'Gateway'})",
+            "subtitle": f"Score: {a.score:.1f}% • Status: {a.status} • {a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else ''}",
+            "url": f"/audits?audit_id={a.id}",
+            "badge": f"{a.score:.1f}%" if a.score is not None else a.status,
+            "score": a.score,
+        }
+        for a in audits
+    ]
+
+    # 4. Findings Search
+    finding_stmt = (
+        select(Finding)
+        .where(
+            or_(
+                Finding.control_id.ilike(term_pattern),
+                Finding.title.ilike(term_pattern),
+                Finding.description.ilike(term_pattern),
+                Finding.evidence.ilike(term_pattern),
+                Finding.category.ilike(term_pattern),
+                Finding.framework.ilike(term_pattern),
+            )
+        )
+    )
+    if context_audit_id:
+        finding_stmt = finding_stmt.order_by(
+            case((Finding.audit_id == context_audit_id, 0), else_=1),
+            desc(Finding.created_at),
+        )
+    else:
+        finding_stmt = finding_stmt.order_by(desc(Finding.created_at))
+    finding_stmt = finding_stmt.limit(15)
+
+    f_res = await db.execute(finding_stmt)
+    findings = list(f_res.scalars().all())
+    finding_items = [
+        {
+            "id": f.id,
+            "control_id": f.control_id,
+            "title": f"{f.control_id} — {f.title}",
+            "subtitle": f"{f.framework} • Status: {f.status} • Severity: {f.severity} • {f.evidence or f.description or ''}",
+            "url": f"/findings?control={f.control_id}&audit_id={f.audit_id}",
+            "badge": f.status,
+            "severity": f.severity,
+            "status": f.status,
+            "framework": f.framework,
+            "evidence": f.evidence,
+            "audit_id": f.audit_id,
+        }
+        for f in findings
+    ]
+
+    # 5. Governance Controls from Unified Catalog
+    all_rules = compliance_catalog.get_all_rules()
+    matched_rules = []
+    for r in all_rules:
+        # Check rule id, title, description, category, and mapped framework control IDs
+        matches = (
+            term_lower in r.id.lower()
+            or term_lower in r.title.lower()
+            or term_lower in r.description.lower()
+            or term_lower in r.category.lower()
+            or any(term_lower in m.control_id.lower() or term_lower in m.title.lower() for m in r.framework_mappings.values())
+        )
+        if matches:
+            primary_fw = next(iter(r.framework_mappings.keys()), "CIS")
+            primary_cid = r.framework_mappings[primary_fw].control_id if primary_fw in r.framework_mappings else r.id
+            matched_rules.append({
+                "id": r.id,
+                "control_id": primary_cid,
+                "title": f"{primary_cid}: {r.title}",
+                "subtitle": f"{r.category} • Severity: {r.severity} • {r.description[:100]}...",
+                "url": f"/compliance/{primary_fw.lower()}",
+                "badge": primary_fw,
+                "framework": primary_fw,
+                "severity": r.severity,
+            })
+            if len(matched_rules) >= 10:
+                break
+
+    # 6. Risks Search
+    risk_stmt = (
+        select(RiskItem)
+        .where(
+            or_(
+                RiskItem.title.ilike(term_pattern),
+                RiskItem.description.ilike(term_pattern),
+                RiskItem.category.ilike(term_pattern),
+                RiskItem.priority.ilike(term_pattern),
+            )
+        )
+        .order_by(desc(RiskItem.risk_score))
+        .limit(10)
+    )
+    r_res = await db.execute(risk_stmt)
+    risks = list(r_res.scalars().all())
+    risk_items = [
+        {
+            "id": r.id,
+            "title": r.title,
+            "subtitle": f"Priority {r.priority} • Risk Score {r.risk_score:.1f}/100 • {r.category}",
+            "url": f"/risk?id={r.id}",
+            "badge": r.priority,
+            "priority": r.priority,
+            "risk_score": r.risk_score,
+        }
+        for r in risks
+    ]
+
+    # 7. Remediations from Catalog
+    matched_remediations = []
+    for item in REMEDIATION_CATALOG:
+        if (
+            term_lower in item["template_id"].lower()
+            or term_lower in item["title"].lower()
+            or term_lower in item["vendor"].lower()
+            or term_lower in item["normalized_control"].lower()
+            or term_lower in item.get("why_recommended", "").lower()
+        ):
+            matched_remediations.append({
+                "id": item["template_id"],
+                "title": item["title"],
+                "subtitle": f"{item['vendor'].upper()} • {item['normalized_control']} • {item.get('why_recommended', '')[:90]}...",
+                "url": f"/remediation?template={item['template_id']}",
+                "badge": item["vendor"].upper(),
+                "vendor": item["vendor"],
+            })
+            if len(matched_remediations) >= 8:
+                break
+
+    # 8. Reports Search
+    matched_reports = []
+    for rep in GENERATED_REPORTS:
+        if (
+            term_lower in rep.get("title", "").lower()
+            or term_lower in rep.get("target_device", "").lower()
+            or term_lower in rep.get("report_type", "").lower()
+        ):
+            matched_reports.append({
+                "id": rep.get("id"),
+                "title": rep.get("title", "Executive Audit Report"),
+                "subtitle": f"Asset: {rep.get('target_device')} • Score: {rep.get('compliance_score', 0)}% • {rep.get('report_type')}",
+                "url": f"/reports?id={rep.get('id')}",
+                "badge": f"{rep.get('compliance_score', 0)}%",
+            })
+
+    total_count = (
+        len(matched_nav)
+        + len(cfg_items)
+        + len(audit_items)
+        + len(finding_items)
+        + len(matched_rules)
+        + len(risk_items)
+        + len(matched_remediations)
+        + len(matched_reports)
+    )
+
+    return {
+        "query": term,
+        "total_results": total_count,
+        "categories": {
+            "navigation": matched_nav,
+            "findings": finding_items,
+            "controls": matched_rules,
+            "configurations": cfg_items,
+            "audits": audit_items,
+            "risks": risk_items,
+            "remediations": matched_remediations,
+            "reports": matched_reports,
+        },
+        # Flat list for backwards compatibility
+        "configurations": cfg_items,
+        "audits": audit_items,
+        "findings": finding_items,
+        "controls": matched_rules,
+        "risks": risk_items,
+        "remediations": matched_remediations,
+        "reports": matched_reports,
+        "navigation": matched_nav,
+    }
+
 

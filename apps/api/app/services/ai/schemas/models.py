@@ -25,6 +25,8 @@ class AITaskType(str, Enum):
     REPORT_SUMMARY = "REPORT_SUMMARY"
     CODE_REVIEW = "CODE_REVIEW"
     CLI_SYNTAX_ASSISTANCE = "CLI_SYNTAX_ASSISTANCE"
+    SECURITY_BRIEFING = "SECURITY_BRIEFING"
+    ANALYST_COPILOT = "ANALYST_COPILOT"
 
 
 # Forbidden keys that AI responses are strictly disallowed from overriding

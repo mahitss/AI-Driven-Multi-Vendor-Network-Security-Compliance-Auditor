@@ -129,4 +129,13 @@ class ComplianceAuditService:
         await db.commit()
         await db.refresh(audit_record)
 
+        # Populate correlated risks and allowlisted remediations for the audit
+        try:
+            from app.services.risk.service import RiskIntelligenceService
+            from app.services.remediation.service import RemediationService
+            await RiskIntelligenceService.generate_audit_risks(audit_record.id, db)
+            await RemediationService.generate_audit_remediations(audit_record.id, db)
+        except Exception as e:
+            logger.warning(f"Notice during post-audit risk/remediation generation: {e}")
+
         return audit_record, summary, all_results

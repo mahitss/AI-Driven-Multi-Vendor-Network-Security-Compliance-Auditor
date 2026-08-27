@@ -1219,6 +1219,37 @@ export interface SearchResultItem {
   subtitle: string;
   url: string;
   badge?: string;
+  category?: string;
+  severity?: string;
+  status?: string;
+  evidence?: string;
+  framework?: string;
+  vendor?: string;
+  control_id?: string;
+  line_number?: number;
+}
+
+export interface UnifiedSearchResult {
+  query: string;
+  total_results: number;
+  categories: {
+    navigation: SearchResultItem[];
+    findings: SearchResultItem[];
+    controls: SearchResultItem[];
+    configurations: SearchResultItem[];
+    audits: SearchResultItem[];
+    risks: SearchResultItem[];
+    remediations: SearchResultItem[];
+    reports: SearchResultItem[];
+  };
+  configurations: SearchResultItem[];
+  audits: SearchResultItem[];
+  findings: SearchResultItem[];
+  controls: SearchResultItem[];
+  risks: SearchResultItem[];
+  remediations: SearchResultItem[];
+  reports: SearchResultItem[];
+  navigation: SearchResultItem[];
 }
 
 export interface DeviceItem {
@@ -1304,9 +1335,15 @@ export async function fetchSystemActivity(limit?: number): Promise<SecurityActiv
   return res.json();
 }
 
-export async function globalSearch(q: string): Promise<Record<string, SearchResultItem[]>> {
+export async function globalSearch(
+  q: string,
+  contextAuditId?: string,
+  contextConfigId?: string
+): Promise<UnifiedSearchResult> {
   const url = new URL(`${API_BASE}/api/v1/overview/search`);
   url.searchParams.set("q", q);
+  if (contextAuditId) url.searchParams.set("context_audit_id", contextAuditId);
+  if (contextConfigId) url.searchParams.set("context_config_id", contextConfigId);
   const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Global search failed: HTTP ${res.status}`);
@@ -1844,6 +1881,275 @@ export async function detectVendorFromText(
   }
   return res.json();
 }
+
+// -------------------------------------------------------------
+// Security Time Machine & Audit Delta Comparison Types & Methods
+// -------------------------------------------------------------
+
+export interface ControlTransitionItem {
+  control_id: string;
+  framework: string;
+  title: string;
+  category?: string | null;
+  severity: string;
+  before_status: string;
+  after_status: string;
+  transition_type: "RESOLVED" | "REGRESSED" | "UNCHANGED_FAIL" | "UNCHANGED_PASS" | "NEW_FAIL" | "NEW_PASS";
+  before_evidence?: string | null;
+  before_line?: number | null;
+  after_evidence?: string | null;
+  after_line?: number | null;
+  remediation_applied?: string | null;
+  explanation: string;
+}
+
+export interface PriorityDistribution {
+  p0: number;
+  p1: number;
+  p2: number;
+  p3: number;
+}
+
+export interface PostureDeltaSummary {
+  before_score: number;
+  after_score: number;
+  score_delta: number;
+  before_risk_score: number;
+  after_risk_score: number;
+  risk_delta: number;
+  before_failed_count: number;
+  after_failed_count: number;
+  failed_delta: number;
+  resolved_count: number;
+  regressed_count: number;
+  unchanged_fail_count: number;
+  unchanged_pass_count: number;
+  before_priority_counts: PriorityDistribution;
+  after_priority_counts: PriorityDistribution;
+  posture_improvement_percentage: number;
+}
+
+export interface ConfigurationDiffLine {
+  line_number_before?: number | null;
+  line_number_after?: number | null;
+  type: "UNCHANGED" | "MODIFIED" | "ADDED" | "REMOVED";
+  content_before?: string | null;
+  content_after?: string | null;
+  associated_control_ids: string[];
+  is_security_sensitive: boolean;
+}
+
+export interface SecurityTimelineEvent {
+  id: string;
+  timestamp: string;
+  event_type: "CONFIG_INGESTED" | "BASELINE_AUDIT" | "FINDINGS_IDENTIFIED" | "REMEDIATION_PROPOSED" | "CONFIG_HARDENED" | "REANALYSIS_VERIFIED";
+  title: string;
+  description: string;
+  audit_id?: string | null;
+  configuration_id?: string | null;
+  configuration_hash?: string | null;
+  status: string;
+  badge?: string | null;
+}
+
+export interface AuditComparisonResponse {
+  before_audit_id: string;
+  after_audit_id: string;
+  configuration_id: string;
+  device_name: string;
+  vendor: string;
+  platform?: string | null;
+  evaluated_at: string;
+  is_compatible: boolean;
+  compatibility_notes?: string | null;
+  deltas: PostureDeltaSummary;
+  transitions: ControlTransitionItem[];
+  diff_lines: ConfigurationDiffLine[];
+  timeline: SecurityTimelineEvent[];
+  before_config_raw: string;
+  after_config_raw: string;
+  resolved_controls_summary: string[];
+  regressed_controls_summary: string[];
+  remaining_open_controls: string[];
+}
+
+export interface ComparableAuditPairItem {
+  baseline_audit_id: string;
+  remediated_audit_id: string;
+  configuration_id: string;
+  device_name: string;
+  vendor: string;
+  baseline_timestamp: string;
+  remediated_timestamp: string;
+  baseline_score: number;
+  remediated_score: number;
+  score_delta: number;
+  resolved_count: number;
+}
+
+export async function fetchAuditComparison(
+  beforeId: string,
+  afterId: string
+): Promise<AuditComparisonResponse> {
+  const res = await fetchWithTimeout(
+    `${API_BASE}/api/v1/audits/compare?before_id=${encodeURIComponent(beforeId)}&after_id=${encodeURIComponent(afterId)}`
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
+    throw new Error(err?.detail || err?.message || `Failed to compare audits (HTTP ${res.status})`);
+  }
+  return res.json();
+}
+
+export const compareAuditsDetailed = fetchAuditComparison;
+
+export async function fetchComparableAuditPairs(): Promise<ComparableAuditPairItem[]> {
+  const res = await fetchWithTimeout(`${API_BASE}/api/v1/audits/comparable-pairs`);
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
+// -------------------------------------------------------------
+// AI Security Briefing & Analyst Copilot Client API
+// -------------------------------------------------------------
+
+export interface EvidenceCitation {
+  control_id: string;
+  framework: string;
+  line_number?: number | null;
+  evidence_snippet?: string | null;
+  status: string;
+  severity: string;
+  title?: string | null;
+  citation_label: string;
+}
+
+export interface TopRiskBriefItem {
+  control_id: string;
+  title: string;
+  severity: string;
+  priority: string;
+  why_it_matters: string;
+  evidence_citation?: EvidenceCitation | null;
+  recommended_action: string;
+  actual_value?: any;
+  expected_value?: any;
+}
+
+export interface SecurityEvolutionBrief {
+  baseline_audit_id: string;
+  current_audit_id: string;
+  before_score: number;
+  after_score: number;
+  score_delta: number;
+  risk_delta: number;
+  resolved_count: number;
+  regressed_count: number;
+  resolved_controls_summary: string[];
+  regressed_controls_summary: string[];
+  narrative: string;
+}
+
+export interface InvestigationOrderStep {
+  step_number: number;
+  control_id: string;
+  priority: string;
+  action_summary: string;
+  target_lines: number[];
+  reason: string;
+}
+
+export interface AISecurityBriefingResponse {
+  advisory_only: boolean;
+  audit_id: string;
+  baseline_audit_id?: string | null;
+  device_hostname: string;
+  detected_vendor: string;
+  compliance_score: number;
+  risk_score: number;
+  critical_p0_count: number;
+  high_p1_count: number;
+  posture_trend: string;
+  executive_summary: string;
+  top_risks: TopRiskBriefItem[];
+  security_evolution?: SecurityEvolutionBrief | null;
+  recommended_investigation_order: InvestigationOrderStep[];
+  suggested_copilot_questions: string[];
+  grounded_evidence_citations: EvidenceCitation[];
+  model_used: string;
+  provider: string;
+  limitations: string;
+}
+
+export interface CopilotChatRequest {
+  query: string;
+  audit_id: string;
+  baseline_audit_id?: string | null;
+  chat_history?: Array<{ role: string; content: string }>;
+}
+
+export interface CopilotChatResponse {
+  advisory_only: boolean;
+  query: string;
+  audit_id: string;
+  answer: string;
+  grounded_evidence: EvidenceCitation[];
+  suggested_followups: string[];
+  model_used: string;
+  disclaimer: string;
+}
+
+export async function generateAISecurityBriefing(payload: {
+  audit_id: string;
+  baseline_audit_id?: string;
+  focus_area?: string;
+}): Promise<AISecurityBriefingResponse> {
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/briefing`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `AI Briefing failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchAISecurityBriefing(
+  auditId: string,
+  baselineAuditId?: string
+): Promise<AISecurityBriefingResponse> {
+  const url = new URL(`${API_BASE}/api/v1/ai/briefing/${encodeURIComponent(auditId)}`);
+  if (baselineAuditId) {
+    url.searchParams.set("baseline_audit_id", baselineAuditId);
+  }
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Failed to fetch AI Briefing: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function sendCopilotChat(
+  payload: CopilotChatRequest
+): Promise<CopilotChatResponse> {
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/copilot`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Copilot query failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+
 
 
 

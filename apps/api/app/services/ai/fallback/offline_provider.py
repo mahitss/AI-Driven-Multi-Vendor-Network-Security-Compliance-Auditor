@@ -19,6 +19,12 @@ from app.schemas.ai import (
     RiskExplanationResponse as RiskExplanationLegacy,
     RemediationExplanationResponse as RemediationExplanationLegacy,
     UnknownConfigInterpretationResponse,
+    AISecurityBriefingResponse,
+    CopilotChatResponse,
+    TopRiskBriefItem,
+    EvidenceCitation,
+    InvestigationOrderStep,
+    SecurityEvolutionBrief,
 )
 from app.services.ai.schemas.models import (
     AITaskType,
@@ -193,6 +199,143 @@ class OfflineStandbyProvider:
                 evidence_used=cited_controls,
                 suggested_followups=["Which findings have CRITICAL severity?", "What remediation commands are available?"],
                 limitations="Operating in offline deterministic mode.",
+            )
+
+        # 6. AI Security Briefing
+        elif response_schema == AISecurityBriefingResponse or task_type == AITaskType.SECURITY_BRIEFING:
+            audit_id = ctx.get("audit_id", "")
+            baseline_id = ctx.get("baseline_audit_id")
+            hostname = ctx.get("device_hostname", "Gateway-Node")
+            vendor = ctx.get("vendor", "cisco")
+            score = ctx.get("compliance_score", 0.0)
+            risk = ctx.get("risk_score", 0.0)
+            p0 = ctx.get("priority_counts", {}).get("P0", 0)
+            p1 = ctx.get("priority_counts", {}).get("P1", 0)
+            findings = ctx.get("findings", [])
+            evolution = ctx.get("evolution_deltas")
+
+            top_risks_items = []
+            for f in findings[:5]:
+                cid = f.get("control_id", "CIS-1.1")
+                top_risks_items.append(
+                    TopRiskBriefItem(
+                        control_id=cid,
+                        title=f.get("title", "Security Control Violation"),
+                        severity=f.get("severity", "HIGH"),
+                        priority="P0" if f.get("severity") == "CRITICAL" else "P1",
+                        why_it_matters=f"Violation of {cid} creates potential unauthorized administrative access or unencrypted communication attack surface on {hostname}.",
+                        evidence_citation=EvidenceCitation(
+                            control_id=cid,
+                            framework=f.get("framework", "CIS"),
+                            line_number=f.get("source_line"),
+                            evidence_snippet=f.get("evidence"),
+                            status=f.get("status", "FAIL"),
+                            severity=f.get("severity", "HIGH"),
+                            title=f.get("title"),
+                            citation_label=f"EVIDENCE · LINE {f.get('source_line')}" if f.get('source_line') else "EVIDENCE",
+                        ),
+                        recommended_action=f"Remediate via deterministic static catalog template for {cid}.",
+                        actual_value=f.get("actual_value"),
+                        expected_value=f.get("expected_value"),
+                    )
+                )
+
+            investigation_steps = []
+            for idx, f in enumerate(findings[:4], 1):
+                cid = f.get("control_id", "CIS-1.1")
+                line_no = f.get("source_line")
+                investigation_steps.append(
+                    InvestigationOrderStep(
+                        step_number=idx,
+                        control_id=cid,
+                        priority="P0" if f.get("severity") == "CRITICAL" else "P1",
+                        action_summary=f"Inspect line {line_no or '[config]'} and apply allowlisted hardening directive for {cid}.",
+                        target_lines=[line_no] if line_no else [],
+                        reason=f"High risk exposure on management boundary ({f.get('title')}).",
+                    )
+                )
+
+            evo_brief = None
+            if evolution:
+                d = evolution.get("deltas", {})
+                evo_brief = SecurityEvolutionBrief(
+                    baseline_audit_id=evolution.get("before_audit_id", ""),
+                    current_audit_id=evolution.get("after_audit_id", ""),
+                    before_score=d.get("before_score", 0.0),
+                    after_score=d.get("after_score", 0.0),
+                    score_delta=d.get("score_delta", 0.0),
+                    risk_delta=d.get("risk_delta", 0.0),
+                    resolved_count=d.get("resolved_count", 0),
+                    regressed_count=d.get("regressed_count", 0),
+                    resolved_controls_summary=[t["control_id"] for t in evolution.get("transitions", []) if t.get("transition_type") == "RESOLVED"][:5],
+                    regressed_controls_summary=[t["control_id"] for t in evolution.get("transitions", []) if t.get("transition_type") == "REGRESSED"][:5],
+                    narrative=f"Posture evolution evaluated: Compliance improved by +{d.get('score_delta', 0)}% with {d.get('resolved_count', 0)} resolved controls.",
+                )
+
+            citations = [r.evidence_citation for r in top_risks_items if r.evidence_citation]
+
+            return AISecurityBriefingResponse(
+                advisory_only=True,
+                audit_id=audit_id,
+                baseline_audit_id=baseline_id,
+                device_hostname=hostname,
+                detected_vendor=vendor,
+                compliance_score=score,
+                risk_score=risk,
+                critical_p0_count=p0,
+                high_p1_count=p1,
+                posture_trend="CRITICAL_ATTENTION_REQUIRED" if (p0 > 0 or risk > 70) else "MODERATE_RISK",
+                executive_summary=f"Deterministic evaluation for {hostname} ({vendor.upper()}) scored {score:.1f}% compliance with an algorithmic risk score of {risk:.1f}/100. Identified {len(findings)} open findings, including {p0} Critical (P0) exposures requiring prompt administrative remediation.",
+                top_risks=top_risks_items,
+                security_evolution=evo_brief,
+                recommended_investigation_order=investigation_steps,
+                suggested_copilot_questions=[
+                    "Why is this audit high risk?",
+                    "Show me the most critical finding.",
+                    "Why did CIS-1.2.1 fail?",
+                    "What changed after remediation?",
+                    "Which controls remain unresolved?",
+                ],
+                grounded_evidence_citations=citations,
+                model_used="offline-standby-rules",
+                provider="offline_standby",
+                limitations="Operating in offline deterministic standby mode. Core AST compliance scores and risk metrics remain strictly authoritative.",
+            )
+
+        # 7. Analyst Copilot Q&A
+        elif response_schema == CopilotChatResponse or task_type == AITaskType.ANALYST_COPILOT:
+            query = ctx.get("query", user_prompt)
+            audit_id = ctx.get("audit_id", "")
+            findings = ctx.get("findings", [])
+            citations = []
+            for f in findings[:3]:
+                cid = f.get("control_id", "CIS-1.1")
+                citations.append(
+                    EvidenceCitation(
+                        control_id=cid,
+                        framework=f.get("framework", "CIS"),
+                        line_number=f.get("source_line"),
+                        evidence_snippet=f.get("evidence"),
+                        status=f.get("status", "FAIL"),
+                        severity=f.get("severity", "HIGH"),
+                        title=f.get("title"),
+                        citation_label=f"EVIDENCE · LINE {f.get('source_line')}" if f.get('source_line') else "EVIDENCE",
+                    )
+                )
+
+            return CopilotChatResponse(
+                advisory_only=True,
+                query=query,
+                audit_id=audit_id,
+                answer=f"NetVigil Copilot (Standby): Based on deterministic audit findings for {audit_id}, {len(findings)} controls were evaluated. Key non-compliant controls include {', '.join(c.control_id for c in citations)}. Verify AST evidence lines in the Evidence Explorer before applying allowlisted fixes.",
+                grounded_evidence=citations,
+                suggested_followups=[
+                    "What is the recommended fix for the highest priority finding?",
+                    "What is the total blast radius if exploited?",
+                    "How does this configuration compare to hardened standards?",
+                ],
+                model_used="offline-standby-rules",
+                disclaimer="AI-assisted response grounded strictly in verified AST audit findings. Zero device write capability.",
             )
 
         # Default fallback instantiation

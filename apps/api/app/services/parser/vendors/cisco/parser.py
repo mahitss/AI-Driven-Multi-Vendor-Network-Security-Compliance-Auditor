@@ -697,7 +697,7 @@ class CiscoParser(BaseConfigurationParser):
             )
             facts_count += 1
 
-        # 9. Network Security
+        
         if bpdu_guard_val:
             profile.network_security.spanning_tree_bpdu_guard_enabled = SecurityFact.create(
                 bpdu_guard_val[0], [bpdu_guard_val[1]], [bpdu_guard_val[2]]
@@ -719,7 +719,7 @@ class CiscoParser(BaseConfigurationParser):
             )
             facts_count += 1
 
-        # 10. Extract unparsed/unknown directives
+        
         unknown_directives = tracker.get_unmatched_items(vendor="cisco")
 
         profile.facts_extracted_count = facts_count
@@ -727,3 +727,4 @@ class CiscoParser(BaseConfigurationParser):
         profile.unknown_items_count = len(unknown_directives)
 
         return profile
+        

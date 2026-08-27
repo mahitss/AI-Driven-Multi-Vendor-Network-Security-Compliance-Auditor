@@ -83,6 +83,15 @@ class OpenRouterGateway:
             elif isinstance(val, (int, float)):
                 cleaned["confidence"] = float(val) / 100.0 if val > 1.0 else float(val)
 
+        # Compliance score normalization (convert string like "53.3%" or "53.3" to float)
+        if "compliance_score" in cleaned:
+            val = cleaned["compliance_score"]
+            if isinstance(val, str):
+                numbers = re.findall(r"\d+(?:\.\d+)?", val)
+                cleaned["compliance_score"] = float(numbers[0]) if numbers else 0.0
+            elif isinstance(val, (int, float)):
+                cleaned["compliance_score"] = float(val)
+
         # Evidence list normalization
         if "evidence_used" in cleaned and isinstance(cleaned["evidence_used"], str):
             cleaned["evidence_used"] = [cleaned["evidence_used"]]
@@ -101,6 +110,38 @@ class OpenRouterGateway:
                         nums = re.findall(r"\b\d+\b", item)
                         extracted_lines.extend(int(n) for n in nums)
                 cleaned["source_lines"] = extracted_lines
+
+        # Suggested followups / copilot questions normalization
+        if "suggested_copilot_questions" in cleaned and isinstance(cleaned["suggested_copilot_questions"], str):
+            cleaned["suggested_copilot_questions"] = [
+                q.strip().lstrip("0123456789.-* ")
+                for q in cleaned["suggested_copilot_questions"].split("\n")
+                if q.strip()
+            ]
+        if "suggested_followups" in cleaned and isinstance(cleaned["suggested_followups"], str):
+            cleaned["suggested_followups"] = [
+                q.strip().lstrip("0123456789.-* ")
+                for q in cleaned["suggested_followups"].split("\n")
+                if q.strip()
+            ]
+
+        # Top risks list normalization (must be list of dicts, discard if string)
+        if "top_risks" in cleaned and not isinstance(cleaned["top_risks"], list):
+            cleaned["top_risks"] = []
+
+        # Recommended investigation order normalization
+        if "recommended_investigation_order" in cleaned and not isinstance(cleaned["recommended_investigation_order"], list):
+            cleaned["recommended_investigation_order"] = []
+
+        # Security evolution normalization (must be dict, discard if string narrative)
+        if "security_evolution" in cleaned and not isinstance(cleaned["security_evolution"], dict):
+            cleaned["security_evolution"] = None
+
+        # Grounded evidence citations normalization
+        if "grounded_evidence_citations" in cleaned and not isinstance(cleaned["grounded_evidence_citations"], list):
+            cleaned["grounded_evidence_citations"] = []
+        if "grounded_evidence" in cleaned and not isinstance(cleaned["grounded_evidence"], list):
+            cleaned["grounded_evidence"] = []
 
         cleaned["advisory_only"] = True
         return cleaned
@@ -194,11 +235,15 @@ class OpenRouterGateway:
             try:
                 logger.info(f"AI Gateway Dispatch [Attempt {attempts}/{max_attempts}]: Task={task_type.value}, Model={model.model_id}")
 
-                async with httpx.AsyncClient(timeout=settings.AI_TIMEOUT_SECONDS) as client:
-                    resp = await client.post(
-                        f"{base_url}/chat/completions",
-                        headers=headers,
-                        json=payload,
+                attempt_timeout = httpx.Timeout(5.0, connect=2.5, read=5.0, write=2.5, pool=2.5)
+                async with httpx.AsyncClient(timeout=attempt_timeout) as client:
+                    resp = await asyncio.wait_for(
+                        client.post(
+                            f"{base_url}/chat/completions",
+                            headers=headers,
+                            json=payload,
+                        ),
+                        timeout=5.0,
                     )
 
                 latency_ms = (time.perf_counter() - start_time) * 1000

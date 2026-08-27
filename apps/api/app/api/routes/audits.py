@@ -18,7 +18,12 @@ from app.schemas.audit import (
     FindingResponse,
     SeverityStatsResponse,
 )
+from app.schemas.comparison import (
+    AuditComparisonResponse,
+    ComparableAuditPairItem,
+)
 from app.services.compliance.service import ComplianceAuditService
+from app.services.comparison.service import SecurityTimeMachineService
 
 router = APIRouter(prefix="/audits", tags=["Compliance Audits"])
 
@@ -142,6 +147,41 @@ async def list_all_findings(
     res = await db.execute(query)
     findings = res.scalars().all()
     return [FindingResponse.model_validate(f) for f in findings]
+
+
+@router.get(
+    "/compare",
+    response_model=AuditComparisonResponse,
+    summary="Security Time Machine: Compare two completed audits deterministically",
+)
+async def compare_audits(
+    before_id: str = Query(..., description="Baseline audit ID (before remediation)"),
+    after_id: str = Query(..., description="Remediated audit ID (after remediation)"),
+    db: DatabaseDep = None,
+) -> AuditComparisonResponse:
+    """
+    Security Time Machine v2.0 Delta Engine:
+    - Compares compliance scores, risk metrics, and control verdict transitions
+    - Produces line-level AST diff with finding annotations
+    - Reconstructs security evolution timeline
+    """
+    return await SecurityTimeMachineService.compare_audits(
+        before_audit_id=before_id,
+        after_audit_id=after_id,
+        db=db,
+    )
+
+
+@router.get(
+    "/comparable-pairs",
+    response_model=List[ComparableAuditPairItem],
+    summary="List candidate audit pairs available for Security Time Machine comparison",
+)
+async def list_comparable_pairs(
+    db: DatabaseDep,
+) -> List[ComparableAuditPairItem]:
+    """Retrieves configurations with multiple completed audits for instant comparison."""
+    return await SecurityTimeMachineService.list_comparable_pairs(db=db)
 
 
 @router.get(

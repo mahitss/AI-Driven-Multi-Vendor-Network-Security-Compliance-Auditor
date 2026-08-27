@@ -16,6 +16,7 @@ from app.models.risk import RiskItem
 from app.models.remediation import RemediationProposal
 from app.core.errors import NotFoundError
 from app.core.security import redact_sensitive_data
+from app.services.comparison.service import SecurityTimeMachineService
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
@@ -26,6 +27,7 @@ GENERATED_REPORTS: List[Dict[str, Any]] = []
 class GenerateReportRequest(BaseModel):
     report_type: str = "EXECUTIVE_AUDIT_SUMMARY"  # EXECUTIVE_AUDIT_SUMMARY, DEVICE_COMPLIANCE, REMEDIATION_PLAN
     audit_id: Optional[str] = None
+    baseline_audit_id: Optional[str] = None
     device_id: Optional[str] = None
     title: Optional[str] = None
     notes: Optional[str] = None
@@ -161,12 +163,26 @@ async def generate_report(
         for rm in rems[:6]
     ]
 
+    # Optional Security Time Machine Evolution Comparison
+    security_evolution = None
+    if payload.baseline_audit_id and payload.baseline_audit_id != audit.id:
+        try:
+            comparison = await SecurityTimeMachineService.compare_audits(
+                before_audit_id=payload.baseline_audit_id,
+                after_audit_id=audit.id,
+                db=db,
+            )
+            security_evolution = comparison.model_dump(mode="json")
+        except Exception:
+            security_evolution = None
+
     # Sections dictionary
     sections = {
         "identity": audit_identity,
         "executive_summary": security_posture,
         "findings_summary": findings_summary,
         "framework_coverage": framework_coverage,
+        "security_evolution": security_evolution,
         "top_risks": [
             {
                 "title": r.title,

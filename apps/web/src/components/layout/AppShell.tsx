@@ -29,6 +29,7 @@ import {
   Lock,
   LogOut,
   User as UserIcon,
+  History,
 } from "lucide-react";
 import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,7 @@ const navItems: NavItem[] = [
   { label: "Audit Configuration", href: "/configurations", icon: FileCode2, category: "Overview", badge: "Audit" },
 
   // Operations
+  { label: "Security Time Machine", href: "/security-time-machine", icon: History, category: "Operations", badge: "Evolution" },
   { label: "Evidence Explorer", href: "/findings", icon: AlertTriangle, category: "Operations" },
   { label: "Risk Intelligence", href: "/risk", icon: Flame, category: "Operations" },
   { label: "Remediation Center", href: "/remediation", icon: Wrench, category: "Operations", badge: "Fix" },
@@ -56,6 +58,7 @@ const navItems: NavItem[] = [
   { label: "Infrastructure Assets", href: "/devices", icon: Server, category: "Operations" },
 
   // Intelligence
+  { label: "AI Security Briefing", href: "/ai-security-briefing", icon: Bot, category: "Intelligence", badge: "Copilot" },
   { label: "Multi-Vendor Engine", href: "/multi-vendor", icon: Layers, category: "Intelligence", badge: "Multi-OS" },
   { label: "AI Boundary", href: "/ai-boundary", icon: Lock, category: "Intelligence", badge: "Trust" },
   { label: "AI Co-pilot", href: "/ai-assistant", icon: Bot, category: "Intelligence" },

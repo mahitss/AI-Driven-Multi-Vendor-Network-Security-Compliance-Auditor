@@ -26,11 +26,16 @@ from app.schemas.ai import (
     RemediationExplanationResponse,
     UnknownConfigInterpretationRequest,
     UnknownConfigInterpretationResponse,
+    AISecurityBriefingRequest,
+    AISecurityBriefingResponse,
+    CopilotChatRequest,
+    CopilotChatResponse,
 )
 from app.services.ai.audit_assistant_service import AuditAssistantService
 from app.services.ai.finding_explanation_service import FindingExplanationService
 from app.services.ai.risk_explanation_service import RiskExplanationService
 from app.services.ai.remediation_explanation_service import RemediationExplanationService
+from app.services.ai.security_briefing_service import AISecurityBriefingService
 from app.services.ai.registry.model_registry import ModelInfo, ModelRegistry
 from app.services.ai.telemetry.ai_telemetry import AITelemetryCollector, AITelemetrySummary
 from app.services.ai.unknown_interpreter_service import UnknownConfigInterpreterService
@@ -272,4 +277,70 @@ async def explain_remediation(
 ) -> RemediationExplanationResponse:
     """Generates an evidence-grounded advisory explanation for a static remediation proposal."""
     return await RemediationExplanationService.explain_remediation(remediation_id=remediation_id, db=db)
+
+
+@router.post(
+    "/briefing",
+    response_model=AISecurityBriefingResponse,
+    summary="Generate a comprehensive evidence-grounded AI Security Briefing",
+)
+async def generate_ai_security_briefing(
+    payload: AISecurityBriefingRequest,
+    db: DatabaseDep,
+) -> AISecurityBriefingResponse:
+    """
+    Generates a structured, evidence-grounded AI Security Briefing for an audit session:
+    - Synthesizes posture summary, top risks, attack surface, and security evolution deltas.
+    - Grounded strictly in deterministic AST findings and verified configuration lines.
+    - Zero ability to modify compliance scores or PASS/FAIL verdicts.
+    """
+    return await AISecurityBriefingService.generate_briefing(
+        audit_id=payload.audit_id,
+        baseline_audit_id=payload.baseline_audit_id,
+        focus_area=payload.focus_area,
+        db=db,
+    )
+
+
+@router.get(
+    "/briefing/{audit_id}",
+    response_model=AISecurityBriefingResponse,
+    summary="Generate or retrieve an AI Security Briefing for an audit ID",
+)
+async def get_ai_security_briefing_by_audit(
+    audit_id: str,
+    baseline_audit_id: Optional[str] = None,
+    db: DatabaseDep = None,
+) -> AISecurityBriefingResponse:
+    """Direct alias to generate AI Security Briefing for an audit ID."""
+    return await AISecurityBriefingService.generate_briefing(
+        audit_id=audit_id,
+        baseline_audit_id=baseline_audit_id,
+        db=db,
+    )
+
+
+@router.post(
+    "/copilot",
+    response_model=CopilotChatResponse,
+    summary="Analyst Copilot natural-language Q&A with grounded AST evidence citations",
+)
+async def chat_analyst_copilot(
+    payload: CopilotChatRequest,
+    db: DatabaseDep,
+) -> CopilotChatResponse:
+    """
+    Natural-language question answering for SOC security engineers:
+    - Grounded strictly in active audit findings and configuration lines.
+    - Formats citations as [EVIDENCE · LINE X] linking directly to AST proofs.
+    - Strictly advisory; zero device write capability.
+    """
+    return await AISecurityBriefingService.chat_copilot(
+        query=payload.query,
+        audit_id=payload.audit_id,
+        baseline_audit_id=payload.baseline_audit_id,
+        chat_history=payload.chat_history,
+        db=db,
+    )
+
 
