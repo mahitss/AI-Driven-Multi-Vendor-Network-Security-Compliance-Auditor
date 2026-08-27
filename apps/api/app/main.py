@@ -29,6 +29,7 @@ from app.core.errors import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
+from app.core.logging import logger
 from app.core.middleware import (
     RequestContextMiddleware,
     RateLimitMiddleware,
@@ -109,22 +110,25 @@ app.add_exception_handler(NetVigilException, netvigil_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
-# Health endpoint (at root level /health and /api/v1/health)
+from fastapi import Depends
+from app.core.auth import get_current_user
+
+# Health endpoint (at root level /health and /api/v1/health) - Public
 app.include_router(health.router)
 app.include_router(health.router, prefix=settings.API_PREFIX)
 
-# API v1 Domain Routes
-app.include_router(analysis.router, prefix=settings.API_PREFIX)
-app.include_router(configurations.router, prefix=settings.API_PREFIX)
-app.include_router(audits.router, prefix=settings.API_PREFIX)
-app.include_router(devices.router, prefix=settings.API_PREFIX)
-app.include_router(frameworks.router, prefix=settings.API_PREFIX)
-app.include_router(ai.router, prefix=settings.API_PREFIX)
-app.include_router(training.router, prefix=settings.API_PREFIX)
-app.include_router(risks.router, prefix=settings.API_PREFIX)
-app.include_router(remediations.router, prefix=settings.API_PREFIX)
-app.include_router(reports.router, prefix=settings.API_PREFIX)
-app.include_router(overview.router, prefix=settings.API_PREFIX)
+# API v1 Protected Domain Routes
+app.include_router(analysis.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(configurations.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(audits.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(devices.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(frameworks.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(ai.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(training.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(risks.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(remediations.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(reports.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(overview.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
 
 
 @app.get("/", tags=["Root"])

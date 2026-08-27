@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npm run dev --prefix apps/web",
     "dev:web": "npm run dev --prefix apps/web",
+    "dev:api": "uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 --reload",
     "build": "npm run build --prefix apps/web",
     "start": "npm run start --prefix apps/web",
     "lint": "npm run lint --prefix apps/web"

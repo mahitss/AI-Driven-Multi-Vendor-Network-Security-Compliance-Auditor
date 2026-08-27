@@ -391,7 +391,39 @@ export function getApiBase(): string {
 
 export const API_BASE = getApiBase();
 
-const DEFAULT_TIMEOUT_MS = 12000;
+import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+export async function getAuthHeaders(): Promise<Record<string, string>> {
+  if (typeof window === "undefined") {
+    return {};
+  }
+  try {
+    const supabase = createSupabaseBrowserClient();
+    const { data } = await supabase.auth.getSession();
+    if (data?.session?.access_token) {
+      return {
+        Authorization: `Bearer ${data.session.access_token}`,
+      };
+    }
+  } catch {
+    // Fallback if uninitialized
+  }
+  return {};
+}
+
+export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const authHeaders = await getAuthHeaders();
+  const headers = new Headers(init?.headers || {});
+  if (authHeaders.Authorization && !headers.has("Authorization")) {
+    headers.set("Authorization", authHeaders.Authorization);
+  }
+  return fetch(input, {
+    ...init,
+    headers,
+  });
+}
+
+export const DEFAULT_TIMEOUT_MS = 12000;
 
 export async function fetchWithTimeout(
   url: string,
@@ -401,16 +433,20 @@ export async function fetchWithTimeout(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+  const authHeaders = await getAuthHeaders();
+  const headers = new Headers(options.headers || {});
+  if (authHeaders.Authorization && !headers.has("Authorization")) {
+    headers.set("Authorization", authHeaders.Authorization);
+  }
+
   const method = options.method || "GET";
-  const hasAuth = !!(
-    (options.headers as Record<string, string>)?.["Authorization"] ||
-    (options.headers as Record<string, string>)?.["authorization"]
-  );
+  const hasAuth = !!headers.get("Authorization");
   const credsMode = options.credentials || "include";
 
   try {
     const res = await fetch(url, {
       ...options,
+      headers,
       credentials: options.credentials || "include",
       signal: options.signal || controller.signal,
     });
@@ -455,7 +491,7 @@ export async function fetchHealth(): Promise<SystemHealth> {
 }
 
 export async function fetchOverviewStats(): Promise<OverviewStats> {
-  const res = await fetch(`${API_BASE}/api/v1/overview/stats`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/stats`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch overview metrics: HTTP ${res.status}`);
   }
@@ -466,7 +502,7 @@ export async function uploadConfigFile(file: File): Promise<ConfigurationItem> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${API_BASE}/api/v1/configurations`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/configurations`, {
     method: "POST",
     body: formData,
   });
@@ -485,7 +521,7 @@ export async function fetchConfigurations(vendor?: string): Promise<Configuratio
   if (vendor && vendor !== "all") {
     url.searchParams.set("vendor", vendor);
   }
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch configurations: HTTP ${res.status}`);
   }
@@ -493,7 +529,7 @@ export async function fetchConfigurations(vendor?: string): Promise<Configuratio
 }
 
 export async function fetchConfigurationDetail(id: string): Promise<ConfigurationDetail> {
-  const res = await fetch(`${API_BASE}/api/v1/configurations/${id}`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/configurations/${id}`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch configuration details: HTTP ${res.status}`);
   }
@@ -501,7 +537,7 @@ export async function fetchConfigurationDetail(id: string): Promise<Configuratio
 }
 
 export async function analyzeConfiguration(id: string): Promise<ConfigurationAnalysisDetail> {
-  const res = await fetch(`${API_BASE}/api/v1/configurations/${id}/analyze`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/configurations/${id}/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -516,7 +552,7 @@ export async function analyzeConfiguration(id: string): Promise<ConfigurationAna
 }
 
 export async function fetchConfigurationAnalysis(id: string): Promise<ConfigurationAnalysisDetail> {
-  const res = await fetch(`${API_BASE}/api/v1/configurations/${id}/analysis`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/configurations/${id}/analysis`, {
     cache: "no-store",
   });
 
@@ -534,7 +570,7 @@ export async function createAudit(payload: {
   configuration_id: string;
   frameworks?: string[];
 }): Promise<AuditSummary> {
-  const res = await fetch(`${API_BASE}/api/v1/audits`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/audits`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -554,7 +590,7 @@ export async function fetchAudits(configurationId?: string): Promise<AuditItem[]
   if (configurationId) {
     url.searchParams.set("configuration_id", configurationId);
   }
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch audits: HTTP ${res.status}`);
   }
@@ -562,7 +598,7 @@ export async function fetchAudits(configurationId?: string): Promise<AuditItem[]
 }
 
 export async function fetchAuditDetail(auditId: string): Promise<AuditDetail> {
-  const res = await fetch(`${API_BASE}/api/v1/audits/${auditId}`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/audits/${auditId}`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch audit detail: HTTP ${res.status}`);
   }
@@ -587,7 +623,7 @@ export async function fetchAuditFindings(
     url.searchParams.set("category", filters.category);
   }
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch audit findings: HTTP ${res.status}`);
   }
@@ -595,7 +631,7 @@ export async function fetchAuditFindings(
 }
 
 export async function fetchFrameworks(): Promise<FrameworkMetadata[]> {
-  const res = await fetch(`${API_BASE}/api/v1/frameworks`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/frameworks`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch frameworks: HTTP ${res.status}`);
   }
@@ -603,7 +639,7 @@ export async function fetchFrameworks(): Promise<FrameworkMetadata[]> {
 }
 
 export async function fetchFrameworkControls(framework: string): Promise<FrameworkControlItem[]> {
-  const res = await fetch(`${API_BASE}/api/v1/frameworks/${encodeURIComponent(framework)}/controls`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/frameworks/${encodeURIComponent(framework)}/controls`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch controls for framework ${framework}: HTTP ${res.status}`);
   }
@@ -612,7 +648,7 @@ export async function fetchFrameworkControls(framework: string): Promise<Framewo
 
 // AI Intelligence API Methods
 export async function fetchFindingExplanation(findingId: string): Promise<FindingExplanation> {
-  const res = await fetch(`${API_BASE}/api/v1/ai/findings/${findingId}/explanation`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/findings/${findingId}/explanation`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -627,7 +663,7 @@ export async function fetchFindingExplanation(findingId: string): Promise<Findin
 }
 
 export async function queryAuditAssistant(auditId: string, query: string): Promise<AuditAssistantResponse> {
-  const res = await fetch(`${API_BASE}/api/v1/ai/audits/${auditId}/chat`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/audits/${auditId}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ audit_id: auditId, query }),
@@ -704,7 +740,7 @@ export async function interpretSyntax(payload: {
   platform_hint?: string;
   nearby_context?: string[];
 }): Promise<UnknownInterpretation> {
-  const res = await fetch(`${API_BASE}/api/v1/ai/interpret-syntax`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/interpret-syntax`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -720,7 +756,7 @@ export async function interpretSyntax(payload: {
 }
 
 export async function interpretConfigurationUnknowns(configId: string): Promise<UnknownInterpretation[]> {
-  const res = await fetch(`${API_BASE}/api/v1/ai/configurations/${configId}/interpret-unknown`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/configurations/${configId}/interpret-unknown`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -735,7 +771,7 @@ export async function interpretConfigurationUnknowns(configId: string): Promise<
 }
 
 export async function fetchAIStatus(): Promise<any> {
-  const res = await fetch(`${API_BASE}/api/v1/ai/status`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/status`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`AI status check failed: HTTP ${res.status}`);
   }
@@ -743,7 +779,7 @@ export async function fetchAIStatus(): Promise<any> {
 }
 
 export async function fetchAIGatewayHealth(): Promise<any> {
-  const res = await fetch(`${API_BASE}/api/v1/ai/health`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/health`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`AI Gateway health check failed: HTTP ${res.status}`);
   }
@@ -751,7 +787,7 @@ export async function fetchAIGatewayHealth(): Promise<any> {
 }
 
 export async function fetchAIModels(): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/api/v1/ai/models`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/ai/models`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`AI models check failed: HTTP ${res.status}`);
   }
@@ -764,7 +800,7 @@ export async function fetchTrainingPending(vendor?: string): Promise<TrainingMap
   if (vendor && vendor !== "all") {
     url.searchParams.set("vendor", vendor);
   }
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch pending training reviews: HTTP ${res.status}`);
   }
@@ -787,7 +823,7 @@ export async function fetchTrainingMappings(filters?: {
     url.searchParams.set("category", filters.category);
   }
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch knowledge mappings: HTTP ${res.status}`);
   }
@@ -806,7 +842,7 @@ export async function createTrainingMapping(payload: {
   confidence?: number;
   status?: string;
 }): Promise<TrainingMapping> {
-  const res = await fetch(`${API_BASE}/api/v1/training/mappings`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/training/mappings`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -822,7 +858,7 @@ export async function createTrainingMapping(payload: {
 }
 
 export async function approveTrainingMapping(mappingId: string): Promise<TrainingMapping> {
-  const res = await fetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/approve`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/approve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -847,7 +883,7 @@ export async function editTrainingMapping(
     reason?: string;
   }
 ): Promise<TrainingMapping> {
-  const res = await fetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/edit`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/edit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -863,7 +899,7 @@ export async function editTrainingMapping(
 }
 
 export async function rejectTrainingMapping(mappingId: string, reason?: string): Promise<TrainingMapping> {
-  const res = await fetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/reject`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/reject`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reason: reason || "Rejected by security administrator" }),
@@ -879,7 +915,7 @@ export async function rejectTrainingMapping(mappingId: string, reason?: string):
 }
 
 export async function disableTrainingMapping(mappingId: string): Promise<TrainingMapping> {
-  const res = await fetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/disable`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/disable`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -894,7 +930,7 @@ export async function disableTrainingMapping(mappingId: string): Promise<Trainin
 }
 
 export async function reEnableTrainingMapping(mappingId: string): Promise<TrainingMapping> {
-  const res = await fetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/re-enable`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/training/mappings/${mappingId}/re-enable`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -917,7 +953,7 @@ export async function reanalyzeConfiguration(
     frameworks.forEach((f) => url.searchParams.append("frameworks", f));
   }
 
-  const res = await fetch(url.toString(), {
+  const res = await apiFetch(url.toString(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -932,7 +968,7 @@ export async function reanalyzeConfiguration(
 }
 
 export async function fetchTrainingStats(): Promise<TrainingStats> {
-  const res = await fetch(`${API_BASE}/api/v1/training/stats`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/training/stats`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch training stats: HTTP ${res.status}`);
   }
@@ -940,7 +976,7 @@ export async function fetchTrainingStats(): Promise<TrainingStats> {
 }
 
 export async function fetchAllowlist(): Promise<AllowlistProperty[]> {
-  const res = await fetch(`${API_BASE}/api/v1/training/allowlist`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/training/allowlist`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch allowlist: HTTP ${res.status}`);
   }
@@ -1018,7 +1054,7 @@ export async function fetchRisks(filters?: {
   if (filters?.category && filters.category !== "ALL") url.searchParams.set("category", filters.category);
   if (filters?.status && filters.status !== "ALL") url.searchParams.set("status", filters.status);
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch risks: HTTP ${res.status}`);
   }
@@ -1035,7 +1071,7 @@ export async function fetchAuditRisks(
   if (filters?.category && filters.category !== "ALL") url.searchParams.set("category", filters.category);
   if (filters?.status && filters.status !== "ALL") url.searchParams.set("status", filters.status);
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch audit risks: HTTP ${res.status}`);
   }
@@ -1043,7 +1079,7 @@ export async function fetchAuditRisks(
 }
 
 export async function fetchRiskDetail(riskId: string): Promise<RiskItem> {
-  const res = await fetch(`${API_BASE}/api/v1/risks/${riskId}`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/risks/${riskId}`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch risk details: HTTP ${res.status}`);
   }
@@ -1051,7 +1087,7 @@ export async function fetchRiskDetail(riskId: string): Promise<RiskItem> {
 }
 
 export async function fetchAuditRiskGraph(auditId: string): Promise<RiskGraph> {
-  const res = await fetch(`${API_BASE}/api/v1/audits/${auditId}/risk-graph`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/audits/${auditId}/risk-graph`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch risk graph: HTTP ${res.status}`);
   }
@@ -1059,7 +1095,7 @@ export async function fetchAuditRiskGraph(auditId: string): Promise<RiskGraph> {
 }
 
 export async function fetchRiskStats(): Promise<RiskStats> {
-  const res = await fetch(`${API_BASE}/api/v1/risks/stats`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/risks/stats`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch risk stats: HTTP ${res.status}`);
   }
@@ -1113,7 +1149,7 @@ export async function fetchRemediations(filters?: { vendor?: string; status?: st
   if (filters?.vendor && filters.vendor !== "ALL") url.searchParams.set("vendor", filters.vendor);
   if (filters?.status && filters.status !== "ALL") url.searchParams.set("status", filters.status);
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch remediations: HTTP ${res.status}`);
   }
@@ -1128,7 +1164,7 @@ export async function fetchAuditRemediations(
   if (filters?.vendor && filters.vendor !== "ALL") url.searchParams.set("vendor", filters.vendor);
   if (filters?.status && filters.status !== "ALL") url.searchParams.set("status", filters.status);
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch audit remediations: HTTP ${res.status}`);
   }
@@ -1136,7 +1172,7 @@ export async function fetchAuditRemediations(
 }
 
 export async function fetchFindingRemediation(findingId: string): Promise<RemediationProposal | null> {
-  const res = await fetch(`${API_BASE}/api/v1/findings/${findingId}/remediation`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/findings/${findingId}/remediation`, { cache: "no-store" });
   if (!res.ok) {
     if (res.status === 404) return null;
     throw new Error(`Failed to fetch finding remediation: HTTP ${res.status}`);
@@ -1148,7 +1184,7 @@ export async function reviewRemediation(
   remediationId: string,
   payload?: { reviewer_email?: string; notes?: string }
 ): Promise<RemediationProposal> {
-  const res = await fetch(`${API_BASE}/api/v1/remediations/${remediationId}/review`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/remediations/${remediationId}/review`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload || { reviewer_email: "admin@ntro.gov.in" }),
@@ -1163,7 +1199,7 @@ export async function reviewRemediation(
 }
 
 export async function fetchRemediationStats(): Promise<RemediationStats> {
-  const res = await fetch(`${API_BASE}/api/v1/remediations/stats`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/remediations/stats`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch remediation stats: HTTP ${res.status}`);
   }
@@ -1268,7 +1304,7 @@ export interface SecurityActivityEvent {
 export async function fetchSystemActivity(limit?: number): Promise<SecurityActivityEvent[]> {
   const url = new URL(`${API_BASE}/api/v1/overview/activity`);
   if (limit) url.searchParams.set("limit", String(limit));
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch activity stream: HTTP ${res.status}`);
   }
@@ -1278,7 +1314,7 @@ export async function fetchSystemActivity(limit?: number): Promise<SecurityActiv
 export async function globalSearch(q: string): Promise<Record<string, SearchResultItem[]>> {
   const url = new URL(`${API_BASE}/api/v1/overview/search`);
   url.searchParams.set("q", q);
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Global search failed: HTTP ${res.status}`);
   }
@@ -1288,7 +1324,7 @@ export async function globalSearch(q: string): Promise<Record<string, SearchResu
 export async function fetchDevices(vendor?: string): Promise<DeviceItem[]> {
   const url = new URL(`${API_BASE}/api/v1/devices`);
   if (vendor && vendor !== "ALL") url.searchParams.set("vendor", vendor);
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch devices: HTTP ${res.status}`);
   }
@@ -1296,7 +1332,7 @@ export async function fetchDevices(vendor?: string): Promise<DeviceItem[]> {
 }
 
 export async function fetchDeviceDetail(deviceId: string): Promise<DeviceDetail> {
-  const res = await fetch(`${API_BASE}/api/v1/devices/${deviceId}`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/devices/${deviceId}`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch device details: HTTP ${res.status}`);
   }
@@ -1304,7 +1340,7 @@ export async function fetchDeviceDetail(deviceId: string): Promise<DeviceDetail>
 }
 
 export async function fetchDeviceTimeline(deviceId: string): Promise<DeviceTimelineEvent[]> {
-  const res = await fetch(`${API_BASE}/api/v1/devices/${deviceId}/timeline`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/devices/${deviceId}/timeline`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch device timeline: HTTP ${res.status}`);
   }
@@ -1317,7 +1353,7 @@ export async function generateReport(payload: {
   title?: string;
   notes?: string;
 }): Promise<ReportDocument> {
-  const res = await fetch(`${API_BASE}/api/v1/reports/generate`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/reports/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -1332,7 +1368,7 @@ export async function generateReport(payload: {
 }
 
 export async function fetchReports(): Promise<ReportDocument[]> {
-  const res = await fetch(`${API_BASE}/api/v1/reports`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/reports`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch reports: HTTP ${res.status}`);
   }
@@ -1340,7 +1376,7 @@ export async function fetchReports(): Promise<ReportDocument[]> {
 }
 
 export async function fetchReportDetail(reportId: string): Promise<ReportDocument> {
-  const res = await fetch(`${API_BASE}/api/v1/reports/${reportId}`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/reports/${reportId}`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch report detail: HTTP ${res.status}`);
   }
@@ -1366,7 +1402,7 @@ export async function compareAudits(payload: {
   baseline_audit_id: string;
   remediated_audit_id: string;
 }): Promise<AuditComparisonResult> {
-  const res = await fetch(`${API_BASE}/api/v1/reports/compare`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/reports/compare`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -1406,7 +1442,7 @@ export interface GoldenDemoState {
 }
 
 export async function initGoldenDemo(): Promise<GoldenDemoState> {
-  const res = await fetch(`${API_BASE}/api/v1/overview/demo/init`, {
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/demo/init`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
@@ -1426,7 +1462,7 @@ export interface EngineDiagnostics {
 }
 
 export async function fetchEngineDiagnostics(): Promise<EngineDiagnostics> {
-  const res = await fetch(`${API_BASE}/api/v1/overview/diagnostics`, { cache: "no-store" });
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/diagnostics`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch engine diagnostics: HTTP ${res.status}`);
   }
@@ -1472,7 +1508,7 @@ export async function fetchFindings(filters?: {
   if (filters?.severity && filters.severity !== "ALL") url.searchParams.set("severity", filters.severity);
   if (filters?.status && filters.status !== "ALL") url.searchParams.set("status", filters.status);
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
+  const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch findings: HTTP ${res.status}`);
   }

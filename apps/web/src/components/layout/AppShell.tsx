@@ -27,10 +27,13 @@ import {
   Search,
   Play,
   Lock,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
 import { fetchHealth } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import GlobalSearchModal from "@/components/layout/GlobalSearchModal";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 interface NavItem {
   label: string;
@@ -73,9 +76,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { user, logout } = useAuth();
 
-  // If on Landing Page root `/`, render clean full-width landing layout
-  const isLandingPage = pathname === "/";
+  // If on Landing Page root `/` or Login `/login` or Auth callback `/auth/*`, render clean full-width layout
+  const isPublicPage = pathname === "/" || pathname === "/login" || pathname?.startsWith("/auth");
 
   // Keyboard shortcut for Cmd+K / Ctrl+K
   React.useEffect(() => {
@@ -96,7 +100,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     refetchInterval: 15000,
   });
 
-  if (isLandingPage) {
+  if (isPublicPage) {
     return (
       <div className="min-h-screen bg-[#050505] text-[#D4D4D4] selection:bg-[#00D9FF]/20 selection:text-[#00D9FF]">
         {children}
@@ -192,7 +196,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="p-3 border-t border-[#1A1A1A] bg-[#080808] text-xs font-mono">
           <div className="p-2.5 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A] space-y-1.5">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[#A3A3A3]">Engine Status</span>
+              <span className="text-[#A3A3A3]">API Engine</span>
               <div className="flex items-center gap-1.5">
                 <span
                   className={cn(
@@ -206,21 +210,54 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     health?.status === "healthy" ? "text-[#22C55E]" : "text-[#EF4444]"
                   )}
                 >
-                  {health?.status || "ONLINE"}
+                  {health?.status === "healthy" ? "ONLINE" : "OFFLINE"}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center justify-between text-[10px] text-[#666666]">
-              <span>DB Latency</span>
-              <span className="text-[#A3A3A3]">{health?.database?.latency_ms !== undefined && health?.database?.latency_ms !== null ? `${health.database.latency_ms.toFixed(1)}ms` : "Active"}</span>
+              <span>Auth Boundary</span>
+              <span className="text-[#22C55E] font-semibold">{user ? "VERIFIED" : "PUBLIC"}</span>
             </div>
 
             <div className="flex items-center justify-between text-[10px] text-[#666666]">
-              <span>AST Parsers</span>
-              <span className="text-[#00D9FF]">Cisco/Jun/Forti</span>
+              <span>Read-Only SOC</span>
+              <span className="text-[#00D9FF]">Enforced</span>
             </div>
           </div>
+
+          {/* Authenticated User Profile Summary */}
+          {user && (
+            <div className="mt-2 pt-2 border-t border-[#1A1A1A] flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                  <img
+                    src={user.user_metadata.avatar_url || user.user_metadata.picture}
+                    alt="Avatar"
+                    className="w-6 h-6 rounded-full border border-[#00D9FF]/30 object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-[#141414] border border-[#00D9FF]/30 text-[#00D9FF] flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                    {(user.email?.[0] || "A").toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="text-[11px] font-semibold text-[#F5F5F5] truncate">
+                    {user.user_metadata?.full_name || user.email?.split("@")[0] || "Auditor"}
+                  </div>
+                  <div className="text-[9px] text-[#666666] truncate">{user.email || "Operator"}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={logout}
+                title="Sign out"
+                className="p-1 rounded text-[#666666] hover:text-[#EF4444] hover:bg-[#141414] transition-colors flex-shrink-0"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -267,7 +304,52 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Upload className="w-3.5 h-3.5 text-[#00D9FF]" />
               <span className="hidden sm:inline">Ingest Config</span>
-            </Link>
+            </Link>            {/* Authenticated User Identity & Logout Action */}
+            {user ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-[#1A1A1A]">
+                {/* Identity Verified Badge */}
+                <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded bg-[#0A1412] border border-[#22C55E]/30 text-[10px] font-mono text-[#22C55E] font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+                  <span>IDENTITY VERIFIED</span>
+                </div>
+
+                <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-xs font-mono">
+                  {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                    <img
+                      src={user.user_metadata.avatar_url || user.user_metadata.picture}
+                      alt="Avatar"
+                      className="w-5 h-5 rounded-full border border-[#00D9FF]/30 object-cover"
+                    />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-[#141414] border border-[#00D9FF]/30 text-[#00D9FF] flex items-center justify-center text-[10px] font-bold">
+                      {(user.email?.[0] || "A").toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-[#F5F5F5] font-semibold max-w-[130px] truncate text-[11px]">
+                    {user.user_metadata?.full_name || user.email?.split("@")[0] || "Auditor"}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  id="logout-button"
+                  onClick={logout}
+                  title="Sign out of NetVigil"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] hover:border-[#EF4444]/40 hover:bg-[#1A0A0A] text-[#A3A3A3] hover:text-[#EF4444] text-xs font-mono transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-[11px]">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#00D9FF]/30 hover:border-[#00D9FF] hover:bg-[#141414] text-[#00D9FF] text-xs font-mono transition-colors"
+              >
+                <UserIcon className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </Link>
+            )}
           </div>
         </header>
 

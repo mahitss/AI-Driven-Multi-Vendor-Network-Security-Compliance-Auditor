@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     CONFIDENCE_HIGH_THRESHOLD: float = 0.90
     CONFIDENCE_REVIEW_THRESHOLD: float = 0.70
 
+    # Supabase Authentication & Identity Gateway Settings
+    SUPABASE_URL: str = "https://cveymgeivgnjnwnxfveu.supabase.co"
+    SUPABASE_ANON_KEY: str = "sb_publishable_-OjNhAi0G1ARbRjZEuZ3zQ_TM5pS0hN"
+    SUPABASE_JWT_SECRET: str = ""
+    AUTH_ENABLED: bool = True
+    AUTH_AUDIENCE: str = "authenticated"
+
     @field_validator("SECRET_KEY", mode="after")
     @classmethod
     def validate_secret_key(cls, v: str, info) -> str:
