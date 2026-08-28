@@ -48,6 +48,10 @@ jobs:
         working-directory: apps/web
         run: npm ci
 
+      - name: TypeScript Typecheck
+        working-directory: apps/web
+        run: npx tsc --noEmit
+
       - name: Build Next.js Web App
         working-directory: apps/web
         run: npm run build
