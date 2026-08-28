@@ -126,14 +126,13 @@ function SettingsContent() {
   const { user, session, logout } = useAuth();
   const { isOnline, isChecking, health } = useSystemHealth();
 
-  // Read section from query param, fallback to 'profile'
-  const initialSection = (searchParams.get("section") as SettingsSectionId) || "profile";
-  const [activeSection, setActiveSection] = useState<SettingsSectionId>(initialSection);
+  const [mounted, setMounted] = useState(false);
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>("profile");
 
-  // Sync state if URL changes
   useEffect(() => {
-    const s = searchParams.get("section") as SettingsSectionId;
-    if (s && s !== activeSection) {
+    setMounted(true);
+    const s = searchParams?.get("section") as SettingsSectionId;
+    if (s) {
       setActiveSection(s);
     }
   }, [searchParams]);
@@ -141,7 +140,9 @@ function SettingsContent() {
   // Navigate section helper
   const handleSelectSection = (id: SettingsSectionId) => {
     setActiveSection(id);
-    router.replace(`/settings?section=${id}`, { scroll: false });
+    if (typeof window !== "undefined") {
+      router.replace(`/settings?section=${id}`, { scroll: false });
+    }
   };
 
   // Local Preferences State
