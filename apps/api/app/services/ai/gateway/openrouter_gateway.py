@@ -11,6 +11,7 @@ Features:
 - Non-blocking offline fallback when unconfigured or unreachable
 - Safe operational telemetry collection
 """
+import asyncio
 import json
 import re
 import time
