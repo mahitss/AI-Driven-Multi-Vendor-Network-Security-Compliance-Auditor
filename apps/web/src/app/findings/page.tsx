@@ -52,6 +52,7 @@ import {
   AnalysisReanalyzeResult,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/components/providers/SettingsProvider";
 
 function FindingsContent() {
   const searchParams = useSearchParams();
@@ -60,6 +61,7 @@ function FindingsContent() {
 
   const queryClient = useQueryClient();
   const evidenceContainerRef = useRef<HTMLDivElement>(null);
+  const { preferences } = useSettings();
 
   const [selectedFramework, setSelectedFramework] = useState<string>("ALL");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("ALL");

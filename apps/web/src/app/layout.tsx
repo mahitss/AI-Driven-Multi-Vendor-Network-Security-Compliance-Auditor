@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { SettingsProvider } from "@/components/providers/SettingsProvider";
 import AppShell from "@/components/layout/AppShell";
 import "./globals.css";
 
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body className="bg-[#070707] text-[#D4D4D4] font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
         <QueryProvider>
           <AuthProvider>
-            <AppShell>{children}</AppShell>
+            <SettingsProvider>
+              <AppShell>{children}</AppShell>
+            </SettingsProvider>
           </AuthProvider>
         </QueryProvider>
       </body>

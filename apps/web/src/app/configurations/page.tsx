@@ -68,6 +68,7 @@ import {
   ConfigurationItem,
 } from "@/lib/api-client";
 import { computeClientSha256, formatBytes, cn } from "@/lib/utils";
+import { useSettings } from "@/components/providers/SettingsProvider";
 
 // Authentic canonical test fixtures from data/demo/
 const CANONICAL_FIXTURES = [
@@ -307,9 +308,9 @@ function ConfigurationsPageContent() {
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditError, setAuditError] = useState<string | null>(null);
 
-  // Findings & Evidence Interaction State
+  const { preferences } = useSettings();
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
-  const [frameworkFilter, setFrameworkFilter] = useState<string>("ALL");
+  const [frameworkFilter, setFrameworkFilter] = useState<string>(preferences?.defaultFramework || "ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);

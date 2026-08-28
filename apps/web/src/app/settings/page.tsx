@@ -40,6 +40,7 @@ import {
   Fingerprint,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useSettings } from "@/components/providers/SettingsProvider";
 import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +61,31 @@ type SettingsSectionId =
   | "audit-policies"
   | "system-status"
   | "about";
+
+function normalizeSection(sec: string | null): SettingsSectionId {
+  if (!sec) return "profile";
+  const s = sec.toLowerCase();
+  if (s === "ai" || s === "ai-config" || s === "aiconfig") return "ai-config";
+  if (s === "privacy" || s === "ai-privacy" || s === "aiprivacy") return "ai-privacy";
+  if (s === "audit" || s === "audit-policies" || s === "auditpolicies" || s === "audits") return "audit-policies";
+  if (s === "system" || s === "system-status" || s === "systemstatus" || s === "status") return "system-status";
+  if (s === "api" || s === "network" || s === "api-network") return "network";
+  if (
+    s === "profile" ||
+    s === "preferences" ||
+    s === "authentication" ||
+    s === "sessions" ||
+    s === "security" ||
+    s === "general" ||
+    s === "ingestion" ||
+    s === "database" ||
+    s === "frameworks" ||
+    s === "about"
+  ) {
+    return s as SettingsSectionId;
+  }
+  return "profile";
+}
 
 interface SettingsNavGroup {
   group: string;
@@ -126,14 +152,29 @@ function SettingsContent() {
   const { user, session, logout } = useAuth();
   const { isOnline, isChecking, health } = useSystemHealth();
 
+  const {
+    preferences,
+    setTheme,
+    setDensity,
+    setReducedMotion,
+    setDefaultFramework,
+    resetPreferences,
+    isSaving,
+    lastSaved,
+  } = useSettings();
+
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<SettingsSectionId>("profile");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const s = searchParams?.get("section") as SettingsSectionId;
-    if (s) {
-      setActiveSection(s);
+    const rawSection = searchParams?.get("section");
+    if (rawSection) {
+      setActiveSection(normalizeSection(rawSection));
     }
   }, [searchParams]);
 
@@ -145,46 +186,9 @@ function SettingsContent() {
     }
   };
 
-  // Local Preferences State
-  const [appearance, setAppearance] = useState<"dark" | "system" | "high-contrast">("dark");
-  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
-  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
-  const [defaultFramework, setDefaultFramework] = useState<string>("CIS");
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  const [confirmSignOut, setConfirmSignOut] = useState(false);
-
-  // Load preferences from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedApp = localStorage.getItem("netvigil_pref_appearance");
-      if (savedApp) setAppearance(savedApp as any);
-
-      const savedDensity = localStorage.getItem("netvigil_pref_density");
-      if (savedDensity) setDensity(savedDensity as any);
-
-      const savedMotion = localStorage.getItem("netvigil_pref_reduced_motion");
-      if (savedMotion) setReducedMotion(savedMotion === "true");
-
-      const savedFw = localStorage.getItem("netvigil_pref_default_fw");
-      if (savedFw) setDefaultFramework(savedFw);
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
-  };
-
-  const updatePreference = (key: string, val: string) => {
-    try {
-      localStorage.setItem(`netvigil_pref_${key}`, val);
-      showToast(`Preference updated: ${key.replace("_", " ")}`);
-    } catch {
-      // ignore
-    }
   };
 
   const handleCopy = (text: string, keyName: string) => {
@@ -192,6 +196,12 @@ function SettingsContent() {
     setCopiedKey(keyName);
     showToast(`Copied ${keyName} to clipboard`);
     setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const handleReset = () => {
+    resetPreferences();
+    setConfirmReset(false);
+    showToast("Preferences restored to default SOC baseline.");
   };
 
   // Derive User Display Data
@@ -416,6 +426,21 @@ function SettingsContent() {
               </div>
 
               <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-6 text-xs">
+                {/* Save Status Banner */}
+                <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-mono text-slate-300">
+                      {isSaving ? "Saving preferences..." : "All preferences persisted and active globally."}
+                    </span>
+                  </div>
+                  {lastSaved && (
+                    <span className="text-[10px] font-mono text-slate-400">
+                      Last updated: {lastSaved.toLocaleTimeString()}
+                    </span>
+                  )}
+                </div>
+
                 {/* Appearance Mode */}
                 <div className="space-y-3 pb-6 border-b border-white/5">
                   <div className="space-y-0.5">
@@ -431,19 +456,19 @@ function SettingsContent() {
                       <button
                         key={t.id}
                         onClick={() => {
-                          setAppearance(t.id as any);
-                          updatePreference("appearance", t.id);
+                          setTheme(t.id as any);
+                          showToast(`Theme updated to ${t.label}`);
                         }}
                         className={cn(
                           "p-3.5 rounded-xl text-left border transition-all flex flex-col justify-between gap-3",
-                          appearance === t.id
+                          preferences.theme === t.id
                             ? "bg-cyan-500/10 border-cyan-500/40 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]"
                             : "bg-slate-950/60 border-white/5 text-slate-400 hover:border-white/10 hover:text-slate-200"
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <t.icon className={cn("w-4 h-4", appearance === t.id ? "text-cyan-400" : "text-slate-400")} />
-                          {appearance === t.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                          <t.icon className={cn("w-4 h-4", preferences.theme === t.id ? "text-cyan-400" : "text-slate-400")} />
+                          {preferences.theme === t.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
                         </div>
                         <div>
                           <div className="font-semibold text-xs text-white">{t.label}</div>
@@ -469,11 +494,11 @@ function SettingsContent() {
                         key={d.id}
                         onClick={() => {
                           setDensity(d.id as any);
-                          updatePreference("density", d.id);
+                          showToast(`Density set to ${d.label}`);
                         }}
                         className={cn(
                           "p-3.5 rounded-xl text-left border transition-all flex items-center justify-between",
-                          density === d.id
+                          preferences.density === d.id
                             ? "bg-cyan-500/10 border-cyan-500/40 text-white"
                             : "bg-slate-950/60 border-white/5 text-slate-400 hover:border-white/10"
                         )}
@@ -482,7 +507,7 @@ function SettingsContent() {
                           <div className="font-semibold text-xs text-white">{d.label}</div>
                           <div className="text-[11px] text-slate-400 mt-0.5">{d.desc}</div>
                         </div>
-                        {density === d.id && <Check className="w-4 h-4 text-cyan-400 shrink-0" />}
+                        {preferences.density === d.id && <Check className="w-4 h-4 text-cyan-400 shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -492,45 +517,45 @@ function SettingsContent() {
                 <div className="flex items-center justify-between py-2 border-b border-white/5">
                   <div className="space-y-0.5">
                     <label className="text-sm font-semibold text-white">Reduced Motion</label>
-                    <p className="text-xs text-slate-400">Disable smooth parallax and pulse animations across charts.</p>
+                    <p className="text-xs text-slate-400">Disable smooth parallax, pulse, and chart animations across all pages.</p>
                   </div>
                   <button
                     onClick={() => {
-                      const next = !reducedMotion;
+                      const next = !preferences.reducedMotion;
                       setReducedMotion(next);
-                      updatePreference("reduced_motion", String(next));
+                      showToast(`Reduced motion ${next ? "enabled" : "disabled"}`);
                     }}
                     className={cn(
                       "w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5",
-                      reducedMotion ? "bg-cyan-500" : "bg-slate-800 border border-white/10"
+                      preferences.reducedMotion ? "bg-cyan-500" : "bg-slate-800 border border-white/10"
                     )}
                   >
                     <span
                       className={cn(
                         "w-5 h-5 rounded-full bg-white transition-transform transform shadow-sm",
-                        reducedMotion ? "translate-x-5" : "translate-x-0"
+                        preferences.reducedMotion ? "translate-x-5" : "translate-x-0"
                       )}
                     />
                   </button>
                 </div>
 
                 {/* Default Audit Framework */}
-                <div className="space-y-3 pt-2">
+                <div className="space-y-3 pb-6 border-b border-white/5">
                   <div className="space-y-0.5">
                     <label className="text-sm font-semibold text-white">Default Framework Focus</label>
-                    <p className="text-xs text-slate-400">Default standard pre-selected during configuration ingestion.</p>
+                    <p className="text-xs text-slate-400">Default regulatory standard pre-selected during configuration ingestion.</p>
                   </div>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {["CIS", "NIST", "STIG", "ISO"].map((fw) => (
                       <button
                         key={fw}
                         onClick={() => {
-                          setDefaultFramework(fw);
-                          updatePreference("default_fw", fw);
+                          setDefaultFramework(fw as any);
+                          showToast(`Default framework set to ${fw}`);
                         }}
                         className={cn(
                           "px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all border",
-                          defaultFramework === fw
+                          preferences.defaultFramework === fw
                             ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
                             : "bg-slate-950 text-slate-400 border-white/5 hover:text-slate-200"
                         )}
@@ -542,6 +567,40 @@ function SettingsContent() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Reset Preferences Action */}
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-0.5">
+                    <h4 className="font-semibold text-white text-xs">Reset All Preferences</h4>
+                    <p className="text-[11px] text-slate-400">Restore theme, density, motion, and framework to default SOC baseline.</p>
+                  </div>
+
+                  {confirmReset ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setConfirmReset(false)}
+                        className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white border border-white/10"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleReset}
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg transition-colors flex items-center gap-1.5"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Confirm Reset
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmReset(true)}
+                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 hover:border-cyan-500/40 hover:text-cyan-300 transition-all flex items-center gap-2"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+                      Reset to Defaults
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
