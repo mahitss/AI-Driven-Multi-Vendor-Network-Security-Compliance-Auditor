@@ -2301,15 +2301,25 @@ export async function startAgentWorkflow(payload: {
   return res.json();
 }
 
-export async function fetchAgentSession(sessionId: string): Promise<AgentSessionState> {
-  const res = await apiFetch(`${API_BASE}/api/v1/agent/sessions/${encodeURIComponent(sessionId)}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data?.detail || data?.message || `Failed to fetch session: HTTP ${res.status}`);
+export async function fetchAgentSession(sessionId: string): Promise<AgentSessionState | null> {
+  try {
+    const res = await apiFetch(`${API_BASE}/api/v1/agent/sessions/${encodeURIComponent(sessionId)}`, {
+      cache: "no-store",
+    });
+    if (res.status === 404) {
+      return null;
+    }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.detail || data?.message || `Failed to fetch session: HTTP ${res.status}`);
+    }
+    return res.json();
+  } catch (err: any) {
+    if (err?.message?.includes("404") || err?.message?.includes("ResourceNotFoundError")) {
+      return null;
+    }
+    throw err;
   }
-  return res.json();
 }
 
 export async function submitAgentApproval(

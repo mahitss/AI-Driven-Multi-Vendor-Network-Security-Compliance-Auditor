@@ -80,32 +80,58 @@ export default function AgentPage() {
       if (savedSessionId && !session) {
         fetchAgentSession(savedSessionId)
           .then((s) => {
-            setSession(s);
-            if (s.final_report) setReport(s.final_report);
+            if (s) {
+              setSession(s);
+              if (s.final_report) setReport(s.final_report);
+            } else {
+              localStorage.removeItem("netvigil_active_session_id");
+            }
           })
-          .catch(() => localStorage.removeItem("netvigil_active_session_id"));
+          .catch(() => {
+            localStorage.removeItem("netvigil_active_session_id");
+          });
       }
     } catch {
       // Ignore storage errors
     }
   }, []);
 
-  // Poll active session if it is running or waiting
+  // Poll active session ONLY while actively running in the background
   useEffect(() => {
     if (!session || !session.session_id) return;
-    if (session.status === "COMPLETED" || session.status === "REJECTED" || session.status === "FAILED") {
+    
+    // Stop polling if session is terminal or already waiting for human approval
+    const isTerminalOrAwaitingUser =
+      session.status === "COMPLETED" ||
+      session.status === "REJECTED" ||
+      session.status === "FAILED" ||
+      session.status === "WAITING_APPROVAL";
+
+    if (isTerminalOrAwaitingUser) {
       return;
     }
 
+    let failureCount = 0;
     const interval = setInterval(async () => {
       try {
         const updated = await fetchAgentSession(session.session_id);
-        setSession(updated);
-        if (updated.final_report) setReport(updated.final_report);
-      } catch (err) {
-        console.error("Polling error:", err);
+        if (updated) {
+          setSession(updated);
+          if (updated.final_report) setReport(updated.final_report);
+          failureCount = 0;
+        } else {
+          // Session was not found (404)
+          clearInterval(interval);
+          localStorage.removeItem("netvigil_active_session_id");
+        }
+      } catch (err: any) {
+        failureCount++;
+        // If multiple consecutive failures occur, clear interval cleanly
+        if (failureCount >= 3) {
+          clearInterval(interval);
+        }
       }
-    }, 2000);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, [session?.session_id, session?.status]);
