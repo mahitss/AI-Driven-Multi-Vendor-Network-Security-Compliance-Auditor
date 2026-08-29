@@ -43,7 +43,12 @@ class AutonomousSecurityEngineer:
         obj_lower = objective.lower()
 
         # Check for SSH protection constraints
-        if "do not modify ssh" in obj_lower or "don't touch ssh" in obj_lower or "leave ssh" in obj_lower or "preserve ssh" in obj_lower or "without modifying ssh" in obj_lower or "dont modify ssh" in obj_lower:
+        if any(p in obj_lower for p in [
+            "do not modify ssh", "don't modify ssh", "dont modify ssh",
+            "do not touch ssh", "don't touch ssh", "dont touch ssh",
+            "leave ssh", "preserve ssh", "without modifying ssh",
+            "do not change ssh", "don't change ssh", "protect ssh"
+        ]):
             constraints.append(AgentConstraint(
                 subsystem="ssh",
                 action="DO_NOT_MODIFY",
@@ -51,7 +56,11 @@ class AutonomousSecurityEngineer:
             ))
 
         # Check for SNMP protection constraints
-        if "do not modify snmp" in obj_lower or "don't touch snmp" in obj_lower or "preserve snmp" in obj_lower:
+        if any(p in obj_lower for p in [
+            "do not modify snmp", "don't modify snmp", "dont modify snmp",
+            "do not touch snmp", "don't touch snmp", "preserve snmp",
+            "do not change snmp", "protect snmp"
+        ]):
             constraints.append(AgentConstraint(
                 subsystem="snmp",
                 action="DO_NOT_MODIFY",
