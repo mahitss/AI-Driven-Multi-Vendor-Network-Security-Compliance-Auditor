@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     AI_PROVIDER: str = "openrouter"  # "openrouter", "mock", "local"
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
-    AI_MODEL: str = "anthropic/claude-3.5-sonnet"
+    AI_MODEL: str = "google/gemini-3.5"
     AI_TEMPERATURE: float = 0.0
     AI_MAX_TOKENS: int = 1500
     AI_TIMEOUT_SECONDS: int = 30

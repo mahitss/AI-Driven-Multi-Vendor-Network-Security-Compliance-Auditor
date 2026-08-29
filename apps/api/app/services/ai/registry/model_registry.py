@@ -297,23 +297,25 @@ CANONICAL_MODELS: List[ModelInfo] = [
         max_tokens=2048,
     ),
 
-    # 15. Fast Explanation Fallback
+    # 15. Primary Gemini Agent Reasoning (Hackathon Required Model)
     ModelInfo(
-        model_id="google/gemini-2.5-flash-lite",
-        role="fast_explanation_fallback",
+        model_id="google/gemini-3.5",
+        role="primary_gemini_agent_reasoning",
         task_types=[
             AITaskType.FINDING_EXPLANATION,
             AITaskType.SECURITY_ASSISTANT,
             AITaskType.FRAMEWORK_EXPLANATION,
             AITaskType.DEVICE_SUMMARY,
+            AITaskType.RISK_CONTEXT_EXPLANATION,
+            AITaskType.AUDIT_SUMMARY,
         ],
-        priority=3,
-        fallback_priority=4,
-        context_length=131072,
-        cost_tier="low",
-        reasoning_capability="fast",
-        temperature=0.1,
-        max_tokens=1500,
+        priority=1,
+        fallback_priority=1,
+        context_length=1000000,
+        cost_tier="standard",
+        reasoning_capability="deep",
+        temperature=0.0,
+        max_tokens=4096,
     ),
 
     # 16. Notes and Report Summary

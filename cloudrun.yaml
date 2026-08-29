@@ -30,7 +30,7 @@ spec:
         - name: AI_PROVIDER
           value: gemini
         - name: AI_MODEL
-          value: gemini-2.5-pro
+          value: gemini-3.5
         - name: SECRET_KEY
           value: production-secret-key-netvigil-ntro-sih26155-enterprise-hardened
         startupProbe:
