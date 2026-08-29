@@ -39,43 +39,8 @@ class AutonomousSecurityEngineer:
     @classmethod
     def _parse_constraints_from_objective(cls, objective: str) -> List[AgentConstraint]:
         """Extracts negative and positive operational constraints from operator objective."""
-        constraints: List[AgentConstraint] = []
-        obj_lower = objective.lower()
-
-        # Check for SSH protection constraints
-        if any(p in obj_lower for p in [
-            "do not modify ssh", "don't modify ssh", "dont modify ssh",
-            "do not touch ssh", "don't touch ssh", "dont touch ssh",
-            "leave ssh", "preserve ssh", "without modifying ssh",
-            "do not change ssh", "don't change ssh", "protect ssh"
-        ]):
-            constraints.append(AgentConstraint(
-                subsystem="ssh",
-                action="DO_NOT_MODIFY",
-                description="Operator Directive: Strict preservation of existing SSH management access and key configurations.",
-            ))
-
-        # Check for SNMP protection constraints
-        if any(p in obj_lower for p in [
-            "do not modify snmp", "don't modify snmp", "dont modify snmp",
-            "do not touch snmp", "don't touch snmp", "preserve snmp",
-            "do not change snmp", "protect snmp"
-        ]):
-            constraints.append(AgentConstraint(
-                subsystem="snmp",
-                action="DO_NOT_MODIFY",
-                description="Operator Directive: SNMP community strings and monitoring access must remain unaltered.",
-            ))
-
-        # Check for BGP / Routing constraints
-        if "do not modify bgp" in obj_lower or "don't touch routing" in obj_lower:
-            constraints.append(AgentConstraint(
-                subsystem="routing",
-                action="DO_NOT_MODIFY",
-                description="Operator Directive: Core routing policies and peering sessions must remain untouched.",
-            ))
-
-        return constraints
+        from app.services.agent.classifier import ObjectiveClassifier
+        return ObjectiveClassifier._extract_user_constraints(objective)
 
     @classmethod
     async def start_autonomous_run(
@@ -487,6 +452,7 @@ class AutonomousSecurityEngineer:
                 analysis_id=analysis_id,
                 proposals=props,
                 db=db,
+                constraints=session.constraints,
             )
             total_applied += count
             applied_logs.extend(logs)

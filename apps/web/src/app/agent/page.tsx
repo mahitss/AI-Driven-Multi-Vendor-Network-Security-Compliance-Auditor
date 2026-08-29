@@ -296,8 +296,13 @@ export default function AgentPage() {
     const highRiskViolations = step6?.details?.high_risk_count ?? 0;
 
     // Active guardrails (e.g. SSH: DO_NOT_MODIFY)
-    const guardrailsCount = session.constraints?.length || 0;
-    const guardrailNames = session.constraints?.map((c) => c.subsystem.toUpperCase()).join(", ") || "None";
+    const constraintsList = (session.constraints && session.constraints.length > 0)
+      ? session.constraints
+      : (session.user_constraints && session.user_constraints.length > 0)
+      ? session.user_constraints
+      : [];
+    const guardrailsCount = constraintsList.length;
+    const guardrailNames = constraintsList.map((c) => c.subsystem.toUpperCase()).join(", ") || "None";
 
     // Unique devices affected by proposed patches
     const affectedDevicesSet = new Set<string>();
@@ -867,18 +872,41 @@ export default function AgentPage() {
               </div>
             ))}
 
-            {/* Constrained Proposals Badge */}
+            {/* Constrained Proposals Badge & Detailed View */}
             {constrainedProposals.length > 0 && (
-              <div className="p-3 rounded bg-[#12141a] border border-[#f59e0b]/20 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
-                  <span className="text-[#c5cbd8]">
-                    {constrainedProposals.length} proposal(s) skipped to honor operator constraint (SSH Subsystem)
+              <div className="space-y-2.5 pt-2 border-t border-[#181a22]">
+                <div className="p-3 rounded bg-[#12141a] border border-[#f59e0b]/20 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
+                    <span className="text-[#c5cbd8]">
+                      {constrainedProposals.length} prohibited proposal(s) skipped to honor operator constraint ({telemetry?.guardrailNames || "Protected Subsystem"})
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-[#f59e0b] bg-[#f59e0b]/10 px-2 py-0.5 rounded border border-[#f59e0b]/20 font-mono">
+                    SKIPPED — CONSTRAINED
                   </span>
                 </div>
-                <span className="text-[10px] font-semibold text-[#f59e0b] bg-[#f59e0b]/10 px-2 py-0.5 rounded border border-[#f59e0b]/20">
-                  SSH UNTOUCHED ✓
-                </span>
+
+                <div className="space-y-2">
+                  {constrainedProposals.map((prop) => (
+                    <div key={prop.proposal_id} className="p-3 rounded bg-[#08090b] border border-[#f59e0b]/20 space-y-1.5 opacity-90">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f59e0b]/10 text-[#f59e0b] font-semibold border border-[#f59e0b]/20 font-mono">
+                            SKIPPED
+                          </span>
+                          <span className="font-mono text-xs font-semibold text-[#f0f3f8]">{prop.device_name}</span>
+                          <span className="text-xs text-[#8b95a8] truncate max-w-md">• {prop.title}</span>
+                        </div>
+                        <span className="text-[11px] text-[#f59e0b] font-mono">{prop.control_id}</span>
+                      </div>
+                      <div className="text-[11px] text-[#8b95a8] flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-[#f59e0b] inline shrink-0" />
+                        <span>{prop.constraint_reason || "Operator Negative Constraint: Subsystem modification prohibited."}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

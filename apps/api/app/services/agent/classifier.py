@@ -111,17 +111,30 @@ class ObjectiveClassifier:
 
     @classmethod
     def _extract_user_constraints(cls, text: str) -> List[AgentConstraint]:
-        """Extracts operator-specified negative constraints."""
+        """Extracts operator-specified negative constraints using robust semantic & regex patterns."""
         constraints: List[AgentConstraint] = []
         obj_lower = text.lower()
 
-        # SSH Protection
-        if any(p in obj_lower for p in [
+        # SSH Protection Patterns
+        ssh_patterns = [
+            r"\b(?:do\s*not|don'?t|dont|never|avoid|skip|exclude|without)\s+(?:modify|change|touch|alter|reconfigure|update|edit|remediate|affect)\s+.*?\bssh\b",
+            r"\b(?:protect|preserve|retain|keep|leave|maintain|isolate)\s+.*?\bssh\b",
+            r"\bssh\b.*?(?:access|service|version|keys?|ciphers?|config|configuration)?\s*(?:must|should|to)?\s*(?:remain|stay|be)?\s*(?:unmodified|untouched|unchanged|as\s*is|preserved|protected)",
+            r"\b(?:no|zero)\s+ssh\s+(?:modifications?|changes?|updates?|remediations?|patches?)",
+            r"\b(?:except|excluding|aside\s+from|saving|with\s+the\s+exception\s+of)\s+(?:for\s+)?.*?\bssh\b",
+            r"\bssh\b.*?(?:do\s*not\s*modify|do\s*not\s*touch|dont\s*touch|protected|untouched|unmodified)",
+            r"\bdo\s+not\s+modify\s+ssh\b",
+            r"\bprotect\s+ssh\b",
+            r"\bpreserve\s+ssh\b",
+            r"\bleave\s+ssh\b",
+        ]
+        if any(re.search(pat, obj_lower) for pat in ssh_patterns) or any(phrase in obj_lower for phrase in [
             "do not modify ssh", "don't modify ssh", "dont modify ssh",
             "do not touch ssh", "don't touch ssh", "dont touch ssh",
             "leave ssh", "preserve ssh", "without modifying ssh",
             "do not change ssh", "don't change ssh", "protect ssh",
-            "without changing ssh"
+            "without changing ssh", "ssh access protected", "no ssh changes",
+            "keep ssh untouched", "do not modify ssh access"
         ]):
             constraints.append(AgentConstraint(
                 subsystem="ssh",
@@ -129,11 +142,17 @@ class ObjectiveClassifier:
                 description="Operator Directive: Strict preservation of existing SSH management access and key configurations.",
             ))
 
-        # SNMP Protection
-        if any(p in obj_lower for p in [
+        # SNMP Protection Patterns
+        snmp_patterns = [
+            r"\b(?:do\s*not|don'?t|dont|never|avoid|skip|exclude|without)\s+(?:modify|change|touch|alter|update)\s+.*?\bsnmp\b",
+            r"\b(?:protect|preserve|retain|keep|leave)\s+.*?\bsnmp\b",
+            r"\bsnmp\b.*?(?:must|should|to)?\s*(?:remain|stay|be)?\s*(?:unmodified|untouched|unchanged|preserved|protected)",
+            r"\b(?:no|zero)\s+snmp\s+(?:modifications?|changes?|updates?)",
+        ]
+        if any(re.search(pat, obj_lower) for pat in snmp_patterns) or any(phrase in obj_lower for phrase in [
             "do not modify snmp", "don't modify snmp", "dont modify snmp",
             "do not touch snmp", "don't touch snmp", "preserve snmp",
-            "do not change snmp", "protect snmp"
+            "do not change snmp", "protect snmp", "without modifying snmp"
         ]):
             constraints.append(AgentConstraint(
                 subsystem="snmp",
@@ -141,10 +160,15 @@ class ObjectiveClassifier:
                 description="Operator Directive: SNMP community strings and monitoring access must remain unaltered.",
             ))
 
-        # BGP / Routing Protection
-        if any(p in obj_lower for p in [
+        # BGP / Routing Protection Patterns
+        routing_patterns = [
+            r"\b(?:do\s*not|don'?t|dont|never|avoid|skip|without)\s+(?:modify|change|touch|alter)\s+.*?\b(?:bgp|ospf|routing|routes?|peering)\b",
+            r"\b(?:protect|preserve|retain|keep)\s+.*?\b(?:bgp|ospf|routing|routes?|peering)\b",
+            r"\b(?:bgp|ospf|routing)\b.*?(?:must|should)?\s*(?:remain|stay|be)?\s*(?:unmodified|untouched|preserved)",
+        ]
+        if any(re.search(pat, obj_lower) for pat in routing_patterns) or any(phrase in obj_lower for phrase in [
             "do not modify bgp", "don't modify bgp", "dont touch routing",
-            "do not touch routing", "preserve routing"
+            "do not touch routing", "preserve routing", "do not modify routing"
         ]):
             constraints.append(AgentConstraint(
                 subsystem="routing",

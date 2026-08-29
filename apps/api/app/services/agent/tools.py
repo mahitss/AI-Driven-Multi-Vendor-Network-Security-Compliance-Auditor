@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 import hashlib
 
+from app.core.logging import logger
+
 from app.models.configuration import Configuration
 from app.models.audit import Audit
 from app.models.finding import Finding
@@ -249,20 +251,68 @@ class AgentToolLayer:
                 continue
             processed_controls.add(normalized_prop)
 
-            # Check negative constraints
-            is_constrained = False
-            constraint_reason = None
-            for c in constraints:
-                sub_clean = c.subsystem.lower().strip()
-                if sub_clean and (sub_clean in normalized_prop.lower() or sub_clean in f.title.lower()):
-                    is_constrained = True
-                    constraint_reason = f"Operator Negative Constraint: '{c.subsystem}' must NOT be modified."
-                    break
-
             template = find_remediation_template(vendor=vendor, normalized_control=normalized_prop)
             commands = template["commands"] if template else f"# Manual hardening required for {f.title}"
             rollback = template.get("rollback_commands") if template else None
             impact = template.get("potential_impact", "Configuration update applied.") if template else "Manual intervention required."
+            proposal_title = template["title"] if template else f"Remediate {f.title}"
+
+            # Check negative constraints (FAIL-CLOSED)
+            is_constrained = False
+            constraint_reason = None
+            for c in constraints:
+                sub_clean = c.subsystem.lower().strip()
+                if not sub_clean:
+                    continue
+                
+                # Check for SSH protection (prohibits modifying SSH administration, version, keys, and ciphers)
+                if sub_clean == "ssh":
+                    is_ssh_remediation = (
+                        "ssh" in normalized_prop.lower()
+                        or "admin-ssh" in normalized_prop.lower()
+                        or any(kw in f.title.lower() for kw in ["ssh", "admin-ssh"])
+                        or any(kw in proposal_title.lower() for kw in ["ssh", "admin-ssh"])
+                        or any(cmd in commands.lower() for cmd in ["ip ssh", "admin-ssh", "system services ssh", "ssh protocol-version"])
+                    )
+                    if is_ssh_remediation:
+                        is_constrained = True
+                        constraint_reason = "Operator Negative Constraint: 'SSH' management access, version, and keys must NOT be modified."
+                        break
+                
+                # Check for SNMP protection
+                elif sub_clean == "snmp":
+                    fields_to_check = [
+                        normalized_prop.lower(),
+                        f.title.lower(),
+                        proposal_title.lower(),
+                        commands.lower(),
+                        (f.control_id or "").lower(),
+                    ]
+                    if any("snmp" in field for field in fields_to_check):
+                        is_constrained = True
+                        constraint_reason = "Operator Negative Constraint: 'SNMP' community strings and monitoring access must NOT be modified."
+                        break
+
+                # Check for Routing / BGP protection
+                elif sub_clean in ["routing", "bgp", "ospf"]:
+                    routing_indicators = ["bgp", "ospf", "routing", "route", "router"]
+                    fields_to_check = [
+                        normalized_prop.lower(),
+                        f.title.lower(),
+                        proposal_title.lower(),
+                        commands.lower(),
+                        (f.control_id or "").lower(),
+                    ]
+                    if any(any(ind in field for ind in routing_indicators) for field in fields_to_check):
+                        is_constrained = True
+                        constraint_reason = f"Operator Negative Constraint: '{c.subsystem.upper()}' routing policies must NOT be modified."
+                        break
+                
+                # Generic fallback
+                elif sub_clean in normalized_prop.lower() or sub_clean in f.title.lower() or sub_clean in commands.lower() or sub_clean in proposal_title.lower():
+                    is_constrained = True
+                    constraint_reason = f"Operator Negative Constraint: '{c.subsystem.upper()}' must NOT be modified."
+                    break
 
             diff = generate_remediation_diff(
                 current_evidence=f.evidence or f.title,
@@ -278,7 +328,7 @@ class AgentToolLayer:
                 finding_id=f.id,
                 control_id=f.control_id,
                 framework=f.framework,
-                title=template["title"] if template else f"Remediate {f.title}",
+                title=proposal_title,
                 severity=f.severity,
                 is_constrained=is_constrained,
                 constraint_reason=constraint_reason,
@@ -286,7 +336,7 @@ class AgentToolLayer:
                 rollback_commands=rollback,
                 diff_preview=diff,
                 potential_impact=impact,
-                requires_approval=True,
+                requires_approval=not is_constrained,
                 approval_status="SKIPPED_CONSTRAINED" if is_constrained else "PENDING",
             )
             proposals.append(proposal)
@@ -299,9 +349,11 @@ class AgentToolLayer:
         analysis_id: str,
         proposals: List[ProposedRemediationItem],
         db: AsyncSession,
+        constraints: Optional[List[AgentConstraint]] = None,
     ) -> Tuple[str, int, List[str]]:
         """
         Tool 8: Applies approved proposals to configuration text and saves modified content.
+        Enforces server-side constraint validation (rejects constrained patches even if approved=True passed).
         Returns: (new_content, applied_count, log_descriptions)
         """
         cfg = await db.get(Configuration, analysis_id)
@@ -315,6 +367,25 @@ class AgentToolLayer:
         for p in proposals:
             if p.is_constrained or p.approval_status != "APPROVED":
                 continue
+
+            # Defense-in-depth: Reject any patch violating active constraints server-side
+            if constraints:
+                violates = False
+                for c in constraints:
+                    sub = c.subsystem.lower().strip()
+                    if sub == "ssh":
+                        if (
+                            any(kw in p.title.lower() for kw in ["ssh", "admin-ssh"])
+                            or any(cmd in p.commands.lower() for cmd in ["ip ssh", "admin-ssh", "system services ssh", "ssh protocol-version"])
+                        ):
+                            violates = True
+                            break
+                    elif sub and (sub in p.title.lower() or sub in p.commands.lower()):
+                        violates = True
+                        break
+                if violates:
+                    logger.warning(f"Server-side constraint gate blocked unauthorized patch: {p.title}")
+                    continue
 
             current_text, was_changed, desc = ConfigurationPatcher.apply_patch(
                 vendor=p.vendor,
