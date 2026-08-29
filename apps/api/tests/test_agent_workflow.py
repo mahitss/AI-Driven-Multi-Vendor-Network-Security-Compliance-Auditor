@@ -17,6 +17,7 @@ Tests the complete 12-step autonomous agent lifecycle:
 """
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 pytestmark = pytest.mark.asyncio
 
@@ -188,8 +189,62 @@ async def test_full_autonomous_security_engineer_lifecycle(client: AsyncClient):
     cisco_cfg_res = await client.get(f"/api/v1/analysis/{cisco_analysis_id}/configuration")
     assert cisco_cfg_res.status_code == 200
     cisco_raw = cisco_cfg_res.json()["raw_text"]
-
     # Telnet should be disabled
     assert "transport input telnet" not in cisco_raw
     # But SSH version 1 was protected by constraint
     assert "ip ssh version 1" in cisco_raw
+
+
+async def test_individual_adk_tools_and_error_handling(client: AsyncClient, db_session: AsyncSession):
+    """Verifies that individual ADK tool functions return structured JSON and handle errors safely."""
+    from app.services.agent.tools import (
+        analyze_configuration_tool,
+        run_compliance_audit_tool,
+        get_findings_tool,
+        generate_remediation_plan_tool,
+    )
+
+    # 1. Test analyze_configuration_tool on raw Cisco syntax
+    analyze_res = await analyze_configuration_tool(CISCO_INSECURE_CONFIG, vendor_hint="cisco")
+    assert analyze_res["success"] is True
+    assert analyze_res["detected_vendor"] == "cisco"
+    assert analyze_res["facts_extracted_count"] > 0
+    assert "remote_access" in analyze_res["normalized_profile"]
+
+    # 2. Test error handling on empty input
+    empty_res = await analyze_configuration_tool("")
+    assert empty_res["success"] is False
+    assert "cannot be empty" in empty_res["error"]
+    assert empty_res["recoverable"] is False
+
+    # 3. Test run_compliance_audit_tool and get_findings_tool with db_session fixture
+    # Ingest a real config first
+    ingest_res = await client.post(
+        "/api/v1/analysis/ingest",
+        json={"content": CISCO_INSECURE_CONFIG, "filename": "cisco-tool-test.cfg"},
+    )
+    analysis_id = ingest_res.json()["analysis_id"]
+
+    audit_res = await run_compliance_audit_tool(analysis_id=analysis_id, framework="CIS", db=db_session)
+    assert audit_res["success"] is True
+    assert audit_res["controls_evaluated"] > 0
+    assert audit_res["failed_controls"] > 0
+    audit_id = audit_res["audit_id"]
+
+    findings_res = await get_findings_tool(audit_id=audit_id, db=db_session)
+    assert findings_res["success"] is True
+    assert findings_res["total_findings"] > 0
+    assert len(findings_res["findings"]) > 0
+
+    # 4. Test generate_remediation_plan_tool with constraints
+    rem_res = await generate_remediation_plan_tool(
+        audit_id=audit_id,
+        constraints=["ssh"],
+        db=db_session,
+    )
+    assert rem_res["success"] is True
+    assert rem_res["total_proposals"] > 0
+    assert rem_res["constrained_count"] >= 1
+    assert rem_res["actionable_count"] >= 1
+
+

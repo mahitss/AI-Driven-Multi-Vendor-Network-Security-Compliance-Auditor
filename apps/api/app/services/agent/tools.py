@@ -118,18 +118,24 @@ class AgentToolLayer:
             db=db,
         )
 
-        stats = audit.summary_stats or summary or {}
+        stats = audit.summary_stats or (summary.model_dump(mode="json") if hasattr(summary, "model_dump") else summary) or {}
+        status_bd = stats.get("status_breakdown", {}) if isinstance(stats, dict) else {}
+        pass_cnt = status_bd.get("PASS", 0) if isinstance(status_bd, dict) else 0
+        fail_cnt = status_bd.get("FAIL", 0) if isinstance(status_bd, dict) else 0
+        unknown_cnt = status_bd.get("UNKNOWN", 0) if isinstance(status_bd, dict) else 0
+        total_eval = len(rule_results)
+
         return {
             "audit_id": audit.id,
             "analysis_id": cfg.id,
             "filename": cfg.original_filename,
             "vendor": cfg.detected_vendor,
             "score": audit.score or 0.0,
-            "total_evaluated": stats.get("total_controls", len(rule_results)),
-            "pass_count": stats.get("pass_count", 0),
-            "fail_count": stats.get("fail_count", 0),
-            "unknown_count": stats.get("unknown_count", 0),
-            "framework_scores": stats.get("framework_scores", {}),
+            "total_evaluated": total_eval,
+            "pass_count": pass_cnt,
+            "fail_count": fail_cnt,
+            "unknown_count": unknown_cnt,
+            "framework_scores": stats.get("framework_scores", {}) if isinstance(stats, dict) else {},
         }
 
     @classmethod
@@ -409,3 +415,179 @@ class AgentToolLayer:
             remediations_applied_count=len(transitions),
             transitions=transitions,
         )
+
+
+# ==============================================================================
+# GOOGLE ADK COMPLIANT FUNCTION CALLING TOOLS
+# ==============================================================================
+
+async def analyze_configuration_tool(
+    configuration: str,
+    vendor_hint: Optional[str] = None,
+    db: Optional[AsyncSession] = None,
+) -> Dict[str, Any]:
+    """
+    ADK Tool: Analyzes raw network configuration text, detects vendor, and parses AST into USM facts.
+    """
+    if not configuration or not configuration.strip():
+        return {
+            "success": False,
+            "error": "Configuration content cannot be empty.",
+            "recoverable": False,
+        }
+
+    try:
+        detection = VendorDetector.detect(configuration)
+        detected_vendor = detection.vendor if detection.vendor != "unknown" else (vendor_hint or "cisco")
+        parser = parser_registry.get_parser(
+            content=configuration,
+            vendor_hint=detected_vendor,
+            filename="input_config.cfg",
+        )
+        profile = parser.parse(configuration, filename="input_config.cfg")
+
+        return {
+            "success": True,
+            "detected_vendor": detected_vendor,
+            "platform": detection.platform,
+            "detection_confidence": detection.confidence,
+            "analysis_status": "PARSED",
+            "facts_extracted_count": profile.facts_extracted_count,
+            "unknown_items_count": profile.unknown_items_count,
+            "normalized_profile": profile.model_dump(mode="json"),
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Configuration parsing failed: {str(e)}",
+            "recoverable": True,
+        }
+
+
+async def run_compliance_audit_tool(
+    analysis_id: str,
+    framework: str = "CIS",
+    db: Optional[AsyncSession] = None,
+) -> Dict[str, Any]:
+    """
+    ADK Tool: Deterministically evaluates compliance framework rules (CIS, NIST, STIG, ISO) on an analyzed configuration.
+    """
+    if not db:
+        return {
+            "success": False,
+            "error": "Database session required for compliance audit.",
+            "recoverable": False,
+        }
+
+    try:
+        res = await AgentToolLayer.analyze_and_audit(
+            analysis_id=analysis_id,
+            frameworks=[framework, "NIST", "STIG", "ISO"],
+            db=db,
+        )
+
+        return {
+            "success": True,
+            "audit_id": res["audit_id"],
+            "configuration_id": res["analysis_id"],
+            "framework": framework,
+            "score": res["score"],
+            "controls_evaluated": res["total_evaluated"],
+            "passed_controls": res["pass_count"],
+            "failed_controls": res["fail_count"],
+            "unknown_controls": res["unknown_count"],
+            "framework_scores": res["framework_scores"],
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Compliance audit execution failed: {str(e)}",
+            "recoverable": True,
+        }
+
+
+async def get_findings_tool(
+    audit_id: str,
+    severity_filter: Optional[str] = None,
+    db: Optional[AsyncSession] = None,
+) -> Dict[str, Any]:
+    """
+    ADK Tool: Queries structured findings from an audit grouped by severity with line-level evidence.
+    """
+    if not db:
+        return {
+            "success": False,
+            "error": "Database session required to fetch findings.",
+            "recoverable": False,
+        }
+
+    try:
+        res = await AgentToolLayer.get_findings_and_risk(audit_id=audit_id, db=db)
+        findings = res["failed_findings"]
+        if severity_filter and severity_filter.upper() != "ALL":
+            findings = [f for f in findings if f["severity"].upper() == severity_filter.upper()]
+
+        return {
+            "success": True,
+            "audit_id": audit_id,
+            "total_findings": len(findings),
+            "risk_score": res["risk_score"],
+            "risk_level": res["risk_level"],
+            "findings": findings,
+            "critical_count": res["critical_count"],
+            "high_count": res["high_count"],
+            "medium_count": res["medium_count"],
+            "low_count": res["low_count"],
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to retrieve findings: {str(e)}",
+            "recoverable": True,
+        }
+
+
+async def generate_remediation_plan_tool(
+    audit_id: str,
+    constraints: Optional[List[str]] = None,
+    risk_threshold: str = "HIGH",
+    db: Optional[AsyncSession] = None,
+) -> Dict[str, Any]:
+    """
+    ADK Tool: Formulates allowlisted remediation plan and masks proposals violating operational constraints.
+    """
+    if not db:
+        return {
+            "success": False,
+            "error": "Database session required for remediation planning.",
+            "recoverable": False,
+        }
+
+    try:
+        agent_constraints = []
+        if constraints:
+            for c in constraints:
+                agent_constraints.append(AgentConstraint(subsystem=c, action="DO_NOT_MODIFY"))
+
+        proposals = await AgentToolLayer.generate_remediation_plan(
+            audit_id=audit_id,
+            constraints=agent_constraints,
+            risk_threshold=risk_threshold,
+            db=db,
+        )
+
+        return {
+            "success": True,
+            "audit_id": audit_id,
+            "total_proposals": len(proposals),
+            "actionable_count": sum(1 for p in proposals if not p.is_constrained),
+            "constrained_count": sum(1 for p in proposals if p.is_constrained),
+            "proposals": [p.model_dump() for p in proposals],
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Remediation plan generation failed: {str(e)}",
+            "recoverable": True,
+        }
+
