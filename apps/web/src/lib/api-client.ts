@@ -2165,9 +2165,13 @@ export interface TimelineEvent {
   title: string;
   phase: string;
   status: "PENDING" | "RUNNING" | "COMPLETED" | "WAITING_APPROVAL" | "REJECTED" | "FAILED";
+  event_type?: string;
+  tool?: string;
   timestamp: string;
   details: Record<string, any>;
   summary: string;
+  message?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface ProposedRemediationItem {
