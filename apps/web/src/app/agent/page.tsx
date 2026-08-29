@@ -81,22 +81,23 @@ export default function AgentPage() {
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
-  // Request race-condition protection ref
+  // Request race-condition & user interaction refs
   const activeRequestIdRef = useRef<string | null>(null);
+  const isUserDirtyRef = useRef<boolean>(false);
 
-  // Restore previous session from localStorage on mount
+  // Restore previous session from localStorage on mount ONLY if user has not typed
   useEffect(() => {
     try {
       const savedSessionId = localStorage.getItem("netvigil_active_session_id");
       if (savedSessionId && !session) {
         fetchAgentSession(savedSessionId)
           .then((s) => {
-            if (s) {
+            if (s && !isUserDirtyRef.current) {
               setSession(s);
-              // Bind input to the restored execution's exact objective
+              // Bind input to the restored execution's exact immutable objective
               if (s.objective) setObjective(s.objective);
               if (s.final_report) setReport(s.final_report);
-            } else {
+            } else if (!s) {
               localStorage.removeItem("netvigil_active_session_id");
             }
           })
@@ -151,11 +152,12 @@ export default function AgentPage() {
     return () => clearInterval(interval);
   }, [session?.session_id, session?.status]);
 
-  // Handle objective textarea input: if user edits while viewing an old session, decouple session state
+  // Handle objective textarea input: cleanly decouple session state on edit
   const handleObjectiveChange = (newText: string) => {
+    isUserDirtyRef.current = true;
     setObjective(newText);
-    // If currently viewing a completed/waiting/invalid session and text deviates from that session, clear old results
-    if (session && session.objective && session.objective !== newText) {
+    // If currently viewing any session and text is edited, decouple session state immediately
+    if (session) {
       setSession(null);
       setReport(null);
       setExpandedSteps({});
@@ -165,9 +167,11 @@ export default function AgentPage() {
 
   // Launch autonomous agent run
   const handleStartAgent = async (overrideObjective?: string) => {
-    const targetObj = (overrideObjective || objective).trim();
+    const targetObj = (overrideObjective ?? objective).trim();
     if (!targetObj) return;
-    if (overrideObjective) setObjective(overrideObjective);
+    
+    isUserDirtyRef.current = true;
+    setObjective(targetObj);
 
     const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     activeRequestIdRef.current = requestId;
@@ -188,6 +192,9 @@ export default function AgentPage() {
       // Strict session binding: only set state if this request is still active
       if (activeRequestIdRef.current === requestId && result?.session_id) {
         setSession(result);
+        if (result.objective) {
+          setObjective(result.objective);
+        }
         if (result.status !== "INVALID_OBJECTIVE") {
           localStorage.setItem("netvigil_active_session_id", result.session_id);
         }
@@ -229,14 +236,15 @@ export default function AgentPage() {
     }
   };
 
-  // Reset to run another session (Clean State)
+  // Reset to run another session (Clean State: completely clear objective, session, and state)
   const handleResetSession = () => {
     activeRequestIdRef.current = null;
+    isUserDirtyRef.current = true;
     localStorage.removeItem("netvigil_active_session_id");
     setSession(null);
     setReport(null);
     setExpandedSteps({});
-    setObjective(QUICK_OBJECTIVES[0].objective);
+    setObjective("");
   };
 
   const toggleStep = (stepId: string) => {
