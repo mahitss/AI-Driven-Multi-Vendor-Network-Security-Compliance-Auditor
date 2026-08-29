@@ -117,7 +117,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isPublicPage) {
     return (
-      <div className="min-h-screen bg-[#090a0f] text-[#c5cbd8] selection:bg-[#0ea5e9]/20 selection:text-[#0ea5e9]">
+      <div className="min-h-screen bg-[#08090b] text-[#c5cbd8] selection:bg-[#0ea5e9]/20 selection:text-[#0ea5e9]">
         {children}
       </div>
     );
@@ -140,22 +140,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-[#090a0f] text-[#c5cbd8] overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#08090b] text-[#c5cbd8] overflow-hidden font-sans">
       {/* Global Search Modal */}
       <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#0b0d13] border-r border-[#1a1f2c] z-20 select-none">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#050608] border-r border-[#181a22] z-20 select-none">
         {/* Brand Header */}
-        <div className="p-4 border-b border-[#1a1f2c] flex items-center justify-between">
+        <div className="p-4 border-b border-[#181a22] flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded bg-[#141721] border border-[#252b3d] flex items-center justify-center text-[#0ea5e9] group-hover:border-[#0ea5e9]/40 transition-colors">
+            <div className="w-8 h-8 rounded bg-[#0d0e12] border border-[#181a22] flex items-center justify-center text-[#0ea5e9] group-hover:border-[#222632] transition-colors">
               <Shield className="w-4 h-4" />
             </div>
             <div>
               <div className="text-sm font-semibold tracking-tight text-[#f0f3f8] flex items-center gap-1.5">
                 <span>NetVigil</span>
-                <span className="text-[10px] px-1 py-0.2 rounded bg-[#141721] text-[#0ea5e9] font-medium border border-[#1a1f2c]">
+                <span className="text-[10px] px-1 py-0.2 rounded bg-[#0d0e12] text-[#0ea5e9] font-medium border border-[#181a22]">
                   Enterprise
                 </span>
               </div>
@@ -182,8 +182,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       className={cn(
                         "flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-all group",
                         isActive
-                          ? "bg-[#141721] text-[#f0f3f8] font-semibold border-l-2 border-[#0ea5e9] pl-2"
-                          : "text-[#8b95a8] hover:text-[#f0f3f8] hover:bg-[#0f1118]"
+                          ? "bg-[#12141a] text-[#f0f3f8] font-semibold border-l-2 border-[#0ea5e9] pl-2"
+                          : "text-[#8b95a8] hover:text-[#f0f3f8] hover:bg-[#0d0e12]"
                       )}
                     >
                       <div className="flex items-center gap-2.5">
@@ -201,7 +201,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             "text-[10px] px-1.5 py-0.2 rounded font-medium",
                             item.badge === "Core"
                               ? "bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/20"
-                              : "bg-[#141721] text-[#8b95a8] border border-[#1a1f2c]"
+                              : "bg-[#0d0e12] text-[#8b95a8] border border-[#181a22]"
                           )}
                         >
                           {item.badge}
@@ -216,8 +216,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Status / Profile Footer */}
-        <div className="p-3 border-t border-[#1a1f2c] bg-[#0b0d13] text-xs">
-          <div className="p-2 rounded bg-[#0f1118] border border-[#1a1f2c] flex items-center justify-between">
+        <div className="p-3 border-t border-[#181a22] bg-[#050608] text-xs">
+          <div className="p-2 rounded bg-[#0d0e12] border border-[#181a22] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
                 className={cn(
@@ -233,9 +233,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {user && (
-            <div className="mt-2 pt-2 border-t border-[#1a1f2c] flex items-center justify-between">
+            <div className="mt-2 pt-2 border-t border-[#181a22] flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-full bg-[#141721] border border-[#1a1f2c] text-[#0ea5e9] flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-[#12141a] border border-[#181a22] text-[#0ea5e9] flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                   {(user.email?.[0] || "A").toUpperCase()}
                 </div>
                 <div className="min-w-0">
@@ -249,7 +249,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={logout}
                 title="Sign out"
-                className="p-1 rounded text-[#5d677a] hover:text-[#ef4444] hover:bg-[#141721] transition-colors flex-shrink-0"
+                className="p-1 rounded text-[#5d677a] hover:text-[#ef4444] hover:bg-[#12141a] transition-colors flex-shrink-0"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
@@ -261,12 +261,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top App Header */}
-        <header className="h-13 bg-[#090a0f] border-b border-[#1a1f2c] px-4 md:px-6 flex items-center justify-between z-10 select-none">
+        <header className="h-13 bg-[#08090b] border-b border-[#181a22] px-4 md:px-6 flex items-center justify-between z-10 select-none">
           <div className="flex items-center gap-3">
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-1.5 rounded text-[#8b95a8] hover:text-white hover:bg-[#141721]"
+              className="lg:hidden p-1.5 rounded text-[#8b95a8] hover:text-white hover:bg-[#0d0e12]"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -283,11 +283,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Quick Search Launch Button */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#0f1118] border border-[#1a1f2c] hover:border-[#252b3d] text-xs text-[#5d677a] hover:text-[#8b95a8] transition-all"
+              className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#0d0e12] border border-[#181a22] hover:border-[#222632] text-xs text-[#5d677a] hover:text-[#8b95a8] transition-all"
             >
               <Search className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Search controls, findings...</span>
-              <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[10px] font-mono rounded bg-[#141721] text-[#8b95a8] border border-[#1a1f2c]">
+              <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[10px] font-mono rounded bg-[#12141a] text-[#8b95a8] border border-[#181a22]">
                 Ctrl K
               </kbd>
             </button>
@@ -295,14 +295,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Ingest Config Shortcut */}
             <Link
               href="/configurations"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0f1118] border border-[#1a1f2c] hover:border-[#252b3d] text-xs text-[#c5cbd8] hover:text-[#f0f3f8] transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0d0e12] border border-[#181a22] hover:border-[#222632] text-xs text-[#c5cbd8] hover:text-[#f0f3f8] transition-colors"
             >
               <Upload className="w-3.5 h-3.5 text-[#0ea5e9]" />
               <span className="hidden sm:inline font-medium">Ingest</span>
             </Link>
 
             {/* Status Pill */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#0f1118] border border-[#1a1f2c] text-[11px] text-[#8b95a8]">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#0d0e12] border border-[#181a22] text-[11px] text-[#8b95a8]">
               <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-[#10b981]" : "bg-[#ef4444]")} />
               <span className="hidden sm:inline font-medium">{isOnline ? "Production" : "Offline"}</span>
             </div>
@@ -311,7 +311,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 top-13 z-30 bg-[#0b0d13] border-b border-[#1a1f2c] p-4 overflow-y-auto">
+          <div className="lg:hidden fixed inset-0 top-13 z-30 bg-[#050608] border-b border-[#181a22] p-4 overflow-y-auto">
             <div className="space-y-4">
               {navigationGroups.map((group) => (
                 <div key={group.category} className="space-y-1">
@@ -324,7 +324,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         onClick={() => setMobileMenuOpen(false)}
                         className={cn(
                           "flex items-center justify-between p-2 rounded-md text-xs font-medium",
-                          pathname === item.href ? "bg-[#141721] text-[#0ea5e9]" : "text-[#8b95a8]"
+                          pathname === item.href ? "bg-[#12141a] text-[#0ea5e9]" : "text-[#8b95a8]"
                         )}
                       >
                         <div className="flex items-center gap-2">
@@ -332,7 +332,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           <span>{item.label}</span>
                         </div>
                         {item.badge && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#141721] text-[#0ea5e9]">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#12141a] text-[#0ea5e9]">
                             {item.badge}
                           </span>
                         )}
@@ -346,7 +346,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Main Viewport */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#090a0f]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#08090b]">
           {children}
         </main>
       </div>

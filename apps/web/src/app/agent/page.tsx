@@ -72,7 +72,6 @@ export default function AgentPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
-  const [copiedReport, setCopiedReport] = useState(false);
 
   // Restore previous session from localStorage on mount
   useEffect(() => {
@@ -176,7 +175,7 @@ export default function AgentPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1a1f2c]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#181a22]">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-[#f0f3f8] tracking-tight">Autonomous Security Engineer</h1>
@@ -192,7 +191,7 @@ export default function AgentPage() {
         {session && (
           <button
             onClick={handleResetSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#141721] hover:bg-[#1a1e2c] border border-[#1a1f2c] text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors self-start sm:self-auto"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors self-start sm:self-auto"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>New Objective</span>
@@ -201,7 +200,7 @@ export default function AgentPage() {
       </div>
 
       {/* Hero Objective Input Card */}
-      <div className="p-5 rounded-lg bg-[#0f1118] border border-[#1a1f2c] space-y-4">
+      <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-4">
         <div>
           <label className="block text-xs font-medium text-[#f0f3f8] mb-1.5">
             What should NetVigil secure?
@@ -211,7 +210,7 @@ export default function AgentPage() {
             onChange={(e) => setObjective(e.target.value)}
             disabled={isLoading || (session !== null && session.status !== "COMPLETED" && session.status !== "REJECTED")}
             rows={3}
-            className="w-full p-3 rounded-md bg-[#090a0f] border border-[#1a1f2c] focus:border-[#0ea5e9] text-xs text-[#f0f3f8] placeholder-[#5d677a] focus:outline-none transition-colors disabled:opacity-60"
+            className="w-full p-3 rounded-md bg-[#050608] border border-[#181a22] focus:border-[#0ea5e9] text-xs text-[#f0f3f8] placeholder-[#5d677a] focus:outline-none transition-colors disabled:opacity-60"
             placeholder="e.g. Audit network configurations against CIS baseline. Fix high-risk violations, but do not modify SSH access."
           />
         </div>
@@ -231,7 +230,7 @@ export default function AgentPage() {
                 "text-[11px] px-2.5 py-1 rounded border transition-colors",
                 objective === chip.objective
                   ? "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/30"
-                  : "bg-[#141721] text-[#8b95a8] hover:text-[#f0f3f8] border-[#1a1f2c]"
+                  : "bg-[#12141a] text-[#8b95a8] hover:text-[#f0f3f8] border-[#181a22]"
               )}
             >
               {chip.label}
@@ -240,14 +239,14 @@ export default function AgentPage() {
         </div>
 
         {/* Action Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#1a1f2c]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#181a22]">
           <div className="flex items-center gap-2 text-xs text-[#8b95a8]">
             <span>Baseline:</span>
             <select
               value={selectedBaseline}
               onChange={(e) => setSelectedBaseline(e.target.value)}
               disabled={isLoading || (session !== null && session.status !== "COMPLETED")}
-              className="p-1 rounded bg-[#141721] border border-[#1a1f2c] text-xs text-[#f0f3f8] focus:outline-none"
+              className="p-1 rounded bg-[#12141a] border border-[#181a22] text-xs text-[#f0f3f8] focus:outline-none"
             >
               <option value="CIS">CIS Benchmarks</option>
               <option value="NIST">NIST SP 800-53</option>
@@ -280,7 +279,7 @@ export default function AgentPage() {
       {session && (
         <div className="space-y-6">
           {/* Status Banner */}
-          <div className="p-4 rounded-lg bg-[#0f1118] border border-[#1a1f2c] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-lg bg-[#0d0e12] border border-[#181a22] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div
                 className={cn(
@@ -314,7 +313,7 @@ export default function AgentPage() {
             </div>
 
             {session.constraints && session.constraints.length > 0 && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#141721] border border-[#1a1f2c] text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#12141a] border border-[#181a22] text-xs">
                 <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
                 <span className="text-[11px] text-[#8b95a8]">Policy Guardrail:</span>
                 <span className="text-[11px] font-semibold text-[#f0f3f8]">
@@ -326,8 +325,8 @@ export default function AgentPage() {
 
           {/* APPROVAL GATE CARD (When WAITING_APPROVAL) */}
           {session.status === "WAITING_APPROVAL" && (
-            <div className="p-5 rounded-lg bg-[#0f1118] border-2 border-[#f59e0b]/40 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#1a1f2c]">
+            <div className="p-5 rounded-lg bg-[#0d0e12] border-2 border-[#f59e0b]/40 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#181a22]">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse" />
                   <h3 className="text-sm font-semibold text-[#f0f3f8]">
@@ -346,7 +345,7 @@ export default function AgentPage() {
               {/* Proposals Diff Viewer */}
               <div className="space-y-3">
                 {actionableProposals.map((prop) => (
-                  <div key={prop.proposal_id} className="p-3.5 rounded bg-[#090a0f] border border-[#1a1f2c] space-y-2">
+                  <div key={prop.proposal_id} className="p-3.5 rounded bg-[#050608] border border-[#181a22] space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#ef4444]/10 text-[#ef4444] font-semibold border border-[#ef4444]/20">
@@ -360,7 +359,7 @@ export default function AgentPage() {
 
                     {/* Diff Preview */}
                     {prop.diff_preview?.diff_lines && prop.diff_preview.diff_lines.length > 0 ? (
-                      <div className="p-2 rounded bg-[#07080c] border border-[#1a1f2c] text-[11px] font-mono space-y-0.5 max-h-40 overflow-y-auto">
+                      <div className="p-2 rounded bg-[#050608] border border-[#181a22] text-[11px] font-mono space-y-0.5 max-h-40 overflow-y-auto">
                         {prop.diff_preview.diff_lines.map((line, idx) => (
                           <div
                             key={idx}
@@ -380,11 +379,11 @@ export default function AgentPage() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] font-mono">
-                        <div className="p-2 rounded bg-[#141721] border border-[#ef4444]/20">
+                        <div className="p-2 rounded bg-[#12141a] border border-[#ef4444]/20">
                           <div className="text-[10px] text-[#ef4444] uppercase font-sans font-semibold mb-1">Target Violation</div>
                           <div className="text-[#c5cbd8] truncate">{prop.potential_impact || "Protocol configuration"}</div>
                         </div>
-                        <div className="p-2 rounded bg-[#141721] border border-[#10b981]/20">
+                        <div className="p-2 rounded bg-[#12141a] border border-[#10b981]/20">
                           <div className="text-[10px] text-[#10b981] uppercase font-sans font-semibold mb-1">Commands to Apply</div>
                           <div className="text-[#10b981] truncate">{prop.commands}</div>
                         </div>
@@ -395,7 +394,7 @@ export default function AgentPage() {
 
                 {/* Constrained Proposals Protected Badge */}
                 {constrainedProposals.length > 0 && (
-                  <div className="p-3 rounded bg-[#141721] border border-[#f59e0b]/20 flex items-center justify-between text-xs">
+                  <div className="p-3 rounded bg-[#12141a] border border-[#f59e0b]/20 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
                       <span className="text-[#c5cbd8]">
@@ -410,11 +409,11 @@ export default function AgentPage() {
               </div>
 
               {/* Decision Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1a1f2c]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#181a22]">
                 <button
                   onClick={() => handleApproval(false)}
                   disabled={isApproving}
-                  className="px-4 py-2 rounded bg-[#141721] hover:bg-[#1a1e2c] border border-[#1a1f2c] text-xs text-[#8b95a8] hover:text-[#f0f3f8] font-medium transition-colors"
+                  className="px-4 py-2 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-xs text-[#8b95a8] hover:text-[#f0f3f8] font-medium transition-colors"
                 >
                   Reject Plan
                 </button>
@@ -441,8 +440,8 @@ export default function AgentPage() {
 
           {/* VERIFICATION PROOF (When COMPLETED) */}
           {session.status === "COMPLETED" && report && (
-            <div className="p-5 rounded-lg bg-[#0f1118] border border-[#10b981]/30 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#1a1f2c]">
+            <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#10b981]/30 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#181a22]">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-[#10b981]" />
                   <div>
@@ -463,19 +462,19 @@ export default function AgentPage() {
 
               {/* Verification Delta Scorecard */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs">
-                <div className="p-3 rounded bg-[#090a0f] border border-[#1a1f2c]">
+                <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
                   <div className="text-[10px] text-[#5d677a] uppercase">Violations Before</div>
                   <div className="text-xl font-semibold text-[#ef4444] mt-1">{report.total_violations_before}</div>
                 </div>
-                <div className="p-3 rounded bg-[#090a0f] border border-[#1a1f2c]">
+                <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
                   <div className="text-[10px] text-[#5d677a] uppercase">Violations After</div>
                   <div className="text-xl font-semibold text-[#10b981] mt-1">{report.total_violations_after}</div>
                 </div>
-                <div className="p-3 rounded bg-[#090a0f] border border-[#1a1f2c]">
+                <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
                   <div className="text-[10px] text-[#5d677a] uppercase">Patches Applied</div>
                   <div className="text-xl font-semibold text-[#0ea5e9] mt-1">{report.remediations_applied}</div>
                 </div>
-                <div className="p-3 rounded bg-[#090a0f] border border-[#1a1f2c]">
+                <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
                   <div className="text-[10px] text-[#5d677a] uppercase">SSH Subsystem</div>
                   <div className="text-xs font-semibold text-[#10b981] mt-2">100% UNTOUCHED</div>
                 </div>
@@ -483,7 +482,7 @@ export default function AgentPage() {
 
               {/* Executive Summary */}
               {report.overall_posture_delta && (
-                <div className="p-3 rounded bg-[#090a0f] border border-[#1a1f2c] text-xs text-[#c5cbd8]">
+                <div className="p-3 rounded bg-[#050608] border border-[#181a22] text-xs text-[#c5cbd8]">
                   <span className="font-semibold text-[#f0f3f8]">Outcome: </span>
                   {report.overall_posture_delta}
                 </div>
@@ -492,12 +491,12 @@ export default function AgentPage() {
           )}
 
           {/* 12-Step Execution Timeline */}
-          <div className="p-5 rounded-lg bg-[#0f1118] border border-[#1a1f2c] space-y-4">
+          <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-4">
             <h3 className="text-xs font-semibold text-[#f0f3f8] uppercase tracking-wider text-[#5d677a]">
               Execution Timeline ({session.timeline?.length || 0} Steps)
             </h3>
 
-            <div className="relative border-l border-[#1a1f2c] ml-3 space-y-4 pl-4">
+            <div className="relative border-l border-[#181a22] ml-3 space-y-4 pl-4">
               {session.timeline?.map((step) => {
                 const isExpanded = expandedSteps[step.step_id];
                 return (
@@ -505,7 +504,7 @@ export default function AgentPage() {
                     {/* Timeline Node Dot */}
                     <div
                       className={cn(
-                        "absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full border-2 bg-[#090a0f]",
+                        "absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full border-2 bg-[#050608]",
                         step.status === "COMPLETED"
                           ? "border-[#10b981] bg-[#10b981]"
                           : step.status === "WAITING_APPROVAL"
@@ -538,7 +537,7 @@ export default function AgentPage() {
 
                     {/* Expandable Step Details */}
                     {isExpanded && step.details && (
-                      <pre className="mt-2 p-2.5 rounded bg-[#090a0f] border border-[#1a1f2c] text-[11px] font-mono text-[#8b95a8] overflow-x-auto">
+                      <pre className="mt-2 p-2.5 rounded bg-[#050608] border border-[#181a22] text-[11px] font-mono text-[#8b95a8] overflow-x-auto">
                         {JSON.stringify(step.details, null, 2)}
                       </pre>
                     )}
