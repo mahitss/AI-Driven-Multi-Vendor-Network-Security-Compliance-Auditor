@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.routes import (
+    agent,
     ai,
     analysis,
     audits,
@@ -119,6 +120,7 @@ app.include_router(health.router, prefix=settings.API_PREFIX)
 
 # API v1 Protected Domain Routes
 app.include_router(analysis.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
+app.include_router(agent.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
 app.include_router(configurations.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
 app.include_router(audits.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])
 app.include_router(devices.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])

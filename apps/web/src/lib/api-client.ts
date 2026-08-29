@@ -2149,6 +2149,203 @@ export async function sendCopilotChat(
   return res.json();
 }
 
+// ==============================================================================
+// AUTONOMOUS NETWORK SECURITY ENGINEER API INTERFACES
+// ==============================================================================
+
+export interface AgentConstraint {
+  subsystem: string;
+  action: string;
+  description: string;
+}
+
+export interface TimelineEvent {
+  step_id: string;
+  step_number: number;
+  title: string;
+  phase: string;
+  status: "PENDING" | "RUNNING" | "COMPLETED" | "WAITING_APPROVAL" | "REJECTED" | "FAILED";
+  timestamp: string;
+  details: Record<string, any>;
+  summary: string;
+}
+
+export interface ProposedRemediationItem {
+  proposal_id: string;
+  analysis_id: string;
+  device_name: string;
+  vendor: string;
+  finding_id: string;
+  control_id: string;
+  framework: string;
+  title: string;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  is_constrained: boolean;
+  constraint_reason?: string | null;
+  commands: string;
+  rollback_commands?: string | null;
+  diff_preview: {
+    diff_lines?: Array<{ type: string; text: string }>;
+    remove_count?: number;
+    add_count?: number;
+    preview_text?: string;
+  };
+  potential_impact: string;
+  requires_approval: boolean;
+  approval_status: "PENDING" | "APPROVED" | "REJECTED" | "SKIPPED_CONSTRAINED";
+}
+
+export interface ApprovalRequest {
+  approval_token: string;
+  session_id: string;
+  proposals: ProposedRemediationItem[];
+  constrained_items_count: number;
+  impact_summary: string;
+  created_at: string;
+}
+
+export interface VerificationTransition {
+  control_id: string;
+  title: string;
+  framework: string;
+  previous_status: string;
+  new_status: string;
+  resolved: boolean;
+  evidence_verified: string;
+}
+
+export interface DeviceAuditSummary {
+  analysis_id: string;
+  device_name: string;
+  vendor: string;
+  hash_before: string;
+  hash_after?: string | null;
+  compliance_score_before: number;
+  compliance_score_after?: number | null;
+  fail_count_before: number;
+  fail_count_after?: number | null;
+  risk_score_before: number;
+  risk_score_after?: number | null;
+  remediations_applied_count: number;
+  transitions: VerificationTransition[];
+}
+
+export interface FinalExecutiveReport {
+  report_id: string;
+  session_id: string;
+  generated_at: string;
+  objective: string;
+  baseline_framework: string;
+  constraints_honored: string[];
+  total_devices_audited: number;
+  total_controls_evaluated: number;
+  total_violations_before: number;
+  total_violations_after: number;
+  high_risk_before: number;
+  high_risk_after: number;
+  remediations_applied: number;
+  remediations_rejected: number;
+  remediations_constrained: number;
+  constraint_verification: {
+    ssh_subsystem_unaltered: boolean;
+    status: string;
+    details: string;
+  };
+  device_summaries: DeviceAuditSummary[];
+  overall_posture_delta: string;
+}
+
+export interface AgentSessionState {
+  session_id: string;
+  objective: string;
+  status: "INITIALIZING" | "RUNNING" | "WAITING_APPROVAL" | "COMPLETED" | "REJECTED" | "FAILED";
+  created_at: string;
+  updated_at: string;
+  constraints: AgentConstraint[];
+  timeline: TimelineEvent[];
+  discovered_configs: Array<{
+    analysis_id: string;
+    filename: string;
+    vendor: string;
+    platform?: string;
+    size_bytes: number;
+    raw_text: string;
+    hash: string;
+  }>;
+  proposals: ProposedRemediationItem[];
+  active_approval?: ApprovalRequest | null;
+  verification_results: Record<string, any>;
+  final_report?: FinalExecutiveReport | null;
+  error?: string | null;
+}
+
+export async function startAgentWorkflow(payload: {
+  objective: string;
+  target_configurations?: string[];
+  baseline_framework?: string;
+  risk_threshold?: string;
+}): Promise<AgentSessionState> {
+  const res = await apiFetch(`${API_BASE}/api/v1/agent/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Agent run failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchAgentSession(sessionId: string): Promise<AgentSessionState> {
+  const res = await apiFetch(`${API_BASE}/api/v1/agent/sessions/${encodeURIComponent(sessionId)}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Failed to fetch session: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function submitAgentApproval(
+  sessionId: string,
+  payload: { approved: boolean; reviewer_notes?: string }
+): Promise<AgentSessionState> {
+  const res = await apiFetch(`${API_BASE}/api/v1/agent/sessions/${encodeURIComponent(sessionId)}/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Approval submission failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchAgentReport(sessionId: string): Promise<FinalExecutiveReport> {
+  const res = await apiFetch(`${API_BASE}/api/v1/agent/sessions/${encodeURIComponent(sessionId)}/report`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Failed to fetch report: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchAgentFleetConfigurations(): Promise<any[]> {
+  const res = await apiFetch(`${API_BASE}/api/v1/agent/configurations`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
+
 
 
 

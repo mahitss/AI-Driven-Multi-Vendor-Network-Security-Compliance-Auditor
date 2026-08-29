@@ -47,6 +47,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   // Overview
   { label: "Security Posture", href: "/dashboard", icon: Activity, category: "Overview" },
+  { label: "Autonomous Engineer", href: "/agent", icon: Bot, category: "Overview", badge: "Agent" },
   { label: "Audit Configuration", href: "/configurations", icon: FileCode2, category: "Overview", badge: "Audit" },
 
   // Operations

@@ -1,0 +1,47 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: netvigil-agent-api
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/client-name: gcloud
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        run.googleapis.com/cpu-throttling: "false"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/PROJECT_ID/netvigil-agent-api:latest
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: 1000m
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        - name: ENVIRONMENT
+          value: production
+        - name: AI_PROVIDER
+          value: gemini
+        - name: AI_MODEL
+          value: gemini-2.5-pro
+        - name: SECRET_KEY
+          value: production-secret-key-netvigil-ntro-sih26155-enterprise-hardened
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          periodSeconds: 15
