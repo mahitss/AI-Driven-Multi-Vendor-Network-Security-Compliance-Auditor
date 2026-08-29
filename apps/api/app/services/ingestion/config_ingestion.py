@@ -8,10 +8,12 @@ from typing import Tuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.exc import IntegrityError
+
 from app.core.config import settings
 from app.core.errors import ConfigurationUploadError
 from app.core.logging import logger
-from app.core.security import compute_sha256, validate_file_metadata
+from app.core.security import compute_sha256, validate_file_metadata, validate_configuration_content
 from app.models.configuration import Configuration
 from app.services.parsing.vendor_detector import VendorDetector
 
@@ -26,15 +28,16 @@ class ConfigurationIngestionService:
     ) -> Configuration:
         """
         Processes an uploaded raw network configuration file:
-        1. Validates file metadata (size, allowed extension).
+        1. Validates file metadata and rejects executable/binary content.
         2. Computes SHA-256 cryptographic hash.
         3. Checks for duplicate hash (or records new upload).
-        4. Saves sanitized file safely into storage path.
+        4. Saves sanitized file safely into storage path with traversal protection.
         5. Executes deterministic vendor detection.
-        6. Persists Configuration record in database.
+        6. Persists Configuration record in database idempotently.
         """
-        # Step 1: Validate file name and size
+        # Step 1: Validate file name, size, and content safety
         sanitized_filename, ext = validate_file_metadata(filename, len(content_bytes))
+        validate_configuration_content(content_bytes, filename=sanitized_filename)
 
         # Validate decode to UTF-8 text (with fallback to latin-1 for legacy devices)
         try:
@@ -60,7 +63,14 @@ class ConfigurationIngestionService:
         # Step 3: Determine storage path (named by hash + extension to avoid collision / path traversal)
         storage_dir = settings.resolved_storage_path
         storage_file_name = f"{content_hash[:16]}_{sanitized_filename}"
-        target_path = storage_dir / storage_file_name
+        target_path = (storage_dir / storage_file_name).resolve()
+
+        # Strict Storage Root Containment Check
+        if not str(target_path).startswith(str(storage_dir)):
+            raise ConfigurationUploadError(
+                message="Unsafe storage path traversal detected.",
+                details={"filename": sanitized_filename},
+            )
 
         # Write to disk safely
         try:
@@ -86,7 +96,7 @@ class ConfigurationIngestionService:
             logger.info(f"Configuration with hash {content_hash} already exists (ID: {existing_config.id}).")
             return existing_config
 
-        # Step 6: Create database record
+        # Step 6: Create database record with concurrent insertion protection
         config_record = Configuration(
             filename=storage_file_name,
             original_filename=sanitized_filename,
@@ -105,9 +115,19 @@ class ConfigurationIngestionService:
             parser_status="pending",
         )
 
-        db.add(config_record)
-        await db.commit()
-        await db.refresh(config_record)
+        try:
+            db.add(config_record)
+            await db.commit()
+            await db.refresh(config_record)
+        except IntegrityError:
+            # Handle race condition in concurrent identical upload
+            await db.rollback()
+            stmt = select(Configuration).where(Configuration.hash == content_hash)
+            result = await db.execute(stmt)
+            existing_after_race = result.scalars().first()
+            if existing_after_race:
+                return existing_after_race
+            raise
 
         logger.info(
             f"Ingested configuration {config_record.id} ({sanitized_filename}) -> Vendor: {detection_result.vendor} (Confidence: {detection_result.confidence})"

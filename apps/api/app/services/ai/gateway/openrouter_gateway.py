@@ -197,10 +197,10 @@ class OpenRouterGateway:
                 candidates = [pref] + [c for c in candidates if c.model_id != preferred_model]
 
         if not candidates:
-            # Fallback to default canonical
+            # Fallback to default canonical model
             candidates = [
                 ModelInfo(
-                    model_id="nvidia/nemotron-3-ultra-550b-a55b:free",
+                    model_id=settings.AI_MODEL or "google/gemini-3.5",
                     role="primary_security_reasoning",
                     task_types=[task_type],
                 )
@@ -210,6 +210,8 @@ class OpenRouterGateway:
         attempts = 0
         last_error = None
         base_url = settings.OPENROUTER_BASE_URL.rstrip("/")
+        # Allocate per-attempt timeout based on configured AI_TIMEOUT_SECONDS
+        per_attempt_timeout = max(5.0, min(float(settings.AI_TIMEOUT_SECONDS or 30) / max_attempts, 15.0))
 
         for model in candidates[:max_attempts]:
             attempts += 1
@@ -236,7 +238,7 @@ class OpenRouterGateway:
             try:
                 logger.info(f"AI Gateway Dispatch [Attempt {attempts}/{max_attempts}]: Task={task_type.value}, Model={model.model_id}")
 
-                attempt_timeout = httpx.Timeout(5.0, connect=2.5, read=5.0, write=2.5, pool=2.5)
+                attempt_timeout = httpx.Timeout(per_attempt_timeout, connect=3.0, read=per_attempt_timeout, write=3.0, pool=3.0)
                 async with httpx.AsyncClient(timeout=attempt_timeout) as client:
                     resp = await asyncio.wait_for(
                         client.post(
@@ -244,7 +246,7 @@ class OpenRouterGateway:
                             headers=headers,
                             json=payload,
                         ),
-                        timeout=5.0,
+                        timeout=per_attempt_timeout,
                     )
 
                 latency_ms = (time.perf_counter() - start_time) * 1000

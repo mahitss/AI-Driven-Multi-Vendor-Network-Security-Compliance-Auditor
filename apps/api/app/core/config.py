@@ -3,7 +3,7 @@ NetVigil Configuration & Environment Settings
 Problem Statement: SIH26155 (NTRO)
 """
 from pathlib import Path
-from typing import List, Union
+from typing import Any, List, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -44,10 +44,11 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE_MB: int = 10
     ALLOWED_EXTENSIONS: Union[List[str], str] = [".cfg", ".conf", ".txt", ".log", ".set"]
 
-    # AI Provider Settings (OpenRouter abstraction)
-    AI_PROVIDER: str = "openrouter"  # "openrouter", "mock", "local"
+    # AI Provider Settings (OpenRouter / Gemini abstraction)
+    AI_PROVIDER: str = "openrouter"  # "openrouter", "gemini", "mock", "local"
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+    GEMINI_API_KEY: str = ""
     AI_MODEL: str = "google/gemini-3.5"
     AI_TEMPERATURE: float = 0.0
     AI_MAX_TOKENS: int = 1500
@@ -81,14 +82,46 @@ class Settings(BaseSettings):
                 )
         return v
 
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def validate_debug(cls, v: Any, info) -> bool:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        if env == "production":
+            return False
+        if isinstance(v, str):
+            return v.lower() in ["true", "1", "yes"]
+        return bool(v)
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",") if i.strip()]
+            origins = [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
-            return v
-        return ["http://localhost:3000", "http://127.0.0.1:3000"]
+            origins = v
+        else:
+            origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+        return origins
+
+    @field_validator("CORS_ORIGINS", mode="after")
+    @classmethod
+    def validate_cors_origins_production(cls, v: List[str], info) -> List[str]:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        if env == "production":
+            if "*" in v:
+                raise ValueError("CRITICAL SECURITY ERROR: Wildcard '*' in CORS_ORIGINS is strictly prohibited in production mode.")
+        return v
+
+    @field_validator("OPENROUTER_API_KEY", mode="after")
+    @classmethod
+    def validate_ai_credentials_production(cls, v: str, info) -> str:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        provider = info.data.get("AI_PROVIDER", "openrouter").lower() if info.data else "openrouter"
+        gemini_key = info.data.get("GEMINI_API_KEY", "") if info.data else ""
+        if env == "production" and provider == "openrouter":
+            if not v and not gemini_key:
+                raise ValueError("CRITICAL CONFIGURATION ERROR: OPENROUTER_API_KEY or GEMINI_API_KEY must be provided in production mode.")
+        return v
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
@@ -106,7 +139,7 @@ class Settings(BaseSettings):
             return [i.strip().lower() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
             return [i.strip().lower() for i in v]
-        return [".cfg", ".conf", ".txt", ".log"]
+        return [".cfg", ".conf", ".txt", ".log", ".set"]
 
     @property
     def max_file_size_bytes(self) -> int:
@@ -114,9 +147,22 @@ class Settings(BaseSettings):
 
     @property
     def resolved_storage_path(self) -> Path:
-        p = Path(self.STORAGE_PATH).resolve()
-        p.mkdir(parents=True, exist_ok=True)
-        return p
+        raw_str = str(self.STORAGE_PATH).replace("\\", "/").lower()
+        if raw_str.startswith(("/etc", "/bin", "/sbin", "/usr", "/var/run", "/root", "c:/windows", "c:/program files")):
+            raise ValueError(f"STORAGE_PATH cannot be located inside sensitive system directory: {self.STORAGE_PATH}")
+
+        raw_path = Path(self.STORAGE_PATH)
+        if raw_path.is_absolute():
+            resolved = raw_path.resolve()
+        else:
+            resolved = (Path.cwd() / raw_path).resolve()
+
+        resolved_str = str(resolved).replace("\\", "/").lower()
+        if resolved_str.startswith(("/etc", "/bin", "/sbin", "/usr", "/var/run", "/root", "c:/windows", "c:/program files")):
+            raise ValueError(f"STORAGE_PATH cannot be located inside sensitive system directory: {resolved}")
+
+        resolved.mkdir(parents=True, exist_ok=True)
+        return resolved
 
 
 settings = Settings()

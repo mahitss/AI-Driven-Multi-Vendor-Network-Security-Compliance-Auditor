@@ -19,7 +19,7 @@ class Configuration(Base, UUIDMixin, TimestampMixin):
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     storage_path: Mapped[str] = mapped_column(String(512), nullable=False)
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
-    hash: Mapped[str] = mapped_column(String(64), index=True, nullable=False)  # SHA-256
+    hash: Mapped[str] = mapped_column(String(64), index=True, unique=True, nullable=False)  # SHA-256
 
     raw_content: Mapped[str] = mapped_column(Text, nullable=False)
 

@@ -60,6 +60,46 @@ def validate_file_metadata(filename: str, size: int) -> Tuple[str, str]:
     return sanitized, ext
 
 
+def validate_configuration_content(content_bytes: bytes, filename: str = "") -> None:
+    """
+    Inspect raw content bytes for hostile executable/binary headers and dangerous shell payloads.
+    Ensures network configurations are readable text and not compiled binaries or scripts.
+    """
+    # 1. Check for binary executable magic signatures
+    executable_magic = [
+        b"\x7fELF",       # ELF (Linux/Unix executable)
+        b"MZ",            # PE/COFF (Windows .exe / .dll)
+        b"\xfe\xed\xfa",  # Mach-O 32-bit
+        b"\xfeedfacf",    # Mach-O 64-bit
+        b"\xcafebabe",    # Mach-O universal binary / Java class
+        b"\x1f\x8b",      # Gzip / tarball
+        b"PK\x03\x04",    # Zip archive / Jar
+        b"%PDF",          # PDF document
+    ]
+    for magic in executable_magic:
+        if content_bytes.startswith(magic):
+            raise InvalidFileTypeError(
+                message="Uploaded file contains binary or executable content, which cannot be parsed as a network configuration.",
+                details={"filename": filename, "magic": magic.hex()},
+            )
+
+    # 2. Reject binary null bytes in initial sample
+    if b"\x00" in content_bytes[:4096]:
+        raise InvalidFileTypeError(
+            message="Uploaded file contains binary null bytes and is not valid plain-text configuration.",
+            details={"filename": filename},
+        )
+
+    # 3. Reject hostile standalone shell script shebangs when not a legitimate network config
+    first_line = content_bytes[:128].split(b"\n")[0].strip().lower()
+    if first_line.startswith(b"#!"):
+        if any(sh in first_line for sh in [b"bash", b"sh", b"python", b"perl", b"ruby", b"zsh", b"dash", b"node", b"php"]):
+            raise InvalidFileTypeError(
+                message="Uploaded file appears to be an executable script (shebang detected), not a network device configuration.",
+                details={"filename": filename, "header": first_line.decode("utf-8", errors="ignore")},
+            )
+
+
 # -------------------------------------------------------------
 # Sensitive Data Redaction Utilities
 # -------------------------------------------------------------

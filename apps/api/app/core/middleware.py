@@ -123,6 +123,47 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class HostValidationMiddleware(BaseHTTPMiddleware):
+    """
+    Validates the HTTP Host header against ALLOWED_HOSTS in production mode
+    to defend against Host Header Injection and DNS Rebinding.
+    Allows Cloud Run internal probes and health checks.
+    """
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        # Permissive in development, testing, or when wildcard is explicitly allowed
+        if settings.ENVIRONMENT != "production" or "*" in settings.ALLOWED_HOSTS:
+            return await call_next(request)
+
+        # Allow internal health checks & probes without host constraints
+        if request.url.path in ["/health", f"{settings.API_PREFIX}/health"]:
+            return await call_next(request)
+
+        raw_host = request.headers.get("host") or ""
+        host = raw_host.split(":")[0].strip().lower()
+
+        allowed = [h.split(":")[0].strip().lower() for h in settings.ALLOWED_HOSTS]
+
+        is_allowed = host in allowed or any(
+            (h.startswith("*.") and host.endswith(h[1:])) or host.endswith(".a.run.app")
+            for h in allowed
+        )
+
+        if not is_allowed and host:
+            logger.warning("Rejected request with untrusted Host header: %s", host)
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "code": "INVALID_HOST_HEADER",
+                        "message": f"Host header '{host}' is not permitted.",
+                    }
+                },
+            )
+
+        return await call_next(request)
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """
     Applies standard enterprise security headers to all HTTP responses:
@@ -131,7 +172,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     - Referrer-Policy: strict-origin-when-cross-origin
     - Permissions-Policy: camera=(), microphone=(), geolocation=()
     - X-XSS-Protection: 1; mode=block
-    - Content-Security-Policy: frame-ancestors 'none';
+    - Content-Security-Policy: default-src 'self'; frame-ancestors 'none'; object-src 'none';
+    - Strict-Transport-Security: max-age=31536000; includeSubDomains (production/HTTPS)
     """
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
@@ -141,5 +183,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; object-src 'none';"
+        if settings.ENVIRONMENT == "production" or request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 

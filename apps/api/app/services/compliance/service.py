@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import NetVigilException, ResourceNotFoundError
+from app.core.logging import logger
 from app.models.audit import Audit
 from app.models.configuration import Configuration
 from app.models.finding import Finding
@@ -79,55 +80,60 @@ class ComplianceAuditService:
                 eval_res = RuleEvaluator.evaluate_rule(rule=rule, profile=profile, framework=fw)
                 all_results.append(eval_res)
 
-        # 5. Create Audit DB Record
-        audit_record = Audit(
-            configuration_id=config.id,
-            device_id=config.device_id,
-            status="RUNNING",
-            started_at=datetime.now(timezone.utc),
-        )
-        db.add(audit_record)
-        await db.flush()  # Populates audit_record.id
-
-        # 6. Calculate Scores
-        summary = ComplianceScoringEngine.calculate_scores(
-            audit_id=audit_record.id,
-            configuration_id=config.id,
-            results=all_results,
-        )
-
-        audit_record.score = summary.overall_score
-        audit_record.status = "COMPLETED"
-        audit_record.completed_at = datetime.now(timezone.utc)
-        audit_record.summary_stats = summary.model_dump(mode="json")
-
-        # 7. Persist Individual Finding Records
-        for r in all_results:
-            finding = Finding(
-                audit_id=audit_record.id,
-                framework=r.framework,
-                control_id=r.control_id,
-                category=r.category,
-                status=r.status.value,
-                severity=r.severity.value,
-                title=r.title,
-                description=r.explanation,
-                evidence="\n".join(r.evidence) if r.evidence else None,
-                expected_value=str(r.expected_value),
-                actual_value=str(r.actual_value) if r.actual_value is not None else "None / Unconfigured",
-                remediation=r.remediation,
-                finding_metadata={
-                    "rule_id": r.rule_id,
-                    "source_lines": r.source_lines,
-                    "evidence_list": r.evidence,
-                    "source": r.source,
-                    "confidence": r.confidence,
-                },
+        # 5. Create Audit DB Record & Persist Findings with Atomic Rollback Protection
+        try:
+            audit_record = Audit(
+                configuration_id=config.id,
+                device_id=config.device_id,
+                status="RUNNING",
+                started_at=datetime.now(timezone.utc),
             )
-            db.add(finding)
+            db.add(audit_record)
+            await db.flush()  # Populates audit_record.id
 
-        await db.commit()
-        await db.refresh(audit_record)
+            # 6. Calculate Scores
+            summary = ComplianceScoringEngine.calculate_scores(
+                audit_id=audit_record.id,
+                configuration_id=config.id,
+                results=all_results,
+            )
+
+            audit_record.score = summary.overall_score
+            audit_record.status = "COMPLETED"
+            audit_record.completed_at = datetime.now(timezone.utc)
+            audit_record.summary_stats = summary.model_dump(mode="json")
+
+            # 7. Persist Individual Finding Records
+            for r in all_results:
+                finding = Finding(
+                    audit_id=audit_record.id,
+                    framework=r.framework,
+                    control_id=r.control_id,
+                    category=r.category,
+                    status=r.status.value,
+                    severity=r.severity.value,
+                    title=r.title,
+                    description=r.explanation,
+                    evidence="\n".join(r.evidence) if r.evidence else None,
+                    expected_value=str(r.expected_value),
+                    actual_value=str(r.actual_value) if r.actual_value is not None else "None / Unconfigured",
+                    remediation=r.remediation,
+                    finding_metadata={
+                        "rule_id": r.rule_id,
+                        "source_lines": r.source_lines,
+                        "evidence_list": r.evidence,
+                        "source": r.source,
+                        "confidence": r.confidence,
+                    },
+                )
+                db.add(finding)
+
+            await db.commit()
+            await db.refresh(audit_record)
+        except Exception as e:
+            await db.rollback()
+            logger.error(f"Audit atomic transaction failed for configuration {configuration_id}: {e}")
+            raise
 
         # Populate correlated risks and allowlisted remediations for the audit
         try:
