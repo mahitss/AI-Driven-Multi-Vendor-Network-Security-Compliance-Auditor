@@ -427,14 +427,16 @@ class AutonomousSecurityEngineer:
         """
         session = await AgentMemoryManager.get_session(session_id)
         if not session:
-            raise ValueError(f"Session {session_id} not found.")
+            from app.core.errors import ResourceNotFoundError
+            raise ResourceNotFoundError(resource="AgentSession", identifier=session_id)
 
         if session.status != "WAITING_APPROVAL":
-            return session
+            from app.core.errors import ValidationError
+            raise ValidationError(message=f"Session '{session_id}' is in state '{session.status}' and is not awaiting approval.")
 
-        # Validate approval token if provided
-        if approval_token and session.active_approval and session.active_approval.approval_token:
-            if approval_token != session.active_approval.approval_token:
+        # Validate approval token
+        if approval_token:
+            if not session.active_approval or approval_token != session.active_approval.approval_token:
                 from app.core.errors import ValidationError
                 raise ValidationError(message=f"Approval token '{approval_token}' is invalid or does not belong to session '{session_id}'.")
 
@@ -590,7 +592,7 @@ class AutonomousSecurityEngineer:
             remediations_constrained=sum(1 for p in session.proposals if p.is_constrained),
             constraint_verification={
                 "ssh_subsystem_unaltered": ssh_preserved,
-                "status": "PASS_UNMODIFIED",
+                "status": "PASS_UNMODIFIED" if ssh_preserved else "FAIL",
                 "details": "SSH configuration lines remained completely untouched in accordance with operator directive.",
             },
             device_summaries=device_summaries,
