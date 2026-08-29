@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import {
   Bot,
@@ -30,6 +30,8 @@ import {
   Sparkles,
   Terminal,
   Cpu,
+  Search,
+  CheckCircle,
 } from "lucide-react";
 import {
   startAgentWorkflow,
@@ -77,6 +79,9 @@ export default function AgentPage() {
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
+  // Request race-condition protection ref
+  const activeRequestIdRef = useRef<string | null>(null);
+
   // Restore previous session from localStorage on mount
   useEffect(() => {
     try {
@@ -86,6 +91,8 @@ export default function AgentPage() {
           .then((s) => {
             if (s) {
               setSession(s);
+              // Bind input to the restored execution's exact objective
+              if (s.objective) setObjective(s.objective);
               if (s.final_report) setReport(s.final_report);
             } else {
               localStorage.removeItem("netvigil_active_session_id");
@@ -115,15 +122,16 @@ export default function AgentPage() {
       return;
     }
 
+    const currentSessionId = session.session_id;
     let failureCount = 0;
     const interval = setInterval(async () => {
       try {
-        const updated = await fetchAgentSession(session.session_id);
-        if (updated) {
+        const updated = await fetchAgentSession(currentSessionId);
+        if (updated && updated.session_id === currentSessionId) {
           setSession(updated);
           if (updated.final_report) setReport(updated.final_report);
           failureCount = 0;
-        } else {
+        } else if (!updated) {
           // Session was not found (404)
           clearInterval(interval);
           localStorage.removeItem("netvigil_active_session_id");
@@ -140,12 +148,29 @@ export default function AgentPage() {
     return () => clearInterval(interval);
   }, [session?.session_id, session?.status]);
 
+  // Handle objective textarea input: if user edits while viewing an old session, decouple session state
+  const handleObjectiveChange = (newText: string) => {
+    setObjective(newText);
+    // If currently viewing a completed/waiting session and text deviates from that session, clear old results
+    if (session && session.objective && session.objective !== newText) {
+      setSession(null);
+      setReport(null);
+      setExpandedSteps({});
+      localStorage.removeItem("netvigil_active_session_id");
+    }
+  };
+
   // Launch autonomous agent run
   const handleStartAgent = async () => {
     if (!objective.trim()) return;
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    activeRequestIdRef.current = requestId;
+
     setIsLoading(true);
     setSession(null);
     setReport(null);
+    setExpandedSteps({});
+    localStorage.removeItem("netvigil_active_session_id");
 
     try {
       const result = await startAgentWorkflow({
@@ -153,28 +178,37 @@ export default function AgentPage() {
         baseline_framework: selectedBaseline,
         risk_threshold: "HIGH",
       });
-      setSession(result);
-      if (result.session_id) {
+
+      // Strict session binding: only set state if this request is still active
+      if (activeRequestIdRef.current === requestId && result?.session_id) {
+        setSession(result);
         localStorage.setItem("netvigil_active_session_id", result.session_id);
-      }
-      if (result.final_report) {
-        setReport(result.final_report);
+        if (result.final_report) {
+          setReport(result.final_report);
+        }
       }
     } catch (err: any) {
-      console.error("Agent launch failure:", err);
-      alert(`Agent execution failed: ${err.message || "Unknown error"}`);
+      if (activeRequestIdRef.current === requestId) {
+        console.error("Agent launch failure:", err);
+        alert(`Agent execution failed: ${err.message || "Unknown error"}`);
+      }
     } finally {
-      setIsLoading(false);
+      if (activeRequestIdRef.current === requestId) {
+        setIsLoading(false);
+      }
     }
   };
 
   // Process human approval
   const handleApproval = async (approved: boolean) => {
-    if (!session) return;
+    if (!session || !session.session_id) return;
     setIsApproving(true);
 
     try {
-      const updated = await submitAgentApproval(session.session_id, { approved });
+      const updated = await submitAgentApproval(session.session_id, {
+        approved,
+        approval_token: session.active_approval?.approval_token,
+      });
       setSession(updated);
       if (updated.final_report) {
         setReport(updated.final_report);
@@ -187,12 +221,14 @@ export default function AgentPage() {
     }
   };
 
-  // Reset to run another session
+  // Reset to run another session (Clean State)
   const handleResetSession = () => {
+    activeRequestIdRef.current = null;
     localStorage.removeItem("netvigil_active_session_id");
     setSession(null);
     setReport(null);
     setExpandedSteps({});
+    setObjective(QUICK_OBJECTIVES[0].objective);
   };
 
   const toggleStep = (stepId: string) => {
@@ -238,6 +274,10 @@ export default function AgentPage() {
     const totalViolations = step5?.details?.total_violations ?? step6?.details?.total_failed ?? 0;
     const highRiskViolations = step6?.details?.high_risk_count ?? 0;
 
+    // Active guardrails (e.g. SSH: DO_NOT_MODIFY)
+    const guardrailsCount = session.constraints?.length || 0;
+    const guardrailNames = session.constraints?.map((c) => c.subsystem.toUpperCase()).join(", ") || "None";
+
     // Unique devices affected by proposed patches
     const affectedDevicesSet = new Set<string>();
     session.proposals?.forEach((p) => {
@@ -253,7 +293,9 @@ export default function AgentPage() {
       totalViolations,
       highRiskViolations,
       proposalsCount: actionableProposals.length,
-      constrainedCount: constrainedProposals.length,
+      guardrailsCount,
+      guardrailNames,
+      maskedCount: constrainedProposals.length,
       affectedDevicesCount,
     };
   }, [session, actionableProposals, constrainedProposals]);
@@ -274,8 +316,8 @@ export default function AgentPage() {
         label: "STANDBY",
         badgeClass: "bg-[#12141a] text-[#8b95a8] border-[#181a22]",
         indicatorDot: "bg-[#8b95a8]",
-        title: "Autonomous Security Engineer Ready",
-        narrative: "Provide a natural language security objective to initiate independent audit, risk isolation, and patch generation.",
+        title: "Ready for New Objective",
+        narrative: "Provide a natural language security objective above and click 'Run Agent' to initiate an autonomous investigation.",
       };
     }
     if (session.status === "WAITING_APPROVAL") {
@@ -349,12 +391,16 @@ export default function AgentPage() {
               <Cpu className="w-3.5 h-3.5 text-[#0ea5e9]" />
               <span>What should NetVigil secure?</span>
             </label>
-            <span className="text-[11px] text-[#5d677a]">Natural language with negative constraints</span>
+            {session && (
+              <span className="text-[11px] text-[#0ea5e9] font-mono">
+                Bound to Session: {session.session_id.slice(0, 16)}...
+              </span>
+            )}
           </div>
           <textarea
             value={objective}
-            onChange={(e) => setObjective(e.target.value)}
-            disabled={isLoading || (session !== null && session.status !== "COMPLETED" && session.status !== "REJECTED")}
+            onChange={(e) => handleObjectiveChange(e.target.value)}
+            disabled={isLoading}
             rows={3}
             className="w-full p-3 rounded-md bg-[#050608] border border-[#181a22] focus:border-[#0ea5e9] text-xs text-[#f0f3f8] placeholder-[#5d677a] focus:outline-none transition-colors disabled:opacity-60"
             placeholder="e.g. Audit network configurations against CIS baseline. Fix high-risk violations, but do not modify SSH access."
@@ -368,10 +414,10 @@ export default function AgentPage() {
             <button
               key={chip.id}
               onClick={() => {
-                setObjective(chip.objective);
+                handleObjectiveChange(chip.objective);
                 setSelectedBaseline(chip.baseline);
               }}
-              disabled={isLoading || (session !== null && session.status !== "COMPLETED" && session.status !== "REJECTED")}
+              disabled={isLoading}
               className={cn(
                 "text-[11px] px-2.5 py-1 rounded border transition-colors",
                 objective === chip.objective
@@ -391,7 +437,7 @@ export default function AgentPage() {
             <select
               value={selectedBaseline}
               onChange={(e) => setSelectedBaseline(e.target.value)}
-              disabled={isLoading || (session !== null && session.status !== "COMPLETED")}
+              disabled={isLoading}
               className="p-1 rounded bg-[#12141a] border border-[#181a22] text-xs text-[#f0f3f8] focus:outline-none"
             >
               <option value="CIS">CIS Benchmarks (Level 1 & 2)</option>
@@ -401,23 +447,33 @@ export default function AgentPage() {
             </select>
           </div>
 
-          <button
-            onClick={handleStartAgent}
-            disabled={isLoading || !objective.trim() || (session !== null && session.status === "WAITING_APPROVAL")}
-            className="flex items-center justify-center gap-2 px-5 py-2 rounded-md bg-[#0ea5e9] hover:bg-[#0284c7] disabled:opacity-50 text-white text-xs font-medium transition-colors shadow-sm"
-          >
-            {isLoading ? (
-              <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Orchestrating agent...</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-3.5 h-3.5" />
-                <span>Run Agent</span>
-              </>
+          <div className="flex items-center gap-2">
+            {session && (
+              <button
+                onClick={handleResetSession}
+                className="px-3 py-2 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
+              >
+                Clear / New Objective
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleStartAgent}
+              disabled={isLoading || !objective.trim()}
+              className="flex items-center justify-center gap-2 px-5 py-2 rounded-md bg-[#0ea5e9] hover:bg-[#0284c7] disabled:opacity-50 text-white text-xs font-medium transition-colors shadow-sm"
+            >
+              {isLoading ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Orchestrating agent...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5" />
+                  <span>{session ? "Re-Run Objective" : "Run Agent"}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -450,8 +506,8 @@ export default function AgentPage() {
           )}
         </div>
 
-        {/* 4. Live Telemetry Facts Strip (Real Backend Data) */}
-        {telemetry && (
+        {/* 4. Live Telemetry Facts Strip (Real Backend Data When Session Active) */}
+        {telemetry ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-1 text-center font-mono">
             <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
               <div className="text-[10px] text-[#5d677a] uppercase font-sans">Configs</div>
@@ -478,18 +534,33 @@ export default function AgentPage() {
               <div className="text-sm font-semibold text-[#10b981] mt-0.5">{telemetry.proposalsCount}</div>
             </div>
             <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#f59e0b] uppercase font-sans">Protected</div>
-              <div className="text-sm font-semibold text-[#f59e0b] mt-0.5">{telemetry.constrainedCount}</div>
+              <div className="text-[10px] text-[#f59e0b] uppercase font-sans">Guardrails</div>
+              <div className="text-sm font-semibold text-[#f59e0b] mt-0.5">
+                {telemetry.guardrailsCount > 0 ? `${telemetry.guardrailsCount} Active` : "None"}
+              </div>
             </div>
             <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
               <div className="text-[10px] text-[#5d677a] uppercase font-sans">Devices</div>
               <div className="text-sm font-semibold text-[#f0f3f8] mt-0.5">{telemetry.affectedDevicesCount}</div>
             </div>
           </div>
+        ) : (
+          /* Clean Standby State Prompt When No Session Is Active */
+          <div className="p-4 rounded bg-[#050608] border border-[#181a22] text-xs text-[#8b95a8] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#0ea5e9]" />
+              <span>
+                Enter an objective above to trigger deterministic discovery, AST compliance auditing, constraint enforcement, and patch generation.
+              </span>
+            </div>
+            <span className="text-[10px] font-mono text-[#5d677a] px-2 py-0.5 rounded bg-[#12141a] border border-[#181a22]">
+              STANDBY • ZERO PENDING ACTIONS
+            </span>
+          </div>
         )}
       </div>
 
-      {/* 5. Show Autonomy: Autonomous Decisions & Guardrails */}
+      {/* 5. Show Autonomy: Autonomous Decisions & Guardrails (Only rendered when session active) */}
       {session && (
         <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#181a22]">
@@ -518,8 +589,14 @@ export default function AgentPage() {
                 <Lock className="w-3 h-3 text-[#f59e0b]" />
                 <span>Operational Constraint</span>
               </div>
-              <div className="font-semibold text-[#f59e0b]">SSH Access Protected ✓</div>
-              <div className="text-[11px] text-[#8b95a8]">Zero SSH modifications included in remediation patch set.</div>
+              <div className="font-semibold text-[#f59e0b]">
+                {telemetry?.guardrailsCount ? `${telemetry.guardrailNames} Protected ✓` : "Full Baseline Hardening"}
+              </div>
+              <div className="text-[11px] text-[#8b95a8]">
+                {telemetry?.guardrailsCount
+                  ? "Zero SSH modifications permitted in formulated patch set."
+                  : "No negative constraints specified by operator."}
+              </div>
             </div>
 
             {/* Pillar 3: Plan */}
@@ -740,7 +817,7 @@ export default function AgentPage() {
         </div>
       )}
 
-      {/* 8. REAL VERTICAL EXECUTION TIMELINE */}
+      {/* 8. REAL VERTICAL EXECUTION TIMELINE (Only rendered when session active) */}
       {session && (
         <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-[#181a22]">

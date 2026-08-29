@@ -308,6 +308,7 @@ class AutonomousSecurityEngineer:
         session_id: str,
         approved: bool,
         db: AsyncSession,
+        approval_token: Optional[str] = None,
     ) -> AgentSessionState:
         """
         Processes administrator approval/rejection and executes Steps 9 through 12.
@@ -318,6 +319,15 @@ class AutonomousSecurityEngineer:
 
         if session.status != "WAITING_APPROVAL":
             return session
+
+        # Validate approval token if provided
+        if approval_token and session.active_approval and session.active_approval.approval_token:
+            if approval_token != session.active_approval.approval_token:
+                from app.core.errors import ValidationError
+                raise ValidationError(message=f"Approval token '{approval_token}' is invalid or does not belong to session '{session_id}'.")
+
+        # Invalidate active approval to prevent token replay
+        session.active_approval = None
 
         # Update approval step status in timeline
         for event in session.timeline:

@@ -2324,7 +2324,7 @@ export async function fetchAgentSession(sessionId: string): Promise<AgentSession
 
 export async function submitAgentApproval(
   sessionId: string,
-  payload: { approved: boolean; reviewer_notes?: string }
+  payload: { approved: boolean; approval_token?: string; reviewer_notes?: string }
 ): Promise<AgentSessionState> {
   const res = await apiFetch(`${API_BASE}/api/v1/agent/sessions/${encodeURIComponent(sessionId)}/approve`, {
     method: "POST",

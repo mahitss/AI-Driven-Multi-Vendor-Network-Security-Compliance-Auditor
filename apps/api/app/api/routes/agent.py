@@ -24,6 +24,7 @@ router = APIRouter(prefix="/agent", tags=["Autonomous Network Security Engineer"
 class ApprovalSubmission(BaseModel):
     """Payload for submitting human approval decision."""
     approved: bool = Field(..., description="True to approve and apply remediation, False to reject")
+    approval_token: Optional[str] = Field(default=None, description="Optional security token from approval request")
     reviewer_notes: Optional[str] = Field(default=None, description="Optional security administrator notes")
 
 
@@ -112,6 +113,7 @@ async def submit_remediation_approval(
         session_id=session_id,
         approved=submission.approved,
         db=db,
+        approval_token=submission.approval_token,
     )
     return updated_session
 
