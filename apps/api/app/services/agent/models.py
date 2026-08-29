@@ -25,15 +25,26 @@ class AgentObjectiveRequest(BaseModel):
 
 
 class TimelineEvent(BaseModel):
-    """Discrete step in the autonomous agent execution timeline."""
+    """Discrete step and structured event in the autonomous agent execution timeline."""
     step_id: str
     step_number: int
     title: str
     phase: str  # "UNDERSTANDING", "DISCOVERY", "DETECTION", "PARSING", "AUDIT", "RISK", "PLANNING", "APPROVAL", "REMEDIATION", "VERIFICATION", "REPORTING"
     status: str  # "PENDING", "RUNNING", "COMPLETED", "WAITING_APPROVAL", "REJECTED", "FAILED"
+    event_type: str = "EXECUTION_STEP"  # AGENT_STARTED, OBJECTIVE_PARSED, CONFIG_DISCOVERED, VENDOR_DETECTED, AUDIT_COMPLETED, etc.
+    tool: Optional[str] = None
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     details: Dict[str, Any] = Field(default_factory=dict)
     summary: str = ""
+    message: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.message:
+            self.message = self.summary
+        if not self.metadata and self.details:
+            self.metadata = self.details
+
 
 
 class ProposedRemediationItem(BaseModel):

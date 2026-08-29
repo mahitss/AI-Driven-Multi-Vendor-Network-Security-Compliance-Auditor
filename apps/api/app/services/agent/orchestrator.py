@@ -100,6 +100,8 @@ class AutonomousSecurityEngineer:
             title="Understanding Objective & Extracting Constraints",
             phase="UNDERSTANDING",
             status="COMPLETED",
+            event_type="OBJECTIVE_PARSED",
+            tool=None,
             details={
                 "objective": request.objective,
                 "baseline_framework": request.baseline_framework,
@@ -122,6 +124,8 @@ class AutonomousSecurityEngineer:
             title="Discovering Fleet Configurations",
             phase="DISCOVERY",
             status="COMPLETED",
+            event_type="CONFIG_DISCOVERED",
+            tool="discover_configurations",
             details={
                 "discovered_count": len(discovered),
                 "devices": [{"filename": d["filename"], "vendor": d["vendor"], "size": d["size_bytes"]} for d in discovered],
@@ -180,6 +184,8 @@ class AutonomousSecurityEngineer:
             title="Detecting Multi-Vendor Syntax",
             phase="DETECTION",
             status="COMPLETED",
+            event_type="VENDOR_DETECTED",
+            tool="detect_vendor",
             details={"vendors_detected": vendor_breakdown},
             summary=f"Classified CLI syntax dialects: {vendor_breakdown} (Hierarchical & Flat ASTs).",
         ))
@@ -191,6 +197,8 @@ class AutonomousSecurityEngineer:
             title="Deterministic AST Parsing & Fact Extraction",
             phase="PARSING",
             status="COMPLETED",
+            event_type="ANALYSIS_STARTED",
+            tool="analyze_configuration_tool",
             details={"devices_parsed": len(discovered)},
             summary="Extracted Universal Security Model (USM) normalized fact representations.",
         ))
@@ -202,6 +210,8 @@ class AutonomousSecurityEngineer:
             title="Evaluating Compliance Baseline Controls",
             phase="AUDIT",
             status="COMPLETED",
+            event_type="AUDIT_COMPLETED",
+            tool="run_compliance_audit_tool",
             details={
                 "framework": request.baseline_framework,
                 "total_violations": total_violations,
@@ -217,6 +227,8 @@ class AutonomousSecurityEngineer:
             title="Prioritizing Risks (P0/P1 Matrix)",
             phase="RISK",
             status="COMPLETED",
+            event_type="FINDINGS_IDENTIFIED",
+            tool="get_findings_tool",
             details={
                 "high_risk_count": high_risk_violations,
                 "total_failed": total_violations,
@@ -236,6 +248,8 @@ class AutonomousSecurityEngineer:
             title="Generating Constrained Remediation Plan",
             phase="PLANNING",
             status="COMPLETED",
+            event_type="REMEDIATION_PLAN_CREATED",
+            tool="generate_remediation_plan_tool",
             details={
                 "actionable_count": len(actionable_proposals),
                 "constrained_count": len(constrained_proposals),
@@ -266,6 +280,8 @@ class AutonomousSecurityEngineer:
             title="Human-in-the-Loop Approval Gate",
             phase="APPROVAL",
             status="WAITING_APPROVAL",
+            event_type="APPROVAL_REQUESTED",
+            tool="request_human_approval",
             details={
                 "token": token,
                 "proposals_count": len(actionable_proposals),
@@ -298,6 +314,7 @@ class AutonomousSecurityEngineer:
         for event in session.timeline:
             if event.phase == "APPROVAL":
                 event.status = "COMPLETED" if approved else "REJECTED"
+                event.event_type = "REMEDIATION_APPROVED" if approved else "REMEDIATION_REJECTED"
                 event.summary = "Operator APPROVED proposed remediation plan." if approved else "Operator REJECTED remediation plan. Rollback initiated."
 
         if not approved:
@@ -308,6 +325,8 @@ class AutonomousSecurityEngineer:
                 title="Remediation Cancelled by Operator",
                 phase="REMEDIATION",
                 status="REJECTED",
+                event_type="REMEDIATION_REJECTED",
+                tool=None,
                 summary="No changes were committed to device configurations.",
             ))
             await AgentMemoryManager.save_session(session)
@@ -345,6 +364,8 @@ class AutonomousSecurityEngineer:
             title="Applying Approved Remediations",
             phase="REMEDIATION",
             status="COMPLETED",
+            event_type="REMEDIATION_APPLIED",
+            tool="apply_approved_remediations",
             details={"applied_count": total_applied, "logs": applied_logs},
             summary=f"Successfully applied {total_applied} allowlisted configuration patch(es) across fleet.",
         ))
@@ -394,6 +415,8 @@ class AutonomousSecurityEngineer:
             title="Re-Running Deterministic Compliance Engine",
             phase="VERIFICATION",
             status="COMPLETED",
+            event_type="VERIFICATION_STARTED",
+            tool="reanalyze_ast",
             details={"devices_verified": len(device_summaries)},
             summary="Re-parsed AST and re-evaluated all compliance rules against modified configurations.",
         ))
@@ -404,6 +427,8 @@ class AutonomousSecurityEngineer:
             title="Proving Finding Resolution & Constraint Preservation",
             phase="VERIFICATION",
             status="COMPLETED",
+            event_type="VERIFICATION_COMPLETED",
+            tool="verify_and_compare",
             details={
                 "violations_before": total_violations_before,
                 "violations_after": total_violations_after,
@@ -449,6 +474,8 @@ class AutonomousSecurityEngineer:
             title="Final Executive Security Report Compiled",
             phase="REPORTING",
             status="COMPLETED",
+            event_type="EXECUTION_COMPLETED",
+            tool="generate_final_report",
             details={"report_id": report.report_id},
             summary="Autonomous engineering lifecycle completed with verified mathematical proof.",
         ))

@@ -55,6 +55,13 @@ async def start_agent_workflow(
     return session
 
 
+async def _get_session_by_id(target_id: str) -> AgentSessionState:
+    session = await AgentMemoryManager.get_session(target_id)
+    if not session:
+        raise ResourceNotFoundError(resource="AgentSession", identifier=target_id)
+    return session
+
+
 @router.get(
     "/sessions/{session_id}",
     response_model=AgentSessionState,
@@ -64,10 +71,19 @@ async def get_agent_session_state(
     session_id: str = Path(..., description="Unique agent session ID"),
 ) -> AgentSessionState:
     """Fetches session timeline, discovered devices, and pending approval state."""
-    session = await AgentMemoryManager.get_session(session_id)
-    if not session:
-        raise ResourceNotFoundError(resource="AgentSession", identifier=session_id)
-    return session
+    return await _get_session_by_id(session_id)
+
+
+@router.get(
+    "/executions/{execution_id}",
+    response_model=AgentSessionState,
+    summary="Retrieve real-time execution state by execution ID (alias)",
+)
+async def get_agent_execution_state(
+    execution_id: str = Path(..., description="Unique agent execution ID"),
+) -> AgentSessionState:
+    """Fetches execution timeline and state by execution ID alias."""
+    return await _get_session_by_id(execution_id)
 
 
 @router.post(

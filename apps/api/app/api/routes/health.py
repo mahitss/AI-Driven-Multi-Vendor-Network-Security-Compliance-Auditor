@@ -35,6 +35,13 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
         logger.warning("Database connectivity probe check failed: %s", err)
         db_status = "disconnected"
 
+    import os
+    from app.services.agent.memory import AgentMemoryManager
+
+    gemini_status = "configured" if (os.environ.get("GEMINI_API_KEY") or settings.AI_MODEL) else "adc_enabled"
+    firestore_status = "connected" if (os.environ.get("GOOGLE_CLOUD_PROJECT") or AgentMemoryManager._firestore_client) else "local_memory_fallback"
+    cloud_run_env = "active" if os.environ.get("K_SERVICE") else "local_development"
+
     return SystemHealthResponse(
         status="healthy" if db_status == "connected" else "degraded",
         service=settings.PROJECT_NAME,
@@ -49,7 +56,11 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
         components={
             "vendor_detector": "operational",
             "universal_schema": "v1.0.0",
+            "deterministic_engine": "operational",
+            "agent_orchestrator": "operational",
+            "gemini_connectivity": gemini_status,
+            "firestore_state": firestore_status,
+            "cloud_run_environment": cloud_run_env,
             "storage_path": str(settings.resolved_storage_path),
-            "ai_provider": "openrouter" if settings.OPENROUTER_API_KEY else "mock_airgapped",
         },
     )
