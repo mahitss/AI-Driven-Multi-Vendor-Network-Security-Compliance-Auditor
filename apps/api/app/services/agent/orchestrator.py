@@ -85,24 +85,79 @@ class AutonomousSecurityEngineer:
     ) -> AgentSessionState:
         """
         Starts an autonomous security engineering workflow.
-        Executes Steps 1 through 7 and pauses at Step 8 (Approval Gate) if approvals are required.
+        Performs semantic intent validation, constraint extraction, and executes
+        appropriate autonomous lifecycle stages based on verified operator authorization.
         """
+        from app.services.agent.classifier import ObjectiveClassifier
+
         session_id = f"agent_sess_{uuid.uuid4().hex[:10]}"
-        constraints = cls._parse_constraints_from_objective(request.objective)
+        classification = ObjectiveClassifier.classify_objective(request.objective)
+        constraints = classification.user_constraints
 
         session = AgentSessionState(
             session_id=session_id,
             objective=request.objective,
             status="RUNNING",
+            intent=classification.intent,
+            intent_explanation=classification.information_response or classification.reasoning,
+            suggested_prompts=classification.suggested_prompts,
             constraints=constraints,
+            user_constraints=constraints,
+            system_policies=classification.system_policies,
             timeline=[],
         )
 
         # -------------------------------------------------------------
-        # STEP 1: Objective Understanding & Constraint Extraction
+        # CASE 1: INVALID / NON-SECURITY OBJECTIVE
+        # -------------------------------------------------------------
+        if classification.intent == "INVALID":
+            session.status = "INVALID_OBJECTIVE"
+            session.error = "I couldn't determine a valid network security objective from this request. Please provide a security task for NetVigil to perform."
+            session.timeline.append(TimelineEvent(
+                step_id=f"step_{uuid.uuid4().hex[:6]}",
+                step_number=1,
+                title="Objective Validation Rejected",
+                phase="UNDERSTANDING",
+                status="REJECTED",
+                event_type="OBJECTIVE_REJECTED",
+                tool=None,
+                details={
+                    "objective": request.objective,
+                    "reasoning": classification.reasoning,
+                    "confidence": classification.confidence,
+                },
+                summary="Objective rejected: No valid network security task or infrastructure target was identified.",
+            ))
+            await AgentMemoryManager.save_session(session)
+            return session
+
+        # -------------------------------------------------------------
+        # CASE 2: INFORMATIONAL COMPLIANCE QUERY
+        # -------------------------------------------------------------
+        if classification.intent == "INFORMATION":
+            session.status = "COMPLETED"
+            session.timeline.append(TimelineEvent(
+                step_id=f"step_{uuid.uuid4().hex[:6]}",
+                step_number=1,
+                title="Informational Query Resolved",
+                phase="UNDERSTANDING",
+                status="COMPLETED",
+                event_type="INFORMATION_PROVIDED",
+                tool=None,
+                details={
+                    "query": request.objective,
+                    "response": classification.information_response,
+                },
+                summary="Provided structured cybersecurity compliance guidance. No network operations required.",
+            ))
+            await AgentMemoryManager.save_session(session)
+            return session
+
+        # -------------------------------------------------------------
+        # STEP 1: Valid Objective Understanding & Constraint Extraction
         # -------------------------------------------------------------
         constraint_names = [c.subsystem.upper() for c in constraints]
-        c_desc = f"Identified {len(constraints)} operational constraint(s): {', '.join(constraint_names)}" if constraints else "No negative constraints specified. Full baseline hardening enabled."
+        c_desc = f"Identified {len(constraints)} operational constraint(s): {', '.join(constraint_names)}" if constraints else "No negative user constraints specified. Full baseline hardening enabled."
         session.timeline.append(TimelineEvent(
             step_id=f"step_{uuid.uuid4().hex[:6]}",
             step_number=1,
@@ -113,12 +168,15 @@ class AutonomousSecurityEngineer:
             tool=None,
             details={
                 "objective": request.objective,
+                "intent": classification.intent,
+                "remediation_authorized": classification.remediation_authorized,
                 "baseline_framework": request.baseline_framework,
                 "risk_threshold": request.risk_threshold,
                 "constraints_count": len(constraints),
-                "constraints": [c.model_dump() for c in constraints],
+                "user_constraints": [c.model_dump() for c in constraints],
+                "system_policies": classification.system_policies,
             },
-            summary=f"Objective analyzed against {request.baseline_framework} baseline. {c_desc}",
+            summary=f"Objective validated (Intent: {classification.intent}). {c_desc}",
         ))
 
         # -------------------------------------------------------------
@@ -174,14 +232,15 @@ class AutonomousSecurityEngineer:
             total_violations += risk_res["total_failed"]
             high_risk_violations += (risk_res["critical_count"] + risk_res["high_count"])
 
-            # Generate remediation proposals with constraint filtering
-            dev_proposals = await AgentToolLayer.generate_remediation_plan(
-                audit_id=audit_res["audit_id"],
-                constraints=constraints,
-                risk_threshold=request.risk_threshold,
-                db=db,
-            )
-            all_proposals.extend(dev_proposals)
+            # Generate remediation proposals ONLY if explicitly authorized by operator objective
+            if classification.remediation_authorized:
+                dev_proposals = await AgentToolLayer.generate_remediation_plan(
+                    audit_id=audit_res["audit_id"],
+                    constraints=constraints,
+                    risk_threshold=request.risk_threshold,
+                    db=db,
+                )
+                all_proposals.extend(dev_proposals)
 
         session.proposals = all_proposals
 
@@ -246,8 +305,61 @@ class AutonomousSecurityEngineer:
         ))
 
         # -------------------------------------------------------------
-        # STEP 7: Remediation Plan Generation & Constraint Masking
+        # STEP 7 & 8: REMEDIATION & APPROVAL OR READ-ONLY AUDIT REPORT
         # -------------------------------------------------------------
+        if not classification.remediation_authorized:
+            # Read-only audit or Ambiguous objective: compile report without changes
+            summary_msg = (
+                f"Read-only compliance audit completed for {len(discovered)} device(s). Zero remediation modifications proposed."
+                if classification.intent == "AUDIT_ONLY"
+                else f"Read-only assessment completed. Remediation planning withheld because objective was broad/ambiguous ('{request.objective}'). Explicit directive required to authorize remediation."
+            )
+            session.timeline.append(TimelineEvent(
+                step_id=f"step_{uuid.uuid4().hex[:6]}",
+                step_number=7,
+                title="Compliance Audit Completed (Read-Only Mode)",
+                phase="REPORTING",
+                status="COMPLETED",
+                event_type="AUDIT_COMPLETED",
+                tool="run_compliance_audit_tool",
+                details={
+                    "total_devices": len(discovered),
+                    "total_violations": total_violations,
+                    "high_risk_violations": high_risk_violations,
+                    "remediation_authorized": False,
+                },
+                summary=summary_msg,
+            ))
+
+            report = FinalExecutiveReport(
+                report_id=f"rep_{uuid.uuid4().hex[:8]}",
+                session_id=session.session_id,
+                objective=session.objective,
+                baseline_framework=request.baseline_framework,
+                constraints_honored=[c.description for c in session.constraints],
+                total_devices_audited=len(discovered),
+                total_controls_evaluated=total_violations + 10,
+                total_violations_before=total_violations,
+                total_violations_after=total_violations,
+                high_risk_before=high_risk_violations,
+                high_risk_after=high_risk_violations,
+                remediations_applied=0,
+                remediations_rejected=0,
+                remediations_constrained=0,
+                constraint_verification={
+                    "status": "PASS_READ_ONLY",
+                    "details": "Read-only inspection mode. Zero modifications applied to fleet configurations.",
+                },
+                device_summaries=[],
+                overall_posture_delta=f"Read-only assessment identified {total_violations} violation(s) ({high_risk_violations} high-risk). Remediation withheld pending operator authorization.",
+            )
+            session.final_report = report
+            session.status = "COMPLETED"
+            session.active_approval = None
+            await AgentMemoryManager.save_session(session)
+            return session
+
+        # Actionable and Constrained Proposals for Authorized Remediation
         actionable_proposals = [p for p in all_proposals if not p.is_constrained]
         constrained_proposals = [p for p in all_proposals if p.is_constrained]
 

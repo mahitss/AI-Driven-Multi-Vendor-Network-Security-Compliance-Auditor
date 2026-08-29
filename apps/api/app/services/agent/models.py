@@ -132,10 +132,15 @@ class AgentSessionState(BaseModel):
     """Complete persistent state of an autonomous agent execution session."""
     session_id: str
     objective: str
-    status: str  # "INITIALIZING", "RUNNING", "WAITING_APPROVAL", "COMPLETED", "REJECTED", "FAILED"
+    status: str  # "INITIALIZING", "RUNNING", "WAITING_APPROVAL", "COMPLETED", "REJECTED", "FAILED", "INVALID_OBJECTIVE", "NEEDS_CLARIFICATION"
+    intent: Optional[str] = None  # "AUDIT_AND_REMEDIATION", "AUDIT_ONLY", "REMEDIATION", "INFORMATION", "AMBIGUOUS", "INVALID"
+    intent_explanation: Optional[str] = None
+    suggested_prompts: List[str] = Field(default_factory=list)
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     constraints: List[AgentConstraint] = Field(default_factory=list)
+    user_constraints: List[AgentConstraint] = Field(default_factory=list)
+    system_policies: List[str] = Field(default_factory=list)
     timeline: List[TimelineEvent] = Field(default_factory=list)
     discovered_configs: List[Dict[str, Any]] = Field(default_factory=list)
     proposals: List[ProposedRemediationItem] = Field(default_factory=list)

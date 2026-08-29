@@ -2262,10 +2262,15 @@ export interface FinalExecutiveReport {
 export interface AgentSessionState {
   session_id: string;
   objective: string;
-  status: "INITIALIZING" | "RUNNING" | "WAITING_APPROVAL" | "COMPLETED" | "REJECTED" | "FAILED";
+  status: "INITIALIZING" | "RUNNING" | "WAITING_APPROVAL" | "COMPLETED" | "REJECTED" | "FAILED" | "INVALID_OBJECTIVE" | "NEEDS_CLARIFICATION";
+  intent?: "AUDIT_AND_REMEDIATION" | "AUDIT_ONLY" | "REMEDIATION" | "INFORMATION" | "AMBIGUOUS" | "INVALID" | string | null;
+  intent_explanation?: string | null;
+  suggested_prompts?: string[];
   created_at: string;
   updated_at: string;
   constraints: AgentConstraint[];
+  user_constraints?: AgentConstraint[];
+  system_policies?: string[];
   timeline: TimelineEvent[];
   discovered_configs: Array<{
     analysis_id: string;

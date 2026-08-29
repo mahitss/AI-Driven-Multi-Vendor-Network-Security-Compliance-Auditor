@@ -32,6 +32,8 @@ import {
   Cpu,
   Search,
   CheckCircle,
+  HelpCircle,
+  Info,
 } from "lucide-react";
 import {
   startAgentWorkflow,
@@ -55,7 +57,7 @@ const QUICK_OBJECTIVES = [
   },
   {
     id: "cis-full",
-    label: "Fleet CIS Level 1 compliance",
+    label: "Fleet CIS Level 1 compliance (Audit only)",
     objective:
       "Perform comprehensive CIS Benchmark inspection across multi-vendor devices and isolate non-compliant controls.",
     baseline: "CIS",
@@ -111,11 +113,12 @@ export default function AgentPage() {
   useEffect(() => {
     if (!session || !session.session_id) return;
 
-    // Stop polling if session is terminal or already waiting for human approval
+    // Stop polling if session is terminal, invalid, or already waiting for human approval
     const isTerminalOrAwaitingUser =
       session.status === "COMPLETED" ||
       session.status === "REJECTED" ||
       session.status === "FAILED" ||
+      session.status === "INVALID_OBJECTIVE" ||
       session.status === "WAITING_APPROVAL";
 
     if (isTerminalOrAwaitingUser) {
@@ -151,7 +154,7 @@ export default function AgentPage() {
   // Handle objective textarea input: if user edits while viewing an old session, decouple session state
   const handleObjectiveChange = (newText: string) => {
     setObjective(newText);
-    // If currently viewing a completed/waiting session and text deviates from that session, clear old results
+    // If currently viewing a completed/waiting/invalid session and text deviates from that session, clear old results
     if (session && session.objective && session.objective !== newText) {
       setSession(null);
       setReport(null);
@@ -161,8 +164,11 @@ export default function AgentPage() {
   };
 
   // Launch autonomous agent run
-  const handleStartAgent = async () => {
-    if (!objective.trim()) return;
+  const handleStartAgent = async (overrideObjective?: string) => {
+    const targetObj = (overrideObjective || objective).trim();
+    if (!targetObj) return;
+    if (overrideObjective) setObjective(overrideObjective);
+
     const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     activeRequestIdRef.current = requestId;
 
@@ -174,7 +180,7 @@ export default function AgentPage() {
 
     try {
       const result = await startAgentWorkflow({
-        objective: objective.trim(),
+        objective: targetObj,
         baseline_framework: selectedBaseline,
         risk_threshold: "HIGH",
       });
@@ -182,7 +188,9 @@ export default function AgentPage() {
       // Strict session binding: only set state if this request is still active
       if (activeRequestIdRef.current === requestId && result?.session_id) {
         setSession(result);
-        localStorage.setItem("netvigil_active_session_id", result.session_id);
+        if (result.status !== "INVALID_OBJECTIVE") {
+          localStorage.setItem("netvigil_active_session_id", result.session_id);
+        }
         if (result.final_report) {
           setReport(result.final_report);
         }
@@ -250,9 +258,14 @@ export default function AgentPage() {
     return session?.proposals?.filter((p) => p.is_constrained) || [];
   }, [session?.proposals]);
 
+  const isInvalidObjective = session?.status === "INVALID_OBJECTIVE";
+  const isInformationQuery = session?.intent === "INFORMATION";
+  const isAmbiguousObjective = session?.intent === "AMBIGUOUS";
+  const isReadOnlyAudit = session?.intent === "AUDIT_ONLY";
+
   // Derive real telemetry metrics directly from session execution data
   const telemetry = useMemo(() => {
-    if (!session) return null;
+    if (!session || isInvalidObjective || isInformationQuery) return null;
 
     // Discovered configurations
     const configsCount = session.discovered_configs?.length || 0;
@@ -298,17 +311,17 @@ export default function AgentPage() {
       maskedCount: constrainedProposals.length,
       affectedDevicesCount,
     };
-  }, [session, actionableProposals, constrainedProposals]);
+  }, [session, isInvalidObjective, isInformationQuery, actionableProposals, constrainedProposals]);
 
   // Derived state presentation
   const statePresentation = useMemo(() => {
     if (isLoading) {
       return {
-        label: "ANALYZING FLEET",
+        label: "ANALYZING OBJECTIVE",
         badgeClass: "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/30",
         indicatorDot: "bg-[#0ea5e9] animate-pulse",
-        title: "Autonomous Security Engine Working",
-        narrative: "NetVigil is independently evaluating multi-vendor topology, parsing syntax ASTs, and testing compliance baselines.",
+        title: "Autonomous Security Engine Validating Intent",
+        narrative: "NetVigil is categorizing objective scope, verifying remediation authority, and analyzing fleet baselines.",
       };
     }
     if (!session) {
@@ -318,6 +331,42 @@ export default function AgentPage() {
         indicatorDot: "bg-[#8b95a8]",
         title: "Ready for New Objective",
         narrative: "Provide a natural language security objective above and click 'Run Agent' to initiate an autonomous investigation.",
+      };
+    }
+    if (session.status === "INVALID_OBJECTIVE") {
+      return {
+        label: "OBJECTIVE NOT UNDERSTOOD",
+        badgeClass: "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/30",
+        indicatorDot: "bg-[#ef4444]",
+        title: "No Security Operation Was Performed",
+        narrative: session.error || "I couldn't determine a valid network security objective from this request. Please provide an actionable security task.",
+      };
+    }
+    if (session.intent === "INFORMATION") {
+      return {
+        label: "INFORMATIONAL GUIDANCE",
+        badgeClass: "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/30",
+        indicatorDot: "bg-[#0ea5e9]",
+        title: "Cybersecurity Knowledge & Compliance Guidance",
+        narrative: "Informational query resolved with structured compliance guidance. Zero network operations performed.",
+      };
+    }
+    if (session.intent === "AMBIGUOUS") {
+      return {
+        label: "READ-ONLY POSTURE ASSESSMENT",
+        badgeClass: "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30",
+        indicatorDot: "bg-[#f59e0b]",
+        title: "Ambiguous Objective: Remediation Planning Withheld",
+        narrative: "Performed safe read-only assessment. Remediation planning was withheld because the objective lacked explicit authorization.",
+      };
+    }
+    if (session.intent === "AUDIT_ONLY") {
+      return {
+        label: "READ-ONLY AUDIT COMPLETED",
+        badgeClass: "bg-[#10b981]/10 text-[#10b981] border-[#10b981]/30",
+        indicatorDot: "bg-[#10b981]",
+        title: "Fleet Compliance Audit Complete",
+        narrative: "Inspected network configurations against baseline. Zero remediation modifications formulated in accordance with read-only directive.",
       };
     }
     if (session.status === "WAITING_APPROVAL") {
@@ -368,7 +417,7 @@ export default function AgentPage() {
             </span>
           </div>
           <p className="text-xs text-[#8b95a8] mt-0.5">
-            Formulates audit plans, enforces negative operational constraints, applies allowlisted remediations, and verifies resolution.
+            Validates security intent, enforces negative constraints, formulates allowlisted remediations, and verifies resolution.
           </p>
         </div>
 
@@ -457,14 +506,14 @@ export default function AgentPage() {
               </button>
             )}
             <button
-              onClick={handleStartAgent}
+              onClick={() => handleStartAgent()}
               disabled={isLoading || !objective.trim()}
               className="flex items-center justify-center gap-2 px-5 py-2 rounded-md bg-[#0ea5e9] hover:bg-[#0284c7] disabled:opacity-50 text-white text-xs font-medium transition-colors shadow-sm"
             >
               {isLoading ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Orchestrating agent...</span>
+                  <span>Validating intent...</span>
                 </>
               ) : (
                 <>
@@ -493,7 +542,7 @@ export default function AgentPage() {
 
           {session && (
             <div className="flex items-center gap-2 text-xs font-mono self-start sm:self-auto">
-              <span className="text-[11px] text-[#5d677a]">Stage {session.timeline?.length || 0} of 8</span>
+              <span className="text-[11px] text-[#5d677a]">Stage {session.timeline?.length || 0}</span>
               <button
                 onClick={handleCopySessionId}
                 title="Click to copy Session ID"
@@ -506,8 +555,8 @@ export default function AgentPage() {
           )}
         </div>
 
-        {/* 4. Live Telemetry Facts Strip (Real Backend Data When Session Active) */}
-        {telemetry ? (
+        {/* 4. Live Telemetry Facts Strip (Only rendered when objective is valid and actionable) */}
+        {telemetry && (
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-1 text-center font-mono">
             <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
               <div className="text-[10px] text-[#5d677a] uppercase font-sans">Configs</div>
@@ -544,13 +593,15 @@ export default function AgentPage() {
               <div className="text-sm font-semibold text-[#f0f3f8] mt-0.5">{telemetry.affectedDevicesCount}</div>
             </div>
           </div>
-        ) : (
-          /* Clean Standby State Prompt When No Session Is Active */
+        )}
+
+        {/* Clean Standby State Prompt When No Session Is Active */}
+        {!session && (
           <div className="p-4 rounded bg-[#050608] border border-[#181a22] text-xs text-[#8b95a8] flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#0ea5e9]" />
               <span>
-                Enter an objective above to trigger deterministic discovery, AST compliance auditing, constraint enforcement, and patch generation.
+                Enter a security objective above. NetVigil validates intent, parses negative constraints, evaluates AST baselines, and generates allowlisted patches.
               </span>
             </div>
             <span className="text-[10px] font-mono text-[#5d677a] px-2 py-0.5 rounded bg-[#12141a] border border-[#181a22]">
@@ -560,8 +611,85 @@ export default function AgentPage() {
         )}
       </div>
 
-      {/* 5. Show Autonomy: Autonomous Decisions & Guardrails (Only rendered when session active) */}
-      {session && (
+      {/* 4. CASE 1: INVALID OBJECTIVE REJECTION HERO CARD */}
+      {isInvalidObjective && (
+        <div className="p-5 rounded-lg bg-[#0d0e12] border-2 border-[#ef4444]/30 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-[#181a22]">
+            <div className="w-9 h-9 rounded bg-[#ef4444]/10 border border-[#ef4444]/20 flex items-center justify-center text-[#ef4444]">
+              <XCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#f0f3f8]">Objective Not Understood</h3>
+              <p className="text-xs text-[#8b95a8]">
+                No security operation or configuration change was performed.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded bg-[#050608] border border-[#181a22] text-xs text-[#8b95a8] space-y-2">
+            <div className="text-[#c5cbd8]">
+              The agent could not determine an actionable network security task or infrastructure target from your request:
+            </div>
+            <div className="p-2.5 rounded bg-[#12141a] border border-[#181a22] font-mono text-xs text-[#ef4444]">
+              &quot;{session?.objective}&quot;
+            </div>
+          </div>
+
+          {/* Clickable Suggested Valid Objectives */}
+          <div className="space-y-2 pt-1">
+            <div className="text-xs font-semibold text-[#f0f3f8] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#0ea5e9]" />
+              <span>Suggested Valid Objectives:</span>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {(session?.suggested_prompts?.length ? session.suggested_prompts : QUICK_OBJECTIVES.map((q) => q.objective)).map(
+                (prompt: string, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleStartAgent(prompt)}
+                    className="p-3 rounded bg-[#050608] hover:bg-[#12141a] border border-[#181a22] hover:border-[#0ea5e9]/40 text-left text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors flex items-center justify-between group"
+                  >
+                    <span>{prompt}</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#5d677a] group-hover:text-[#0ea5e9] transition-colors ml-2 flex-shrink-0" />
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. CASE 2: INFORMATIONAL GUIDANCE CARD */}
+      {isInformationQuery && session && (
+        <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#0ea5e9]/30 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-[#181a22]">
+            <div className="w-9 h-9 rounded bg-[#0ea5e9]/10 border border-[#0ea5e9]/20 flex items-center justify-center text-[#0ea5e9]">
+              <HelpCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#f0f3f8]">Compliance & Security Guidance</h3>
+              <p className="text-xs text-[#8b95a8]">Informational query resolved. Zero fleet changes performed.</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded bg-[#050608] border border-[#181a22] text-xs text-[#c5cbd8] leading-relaxed">
+            {session.intent_explanation}
+          </div>
+
+          <div className="flex items-center justify-between pt-2 text-xs text-[#8b95a8]">
+            <span>To audit your devices against this standard, choose an actionable prompt:</span>
+            <button
+              onClick={() => handleStartAgent(QUICK_OBJECTIVES[0].objective)}
+              className="px-3 py-1.5 rounded bg-[#0ea5e9]/10 hover:bg-[#0ea5e9]/20 text-[#0ea5e9] font-medium border border-[#0ea5e9]/20 transition-colors"
+            >
+              Run Audit & Remediation
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Show Autonomy: Autonomous Decisions & Guardrails (Only rendered when session active & valid) */}
+      {session && !isInvalidObjective && !isInformationQuery && (
         <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#181a22]">
             <div className="flex items-center gap-2">
@@ -572,14 +700,16 @@ export default function AgentPage() {
           </div>
 
           <p className="text-xs text-[#8b95a8]">
-            NetVigil identified high-risk exposure points and formulated allowlisted remediation actions while strictly preserving your specified constraints.
+            {isReadOnlyAudit || isAmbiguousObjective
+              ? "Read-only inspection completed. Remediation planning was withheld in accordance with operator directive."
+              : "NetVigil identified high-risk exposure points and formulated allowlisted remediation actions while strictly preserving your specified constraints."}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             {/* Pillar 1: Decision */}
             <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-1">
               <div className="text-[10px] text-[#5d677a] uppercase font-mono">Autonomous Decision</div>
-              <div className="font-semibold text-[#f0f3f8]">{telemetry?.highRiskViolations || 7} P1 Findings Isolated</div>
+              <div className="font-semibold text-[#f0f3f8]">{telemetry?.highRiskViolations || 0} P1 Findings Isolated</div>
               <div className="text-[11px] text-[#8b95a8]">Prioritized cleartext protocols & insecure authentication.</div>
             </div>
 
@@ -595,32 +725,44 @@ export default function AgentPage() {
               <div className="text-[11px] text-[#8b95a8]">
                 {telemetry?.guardrailsCount
                   ? "Zero SSH modifications permitted in formulated patch set."
-                  : "No negative constraints specified by operator."}
+                  : "No negative user constraints specified by operator."}
               </div>
             </div>
 
             {/* Pillar 3: Plan */}
             <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-1">
               <div className="text-[10px] text-[#10b981] uppercase font-mono">Remediation Plan</div>
-              <div className="font-semibold text-[#10b981]">{actionableProposals.length} Allowlisted Patches</div>
-              <div className="text-[11px] text-[#8b95a8]">100% catalog-grounded vendor CLI commands.</div>
+              <div className="font-semibold text-[#10b981]">
+                {isReadOnlyAudit || isAmbiguousObjective ? "0 Patches (Read-Only)" : `${actionableProposals.length} Allowlisted Patches`}
+              </div>
+              <div className="text-[11px] text-[#8b95a8]">
+                {isReadOnlyAudit || isAmbiguousObjective ? "Remediation withheld." : "100% catalog-grounded vendor CLI commands."}
+              </div>
             </div>
 
             {/* Pillar 4: Approval */}
             <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-1">
               <div className="text-[10px] text-[#0ea5e9] uppercase font-mono">Authority Boundary</div>
               <div className="font-semibold text-[#0ea5e9]">
-                {session.status === "COMPLETED" ? "Approved & Verified ✓" : "Operator Sign-off Required"}
+                {isReadOnlyAudit || isAmbiguousObjective
+                  ? "Read-Only Mode"
+                  : session.status === "COMPLETED"
+                  ? "Approved & Verified ✓"
+                  : "Operator Sign-off Required"}
               </div>
               <div className="text-[11px] text-[#8b95a8]">
-                {session.status === "COMPLETED" ? "Executed with deterministic proof." : "0 changes committed without human approval."}
+                {isReadOnlyAudit || isAmbiguousObjective
+                  ? "Zero modifications permitted."
+                  : session.status === "COMPLETED"
+                  ? "Executed with deterministic proof."
+                  : "0 changes committed without human approval."}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 6. HERO APPROVAL SCREEN (When WAITING_APPROVAL) */}
+      {/* 7. HERO APPROVAL SCREEN (When WAITING_APPROVAL) */}
       {session && session.status === "WAITING_APPROVAL" && (
         <div className="p-5 rounded-lg bg-[#0d0e12] border-2 border-[#f59e0b]/40 space-y-4 shadow-lg shadow-[#f59e0b]/5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#181a22]">
@@ -650,7 +792,7 @@ export default function AgentPage() {
           <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
             <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
               <div className="text-[10px] text-[#ef4444] uppercase font-sans font-semibold">High-Risk Findings</div>
-              <div className="text-xl font-semibold text-[#ef4444] mt-1">{telemetry?.highRiskViolations || 7}</div>
+              <div className="text-xl font-semibold text-[#ef4444] mt-1">{telemetry?.highRiskViolations || 0}</div>
             </div>
             <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
               <div className="text-[10px] text-[#10b981] uppercase font-sans font-semibold">Proposed Patches</div>
@@ -658,7 +800,7 @@ export default function AgentPage() {
             </div>
             <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
               <div className="text-[10px] text-[#0ea5e9] uppercase font-sans font-semibold">Affected Devices</div>
-              <div className="text-xl font-semibold text-[#0ea5e9] mt-1">{telemetry?.affectedDevicesCount || 10}</div>
+              <div className="text-xl font-semibold text-[#0ea5e9] mt-1">{telemetry?.affectedDevicesCount || 0}</div>
             </div>
           </div>
 
@@ -763,7 +905,7 @@ export default function AgentPage() {
         </div>
       )}
 
-      {/* 7. CLOSED-LOOP VERIFICATION SCORECARD (When COMPLETED) */}
+      {/* 8. CLOSED-LOOP VERIFICATION SCORECARD (When COMPLETED) */}
       {session && session.status === "COMPLETED" && report && (
         <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#10b981]/30 space-y-4 shadow-lg shadow-[#10b981]/5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#181a22]">
@@ -773,16 +915,18 @@ export default function AgentPage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[#f0f3f8]">
-                  Autonomous Remediation & Closed-Loop Verification Passed
+                  {isReadOnlyAudit || isAmbiguousObjective
+                    ? "Read-Only Compliance Audit Report Compiled"
+                    : "Autonomous Remediation & Closed-Loop Verification Passed"}
                 </h3>
                 <div className="text-[11px] text-[#5d677a]">
-                  Verified by deterministic AST re-analysis, policy comparison, and constraint preservation check.
+                  Verified by deterministic AST parsing, rule evaluation, and constraint verification.
                 </div>
               </div>
             </div>
             <div className="text-right">
               <span className="text-xs px-2.5 py-1 rounded bg-[#10b981]/10 text-[#10b981] font-mono font-semibold border border-[#10b981]/20">
-                VERIFICATION PASSED ✓
+                {isReadOnlyAudit || isAmbiguousObjective ? "AUDIT COMPILED ✓" : "VERIFICATION PASSED ✓"}
               </span>
             </div>
           </div>
@@ -790,12 +934,16 @@ export default function AgentPage() {
           {/* Verification Delta Scorecard */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs font-mono">
             <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Violations Before</div>
+              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Total Violations</div>
               <div className="text-xl font-semibold text-[#ef4444] mt-1">{report.total_violations_before}</div>
             </div>
             <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Violations After</div>
-              <div className="text-xl font-semibold text-[#10b981] mt-1">{report.total_violations_after}</div>
+              <div className="text-[10px] text-[#5d677a] uppercase font-sans">
+                {isReadOnlyAudit || isAmbiguousObjective ? "Active Exposure" : "Violations After"}
+              </div>
+              <div className="text-xl font-semibold text-[#10b981] mt-1">
+                {isReadOnlyAudit || isAmbiguousObjective ? report.total_violations_before : report.total_violations_after}
+              </div>
             </div>
             <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
               <div className="text-[10px] text-[#5d677a] uppercase font-sans">Patches Applied</div>
@@ -817,18 +965,18 @@ export default function AgentPage() {
         </div>
       )}
 
-      {/* 8. REAL VERTICAL EXECUTION TIMELINE (Only rendered when session active) */}
-      {session && (
+      {/* 9. REAL VERTICAL EXECUTION TIMELINE (Only rendered when session has timeline steps) */}
+      {session && session.timeline && session.timeline.length > 0 && (
         <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-[#181a22]">
             <h3 className="text-xs font-semibold text-[#f0f3f8] uppercase tracking-wider">
-              Autonomous Execution Timeline ({session.timeline?.length || 0} Real Stages)
+              Autonomous Execution Timeline ({session.timeline.length} Stages)
             </h3>
             <span className="text-[11px] text-[#5d677a] font-mono">Deterministic Telemetry</span>
           </div>
 
           <div className="relative border-l border-[#181a22] ml-3 space-y-4 pl-4">
-            {session.timeline?.map((step) => {
+            {session.timeline.map((step) => {
               const isExpanded = expandedSteps[step.step_id];
               return (
                 <div key={step.step_id} className="relative group">
