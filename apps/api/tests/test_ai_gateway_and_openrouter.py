@@ -53,7 +53,7 @@ def test_model_registry_canonical_models():
         "qwen/qwen3-coder-flash",
         "z-ai/glm-4.5-air",
         "z-ai/glm-4.5",
-        "google/gemini-2.5-flash-lite",
+        "google/gemini-3.5",
         "dots-studio/dots-3-note-preview:free",
         "poolside/laguna-s-2.1:free",
         "cohere/north-mini-code:free",
