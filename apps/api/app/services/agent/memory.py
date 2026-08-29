@@ -9,11 +9,11 @@ resilient local persistence fallback.
 """
 import os
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timezone
 
 from app.core.logging import logger
-from app.services.agent.models import AgentSessionState, FinalExecutiveReport
+from app.services.agent.models import AgentSessionState, FinalExecutiveReport, ProposedRemediationItem
 
 
 class AgentMemoryManager:
@@ -94,6 +94,16 @@ class AgentMemoryManager:
             await cls.save_session(session)
 
     @classmethod
+    async def find_proposal(cls, proposal_id: str) -> Optional[Tuple[AgentSessionState, ProposedRemediationItem]]:
+        """Finds a remediation proposal and its associated session by proposal_id."""
+        for session in cls._in_memory_store.values():
+            for p in session.proposals:
+                if p.proposal_id == proposal_id:
+                    return session, p
+        return None
+
+    @classmethod
     def get_policies(cls) -> Dict[str, Any]:
         """Retrieves global agent security policies."""
         return cls._policies_store
+

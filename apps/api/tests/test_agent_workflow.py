@@ -248,3 +248,45 @@ async def test_individual_adk_tools_and_error_handling(client: AsyncClient, db_s
     assert rem_res["actionable_count"] >= 1
 
 
+async def test_individual_remediation_approval_and_blocking(client: AsyncClient):
+    """Verifies that individual remediation endpoints approve safe items and block constrained items."""
+    # 1. Ingest config
+    ingest_res = await client.post(
+        "/api/v1/analysis/ingest",
+        json={"content": CISCO_INSECURE_CONFIG, "filename": "cisco-approval-test.cfg"},
+    )
+    assert ingest_res.status_code in [200, 201]
+
+    # 2. Start agent workflow with SSH constraint
+    run_res = await client.post(
+        "/api/v1/agent/run",
+        json={
+            "objective": "Audit configurations and fix high-risk violations, but do not modify SSH access.",
+            "target_configurations": ["cisco-approval-test.cfg"],
+        },
+    )
+    assert run_res.status_code == 200
+    session_data = run_res.json()
+    proposals = session_data["proposals"]
+
+    # 3. Find constrained and actionable proposals
+    ssh_prop = next(p for p in proposals if p["is_constrained"])
+    actionable_prop = next(p for p in proposals if not p["is_constrained"])
+
+    # 4. Attempt to approve constrained proposal -> must be BLOCKED
+    blk_res = await client.post(f"/api/v1/agent/remediation/{ssh_prop['proposal_id']}/approve")
+    assert blk_res.status_code == 200
+    blk_data = blk_res.json()
+    assert blk_data["status"] == "BLOCKED"
+    assert blk_data["success"] is False
+
+    # 5. Approve actionable proposal -> must be APPLIED
+    appr_res = await client.post(f"/api/v1/agent/remediation/{actionable_prop['proposal_id']}/approve")
+    assert appr_res.status_code == 200
+    appr_data = appr_res.json()
+    assert appr_data["status"] == "APPLIED"
+    assert appr_data["success"] is True
+    assert appr_data["applied_count"] >= 1
+
+
+

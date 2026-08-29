@@ -136,3 +136,65 @@ async def list_agent_configurations(
 async def list_recent_agent_sessions() -> List[AgentSessionState]:
     """Lists previous agent execution sessions."""
     return await AgentMemoryManager.list_recent_sessions(limit=10)
+
+
+@router.post(
+    "/remediation/{proposal_id}/approve",
+    summary="Approve an individual proposed remediation item",
+)
+async def approve_individual_remediation(
+    proposal_id: str,
+    db: DatabaseDep,
+) -> Dict[str, Any]:
+    """Approves an individual remediation proposal and applies patch."""
+    match = await AgentMemoryManager.find_proposal(proposal_id)
+    if not match:
+        raise ResourceNotFoundError(resource="RemediationProposal", identifier=proposal_id)
+    session, proposal = match
+
+    if proposal.is_constrained:
+        return {
+            "success": False,
+            "status": "BLOCKED",
+            "message": proposal.constraint_reason or "Proposal is blocked by operator constraint.",
+        }
+
+    proposal.approval_status = "APPROVED"
+    # Apply single patch
+    _, count, logs = await AgentToolLayer.apply_approved_remediations(
+        analysis_id=proposal.analysis_id,
+        proposals=[proposal],
+        db=db,
+    )
+    await AgentMemoryManager.save_session(session)
+    return {
+        "success": True,
+        "proposal_id": proposal_id,
+        "status": "APPLIED",
+        "applied_count": count,
+        "logs": logs,
+    }
+
+
+@router.post(
+    "/remediation/{proposal_id}/reject",
+    summary="Reject an individual proposed remediation item",
+)
+async def reject_individual_remediation(
+    proposal_id: str,
+) -> Dict[str, Any]:
+    """Rejects an individual remediation proposal."""
+    match = await AgentMemoryManager.find_proposal(proposal_id)
+    if not match:
+        raise ResourceNotFoundError(resource="RemediationProposal", identifier=proposal_id)
+    session, proposal = match
+
+    proposal.approval_status = "REJECTED"
+    await AgentMemoryManager.save_session(session)
+    return {
+        "success": True,
+        "proposal_id": proposal_id,
+        "status": "REJECTED",
+        "message": f"Proposal {proposal_id} was rejected by operator.",
+    }
+
