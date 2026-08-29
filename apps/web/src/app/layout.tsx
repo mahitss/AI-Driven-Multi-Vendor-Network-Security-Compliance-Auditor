@@ -1,10 +1,10 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { SettingsProvider } from "@/components/providers/SettingsProvider";
 import AppShell from "@/components/layout/AppShell";
-import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`dark ${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-[#070707] text-[#D4D4D4] font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+      <body className="bg-[#090a0f] text-[#c5cbd8] font-sans antialiased selection:bg-[#0ea5e9]/20 selection:text-[#0ea5e9]">
         <QueryProvider>
           <AuthProvider>
             <SettingsProvider>

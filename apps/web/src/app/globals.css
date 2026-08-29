@@ -144,12 +144,7 @@ html.theme-high-contrast body {
 html.theme-high-contrast aside,
 html.theme-high-contrast header,
 html.theme-high-contrast .cyber-card,
-html.theme-high-contrast .matte-panel,
-html.theme-high-contrast .bg-slate-900\/50,
-html.theme-high-contrast .bg-slate-900\/60,
-html.theme-high-contrast .bg-slate-950,
-html.theme-high-contrast .bg-slate-950\/60,
-html.theme-high-contrast .bg-slate-950\/80 {
+html.theme-high-contrast .matte-panel {
   background-color: #000000 !important;
   border-color: #38BDF8 !important;
   color: #FFFFFF !important;
