@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   RotateCcw,
   Search,
-  Sparkles,
   Lock,
   ArrowRight,
   ChevronDown,
@@ -28,6 +27,7 @@ import {
   Clock,
   Key,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import {
   fetchRemediations,
