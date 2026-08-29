@@ -90,14 +90,12 @@ async def seed_database_if_empty(db: AsyncSession) -> None:
                 # 4. Generate Prioritized Risks
                 await RiskIntelligenceService.generate_audit_risks(
                     audit_id=audit_rec.id,
-                    findings=findings,
                     db=db,
                 )
 
                 # 5. Generate Remediation Proposals & Diffs
-                await RemediationService.generate_remediations_for_audit(
+                await RemediationService.generate_audit_remediations(
                     audit_id=audit_rec.id,
-                    findings=findings,
                     db=db,
                 )
 

@@ -1,188 +1,219 @@
-# NetVigil — AI-Driven Multi-Vendor Network Security Compliance Auditor
+# NetVigil — Autonomous Network Security Engineer
 
-[![CI Pipeline](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions/workflows/ci.yml/badge.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor/actions)
-[![Tests](https://img.shields.io/badge/Pytest-143%2F143%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
-[![Release](https://img.shields.io/badge/Release-v1.0.0--RC1-blue.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
-[![Organization](https://img.shields.io/badge/Organization-NTRO-red.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud%20Run-Serverless-blue?logo=googlecloud)](https://cloud.google.com/run)
+[![Gemini 3.5 / 2.5](https://img.shields.io/badge/Gemini-3.5%20%2F%202.5%20Pro-purple?logo=googlegemini)](https://deepmind.google/technologies/gemini/)
+[![Google ADK](https://img.shields.io/badge/Google-Agent%20Development%20Kit-emerald)](https://github.com/google/agent-development-kit)
+[![Tests](https://img.shields.io/badge/Pytest-147%2F147%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Track](https://img.shields.io/badge/Hackathon-Taskmaster%20Track-orange)](https://allthingsagentic.devpost.com/)
 
-**Problem Statement ID:** SIH26155  
-**Title:** AI-Driven Multi-Vendor Network Security Compliance Auditor  
-**Organization:** National Technical Research Organisation (NTRO)  
-**Theme:** Blockchain & Cybersecurity | **Category:** Software  
-**Release:** `v1.0.0-RC1`  
+> **NetVigil is an autonomous AI security agent that audits multi-vendor network configurations, plans controlled remediation, executes approved changes, and independently verifies the result.**
 
 ---
 
-## 1. Executive Summary & Problem Positioning
+## The Problem
 
-Modern critical national infrastructure networks are built using heterogeneous equipment across multiple vendors (**Cisco IOS**, **Juniper JunOS**, **Fortinet FortiOS**). Security engineers must audit diverse CLI syntaxes against strict regulatory standards (**CIS Benchmarks**, **NIST SP 800-53**, **DISA STIG**, **ISO/IEC 27001**).
-
-### The NetVigil Core Invariant:
-"Turn network configurations into evidence-backed, deterministic security decisions."
-
-1. **Deterministic Compliance Core**: Deterministic rule evaluation, grounded line-level evidence citations, and allowlisted remediation diffs.
-2. **Universal Security Model (USM)**: Translates disparate vendor syntax structures into 8 canonical security domains.
-3. **Strict AI Safety Boundary**: AI acts purely as an advisory co-pilot for human comprehension. AI cannot alter compliance verdicts, severity tiers, or risk scores.
-4. **Air-Gapped Safety Guardrail**: Mandatory enforcement of `NETWORK PUSH: DISABLED (READ-ONLY ADVISORY)`. Zero device-write operations.
+Enterprise critical infrastructure networks are rarely homogeneous. Security operations teams face severe operational bottlenecks:
+* **Multi-Vendor Heterogeneity**: Networks mix Cisco IOS, Juniper JunOS, and Fortinet FortiOS with radically different CLI syntax models (hierarchical vs. flat vs. set-based).
+* **Fragmented Compliance Auditing**: Cross-checking configurations against regulatory standards (CIS Benchmarks, NIST SP 800-53, DISA STIG) requires manual line-by-line inspection.
+* **Manual, Error-Prone Remediation**: Engineers must handcraft syntax-specific CLI remediation blocks under pressure.
+* **Lack of Independent Verification**: After changes are deployed, there is rarely automated proof that the security vulnerability was resolved without causing regressions or breaking active services.
 
 ---
 
-## 2. Canonical Golden Workflow
+## The Solution: Autonomous Engineering Lifecycle
+
+NetVigil turns the entire remediation cycle into a reliable, closed-loop autonomous agent workflow:
 
 ```text
-  Raw Network Configuration (.cfg, .conf, .txt)
-                     │
-                     ▼
-  Cryptographic Ingestion & SHA-256 Fingerprint
-                     │
-                     ▼
-  Deterministic Vendor Detection (Cisco, Juniper, Fortinet)
-                     │
-                     ▼
-  Multi-Vendor AST Parser & Security Fact Extraction
-                     │
-                     ▼
-  Universal Security Model Normalization (8 Canonical Domains)
-                     │
-                     ▼
-  Multi-Framework Rule Evaluation (CIS / NIST / STIG / ISO)
-                     │
-                     ▼
-  Line-Level Evidence Citations (Exact Configuration Lines)
-                     │
-                     ▼
-  Deterministic Composite Risk Calculation (0–100, P0–P3)
-                     │
-                     ▼
-  Allowlisted Remediation Generation (Before / After CLI Diffs)
-                     │
-                     ▼
-  One-Click Re-Analysis & Score Verification (FAIL → PASS ✓)
-                     │
-                     ▼
-  Official Executive Security Assessment Report (/reports)
+               NATURAL LANGUAGE OBJECTIVE + CONSTRAINTS
+                                  │
+                                  ▼
+                        AGENT GOAL PLANNING
+                                  │
+                                  ▼
+                    MULTI-VENDOR FLEET DISCOVERY
+                                  │
+                                  ▼
+                 SYNTAX-AWARE AST COMPLIANCE AUDIT
+                                  │
+                                  ▼
+                   DETERMINISTIC RISK PRIORITIZATION
+                                  │
+                                  ▼
+                 ALLOWLISTED REMEDIATION PLANNING
+                                  │
+                                  ▼
+                    HUMAN-IN-THE-LOOP APPROVAL
+                                  │
+                                  ▼
+                    CONTROLLED REMEDIATION PATCH
+                                  │
+                                  ▼
+                 INDEPENDENT RE-ANALYSIS & PROOF
+                                  │
+                                  ▼
+                  FINAL EXECUTIVE SECURITY REPORT
 ```
 
 ---
 
-## 3. Five-Minute Golden Demo Operator Script
+## Why NetVigil is Truly Agentic (Not Just a Chatbot)
 
-1. **Open Security Posture Dashboard (`/dashboard`)**:
-   - Immediate visibility into network posture, composite risk score, and framework compliance.
-2. **Ingest Configuration (`/configurations?mode=ingest`)**:
-   - Select the canonical **Cisco IOS Insecure Baseline** fixture (`cisco-core-router.cfg`).
-   - Cryptographic SHA-256 calculation and 100% confidence vendor detection.
-3. **Execute Audit**:
-   - Run multi-framework audit across CIS, NIST, DISA STIG, and ISO 27001.
-   - Initial Compliance: **20.0%** (39 Failed Controls), Composite Risk: **92.5 (P0 Critical)**.
-4. **Inspect Line-Level Evidence (`/findings`)**:
-   - Open **CIS-1.2.1** (Ensure SSH Version 2 is enabled).
-   - Highlighting jumps directly to **Line 16**: `ip ssh version 1`.
-   - Explains exact failure reason and related NIST/STIG framework mappings.
-5. **Review Allowlisted Remediation (`/remediation`)**:
-   - Proposes allowlisted Before/After patch:
-     ```diff
-     - ip ssh version 1
-     + ip ssh version 2
-     - no service password-encryption
-     + service password-encryption
-     - transport input telnet
-     + transport input ssh
-     ```
-   - Highlights safety boundary: `NETWORK PUSH: DISABLED (READ-ONLY ADVISORY)`.
-6. **Execute Re-Analysis & Verification**:
-   - Click **[ RE-ANALYZE WITH REMEDIATION ]**.
-   - Backend re-parses AST and evaluates rules:
-     - Compliance: **20.0% → 46.7%** (+26.7%)
-     - Risk Score: **92.5 → 41.0** (-51.5)
-     - Failed Controls: **39 → 25** (-14)
-     - Control Status: `CIS-1.2.1: FAIL → PASS ✓`, `CIS-1.1.2: FAIL → PASS ✓`.
-7. **Generate Executive Security Report (`/reports`)**:
-   - Generate official printable security audit report with full provenance, framework tables, grounded evidence, and before/after verification deltas.
-8. **Demonstrate Multi-Vendor Normalization (`/multi-vendor`)**:
-   - Show identical normalized model and compliance results for Juniper JunOS and Fortinet FortiOS.
+NetVigil is fundamentally built as an autonomous agent system rather than a conversational wrapper:
+
+1. **Autonomous Tool Selection & Multi-Step Execution**: The agent receives a high-level goal (e.g., *"Audit fleet configurations against CIS, fix high-risk issues, but don't modify SSH"*), determines the required tool chain, and orchestrates fleet discovery, parsing, compliance auditing, risk prioritization, and diff generation.
+2. **Negative Constraint Enforcement**: The agent extracts operational boundaries (e.g., `action="DO_NOT_MODIFY"`, `subsystem="ssh"`), enforces them server-side, and guarantees that constrained subsystems remain completely untouched.
+3. **Structured Approval Gate**: The agent halts at an explicit human-in-the-loop gate, presenting an exact before/after configuration diff and operational impact statement before applying modifications.
+4. **Deterministic Authority**: The Gemini LLM provides high-level intent reasoning, planning, and synthesis, while the **deterministic NetVigil parser and compliance catalog remain authoritative** for compliance rules and verification.
+5. **Independent Mathematical Verification**: The agent never claims success on its own. It re-parses the AST of modified configurations, re-evaluates all security controls, and produces verifiable proof of $FAIL \rightarrow PASS$ transitions.
+6. **Externalized Persistent State**: Execution memory is decoupled from web requests and persisted in Google Cloud Firestore, enabling asynchronous execution resumption across device disconnects and multi-operator review.
 
 ---
 
-## 4. Local Setup & Production Execution
+## Technology Stack
+
+| Layer | Technology | Role |
+| :--- | :--- | :--- |
+| **Agent Reasoning & LLM** | **Google Gemini 3.5 / 2.5 Pro** | Intent parsing, boundary extraction, remediation reasoning, and reporting. |
+| **Agent Framework** | **Google ADK (Agent Development Kit)** | Standardized agent function calling, tool layer, and error recovery. |
+| **Cloud Infrastructure** | **Google Cloud Run** | Serverless, containerized API and deterministic compliance execution. |
+| **State Persistence** | **Google Cloud Firestore** | Distributed session state, approval tokens, and timeline persistence. |
+| **Backend Service** | **FastAPI (Python 3.13 / AsyncIO)** | High-performance asynchronous REST API. |
+| **Compliance Engine** | **NetVigil Deterministic Core** | Multi-vendor AST parsers, USM normalizer, and CIS/NIST rule evaluators. |
+| **Frontend Workspace** | **Next.js 15 (React 19 / TypeScript)** | Autonomous Security Console, live activity timeline, visual diffs. |
+| **Styling & Icons** | **TailwindCSS & Lucide Icons** | Cybersecurity SaaS dark interface. |
+
+---
+
+## System Architecture
+
+```text
+                         OPERATOR / SECURITY ENGINEER
+                                      │
+                                      ▼
+                        NETVIGIL CONSOLE (Next.js 15)
+                                      │
+                                      ▼
+                        GOOGLE CLOUD (Cloud Run)
+                                      │
+                        ┌─────────────┴─────────────┐
+                        ▼                           ▼
+              GEMINI 3.5 / 2.5 + ADK         NETVIGIL ENGINE
+             (Goal & Plan Reasoning)        (Deterministic Core)
+                        │                           │
+                        └─────────────┬─────────────┘
+                                      │
+                        ┌─────────────┴─────────────┐
+                        ▼                           ▼
+                 AGENT TOOL LAYER            AST COMPLIANCE
+              (Analyze, Patch, Verify)      (Cisco/Juniper/Forti)
+                        │                           │
+                        └─────────────┬─────────────┘
+                                      │
+                        ┌─────────────┴─────────────┐
+                        ▼                           ▼
+              GOOGLE CLOUD FIRESTORE        PERSISTENT INVENTORY
+              (Session State & Memory)      (Configs & AST Database)
+```
+
+---
+
+## Security Architecture & Guardrails
+
+* **LLM Isolation**: Gemini is strictly isolated from raw execution. It cannot execute arbitrary network commands or system binaries.
+* **Allowlisted Remediation Only**: Modifications are restricted to predefined, deterministic allowlist templates (e.g., protocol disabling, password encryption, transport restrictions).
+* **Server-Side Approval Enforcement**: Approval tokens and policy constraints are validated authoritatively on the backend.
+* **Zero Trust Verification**: Verification requires AST re-parsing and deterministic rule evaluation. The agent cannot self-certify compliance without passing the test suite.
+* **Safe Diagnostics**: System health probes report component operational status without leaking credentials or internal tokens.
+
+---
+
+## Quick Start & Local Setup
 
 ### Prerequisites
-- Python 3.11+ (Python 3.13 tested)
-- Node.js 20+ (Node.js 22/24 tested)
-- Git
+* Python 3.11+ (Python 3.13 recommended)
+* Node.js 18+ (Node.js 20/22 recommended)
+* Git
 
-### Backend Setup (FastAPI)
+### 1. Clone & Configure
 ```bash
-# Set up virtual environment
+git clone https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor.git
+cd AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor
+
+# Copy environment configuration
+cp .env.example .env
+```
+
+### 2. Backend Setup
+```bash
+# Create virtual environment
 python -m venv .venv
-# Windows: .venv\Scripts\activate | Linux/macOS: source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r apps/api/requirements.txt
 
-# Run backend API
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+# Start FastAPI backend
+cd apps/api
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### Frontend Setup (Next.js 15)
+### 3. Frontend Setup
 ```bash
+# In a new terminal window:
 cd apps/web
 npm install
-
-# Run development server
 npm run dev
-# Open http://localhost:3000
 ```
 
-### Production Build & Verification
+### 4. Launch Autonomous Console
+Open your browser and navigate to: **`http://localhost:3000/agent`**.
+
+---
+
+## Automated Test Suite
+
+Run the full automated test suite (147 tests covering parsers, compliance, risk scoring, ADK tools, and the autonomous workflow):
+
 ```bash
-# 1. Run full backend test suite (118/118 passing)
+# Run complete test suite
 pytest apps/api/tests -v
 
-# 2. Typecheck frontend (0 errors)
-cd apps/web
-npx tsc --noEmit
-
-# 3. Production static compilation (25/25 routes)
-npm run build
+# Run agent autonomous workflow tests specifically
+pytest apps/api/tests/test_agent_workflow.py -v
 ```
 
 ---
 
-## 5. Security Architecture & Invariants
+## Resetting Demo State
 
-| Guardrail | Enforcement Mechanism |
-| :--- | :--- |
-| **Zero Device Writes** | Air-gapped architecture with zero network push, zero subprocess execution, and zero outbound device credentials. |
-| **Deterministic Core** | Deterministic rule engine evaluates 100% of PASS/FAIL compliance findings and risk scores. |
-| **Sensitive Redaction** | Cryptographic filter scrubs passwords, hashes, SNMP communities, and private keys from all logs, UI views, and reports. |
-| **Property Allowlist** | Adaptive syntax mapping strictly validates candidate properties against `NORMALIZED_PROPERTY_ALLOWLIST`. |
-| **Security Headers** | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Content-Security-Policy`. |
+To reset all configurations, findings, and agent memory back to the canonical baseline:
 
----
-
-## 6. Repository Layout
-
-```text
-├── apps/
-│   ├── api/                     # FastAPI Deterministic Compliance Engine
-│   │   ├── app/
-│   │   │   ├── api/routes/      # REST API Endpoints (analysis, audits, reports, devices, AI)
-│   │   │   ├── core/            # Middleware, Security Headers, Redaction, Error Boundaries
-│   │   │   ├── models/          # SQLAlchemy Async Database Entities
-│   │   │   ├── schemas/         # Pydantic v2 Request/Response Models
-│   │   │   └── services/        # Parsers (Cisco/Jun/Forti), Evaluators, Risk, Remediation
-│   │   └── tests/               # 118 Pytest Unit, Integration & Adversarial Tests
-│   └── web/                     # Next.js 15 App Router Frontend (25 Production Routes)
-│       ├── src/app/             # Workspaces (dashboard, configurations, findings, risk, remediation, reports)
-│       ├── src/components/      # UI Shell, Evidence Viewers, Diffs, Global Search
-│       └── src/lib/             # TanStack Query & Canonical API Client
-├── data/
-│   ├── compliance/              # Unified rule catalogs (CIS, NIST, STIG, ISO)
-│   └── demo/                    # Synthetic test fixtures (Cisco, Juniper, Fortinet)
-└── README.md
+```bash
+python scripts/reset-demo.py
 ```
 
 ---
 
-**NetVigil v1.0.0-RC1** — *National Technical Research Organisation (NTRO) • SIH26155*
+## Google Cloud Deployment
+
+NetVigil is fully containerized and deployable to **Google Cloud Run**:
+
+```bash
+# Set your Google Cloud project
+export GCP_PROJECT="your-gcp-project-id"
+export GCP_REGION="us-central1"
+
+# 1-Click Automated Deployment
+chmod +x deploy-cloudrun.sh
+./deploy-cloudrun.sh
+```
+
+---
+
+## Hackathon Submission Highlights
+
+* **Track**: Taskmaster (Autonomous real-world network security engineering).
+* **Autonomous Utility**: Discovers fleet configurations, isolates high-risk P0/P1 issues, generates allowlisted diffs, respects negative constraints (e.g. *don't modify SSH*), requires approval, applies fixes, and verifies resolution via AST re-analysis.
+* **Architecture Rigor**: Deterministic compliance core coupled with Gemini 3.5 reasoning, Google ADK tool layer, and Cloud Run serverless hosting.
+* **Production Integrity**: 147/147 passing tests, zero hardcoded secrets, and decoupled Firestore state management.
