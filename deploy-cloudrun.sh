@@ -52,7 +52,7 @@ gcloud run deploy "${SERVICE_NAME}" \
     --cpu "1" \
     --min-instances "1" \
     --max-instances "10" \
-    --set-env-vars "ENVIRONMENT=production,AI_PROVIDER=gemini,GOOGLE_CLOUD_PROJECT=${PROJECT_ID}" \
+    --set-env-vars "ENVIRONMENT=production,AI_PROVIDER=gemini,AI_MODEL=google/gemini-3.5,GOOGLE_CLOUD_PROJECT=${PROJECT_ID}" \
     --project "${PROJECT_ID}"
 
 echo "[4/4] Fetching live Service URL..."
