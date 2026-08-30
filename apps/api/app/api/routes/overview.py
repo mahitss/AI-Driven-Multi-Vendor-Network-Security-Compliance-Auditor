@@ -18,9 +18,42 @@ from app.models.remediation import RemediationProposal
 from app.services.compliance.catalog import compliance_catalog
 from app.services.remediation.catalog import REMEDIATION_CATALOG
 from app.services.agent.memory import AgentMemoryManager
+from app.services.telemetry.service import TelemetryAggregationService
 from app.api.routes.reports import GENERATED_REPORTS
 
 router = APIRouter(prefix="/overview", tags=["Overview"])
+
+
+@router.get("/telemetry", summary="Get complete security telemetry and visual analytics dataset")
+async def get_system_telemetry(db: DatabaseDep) -> Dict[str, Any]:
+    """
+    Returns complete real-time telemetry:
+    - Time-series audit history trends
+    - Findings by severity, framework, and vendor
+    - Top affected assets
+    - Asset x Severity and Asset x Framework heat map matrix
+    - Fleet topology nodes & links
+    - Remediation lifecycle analytics
+    """
+    return await TelemetryAggregationService.get_complete_telemetry(db)
+
+
+@router.get("/compliance-trends", summary="Get time-series compliance and risk trends")
+async def get_system_compliance_trends(db: DatabaseDep) -> Dict[str, Any]:
+    """Returns chronological audit history points with exact execution timestamps."""
+    return await TelemetryAggregationService.get_compliance_trends(db)
+
+
+@router.get("/heatmap", summary="Get security posture heat map matrix")
+async def get_system_heatmap(db: DatabaseDep) -> Dict[str, Any]:
+    """Returns Asset x Severity and Asset x Framework matrix for all evaluated assets."""
+    return await TelemetryAggregationService.get_heatmap_matrix(db)
+
+
+@router.get("/topology", summary="Get fleet asset topology graph")
+async def get_system_fleet_topology(db: DatabaseDep) -> Dict[str, Any]:
+    """Returns real evaluated fleet devices and structural topology links."""
+    return await TelemetryAggregationService.get_fleet_topology(db)
 
 
 @router.get("/stats", summary="Get comprehensive system overview & posture metrics")

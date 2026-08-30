@@ -2376,6 +2376,190 @@ export async function fetchAgentFleetConfigurations(): Promise<any[]> {
   return res.json();
 }
 
+// -------------------------------------------------------------
+// Security Telemetry & Visual Analytics Types & Functions
+// -------------------------------------------------------------
+
+export interface AuditTrendPoint {
+  audit_id: string;
+  configuration_id: string;
+  device_name: string;
+  vendor: string;
+  timestamp: string;
+  compliance_score: number;
+  risk_score: number;
+  total_findings: number;
+  open_findings: number;
+  critical_findings: number;
+  high_findings: number;
+  pass_count: number;
+  fail_count: number;
+  framework_scores: Record<string, number>;
+}
+
+export interface SeverityMetric {
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  label: string;
+  count: number;
+  percentage: number;
+  color: string;
+}
+
+export interface FrameworkMetric {
+  framework: "CIS" | "NIST" | "STIG" | "ISO";
+  failed_count: number;
+  passed_count: number;
+  total_count: number;
+  compliance_score: number;
+}
+
+export interface VendorMetric {
+  vendor: string;
+  display_name: string;
+  failed_count: number;
+  passed_count: number;
+  critical_count: number;
+  devices_count: number;
+}
+
+export interface AffectedAssetMetric {
+  configuration_id: string;
+  audit_id: string;
+  hostname: string;
+  vendor: string;
+  platform: string;
+  open_findings: number;
+  critical_findings: number;
+  high_findings: number;
+  medium_findings: number;
+  low_findings: number;
+  compliance_score: number;
+  risk_score: number;
+}
+
+export interface HeatmapAssetRow {
+  configuration_id: string;
+  audit_id: string;
+  hostname: string;
+  vendor: string;
+  platform: string;
+  severities: {
+    CRITICAL: number;
+    HIGH: number;
+    MEDIUM: number;
+    LOW: number;
+    INFO: number;
+  };
+  frameworks: Record<string, { failed: number; passed: number; score: number }>;
+  total_open: number;
+  overall_score: number;
+  risk_score: number;
+}
+
+export interface TopologyNode {
+  id: string;
+  hostname: string;
+  vendor: string;
+  platform: string;
+  device_type: string;
+  compliance_score: number;
+  risk_score: number;
+  open_findings: number;
+  critical_findings: number;
+  status: "HARDENED" | "NEEDS_ATTENTION" | "HIGH_RISK";
+  last_seen: string;
+}
+
+export interface TopologyEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationship: string;
+}
+
+export interface SecurityTelemetryResponse {
+  has_sufficient_history: boolean;
+  audit_trends: AuditTrendPoint[];
+  findings_by_severity: SeverityMetric[];
+  findings_by_framework: FrameworkMetric[];
+  findings_by_vendor: VendorMetric[];
+  top_affected_assets: AffectedAssetMetric[];
+  heatmap_matrix: HeatmapAssetRow[];
+  topology: {
+    nodes: TopologyNode[];
+    edges: TopologyEdge[];
+    has_topology_data: boolean;
+  };
+  remediation_distribution: {
+    available: number;
+    reviewed: number;
+    applied: number;
+    verified: number;
+    total: number;
+  };
+  summary: {
+    total_audits: number;
+    total_configurations: number;
+    active_open_findings: number;
+  };
+}
+
+export async function fetchSecurityTelemetry(): Promise<SecurityTelemetryResponse> {
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/telemetry`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Failed to fetch security telemetry: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchComplianceTrends(): Promise<{
+  has_sufficient_history: boolean;
+  audit_trends: AuditTrendPoint[];
+  total_audits: number;
+}> {
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/compliance-trends`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Failed to fetch trends: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchSecurityHeatmap(): Promise<{
+  heatmap_matrix: HeatmapAssetRow[];
+  total_assets: number;
+}> {
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/heatmap`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Failed to fetch heatmap: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchFleetTopology(): Promise<{
+  nodes: TopologyNode[];
+  edges: TopologyEdge[];
+  has_topology_data: boolean;
+}> {
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/topology`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || data?.message || `Failed to fetch topology: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+
 
 
 

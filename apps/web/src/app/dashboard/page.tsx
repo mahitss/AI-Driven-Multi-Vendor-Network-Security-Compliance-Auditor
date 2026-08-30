@@ -43,6 +43,7 @@ import {
   ActivityEvent,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import SecurityTelemetrySection from "@/components/telemetry/SecurityTelemetrySection";
 
 // Grouped Finding Structure across Multi-Vendor Assets
 interface AffectedAsset {
@@ -393,6 +394,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* 2.5. Real Security Telemetry & Visual Analytics Suite */}
+      <SecurityTelemetrySection />
 
       {/* 3. Main Operational Sections (Attention Queue + Activity Stream) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
