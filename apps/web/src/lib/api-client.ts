@@ -183,6 +183,9 @@ export interface SeverityStats {
 export interface Finding {
   id: string;
   audit_id: string;
+  configuration_id?: string;
+  device_name?: string;
+  vendor?: string;
   framework: string;
   control_id: string;
   category?: string;
@@ -357,18 +360,19 @@ export interface OverviewStats {
   total_devices: number;
   total_audits: number;
   total_findings: number;
-  open_findings?: number;
-  compliance_score?: number;
-  risk_score?: number;
-  score_delta?: number | null;
-  severity_breakdown?: {
+  open_findings: number;
+  lifetime_findings_evaluated: number;
+  compliance_score: number;
+  risk_score: number;
+  score_delta: number | null;
+  severity_breakdown: {
     critical: number;
     high: number;
     medium: number;
     low: number;
     info: number;
   };
-  framework_scores?: Record<string, number>;
+  framework_scores: Record<string, number>;
   vendor_breakdown: Record<string, number>;
   supported_vendors: string[];
   supported_frameworks: string[];
@@ -1204,13 +1208,13 @@ export async function fetchRemediationStats(): Promise<RemediationStats> {
 // -------------------------------------------------------------
 export interface ActivityEvent {
   id: string;
-  type: "AUDIT_COMPLETED" | "CONFIG_INGESTED" | "TRAINING_ACTION" | "REMEDIATION_REVIEWED";
+  type: string;
   title: string;
   description: string;
-  target_id: string;
-  target_url: string;
+  target_id?: string;
+  target_url?: string;
   timestamp: string;
-  severity: "INFO" | "HIGH" | "SUCCESS" | "WARNING";
+  severity: "INFO" | "HIGH" | "SUCCESS" | "WARNING" | "CRITICAL";
 }
 
 export interface SearchResultItem {
@@ -1541,6 +1545,14 @@ export async function fetchFindings(filters?: {
   const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch findings: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchOverviewActivity(limit = 15): Promise<ActivityEvent[]> {
+  const res = await apiFetch(`${API_BASE}/api/v1/overview/activity?limit=${limit}`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch overview activity: HTTP ${res.status}`);
   }
   return res.json();
 }

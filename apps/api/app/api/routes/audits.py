@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import DatabaseDep
 from app.core.errors import ResourceNotFoundError
 from app.models.audit import Audit
+from app.models.configuration import Configuration
 from app.models.finding import Finding
 from app.schemas.audit import (
     AuditDetailResponse,
@@ -111,7 +112,16 @@ async def list_all_findings(
     offset: int = Query(0, ge=0),
 ) -> List[FindingResponse]:
     """Retrieve findings across audits with multi-dimensional filtering and active posture scoping."""
-    query = select(Finding)
+    query = (
+        select(
+            Finding,
+            Audit.configuration_id.label("cfg_id"),
+            Configuration.original_filename.label("dev_name"),
+            Configuration.detected_vendor.label("dev_vendor"),
+        )
+        .join(Audit, Finding.audit_id == Audit.id)
+        .outerjoin(Configuration, Audit.configuration_id == Configuration.id)
+    )
 
     if audit_id and audit_id.upper() != "ALL":
         query = query.where(Finding.audit_id == audit_id)
@@ -145,8 +155,16 @@ async def list_all_findings(
 
     query = query.order_by(Finding.severity, Finding.control_id).offset(offset).limit(limit)
     res = await db.execute(query)
-    findings = res.scalars().all()
-    return [FindingResponse.model_validate(f) for f in findings]
+    rows = res.all()
+
+    response_items: List[FindingResponse] = []
+    for f, cfg_id, dev_name, dev_vendor in rows:
+        item = FindingResponse.model_validate(f)
+        item.configuration_id = cfg_id
+        item.device_name = dev_name
+        item.vendor = dev_vendor
+        response_items.append(item)
+    return response_items
 
 
 @router.get(
@@ -241,7 +259,17 @@ async def get_audit_findings(
     category: Optional[str] = Query(None, description="Filter by category"),
 ) -> List[FindingResponse]:
     """Retrieve granular findings with multi-dimensional filtering."""
-    query = select(Finding).where(Finding.audit_id == audit_id)
+    query = (
+        select(
+            Finding,
+            Audit.configuration_id.label("cfg_id"),
+            Configuration.original_filename.label("dev_name"),
+            Configuration.detected_vendor.label("dev_vendor"),
+        )
+        .join(Audit, Finding.audit_id == Audit.id)
+        .outerjoin(Configuration, Audit.configuration_id == Configuration.id)
+        .where(Finding.audit_id == audit_id)
+    )
 
     if framework and framework.upper() != "ALL":
         query = query.where(Finding.framework == framework.upper())
@@ -255,8 +283,16 @@ async def get_audit_findings(
     query = query.order_by(Finding.severity, Finding.control_id)
 
     res = await db.execute(query)
-    findings = res.scalars().all()
-    return [FindingResponse.model_validate(f) for f in findings]
+    rows = res.all()
+
+    response_items: List[FindingResponse] = []
+    for f, cfg_id, dev_name, dev_vendor in rows:
+        item = FindingResponse.model_validate(f)
+        item.configuration_id = cfg_id
+        item.device_name = dev_name
+        item.vendor = dev_vendor
+        response_items.append(item)
+    return response_items
 
 
 @router.get(

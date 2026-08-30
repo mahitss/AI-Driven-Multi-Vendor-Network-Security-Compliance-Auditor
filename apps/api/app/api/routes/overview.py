@@ -17,6 +17,7 @@ from app.models.training import TrainingMapping, TrainingAuditTrail
 from app.models.remediation import RemediationProposal
 from app.services.compliance.catalog import compliance_catalog
 from app.services.remediation.catalog import REMEDIATION_CATALOG
+from app.services.agent.memory import AgentMemoryManager
 from app.api.routes.reports import GENERATED_REPORTS
 
 router = APIRouter(prefix="/overview", tags=["Overview"])
@@ -220,8 +221,48 @@ async def get_system_activity(
             "severity": "SUCCESS",
         })
 
+    # 5. Recent Autonomous Agent Sessions
+    agent_sessions = await AgentMemoryManager.list_recent_sessions(limit=5)
+    for s in agent_sessions:
+        if s.status == "WAITING_APPROVAL":
+            actionable_cnt = len([p for p in s.proposals if not p.is_constrained])
+            events.append({
+                "id": f"evt-agent-{s.session_id}",
+                "type": "AGENT_APPROVAL_PENDING",
+                "title": f"Autonomous Remediation: {actionable_cnt} Patch(es) Pending Approval",
+                "description": f"Target: {len(s.discovered_configs)} device(s) • {len(s.constraints)} Active Guardrail(s)",
+                "target_id": s.session_id,
+                "target_url": "/agent",
+                "timestamp": s.updated_at or s.created_at,
+                "severity": "WARNING",
+            })
+        elif s.status == "COMPLETED":
+            applied_cnt = s.final_report.remediations_applied if s.final_report else len(s.proposals)
+            events.append({
+                "id": f"evt-agent-{s.session_id}",
+                "type": "AGENT_RUN_COMPLETED",
+                "title": f"Autonomous Remediation Verified: {applied_cnt} Patches Applied",
+                "description": f"Violations Reduced from {s.final_report.total_violations_before if s.final_report else 0} to {s.final_report.total_violations_after if s.final_report else 0}",
+                "target_id": s.session_id,
+                "target_url": "/agent",
+                "timestamp": s.updated_at or s.created_at,
+                "severity": "SUCCESS",
+            })
+
     # Sort all events chronologically descending
-    events.sort(key=lambda x: x["timestamp"] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    def parse_event_time(evt: Dict[str, Any]) -> datetime:
+        ts = evt.get("timestamp")
+        if isinstance(ts, datetime):
+            return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+        if isinstance(ts, str):
+            try:
+                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+            except Exception:
+                pass
+        return datetime.min.replace(tzinfo=timezone.utc)
+
+    events.sort(key=parse_event_time, reverse=True)
     return events[:limit]
 
 

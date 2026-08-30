@@ -37,6 +37,9 @@ class SeverityStatsResponse(BaseModel):
 class FindingResponse(BaseModel):
     id: str
     audit_id: str
+    configuration_id: Optional[str] = None
+    device_name: Optional[str] = None
+    vendor: Optional[str] = None
     framework: str
     control_id: str
     category: Optional[str] = None
