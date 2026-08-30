@@ -408,7 +408,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-1 bg-[#0d0e12] border border-[#181a22] p-0.5 rounded text-xs">
               {(["ALL", "CRITICAL", "HIGH", "MEDIUM"] as const).map((sev) => (
                 <button
-                  key={sev}
+                  key={`sev_tab_${sev}`}
                   onClick={() => setSeverityFilter(sev)}
                   className={cn(
                     "px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors",
@@ -456,13 +456,13 @@ export default function DashboardPage() {
                 )}
               </div>
             ) : (
-              filteredGroups.map((group) => {
+              filteredGroups.map((group, groupIdx) => {
                 const isExpanded = expandedControlId === group.group_key;
                 const distinctAssetsCount = group.affected_assets.length;
 
                 return (
                   <div
-                    key={group.group_key}
+                    key={`ctrl_grp_${group.group_key}_${groupIdx}`}
                     className="rounded bg-[#0d0e12] border border-[#181a22] hover:border-[#222632] transition-colors overflow-hidden"
                   >
                     {/* Control Card Header */}
