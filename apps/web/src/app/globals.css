@@ -4,38 +4,87 @@
 
 @layer base {
   :root {
-    --background: #07080a;
-    --foreground: #f0f3f8;
-    --color-primary-bg: #040507;
-    --color-app-bg: #07080a;
-    --color-sidebar-bg: #050608;
-    --color-header-bg: #07080a;
-    --color-card-bg: #0a0c10;
-    --color-elevated-bg: #0e1117;
-    --color-input-bg: #08090d;
-    --color-hover-bg: #12151e;
-    --color-active-bg: #161b26;
-    --color-border: #171b26;
-    --color-border-strong: #222838;
-    --color-divider: #131620;
-    --color-text-primary: #f0f3f8;
-    --color-text-body: #c5cbd8;
-    --color-text-secondary: #8b95a8;
-    --color-text-muted: #525c70;
-    --color-cyan: #0ea5e9;
-    --color-green: #10b981;
-    --color-yellow: #f59e0b;
-    --color-red: #ef4444;
+    /* BACKGROUND */
+    --background: #080B12;
+    --background-secondary: #0A0F18;
+
+    /* SURFACES */
+    --surface: #0D121C;
+    --surface-elevated: #111827;
+    --surface-hover: #151E2D;
+
+    /* BORDERS */
+    --border: #1D2939;
+    --border-subtle: #172131;
+    --border-active: #263B55;
+
+    /* TEXT */
+    --text-primary: #F3F4F6;
+    --text-secondary: #A7B0C0;
+    --text-muted: #667085;
+    --text-disabled: #475467;
+
+    /* PRIMARY BLUE */
+    --primary: #3B82F6;
+    --primary-hover: #2563EB;
+    --primary-soft: rgba(59, 130, 246, 0.12);
+
+    /* TECHNICAL CYAN */
+    --cyan: #22D3EE;
+    --cyan-soft: rgba(34, 211, 238, 0.10);
+
+    /* AI / AGENT PURPLE */
+    --ai: #8B5CF6;
+    --ai-soft: rgba(139, 92, 246, 0.10);
+
+    /* SUCCESS */
+    --success: #10B981;
+    --success-soft: rgba(16, 185, 129, 0.10);
+
+    /* WARNING / HIGH */
+    --warning: #F59E0B;
+    --warning-soft: rgba(245, 158, 11, 0.10);
+
+    /* CRITICAL */
+    --critical: #EF4444;
+    --critical-soft: rgba(239, 68, 68, 0.10);
+
+    /* INFO */
+    --info: #60A5FA;
+    --info-soft: rgba(96, 165, 250, 0.10);
+
+    /* LEGACY / COMPATIBILITY ALIASES */
+    --foreground: #F3F4F6;
+    --color-primary-bg: #080B12;
+    --color-app-bg: #080B12;
+    --color-sidebar-bg: #0A0F18;
+    --color-header-bg: #080B12;
+    --color-card-bg: #0D121C;
+    --color-elevated-bg: #111827;
+    --color-input-bg: #0A0F18;
+    --color-hover-bg: #151E2D;
+    --color-active-bg: #111827;
+    --color-border: #1D2939;
+    --color-border-strong: #263B55;
+    --color-divider: #172131;
+    --color-text-primary: #F3F4F6;
+    --color-text-body: #A7B0C0;
+    --color-text-secondary: #A7B0C0;
+    --color-text-muted: #667085;
+    --color-cyan: #22D3EE;
+    --color-green: #10B981;
+    --color-yellow: #F59E0B;
+    --color-red: #EF4444;
   }
 
   html {
     color-scheme: dark;
-    background-color: #07080a;
+    background-color: #080B12;
   }
 
   body {
-    color: #c5cbd8;
-    background-color: #07080a;
+    color: #A7B0C0;
+    background-color: #080B12;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -64,59 +113,59 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #07080a;
+  background: #080B12;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #171b26;
+  background: #1D2939;
   border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #222838;
+  background: #263B55;
 }
 
 /* Tactical SOC Surface Utilities */
 .border-subtle {
-  border-color: #171b26;
+  border-color: #172131;
 }
 
 .border-strong {
-  border-color: #222838;
+  border-color: #263B55;
 }
 
 .bg-surface {
-  background-color: #0a0c10;
+  background-color: #0D121C;
 }
 
 .bg-surface-elevated {
-  background-color: #0e1117;
+  background-color: #111827;
 }
 
 /* High-Density Tactical SOC Card */
 .soc-panel {
-  background-color: #0a0c10;
-  border: 1px solid #171b26;
+  background-color: #0D121C;
+  border: 1px solid #1D2939;
   border-radius: 4px;
 }
 
 .soc-panel:hover {
-  border-color: #222838;
+  border-color: #263B55;
 }
 
 .enterprise-card {
-  background: #0a0c10;
-  border: 1px solid #171b26;
+  background: #0D121C;
+  border: 1px solid #1D2939;
   border-radius: 4px;
 }
 
 .enterprise-card:hover {
-  border-color: #222838;
+  border-color: #263B55;
 }
 
 .matte-elevated {
-  background: #0e1117;
-  border: 1px solid #222838;
+  background: #111827;
+  border: 1px solid #263B55;
   border-radius: 4px;
 }
 
@@ -147,7 +196,14 @@
 /* High Contrast Dark SOC Theme */
 html.theme-high-contrast {
   --background: #000000;
+  --background-secondary: #050505;
   --foreground: #ffffff;
+  --surface: #0a0a0a;
+  --surface-elevated: #111111;
+  --surface-hover: #171717;
+  --border: #333333;
+  --border-subtle: #222222;
+  --border-active: #3B82F6;
   --color-primary-bg: #000000;
   --color-app-bg: #000000;
   --color-sidebar-bg: #000000;
@@ -155,14 +211,14 @@ html.theme-high-contrast {
   --color-card-bg: #000000;
   --color-elevated-bg: #050505;
   --color-input-bg: #000000;
-  --color-border: #38bdf8;
-  --color-border-strong: #00e5ff;
+  --color-border: #3B82F6;
+  --color-border-strong: #2563EB;
   --color-divider: #333333;
   --color-text-primary: #ffffff;
   --color-text-body: #ffffff;
   --color-text-secondary: #e5e5e5;
   --color-text-muted: #a3a3a3;
-  --color-cyan: #00e5ff;
+  --color-cyan: #22D3EE;
 }
 
 html.theme-high-contrast body {
@@ -172,10 +228,11 @@ html.theme-high-contrast body {
 
 html.theme-high-contrast aside,
 html.theme-high-contrast header,
-html.theme-high-contrast .cyber-card,
-html.theme-high-contrast .matte-panel {
+html.theme-high-contrast .enterprise-card,
+html.theme-high-contrast .soc-panel,
+html.theme-high-contrast .matte-elevated {
   background-color: #000000 !important;
-  border-color: #38bdf8 !important;
+  border-color: #3B82F6 !important;
   color: #ffffff !important;
 }
 

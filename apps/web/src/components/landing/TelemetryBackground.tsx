@@ -13,21 +13,21 @@ interface TelemetryItem {
 
 // Peripheral Left Flank Fragments (Restrained strictly to outer left edge)
 const LEFT_FRAGMENTS = [
-  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#00D9FF]", top: "16%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
-  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#64748B]", top: "30%", horizontalPos: "left-[1%] sm:left-[2%]" },
-  { text: "logging.remote_logging = false", depth: "bg", color: "text-[#64748B]", top: "44%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
-  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#00C98B]", top: "58%", horizontalPos: "left-[1%] sm:left-[2%]" },
-  { text: "EVIDENCE:[LINE 17]", depth: "mid", color: "text-[#00D9FF]", top: "72%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
+  { text: "remote_access.ssh_version = 1", depth: "fg", color: "text-[#3B82F6]", top: "16%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
+  { text: "authentication.aaa_enabled = false", depth: "mid", color: "text-[#667085]", top: "30%", horizontalPos: "left-[1%] sm:left-[2%]" },
+  { text: "logging.remote_logging = false", depth: "bg", color: "text-[#667085]", top: "44%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
+  { text: "CISCO IOS → AST → USM", depth: "fg", color: "text-[#10B981]", top: "58%", horizontalPos: "left-[1%] sm:left-[2%]" },
+  { text: "EVIDENCE:[LINE 17]", depth: "mid", color: "text-[#3B82F6]", top: "72%", horizontalPos: "left-[1.5%] sm:left-[2.5%]" },
 ];
 
 // Peripheral Right Flank Fragments (Restrained strictly to outer right edge)
 const RIGHT_FRAGMENTS = [
-  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#64748B]", top: "16%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
-  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#00C98B]", top: "28%", horizontalPos: "right-[1%] sm:right-[2%]" },
-  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#00D9FF]", top: "42%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
-  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#00D9FF]", top: "56%", horizontalPos: "right-[1%] sm:right-[2%]" },
-  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#00C98B]", top: "70%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
-  { text: "REMOTE_PUSH:ABSENT", depth: "fg", color: "text-[#00C98B]", top: "82%", horizontalPos: "right-[1%] sm:right-[2%]" },
+  { text: "remote_access.http_server_enabled = true", depth: "bg", color: "text-[#667085]", top: "16%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "JUNOS → AST → USM", depth: "mid", color: "text-[#10B981]", top: "28%", horizontalPos: "right-[1%] sm:right-[2%]" },
+  { text: "FORTIOS → AST → USM", depth: "bg", color: "text-[#3B82F6]", top: "42%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "CIS-1.2.1 / FAIL", depth: "fg", color: "text-[#EF4444]", top: "56%", horizontalPos: "right-[1%] sm:right-[2%]" },
+  { text: "AI_ADVISORY:READ_ONLY", depth: "mid", color: "text-[#8B5CF6]", top: "70%", horizontalPos: "right-[1.5%] sm:right-[2.5%]" },
+  { text: "REMOTE_PUSH:ABSENT", depth: "fg", color: "text-[#10B981]", top: "82%", horizontalPos: "right-[1%] sm:right-[2%]" },
 ];
 
 export default function TelemetryBackground() {

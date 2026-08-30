@@ -217,20 +217,20 @@ export default function SecurityOperationsPage() {
   return (
     <div className="space-y-6 max-w-[1440px] mx-auto pb-16 font-sans">
       {/* 1. Header & Identity */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-5 font-mono">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1D2939] pb-5 font-mono">
         <div>
           <div className="flex items-center gap-2 mb-1.5 text-xs">
             <span className="flex items-center gap-1.5 text-[#10B981]">
               <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
               <span>● ENGINE ONLINE</span>
             </span>
-            <span className="text-white/20">•</span>
-            <span className="text-[#00D9FF]">OPERATIONAL SPINE</span>
+            <span className="text-[#667085]">•</span>
+            <span className="text-[#3B82F6]">OPERATIONAL SPINE</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#F8FAFC] tracking-tight font-sans">
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#F3F4F6] tracking-tight font-sans">
             SECURITY OPERATIONS
           </h1>
-          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1 max-w-3xl font-sans leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#A7B0C0] mt-1 max-w-3xl font-sans leading-relaxed">
             Investigate security activity, correlate risk, and move from signal to action. NetVigil correlates real-time security events into prioritized detections, evidence-backed findings, and safe remediation proposals.
           </p>
         </div>
@@ -241,9 +241,9 @@ export default function SecurityOperationsPage() {
               refetchStats();
               refetchActivities();
             }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#00D9FF] font-semibold transition-all shadow-sm active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-white font-semibold transition-all shadow-sm active:scale-[0.98]"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", isActivitiesLoading && "animate-spin")} />
+            <RefreshCw className={cn("w-3.5 h-3.5", isActivitiesLoading && "animate-spin text-[#3B82F6]")} />
             <span>Sync Telemetry</span>
           </button>
         </div>
@@ -251,65 +251,65 @@ export default function SecurityOperationsPage() {
 
       {/* 2. Top Operational Status Bar (Real Backend Metrics) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 font-mono">
-        <div className="p-3.5 rounded-xl bg-[#070A10] border border-white/[0.08]">
-          <div className="text-[10px] text-[#64748B] uppercase font-semibold">SECURITY EVENTS</div>
-          <div className="text-2xl font-extrabold text-[#F8FAFC] mt-1">{totalEventsCount}</div>
-          <div className="text-[10px] text-[#94A3B8] font-sans mt-0.5">Live activity stream</div>
+        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+          <div className="text-[10px] text-[#667085] uppercase font-semibold">SECURITY EVENTS</div>
+          <div className="text-2xl font-extrabold text-[#F3F4F6] mt-1">{totalEventsCount}</div>
+          <div className="text-[10px] text-[#A7B0C0] font-sans mt-0.5">Live activity stream</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#070A10] border border-white/[0.08]">
+        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
           <div className="text-[10px] text-[#EF4444] uppercase font-semibold">ACTIVE DETECTIONS</div>
           <div className="text-2xl font-extrabold text-[#EF4444] mt-1">{activeDetectionsCount}</div>
-          <div className="text-[10px] text-[#64748B] font-sans mt-0.5">Deterministic violations</div>
+          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Deterministic violations</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#070A10] border border-white/[0.08]">
+        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
           <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">OPEN FINDINGS</div>
           <div className="text-2xl font-extrabold text-[#F59E0B] mt-1">{openFindingsCount}</div>
-          <div className="text-[10px] text-[#64748B] font-sans mt-0.5">Audited compliance gaps</div>
+          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Audited compliance gaps</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#070A10] border border-white/[0.08]">
+        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
           <div className="text-[10px] text-[#EF4444] uppercase font-semibold">CRITICAL RISKS</div>
           <div className="text-2xl font-extrabold text-[#EF4444] mt-1">{criticalRisksCount}</div>
-          <div className="text-[10px] text-[#64748B] font-sans mt-0.5">P0 & P1 exposure tiers</div>
+          <div className="text-[10px] text-[#667085] font-sans mt-0.5">P0 & P1 exposure tiers</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#070A10] border border-white/[0.08]">
-          <div className="text-[10px] text-[#00D9FF] uppercase font-semibold">AFFECTED ASSETS</div>
-          <div className="text-2xl font-extrabold text-[#00D9FF] mt-1">{affectedAssetsCount}</div>
-          <div className="text-[10px] text-[#64748B] font-sans mt-0.5">Monitored infrastructure</div>
+        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+          <div className="text-[10px] text-[#3B82F6] uppercase font-semibold">AFFECTED ASSETS</div>
+          <div className="text-2xl font-extrabold text-[#3B82F6] mt-1">{affectedAssetsCount}</div>
+          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Monitored infrastructure</div>
         </div>
       </div>
 
       {/* 3. Operational Spine Pipeline Flow */}
-      <div className="p-3.5 rounded-xl bg-[#070A10] border border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+      <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[#64748B] text-[10px] uppercase font-bold">OPERATIONAL SPINE:</span>
-          <span className="px-2 py-0.5 rounded bg-[#0B0F19] border border-white/[0.06] text-[#00D9FF]">
+          <span className="text-[#667085] text-[10px] uppercase font-bold">OPERATIONAL SPINE:</span>
+          <span className="px-2 py-0.5 rounded bg-[#080B12] border border-[#1D2939] text-[#3B82F6]">
             SIGNAL
           </span>
-          <span className="text-[#64748B]">→</span>
-          <span className="px-2 py-0.5 rounded bg-[#0B0F19] border border-white/[0.06] text-white">
+          <span className="text-[#667085]">→</span>
+          <span className="px-2 py-0.5 rounded bg-[#080B12] border border-[#1D2939] text-white">
             EVENT
           </span>
-          <span className="text-[#64748B]">→</span>
-          <span className="px-2 py-0.5 rounded bg-[#0B0F19] border border-white/[0.06] text-[#F59E0B]">
+          <span className="text-[#667085]">→</span>
+          <span className="px-2 py-0.5 rounded bg-[#080B12] border border-[#1D2939] text-[#F59E0B]">
             DETECTION
           </span>
-          <span className="text-[#64748B]">→</span>
-          <span className="px-2 py-0.5 rounded bg-[#0B0F19] border border-white/[0.06] text-[#EF4444]">
+          <span className="text-[#667085]">→</span>
+          <span className="px-2 py-0.5 rounded bg-[#080B12] border border-[#1D2939] text-[#EF4444]">
             FINDING
           </span>
-          <span className="text-[#64748B]">→</span>
+          <span className="text-[#667085]">→</span>
           <span className="px-2 py-0.5 rounded bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] font-bold">
             RISK (P0)
           </span>
-          <span className="text-[#64748B]">→</span>
-          <span className="px-2 py-0.5 rounded bg-[#00D9FF]/15 border border-[#00D9FF]/30 text-[#00D9FF] font-bold">
+          <span className="text-[#667085]">→</span>
+          <span className="px-2 py-0.5 rounded bg-[#3B82F6]/15 border border-[#3B82F6]/30 text-[#3B82F6] font-bold">
             EVIDENCE (LINE 17)
           </span>
-          <span className="text-[#64748B]">→</span>
+          <span className="text-[#667085]">→</span>
           <span className="px-2 py-0.5 rounded bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] font-bold">
             REMEDIATION
           </span>
@@ -322,21 +322,21 @@ export default function SecurityOperationsPage() {
       </div>
 
       {/* 4. Filters & Search Toolbar */}
-      <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
+      <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 font-mono">
         <div className="flex flex-col md:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#667085]" />
             <input
               type="text"
               placeholder="Search security activity, event ID, asset, control, or detection..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-xs text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#00D9FF]/50 transition-colors font-sans"
+              className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#080B12] border border-[#1D2939] text-xs text-[#F3F4F6] placeholder-[#667085] focus:outline-none focus:border-[#3B82F6]/50 transition-colors font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#667085] hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -347,7 +347,7 @@ export default function SecurityOperationsPage() {
             <select
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-[#E2E8F0] focus:outline-none focus:border-[#00D9FF]/50"
+              className="px-3 py-2 rounded-lg bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] focus:outline-none focus:border-[#3B82F6]/50"
             >
               <option value="ALL">Severity: All</option>
               <option value="CRITICAL">Critical</option>
@@ -359,7 +359,7 @@ export default function SecurityOperationsPage() {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-[#0B0F19] border border-white/[0.08] text-[#E2E8F0] focus:outline-none focus:border-[#00D9FF]/50"
+              className="px-3 py-2 rounded-lg bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] focus:outline-none focus:border-[#3B82F6]/50"
             >
               <option value="ALL">Type: All</option>
               <option value="SECURITY_FINDING">Security Finding</option>
@@ -375,17 +375,17 @@ export default function SecurityOperationsPage() {
         {/* LEFT COLUMN (3.5 Cols / ~29%): LIVE ACTIVITY FEED */}
         <div className="lg:col-span-4 space-y-3 font-mono">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider">
               SECURITY ACTIVITY ({filteredActivities.length})
             </span>
-            <span className="text-[10px] text-[#00D9FF]">TELEMETRY FEED</span>
+            <span className="text-[10px] text-[#3B82F6]">TELEMETRY FEED</span>
           </div>
 
           {/* Loading Skeletons */}
           {isActivitiesLoading && (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((n) => (
-                <div key={n} className="p-3.5 rounded-xl bg-[#070A10] border border-white/[0.04] animate-pulse space-y-2">
+                <div key={n} className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] animate-pulse space-y-2">
                   <div className="h-4 bg-white/10 rounded w-2/3" />
                   <div className="h-3 bg-white/5 rounded w-1/3" />
                 </div>
@@ -395,10 +395,10 @@ export default function SecurityOperationsPage() {
 
           {/* Error State */}
           {isActivitiesError && (
-            <div className="p-6 rounded-xl bg-[#070A10] border border-red-500/20 text-center space-y-3">
+            <div className="p-6 rounded-xl bg-[#0D121C] border border-[#EF4444]/30 text-center space-y-3">
               <AlertTriangle className="w-6 h-6 text-[#EF4444] mx-auto" />
-              <div className="text-xs font-bold text-[#F8FAFC]">SECURITY EVENTS UNAVAILABLE</div>
-              <p className="text-[11px] text-[#94A3B8] font-sans">Unable to retrieve security telemetry.</p>
+              <div className="text-xs font-bold text-[#F3F4F6]">SECURITY EVENTS UNAVAILABLE</div>
+              <p className="text-[11px] text-[#A7B0C0] font-sans">Unable to retrieve security telemetry.</p>
               <button
                 onClick={() => refetchActivities()}
                 className="px-3 py-1 rounded bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 text-xs font-semibold"
@@ -410,10 +410,10 @@ export default function SecurityOperationsPage() {
 
           {/* Empty State */}
           {!isActivitiesLoading && !isActivitiesError && filteredActivities.length === 0 && (
-            <div className="p-8 rounded-xl bg-[#070A10] border border-white/[0.08] text-center space-y-3">
+            <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center space-y-3">
               <CheckCircle2 className="w-8 h-8 text-[#10B981] mx-auto" />
-              <div className="text-xs font-bold text-[#F8FAFC]">NO SECURITY EVENTS</div>
-              <p className="text-[11px] text-[#94A3B8] font-sans">
+              <div className="text-xs font-bold text-[#F3F4F6]">NO SECURITY EVENTS</div>
+              <p className="text-[11px] text-[#A7B0C0] font-sans">
                 Security activity will appear as NetVigil evaluates monitored infrastructure.
               </p>
             </div>
@@ -436,8 +436,8 @@ export default function SecurityOperationsPage() {
                     className={cn(
                       "w-full text-left p-3.5 rounded-xl border transition-all space-y-2 block group relative",
                       isSelected
-                        ? "bg-[#0B0F19] border-[#00D9FF] shadow-[0_0_12px_rgba(0,217,255,0.15)]"
-                        : "bg-[#070A10] border-white/[0.04] hover:border-white/[0.12] hover:bg-[#0B0F19]/60"
+                        ? "bg-[#111827] border-[#3B82F6] shadow-sm"
+                        : "bg-[#0D121C] border-[#1D2939] hover:border-[#263B55] hover:bg-[#111827]"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -452,20 +452,20 @@ export default function SecurityOperationsPage() {
                         )}>
                           {event.severity}
                         </span>
-                        <span className="text-[10px] text-[#64748B]">
+                        <span className="text-[10px] text-[#667085]">
                           {formattedTime}
                         </span>
                       </div>
-                      <span className="text-[10px] text-[#00D9FF] font-bold">
+                      <span className="text-[10px] text-[#3B82F6] font-bold">
                         {event.type}
                       </span>
                     </div>
 
-                    <div className="text-xs font-sans font-semibold text-[#F8FAFC] group-hover:text-[#00D9FF] transition-colors line-clamp-1">
+                    <div className="text-xs font-sans font-semibold text-[#F3F4F6] group-hover:text-[#3B82F6] transition-colors line-clamp-1">
                       {event.title}
                     </div>
 
-                    <div className="text-[10px] text-[#64748B] truncate">
+                    <div className="text-[10px] text-[#667085] truncate">
                       {event.description}
                     </div>
                   </button>
@@ -478,7 +478,7 @@ export default function SecurityOperationsPage() {
         {/* CENTER COLUMN (5 Cols / ~42%): INVESTIGATION CENTER */}
         <div className="lg:col-span-5 space-y-4 font-mono">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider">
               INVESTIGATION WORKSPACE
             </span>
             <span className="text-[10px] text-[#10B981]">DETERMINISTIC VERDICT</span>
@@ -487,51 +487,51 @@ export default function SecurityOperationsPage() {
           {selectedEvent ? (
             <div className="space-y-4">
               {/* Event Metadata Card */}
-              <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-3 text-xs">
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-                  <span className="text-[10px] text-[#64748B] uppercase">EVENT IDENTIFIER</span>
-                  <span className="text-[#00D9FF] font-bold">{selectedEvent.id}</span>
+              <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
+                <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+                  <span className="text-[10px] text-[#667085] uppercase">EVENT IDENTIFIER</span>
+                  <span className="text-[#3B82F6] font-bold">{selectedEvent.id}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <span className="text-[#64748B] text-[10px] block uppercase">EVENT TYPE</span>
+                    <span className="text-[#667085] text-[10px] block uppercase">EVENT TYPE</span>
                     <span className="font-bold text-white">{selectedEvent.type}</span>
                   </div>
                   <div>
-                    <span className="text-[#64748B] text-[10px] block uppercase">ASSET TARGET</span>
-                    <span className="font-bold text-[#00D9FF]">CORE-RTR-01 (Cisco IOS)</span>
+                    <span className="text-[#667085] text-[10px] block uppercase">ASSET TARGET</span>
+                    <span className="font-bold text-[#3B82F6]">CORE-RTR-01 (Cisco IOS)</span>
                   </div>
                 </div>
 
-                <div className="text-xs font-sans font-bold text-[#F8FAFC]">
+                <div className="text-xs font-sans font-bold text-[#F3F4F6]">
                   {selectedEvent.title}
                 </div>
               </div>
 
               {/* Exact Evidence Line Cited */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#03060A] overflow-hidden">
-                <div className="p-2.5 bg-[#070A10] border-b border-white/[0.06] flex items-center justify-between text-[11px] text-[#64748B]">
+              <div className="rounded-2xl border border-[#1D2939] bg-[#080B12] overflow-hidden">
+                <div className="p-2.5 bg-[#0D121C] border-b border-[#1D2939] flex items-center justify-between text-[11px] text-[#667085]">
                   <div className="flex items-center gap-2">
-                    <Terminal className="w-3.5 h-3.5 text-[#00D9FF]" />
+                    <Terminal className="w-3.5 h-3.5 text-[#3B82F6]" />
                     <span className="text-white font-bold">Cited Configuration Evidence</span>
                   </div>
                   <span className="text-[#EF4444] font-bold">LINE 17 PROOF</span>
                 </div>
 
                 <div className="p-3 text-[11px] font-mono leading-relaxed space-y-1.5 select-text">
-                  <div className="text-[#64748B]">15 | username admin privilege 15 secret ********</div>
-                  <div className="text-[#64748B]">16 | !</div>
+                  <div className="text-[#667085]">15 | username admin privilege 15 secret ********</div>
+                  <div className="text-[#667085]">16 | !</div>
                   <div className="p-1.5 rounded bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-white font-bold">
                     17 | ip ssh version 1  <span className="text-[#EF4444] ml-2">▲ VERIFIED EVIDENCE</span>
                   </div>
-                  <div className="text-[#64748B]">18 | ip http server</div>
+                  <div className="text-[#667085]">18 | ip http server</div>
                 </div>
 
-                <div className="p-2 bg-[#070A10] border-t border-white/[0.04] flex items-center justify-between text-[10px] text-[#64748B]">
+                <div className="p-2 bg-[#0D121C] border-t border-[#1D2939] flex items-center justify-between text-[10px] text-[#667085]">
                   <Link
                     href={`/findings?findingId=${selectedFinding?.id}`}
-                    className="text-[#00D9FF] hover:underline flex items-center gap-1 font-sans font-semibold"
+                    className="text-[#3B82F6] hover:underline flex items-center gap-1 font-sans font-semibold"
                   >
                     <span>Open Evidence Explorer →</span>
                   </Link>
@@ -540,55 +540,55 @@ export default function SecurityOperationsPage() {
               </div>
 
               {/* Remediation Preview */}
-              <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-3 text-xs">
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+              <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
+                <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
                   <span className="text-[10px] text-[#10B981] font-bold uppercase flex items-center gap-1.5">
                     <Wrench className="w-3.5 h-3.5" />
                     <span>SAFE REMEDIATION PROPOSAL</span>
                   </span>
-                  <Link href="/remediation" className="text-[10px] text-[#00D9FF] hover:underline">
+                  <Link href="/remediation" className="text-[10px] text-[#3B82F6] hover:underline">
                     Remediation Center →
                   </Link>
                 </div>
 
-                <div className="p-2.5 rounded bg-[#03060A] border border-white/[0.04] text-[10px] font-mono space-y-1">
+                <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939] text-[10px] font-mono space-y-1">
                   <div className="text-[#EF4444]">- ip ssh version 1</div>
                   <div className="text-[#10B981]">+ ip ssh version 2</div>
                 </div>
 
-                <div className="text-[10px] text-[#64748B] flex items-center justify-between">
+                <div className="text-[10px] text-[#667085] flex items-center justify-between">
                   <span>EXECUTION: DISABLED</span>
                   <span>REMOTE PUSH: ABSENT</span>
                 </div>
               </div>
 
               {/* ASK NETVIGIL (AI in Operations) */}
-              <div className="p-4 rounded-xl bg-[#0E0B19] border border-[#A855F7]/30 space-y-3 text-xs">
-                <div className="flex items-center justify-between text-[#A855F7] font-bold">
+              <div className="p-4 rounded-xl bg-[#0D121C] border border-[#8B5CF6]/30 space-y-3 text-xs">
+                <div className="flex items-center justify-between text-[#8B5CF6] font-bold">
                   <div className="flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>ASK NETVIGIL (SOC ADVISORY)</span>
                   </div>
-                  <span className="text-[9px] text-[#64748B] uppercase">READ ONLY</span>
+                  <span className="text-[9px] text-[#667085] uppercase">READ ONLY</span>
                 </div>
 
                 {/* Quick Prompts */}
                 <div className="flex flex-wrap gap-1.5 text-[10px]">
                   <button
                     onClick={() => handleAskAI("Explain this detection.")}
-                    className="px-2.5 py-1 rounded bg-[#070A10] hover:bg-[#131B2E] border border-white/[0.06] text-[#E2E8F0] hover:text-[#A855F7] transition-all"
+                    className="px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#8B5CF6] transition-all"
                   >
                     Explain this detection →
                   </button>
                   <button
                     onClick={() => handleAskAI("Why is this asset high risk?")}
-                    className="px-2.5 py-1 rounded bg-[#070A10] hover:bg-[#131B2E] border border-white/[0.06] text-[#E2E8F0] hover:text-[#A855F7] transition-all"
+                    className="px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#8B5CF6] transition-all"
                   >
                     Why is this asset high risk? →
                   </button>
                   <button
                     onClick={() => handleAskAI("What evidence supports this finding?")}
-                    className="px-2.5 py-1 rounded bg-[#070A10] hover:bg-[#131B2E] border border-white/[0.06] text-[#E2E8F0] hover:text-[#A855F7] transition-all"
+                    className="px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#8B5CF6] transition-all"
                   >
                     What evidence supports this finding? →
                   </button>
@@ -596,7 +596,7 @@ export default function SecurityOperationsPage() {
 
                 {/* AI Response Box */}
                 {isAiLoading && (
-                  <div className="text-[11px] text-[#94A3B8] font-sans animate-pulse pt-2">
+                  <div className="text-[11px] text-[#A7B0C0] font-sans animate-pulse pt-2">
                     Grounded intelligence evaluating cited evidence...
                   </div>
                 )}
@@ -608,15 +608,15 @@ export default function SecurityOperationsPage() {
                 )}
 
                 {aiResponse && !isAiLoading && (
-                  <div className="p-3 rounded-lg bg-[#070A10] border border-white/[0.06] text-[11px] font-sans text-[#E2E8F0] leading-relaxed space-y-1.5 animate-fadeIn">
-                    <div className="text-[10px] text-[#A855F7] font-mono font-bold">AI RESPONSE (GROUNDED IN EVIDENCE):</div>
+                  <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] text-[11px] font-sans text-[#F3F4F6] leading-relaxed space-y-1.5 animate-fadeIn">
+                    <div className="text-[10px] text-[#8B5CF6] font-mono font-bold">AI RESPONSE (GROUNDED IN EVIDENCE):</div>
                     <p>{aiResponse}</p>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="p-8 rounded-xl bg-[#070A10] border border-white/[0.08] text-center text-[#64748B] text-xs">
+            <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center text-[#667085] text-xs">
               Select a security activity event from the feed to begin investigation.
             </div>
           )}
@@ -625,20 +625,20 @@ export default function SecurityOperationsPage() {
         {/* RIGHT COLUMN (3.5 Cols / ~29%): CONTEXT & ACTION HUB */}
         <div className="lg:col-span-3 space-y-4 font-mono">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider">
               OPERATIONAL CONTEXT
             </span>
-            <span className="text-[10px] text-[#00D9FF]">RISK & ASSETS</span>
+            <span className="text-[10px] text-[#3B82F6]">RISK & ASSETS</span>
           </div>
 
           {/* Current Security Risk */}
-          <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-3 text-xs">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+          <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
+            <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
               <span className="text-[10px] text-[#EF4444] uppercase font-bold flex items-center gap-1.5">
                 <Flame className="w-3.5 h-3.5" />
                 <span>CORRELATED RISK POSTURE</span>
               </span>
-              <Link href="/risk" className="text-[10px] text-[#00D9FF] hover:underline">
+              <Link href="/risk" className="text-[10px] text-[#3B82F6] hover:underline">
                 Risk Engine →
               </Link>
             </div>
@@ -652,42 +652,42 @@ export default function SecurityOperationsPage() {
               </span>
             </div>
 
-            <div className="text-[11px] font-sans font-semibold text-[#F8FAFC]">
+            <div className="text-[11px] font-sans font-semibold text-[#F3F4F6]">
               {correlatedRisk?.title || (risks[0]?.title ?? "Evaluated Network Configuration Risk Baseline")}
             </div>
           </div>
 
           {/* Affected Infrastructure Card */}
-          <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-3 text-xs">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-              <span className="text-[10px] text-[#64748B] uppercase font-bold flex items-center gap-1.5">
-                <Server className="w-3.5 h-3.5 text-[#00D9FF]" />
+          <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
+            <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+              <span className="text-[10px] text-[#667085] uppercase font-bold flex items-center gap-1.5">
+                <Server className="w-3.5 h-3.5 text-[#3B82F6]" />
                 <span>AFFECTED INFRASTRUCTURE ({devices.length})</span>
               </span>
-              <Link href="/devices" className="text-[10px] text-[#00D9FF] hover:underline">
+              <Link href="/devices" className="text-[10px] text-[#3B82F6] hover:underline">
                 Inventory →
               </Link>
             </div>
 
             <div className="space-y-2">
               {devices.length === 0 ? (
-                <div className="text-[10px] text-slate-500 font-mono py-2">No monitored devices registered.</div>
+                <div className="text-[10px] text-[#667085] font-mono py-2">No monitored devices registered.</div>
               ) : (
                 devices.slice(0, 3).map((dev) => (
                   <Link
                     key={dev.id}
                     href="/devices"
-                    className="p-2.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.04] transition-all flex items-center justify-between group"
+                    className="p-2.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] transition-all flex items-center justify-between group"
                   >
                     <div>
-                      <div className="font-bold text-white group-hover:text-[#00D9FF]">{dev.hostname}</div>
-                      <div className="text-[10px] text-[#64748B]">
+                      <div className="font-bold text-white group-hover:text-[#3B82F6]">{dev.hostname}</div>
+                      <div className="text-[10px] text-[#667085]">
                         {dev.vendor.toUpperCase()} • Score: {dev.last_audit_score?.toFixed(0) ?? "N/A"}%
                       </div>
                     </div>
                     <span className={cn(
                       "text-[10px] font-bold px-1.5 py-0.5 rounded",
-                      dev.risk_score >= 75 ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      dev.risk_score >= 75 ? "bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20" : "bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20"
                     )}>
                       {dev.risk_score >= 75 ? "High Risk" : "Normal"}
                     </span>
@@ -698,35 +698,35 @@ export default function SecurityOperationsPage() {
           </div>
 
           {/* Active Incidents Block */}
-          <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-2 text-xs">
-            <div className="text-[10px] text-[#64748B] uppercase font-bold border-b border-white/[0.06] pb-1.5">
+          <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2 text-xs">
+            <div className="text-[10px] text-[#667085] uppercase font-bold border-b border-[#1D2939] pb-1.5">
               ACTIVE INCIDENTS
             </div>
-            <div className="p-3 rounded-lg bg-[#0B0F19] border border-white/[0.04] text-center space-y-1">
-              <div className="text-[11px] font-bold text-[#F8FAFC]">NO ACTIVE INCIDENTS</div>
-              <p className="text-[10px] text-[#94A3B8] font-sans">
+            <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] text-center space-y-1">
+              <div className="text-[11px] font-bold text-[#F3F4F6]">NO ACTIVE INCIDENTS</div>
+              <p className="text-[10px] text-[#A7B0C0] font-sans">
                 NetVigil has not identified any active correlated incidents.
               </p>
             </div>
           </div>
 
           {/* Threat Signals */}
-          <div className="p-4 rounded-xl bg-[#070A10] border border-white/[0.08] space-y-2 text-xs">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-1.5">
-              <span className="text-[10px] text-[#64748B] uppercase font-bold">COMPLIANCE SIGNALS</span>
+          <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2 text-xs">
+            <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
+              <span className="text-[10px] text-[#667085] uppercase font-bold">COMPLIANCE SIGNALS</span>
               <span className="text-[10px] text-[#10B981]">
                 {stats?.supported_frameworks?.length || 4} FRAMEWORKS
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[10px]">
-              <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.04]">
-                <span className="text-[#64748B] block">CIS BENCHMARK</span>
+              <div className="p-2 rounded bg-[#080B12] border border-[#1D2939]">
+                <span className="text-[#667085] block">CIS BENCHMARK</span>
                 <span className="font-bold text-white">
                   {stats?.framework_scores?.["CIS"] !== undefined ? `${stats.framework_scores["CIS"].toFixed(1)}% Compliant` : "Evaluated"}
                 </span>
               </div>
-              <div className="p-2 rounded bg-[#0B0F19] border border-white/[0.04]">
-                <span className="text-[#64748B] block">NIST SP 800-53</span>
+              <div className="p-2 rounded bg-[#080B12] border border-[#1D2939]">
+                <span className="text-[#667085] block">NIST SP 800-53</span>
                 <span className="font-bold text-white">
                   {stats?.framework_scores?.["NIST"] !== undefined ? `${stats.framework_scores["NIST"].toFixed(1)}% Compliant` : "Evaluated"}
                 </span>

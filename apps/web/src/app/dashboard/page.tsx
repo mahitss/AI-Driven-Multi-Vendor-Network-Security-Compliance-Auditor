@@ -208,17 +208,17 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       {/* 1. Tactical Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#171b26] pb-3.5 bg-[#07080a]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1D2939] pb-3.5 bg-[#080B12]">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-base font-semibold text-[#f0f3f8] tracking-tight font-mono">
+            <h1 className="text-base font-semibold text-[#F3F4F6] tracking-tight font-mono">
               SECURITY POSTURE & TELEMETRY
             </h1>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/25 font-semibold">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 font-semibold">
               [ OPERATIONAL ]
             </span>
           </div>
-          <p className="text-xs text-[#8b95a8] mt-1 font-sans">
+          <p className="text-xs text-[#A7B0C0] mt-1 font-sans">
             Deterministic compliance evaluation, risk intelligence, and autonomous remediation status across managed assets.
           </p>
         </div>
@@ -228,24 +228,24 @@ export default function DashboardPage() {
               refetchStats();
               refetchFindings();
             }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[#0a0c10] hover:bg-[#12151e] border border-[#171b26] text-[#8b95a8] hover:text-[#f0f3f8] text-xs font-mono font-medium transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-[#F3F4F6] text-xs font-mono font-medium transition-colors"
             title="Refresh system state"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-[#0ea5e9]" />
+            <RefreshCw className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>SYNC STATE</span>
           </button>
           <Link
             href="/agent"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-mono font-medium transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-mono font-medium transition-colors shadow-sm"
           >
             <Bot className="w-3.5 h-3.5" />
             <span>AGENT CONSOLE</span>
           </Link>
           <Link
             href="/remediation"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0a0c10] hover:bg-[#12151e] border border-[#171b26] text-[#c5cbd8] hover:text-[#f0f3f8] text-xs font-mono font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-[#F3F4F6] text-xs font-mono font-medium transition-colors"
           >
-            <Wrench className="w-3.5 h-3.5 text-[#0ea5e9]" />
+            <Wrench className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>REMEDIATION</span>
           </Link>
         </div>
@@ -254,21 +254,21 @@ export default function DashboardPage() {
       {/* 2. Key Posture Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2.5">
         {/* Metric 1: Fleet Compliance */}
-        <div className="p-3.5 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#8b95a8] font-mono">
+        <div className="p-3.5 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#A7B0C0] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Fleet Compliance</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-[#10b981]" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
           </div>
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-semibold text-[#f0f3f8] font-mono tracking-tight">
+              <span className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
                 {stats?.compliance_score !== undefined ? `${stats.compliance_score.toFixed(1)}%` : "—"}
               </span>
               {stats?.score_delta !== null && stats?.score_delta !== undefined ? (
                 <span
                   className={cn(
                     "text-[10px] font-mono font-medium flex items-center gap-0.5",
-                    stats.score_delta >= 0 ? "text-[#10b981]" : "text-[#ef4444]"
+                    stats.score_delta >= 0 ? "text-[#10B981]" : "text-[#EF4444]"
                   )}
                 >
                   {stats.score_delta >= 0 ? (
@@ -279,15 +279,15 @@ export default function DashboardPage() {
                   {Math.abs(stats.score_delta).toFixed(1)}% vs prior
                 </span>
               ) : (
-                <span className="text-[10px] text-[#525c70] font-mono">Baseline audit</span>
+                <span className="text-[10px] text-[#667085] font-mono">Baseline audit</span>
               )}
             </div>
-            <p className="text-[10px] text-[#525c70] mt-1 font-mono">
+            <p className="text-[10px] text-[#667085] mt-1 font-mono">
               Evaluated on {stats?.total_configurations || 0} config(s)
             </p>
           </div>
           {/* Framework Breakdown Strip */}
-          <div className="pt-2 border-t border-[#171b26] flex items-center justify-between text-[9px] font-mono text-[#8b95a8]">
+          <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[9px] font-mono text-[#A7B0C0]">
             <span>CIS {stats?.framework_scores?.CIS !== undefined ? `${Math.round(stats.framework_scores.CIS)}%` : "—"}</span>
             <span>NIST {stats?.framework_scores?.NIST !== undefined ? `${Math.round(stats.framework_scores.NIST)}%` : "—"}</span>
             <span>STIG {stats?.framework_scores?.STIG !== undefined ? `${Math.round(stats.framework_scores.STIG)}%` : "—"}</span>
@@ -296,12 +296,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Metric 2: Risk Score */}
-        <div className="p-3.5 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#8b95a8] font-mono">
+        <div className="p-3.5 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#A7B0C0] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Risk Score</span>
             <button
               onClick={() => setShowRiskExplanation(true)}
-              className="text-[10px] text-[#0ea5e9] hover:underline flex items-center gap-0.5"
+              className="text-[10px] text-[#3B82F6] hover:underline flex items-center gap-0.5"
             >
               <HelpCircle className="w-3 h-3" />
               <span>Formula</span>
@@ -309,85 +309,85 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-semibold text-[#f0f3f8] font-mono tracking-tight">
+              <span className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
                 {stats?.risk_score !== undefined ? Math.round(stats.risk_score) : "—"}
               </span>
-              <span className="text-xs text-[#525c70] font-mono">/ 100</span>
+              <span className="text-xs text-[#667085] font-mono">/ 100</span>
             </div>
-            <p className="text-[10px] text-[#525c70] mt-1 font-mono">
+            <p className="text-[10px] text-[#667085] mt-1 font-mono">
               Attack-surface weighted from {stats?.open_findings || 0} finding(s)
             </p>
           </div>
-          <div className="pt-2 border-t border-[#171b26] flex items-center justify-between text-[9px] font-mono text-[#8b95a8]">
-            <span className="text-[#ef4444]">Crit: {stats?.severity_breakdown?.critical || 0}</span>
-            <span className="text-[#f59e0b]">High: {stats?.severity_breakdown?.high || 0}</span>
-            <span className="text-[#0ea5e9]">Med: {stats?.severity_breakdown?.medium || 0}</span>
+          <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[9px] font-mono text-[#A7B0C0]">
+            <span className="text-[#EF4444]">Crit: {stats?.severity_breakdown?.critical || 0}</span>
+            <span className="text-[#F59E0B]">High: {stats?.severity_breakdown?.high || 0}</span>
+            <span className="text-[#60A5FA]">Med: {stats?.severity_breakdown?.medium || 0}</span>
           </div>
         </div>
 
         {/* Metric 3: Critical Findings (P0) */}
-        <div className="p-3.5 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#8b95a8] font-mono">
+        <div className="p-3.5 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#A7B0C0] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Critical (P0)</span>
-            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#ef4444]/10 text-[#ef4444] font-semibold border border-[#ef4444]/20 font-mono">
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EF4444]/10 text-[#EF4444] font-semibold border border-[#EF4444]/20 font-mono">
               P0 PRIORITY
             </span>
           </div>
           <div>
-            <div className="text-2xl font-semibold text-[#ef4444] font-mono tracking-tight">
+            <div className="text-2xl font-semibold text-[#EF4444] font-mono tracking-tight">
               {stats?.severity_breakdown?.critical || 0}
             </div>
-            <p className="text-[10px] text-[#525c70] mt-1 font-mono">
+            <p className="text-[10px] text-[#667085] mt-1 font-mono">
               Cleartext protocols & auth bypass
             </p>
           </div>
-          <div className="pt-2 border-t border-[#171b26] text-[10px] font-mono text-[#8b95a8] flex items-center justify-between">
+          <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#A7B0C0] flex items-center justify-between">
             <span>High: {stats?.severity_breakdown?.high || 0}</span>
-            <Link href="/findings?severity=CRITICAL" className="text-[#0ea5e9] hover:underline text-[10px]">
+            <Link href="/findings?severity=CRITICAL" className="text-[#3B82F6] hover:underline text-[10px]">
               Inspect →
             </Link>
           </div>
         </div>
 
         {/* Metric 4: Total Open Findings */}
-        <div className="p-3.5 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#8b95a8] font-mono">
+        <div className="p-3.5 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#A7B0C0] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Open Findings</span>
-            <span className="text-[10px] font-mono text-[#525c70]">Fleet Active</span>
+            <span className="text-[10px] font-mono text-[#667085]">Fleet Active</span>
           </div>
           <div>
-            <div className="text-2xl font-semibold text-[#f0f3f8] font-mono tracking-tight">
+            <div className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
               {stats?.open_findings || 0}
             </div>
-            <p className="text-[10px] text-[#525c70] mt-1 font-mono">
+            <p className="text-[10px] text-[#667085] mt-1 font-mono">
               Deterministic non-compliant checks
             </p>
           </div>
-          <div className="pt-2 border-t border-[#171b26] text-[10px] font-mono text-[#8b95a8] flex items-center justify-between">
+          <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#A7B0C0] flex items-center justify-between">
             <span>Audits: {stats?.total_audits || 0}</span>
-            <Link href="/findings" className="text-[#0ea5e9] hover:underline text-[10px]">
+            <Link href="/findings" className="text-[#3B82F6] hover:underline text-[10px]">
               View all →
             </Link>
           </div>
         </div>
 
         {/* Metric 5: Managed Assets */}
-        <div className="p-3.5 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#8b95a8] font-mono">
+        <div className="p-3.5 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#A7B0C0] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Managed Assets</span>
-            <Server className="w-3.5 h-3.5 text-[#0ea5e9]" />
+            <Server className="w-3.5 h-3.5 text-[#3B82F6]" />
           </div>
           <div>
-            <div className="text-2xl font-semibold text-[#f0f3f8] font-mono tracking-tight">
+            <div className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
               {stats?.total_configurations || 0}
             </div>
-            <p className="text-[10px] text-[#525c70] mt-1 font-mono truncate" title={vendorBreakdownSummary}>
+            <p className="text-[10px] text-[#667085] mt-1 font-mono truncate" title={vendorBreakdownSummary}>
               {vendorBreakdownSummary}
             </p>
           </div>
-          <div className="pt-2 border-t border-[#171b26] text-[10px] font-mono text-[#8b95a8] flex items-center justify-between">
+          <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#A7B0C0] flex items-center justify-between">
             <span>Universal AST Engine</span>
-            <Link href="/configurations" className="text-[#0ea5e9] hover:underline text-[10px]">
+            <Link href="/configurations" className="text-[#3B82F6] hover:underline text-[10px]">
               Inventory →
             </Link>
           </div>
@@ -398,18 +398,18 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Left Column: Attention Queue (Grouped Deduplicated Controls) */}
         <div className="lg:col-span-8 space-y-2.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#171b26] pb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1D2939] pb-2">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-mono font-semibold text-[#f0f3f8] uppercase tracking-wider">
+              <h2 className="text-xs font-mono font-semibold text-[#F3F4F6] uppercase tracking-wider">
                 ACTIVE EXPOSURES & FAILED CONTROLS
               </h2>
-              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#ef4444]/10 text-[#ef4444] font-medium border border-[#ef4444]/20">
+              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#EF4444]/10 text-[#EF4444] font-medium border border-[#EF4444]/20">
                 {filteredGroups.length} Unique Failed Controls
               </span>
             </div>
 
             {/* Severity Filter Tabs */}
-            <div className="flex items-center gap-1 bg-[#0a0c10] border border-[#171b26] p-0.5 rounded text-xs">
+            <div className="flex items-center gap-1 bg-[#0D121C] border border-[#1D2939] p-0.5 rounded text-xs">
               {(["ALL", "CRITICAL", "HIGH", "MEDIUM"] as const).map((sev) => (
                 <button
                   key={`sev_tab_${sev}`}
@@ -417,8 +417,8 @@ export default function DashboardPage() {
                   className={cn(
                     "px-2.5 py-0.5 rounded text-[10px] font-mono font-medium transition-colors",
                     severityFilter === sev
-                      ? "bg-[#161b26] text-[#f0f3f8] border border-[#222838]"
-                      : "text-[#8b95a8] hover:text-[#f0f3f8]"
+                      ? "bg-[#111827] text-[#F3F4F6] border border-[#263B55]"
+                      : "text-[#A7B0C0] hover:text-[#F3F4F6]"
                   )}
                 >
                   {sev === "ALL" ? "ALL TIERS" : sev}
@@ -430,19 +430,19 @@ export default function DashboardPage() {
           {/* Attention Findings List */}
           <div className="space-y-1.5">
             {isFindingsLoading ? (
-              <div className="p-8 text-center rounded bg-[#0a0c10] border border-[#171b26] text-xs text-[#8b95a8] space-y-2 font-mono">
-                <RefreshCw className="w-4 h-4 animate-spin mx-auto text-[#0ea5e9]" />
+              <div className="p-8 text-center rounded bg-[#0D121C] border border-[#1D2939] text-xs text-[#A7B0C0] space-y-2 font-mono">
+                <RefreshCw className="w-4 h-4 animate-spin mx-auto text-[#3B82F6]" />
                 <div>Loading live compliance posture findings...</div>
               </div>
             ) : filteredGroups.length === 0 ? (
-              <div className="p-8 text-center rounded bg-[#0a0c10] border border-[#171b26] text-xs text-[#8b95a8] space-y-1.5">
-                <CheckCircle2 className="w-5 h-5 mx-auto text-[#10b981]" />
-                <div className="text-sm font-medium text-[#f0f3f8] font-mono">
+              <div className="p-8 text-center rounded bg-[#0D121C] border border-[#1D2939] text-xs text-[#A7B0C0] space-y-1.5">
+                <CheckCircle2 className="w-5 h-5 mx-auto text-[#10B981]" />
+                <div className="text-sm font-medium text-[#F3F4F6] font-mono">
                   {stats?.total_configurations === 0
                     ? "No configurations ingested yet"
                     : "No matching findings in this severity tier"}
                 </div>
-                <p className="text-[#525c70] max-w-sm mx-auto text-xs">
+                <p className="text-[#667085] max-w-sm mx-auto text-xs">
                   {stats?.total_configurations === 0
                     ? "Upload network device configurations to start deterministic compliance auditing."
                     : "All evaluated rules in this tier have passed benchmark requirements."}
@@ -451,7 +451,7 @@ export default function DashboardPage() {
                   <div className="pt-2">
                     <Link
                       href="/configurations"
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#0ea5e9] text-white text-xs font-mono font-medium"
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-mono font-medium"
                     >
                       <span>Upload Configuration</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -467,7 +467,7 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={`ctrl_grp_${group.group_key}_${groupIdx}`}
-                    className="rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors overflow-hidden"
+                    className="rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors overflow-hidden"
                   >
                     {/* Control Card Header */}
                     <div className="p-2.5 sm:px-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -477,28 +477,28 @@ export default function DashboardPage() {
                             className={cn(
                               "text-[9px] font-mono px-1.5 py-0.2 rounded font-semibold border",
                               group.severity === "CRITICAL"
-                                ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/25"
+                                ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25"
                                 : group.severity === "HIGH"
-                                ? "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/25"
-                                : "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/25"
+                                ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25"
+                                : "bg-[#3B82F6]/10 text-[#60A5FA] border-[#3B82F6]/25"
                             )}
                           >
                             {group.severity}
                           </span>
-                          <span className="font-mono text-xs font-semibold text-[#0ea5e9]">
+                          <span className="font-mono text-xs font-semibold text-[#3B82F6]">
                             {group.control_id}
                           </span>
-                          <span className="text-[10px] font-mono text-[#525c70]">• {group.framework}</span>
+                          <span className="text-[10px] font-mono text-[#667085]">• {group.framework}</span>
                         </div>
 
-                        <div className="text-xs font-medium text-[#f0f3f8] truncate">
+                        <div className="text-xs font-medium text-[#F3F4F6] truncate">
                           {group.title}
                         </div>
 
-                        <div className="flex items-center gap-2 text-[10px] text-[#8b95a8] font-mono">
-                          <span className="text-[#525c70]">{group.category}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-[#A7B0C0] font-mono">
+                          <span className="text-[#667085]">{group.category}</span>
                           <span>•</span>
-                          <span className="text-[#f59e0b]">
+                          <span className="text-[#F59E0B]">
                             {distinctAssetsCount} asset{distinctAssetsCount > 1 ? "s" : ""} affected
                           </span>
                         </div>
@@ -508,10 +508,10 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0">
                         <button
                           onClick={() => setExpandedControlId(isExpanded ? null : group.group_key)}
-                          className="flex items-center gap-1 px-2 py-1 rounded bg-[#0e1117] hover:bg-[#161b26] border border-[#171b26] text-[11px] font-mono text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
+                          className="flex items-center gap-1 px-2 py-1 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-[11px] font-mono text-[#A7B0C0] hover:text-[#F3F4F6] transition-colors"
                         >
                           <span>{isExpanded ? "COLLAPSE" : "ASSETS"}</span>
-                          <span className="text-[#0ea5e9]">({distinctAssetsCount})</span>
+                          <span className="text-[#3B82F6]">({distinctAssetsCount})</span>
                           {isExpanded ? (
                             <ChevronDown className="w-3 h-3" />
                           ) : (
@@ -520,7 +520,7 @@ export default function DashboardPage() {
                         </button>
                         <Link
                           href={`/remediation?control=${group.control_id}`}
-                          className="px-2 py-1 rounded bg-[#0ea5e9]/10 hover:bg-[#0ea5e9]/20 border border-[#0ea5e9]/30 text-[11px] font-mono text-[#0ea5e9] font-medium transition-colors"
+                          className="px-2 py-1 rounded bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20 border border-[#3B82F6]/30 text-[11px] font-mono text-[#3B82F6] font-medium transition-colors"
                         >
                           PLAN FIX
                         </Link>
@@ -529,7 +529,7 @@ export default function DashboardPage() {
 
                     {/* Expandable Affected Assets Sub-rows */}
                     {isExpanded && (
-                      <div className="border-t border-[#171b26] bg-[#07080a] divide-y divide-[#171b26]">
+                      <div className="border-t border-[#1D2939] bg-[#080B12] divide-y divide-[#1D2939]">
                         {group.affected_assets.map((asset, idx) => (
                           <div
                             key={`${group.group_key}_${asset.finding_id}_${idx}`}
@@ -537,15 +537,15 @@ export default function DashboardPage() {
                           >
                             <div className="space-y-0.5 min-w-0">
                               <div className="flex items-center gap-2">
-                                <Server className="w-3 h-3 text-[#525c70]" />
-                                <span className="font-mono text-xs font-medium text-[#f0f3f8]">
+                                <Server className="w-3 h-3 text-[#667085]" />
+                                <span className="font-mono text-xs font-medium text-[#F3F4F6]">
                                   {asset.device_name}
                                 </span>
-                                <span className="text-[9px] uppercase font-mono px-1 rounded bg-[#0a0c10] text-[#8b95a8] border border-[#171b26]">
+                                <span className="text-[9px] uppercase font-mono px-1 rounded bg-[#0D121C] text-[#A7B0C0] border border-[#1D2939]">
                                   {asset.vendor}
                                 </span>
                               </div>
-                              <div className="text-[10px] text-[#525c70] font-mono truncate max-w-md">
+                              <div className="text-[10px] text-[#667085] font-mono truncate max-w-md">
                                 {asset.evidence
                                   ? asset.evidence
                                   : asset.source_lines && asset.source_lines.length > 0
@@ -569,13 +569,13 @@ export default function DashboardPage() {
                                     remediation: group.remediation,
                                   })
                                 }
-                                className="px-2 py-0.5 rounded bg-[#0a0c10] hover:bg-[#161b26] border border-[#171b26] text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
+                                className="px-2 py-0.5 rounded bg-[#0D121C] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#F3F4F6] transition-colors"
                               >
                                 INSPECT EVIDENCE
                               </button>
                               <Link
                                 href={`/remediation?finding=${asset.finding_id}`}
-                                className="px-2 py-0.5 rounded bg-[#0ea5e9]/10 hover:bg-[#0ea5e9]/20 border border-[#0ea5e9]/30 text-[#0ea5e9] transition-colors"
+                                className="px-2 py-0.5 rounded bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20 border border-[#3B82F6]/30 text-[#3B82F6] transition-colors"
                               >
                                 REMEDIATE
                               </Link>
@@ -593,40 +593,40 @@ export default function DashboardPage() {
 
         {/* Right Column: Real Activity Stream */}
         <div className="lg:col-span-4 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-[#171b26] pb-2">
-            <h2 className="text-xs font-mono font-semibold text-[#f0f3f8] uppercase tracking-wider">
+          <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+            <h2 className="text-xs font-mono font-semibold text-[#F3F4F6] uppercase tracking-wider">
               SYSTEM AUDIT TIMELINE
             </h2>
-            <span className="text-[9px] text-[#10b981] font-medium flex items-center gap-1 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] tactical-pulse-green" /> LIVE
+            <span className="text-[9px] text-[#10B981] font-medium flex items-center gap-1 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] tactical-pulse-green" /> LIVE
             </span>
           </div>
 
-          <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2.5 text-xs">
+          <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] space-y-2.5 text-xs">
             {isActivityLoading ? (
-              <div className="py-6 text-center text-[#8b95a8] text-xs font-mono">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin mx-auto mb-1 text-[#0ea5e9]" />
+              <div className="py-6 text-center text-[#A7B0C0] text-xs font-mono">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin mx-auto mb-1 text-[#3B82F6]" />
                 <span>Loading activity stream...</span>
               </div>
             ) : activityLogs.length === 0 ? (
-              <div className="py-6 text-center text-[#525c70] text-xs space-y-1 font-mono">
-                <Clock className="w-4 h-4 mx-auto text-[#525c70]" />
-                <div className="text-[#8b95a8] font-medium">No activity recorded</div>
+              <div className="py-6 text-center text-[#667085] text-xs space-y-1 font-mono">
+                <Clock className="w-4 h-4 mx-auto text-[#667085]" />
+                <div className="text-[#A7B0C0] font-medium">No activity recorded</div>
                 <p className="text-[10px]">System events and audit sessions will populate here.</p>
               </div>
             ) : (
               activityLogs.map((event, idx) => (
-                <div key={`${event.id}_${idx}`} className="flex items-start gap-2.5 pb-2.5 border-b border-[#171b26] last:border-0 last:pb-0">
+                <div key={`${event.id}_${idx}`} className="flex items-start gap-2.5 pb-2.5 border-b border-[#1D2939] last:border-0 last:pb-0">
                   <div
                     className={cn(
                       "w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-mono border",
                       event.severity === "SUCCESS"
-                        ? "bg-[#10b981]/10 text-[#10b981] border-[#10b981]/20"
+                        ? "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20"
                         : event.severity === "WARNING"
-                        ? "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20"
+                        ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20"
                         : event.severity === "HIGH" || (event.severity as string) === "CRITICAL"
-                        ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20"
-                        : "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/20"
+                        ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20"
+                        : "bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/20"
                     )}
                   >
                     {event.type.includes("AUDIT") ? (
@@ -640,16 +640,16 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="space-y-0.5 min-w-0 flex-1">
-                    <div className="font-medium text-[#f0f3f8] text-xs truncate">
+                    <div className="font-medium text-[#F3F4F6] text-xs truncate">
                       {event.title}
                     </div>
-                    <div className="text-[#8b95a8] text-[10px] leading-tight">
+                    <div className="text-[#A7B0C0] text-[10px] leading-tight">
                       {event.description}
                     </div>
-                    <div className="text-[#525c70] text-[9px] font-mono flex items-center justify-between pt-0.5">
+                    <div className="text-[#667085] text-[9px] font-mono flex items-center justify-between pt-0.5">
                       <span>{formatTimestamp(event.timestamp)}</span>
                       {event.target_url && (
-                        <Link href={event.target_url} className="text-[#0ea5e9] hover:underline flex items-center gap-0.5">
+                        <Link href={event.target_url} className="text-[#3B82F6] hover:underline flex items-center gap-0.5">
                           <span>View</span>
                           <ChevronRight className="w-2.5 h-2.5" />
                         </Link>
@@ -660,10 +660,10 @@ export default function DashboardPage() {
               ))
             )}
 
-            <div className="pt-2 border-t border-[#171b26]">
+            <div className="pt-2 border-t border-[#1D2939]">
               <Link
                 href="/agent"
-                className="w-full py-1.5 rounded bg-[#0e1117] hover:bg-[#161b26] text-[#0ea5e9] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-colors border border-[#171b26]"
+                className="w-full py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] text-[#3B82F6] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-colors border border-[#1D2939]"
               >
                 <span>LAUNCH AUTONOMOUS ENGINEER</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -676,27 +676,27 @@ export default function DashboardPage() {
       {/* Modal 1: Inspect Finding Evidence (Deterministic Traceability) */}
       {inspectedFinding && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-xl rounded bg-[#0a0c10] border border-[#171b26] p-4 space-y-3 shadow-2xl font-mono">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#171b26]">
+          <div className="w-full max-w-xl rounded bg-[#0D121C] border border-[#1D2939] p-4 space-y-3 shadow-2xl font-mono">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#1D2939]">
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
                     "text-[9px] font-mono px-1.5 py-0.2 rounded font-semibold border",
                     inspectedFinding.severity === "CRITICAL"
-                      ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20"
-                      : "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20"
+                      ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20"
+                      : "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20"
                   )}
                 >
                   {inspectedFinding.severity}
                 </span>
-                <span className="font-mono text-xs font-semibold text-[#f0f3f8]">
+                <span className="font-mono text-xs font-semibold text-[#F3F4F6]">
                   {inspectedFinding.control_id}
                 </span>
-                <span className="text-xs text-[#525c70]">• {inspectedFinding.framework}</span>
+                <span className="text-xs text-[#667085]">• {inspectedFinding.framework}</span>
               </div>
               <button
                 onClick={() => setInspectedFinding(null)}
-                className="text-[#8b95a8] hover:text-[#f0f3f8] text-xs p-1 rounded bg-[#07080a]"
+                className="text-[#667085] hover:text-[#F3F4F6] text-xs p-1 rounded bg-[#080B12]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -704,59 +704,59 @@ export default function DashboardPage() {
 
             <div className="space-y-2.5 text-xs font-sans">
               <div>
-                <div className="text-[#525c70] text-[10px] uppercase font-mono">Finding Title</div>
-                <div className="text-[#f0f3f8] font-medium mt-0.5 text-xs">{inspectedFinding.title}</div>
+                <div className="text-[#667085] text-[10px] uppercase font-mono">Finding Title</div>
+                <div className="text-[#F3F4F6] font-medium mt-0.5 text-xs">{inspectedFinding.title}</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 p-2 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="grid grid-cols-2 gap-2 p-2 rounded bg-[#080B12] border border-[#1D2939]">
                 <div>
-                  <div className="text-[#525c70] text-[9px] uppercase font-mono">Target Asset</div>
-                  <div className="text-[#f0f3f8] font-mono text-xs mt-0.5">{inspectedFinding.asset.device_name}</div>
+                  <div className="text-[#667085] text-[9px] uppercase font-mono">Target Asset</div>
+                  <div className="text-[#F3F4F6] font-mono text-xs mt-0.5">{inspectedFinding.asset.device_name}</div>
                 </div>
                 <div>
-                  <div className="text-[#525c70] text-[9px] uppercase font-mono">Vendor Dialect</div>
-                  <div className="text-[#0ea5e9] font-mono text-xs mt-0.5 uppercase">{inspectedFinding.asset.vendor}</div>
+                  <div className="text-[#667085] text-[9px] uppercase font-mono">Vendor Dialect</div>
+                  <div className="text-[#3B82F6] font-mono text-xs mt-0.5 uppercase">{inspectedFinding.asset.vendor}</div>
                 </div>
               </div>
 
               {/* Observed Configuration Evidence */}
               <div>
-                <div className="text-[#525c70] text-[10px] font-mono uppercase flex items-center justify-between">
+                <div className="text-[#667085] text-[10px] font-mono uppercase flex items-center justify-between">
                   <span>Observed Configuration Evidence</span>
                   {inspectedFinding.asset.source_lines && inspectedFinding.asset.source_lines.length > 0 && (
-                    <span className="text-[#0ea5e9]">
+                    <span className="text-[#3B82F6]">
                       Source Line: {inspectedFinding.asset.source_lines.join(", ")}
                     </span>
                   )}
                 </div>
-                <pre className="mt-1 p-2 rounded bg-[#07080a] border border-[#171b26] font-mono text-[11px] text-[#ef4444] overflow-x-auto whitespace-pre-wrap">
+                <pre className="mt-1 p-2 rounded bg-[#080B12] border border-[#1D2939] font-mono text-[11px] text-[#EF4444] overflow-x-auto whitespace-pre-wrap">
                   {inspectedFinding.asset.evidence || "Non-compliant parameter value observed in device configuration baseline."}
                 </pre>
               </div>
 
               {/* Expected Value & Remediation */}
               <div className="grid grid-cols-2 gap-2 font-mono">
-                <div className="p-2 rounded bg-[#07080a] border border-[#171b26]">
-                  <div className="text-[#525c70] text-[9px] uppercase">Observed Fact</div>
-                  <div className="text-[#ef4444] text-[11px] mt-0.5 truncate">{inspectedFinding.asset.actual_value || "FAIL (Non-compliant)"}</div>
+                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939]">
+                  <div className="text-[#667085] text-[9px] uppercase">Observed Fact</div>
+                  <div className="text-[#EF4444] text-[11px] mt-0.5 truncate">{inspectedFinding.asset.actual_value || "FAIL (Non-compliant)"}</div>
                 </div>
-                <div className="p-2 rounded bg-[#07080a] border border-[#171b26]">
-                  <div className="text-[#525c70] text-[9px] uppercase">Expected Requirement</div>
-                  <div className="text-[#10b981] text-[11px] mt-0.5 truncate">{inspectedFinding.expected_value || "Enforced in accordance with baseline"}</div>
+                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939]">
+                  <div className="text-[#667085] text-[9px] uppercase">Expected Requirement</div>
+                  <div className="text-[#10B981] text-[11px] mt-0.5 truncate">{inspectedFinding.expected_value || "Enforced in accordance with baseline"}</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-[#171b26] font-mono">
+            <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-[#1D2939] font-mono">
               <button
                 onClick={() => setInspectedFinding(null)}
-                className="px-2.5 py-1 rounded bg-[#07080a] hover:bg-[#12151e] border border-[#171b26] text-[#8b95a8] text-xs font-medium"
+                className="px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] text-xs font-medium"
               >
                 CLOSE
               </button>
               <Link
                 href={`/remediation?finding=${inspectedFinding.asset.finding_id}`}
-                className="px-3 py-1 rounded bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-semibold transition-colors flex items-center gap-1"
+                className="px-3 py-1 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold transition-colors flex items-center gap-1"
               >
                 <span>REMEDIATE FINDING</span>
                 <ChevronRight className="w-3 h-3" />
@@ -769,62 +769,62 @@ export default function DashboardPage() {
       {/* Modal 2: Explainable Risk Score Calculation */}
       {showRiskExplanation && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded bg-[#0a0c10] border border-[#171b26] p-4 space-y-3 shadow-2xl font-mono">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#171b26]">
+          <div className="w-full max-w-lg rounded bg-[#0D121C] border border-[#1D2939] p-4 space-y-3 shadow-2xl font-mono">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#1D2939]">
               <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-[#f59e0b]" />
-                <h3 className="font-semibold text-xs text-[#f0f3f8] uppercase">DETERMINISTIC RISK SCORE CALCULATION</h3>
+                <Flame className="w-4 h-4 text-[#F59E0B]" />
+                <h3 className="font-semibold text-xs text-[#F3F4F6] uppercase">DETERMINISTIC RISK SCORE CALCULATION</h3>
               </div>
               <button
                 onClick={() => setShowRiskExplanation(false)}
-                className="text-[#8b95a8] hover:text-[#f0f3f8] text-xs p-1 rounded bg-[#07080a]"
+                className="text-[#667085] hover:text-[#F3F4F6] text-xs p-1 rounded bg-[#080B12]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <div className="space-y-2.5 text-xs font-sans">
-              <p className="text-[#8b95a8] text-[11px]">
+              <p className="text-[#A7B0C0] text-[11px]">
                 NetVigil calculates risk deterministically using attack-surface weighting and severity multipliers across active configurations:
               </p>
 
-              <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26] space-y-1.5 font-mono text-[10px]">
-                <div className="text-[#0ea5e9] font-bold">Deterministic Formula:</div>
-                <div className="text-[#c5cbd8]">
+              <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939] space-y-1.5 font-mono text-[10px]">
+                <div className="text-[#3B82F6] font-bold">Deterministic Formula:</div>
+                <div className="text-[#A7B0C0]">
                   Risk Score = (0.70 × Severity Base) + 1.5 × (Exposure Mod + Impact Mod) + Correlation Bonus
                 </div>
-                <div className="text-[#525c70] text-[9px] pt-1 border-t border-[#171b26]">
+                <div className="text-[#667085] text-[9px] pt-1 border-t border-[#1D2939]">
                   Base: Critical (90) • High (75) • Medium (50) • Low (25) | Exposure: Mgmt Plane (+6), Internet (+10)
                 </div>
               </div>
 
               <div className="space-y-1 font-mono">
-                <div className="text-[#525c70] text-[10px] uppercase">Current Evaluation Baseline</div>
+                <div className="text-[#667085] text-[10px] uppercase">Current Evaluation Baseline</div>
                 <div className="grid grid-cols-4 gap-1.5 text-center">
-                  <div className="p-1.5 rounded bg-[#0e1117] border border-[#ef4444]/20">
-                    <div className="text-[9px] text-[#ef4444] uppercase">Critical (P0)</div>
-                    <div className="font-mono text-xs font-bold text-[#ef4444] mt-0.5">{stats?.severity_breakdown?.critical || 0}</div>
+                  <div className="p-1.5 rounded bg-[#111827] border border-[#EF4444]/20">
+                    <div className="text-[9px] text-[#EF4444] uppercase">Critical (P0)</div>
+                    <div className="font-mono text-xs font-bold text-[#EF4444] mt-0.5">{stats?.severity_breakdown?.critical || 0}</div>
                   </div>
-                  <div className="p-1.5 rounded bg-[#0e1117] border border-[#f59e0b]/20">
-                    <div className="text-[9px] text-[#f59e0b] uppercase">High (P1)</div>
-                    <div className="font-mono text-xs font-bold text-[#f59e0b] mt-0.5">{stats?.severity_breakdown?.high || 0}</div>
+                  <div className="p-1.5 rounded bg-[#111827] border border-[#F59E0B]/20">
+                    <div className="text-[9px] text-[#F59E0B] uppercase">High (P1)</div>
+                    <div className="font-mono text-xs font-bold text-[#F59E0B] mt-0.5">{stats?.severity_breakdown?.high || 0}</div>
                   </div>
-                  <div className="p-1.5 rounded bg-[#0e1117] border border-[#0ea5e9]/20">
-                    <div className="text-[9px] text-[#0ea5e9] uppercase">Medium (P2)</div>
-                    <div className="font-mono text-xs font-bold text-[#0ea5e9] mt-0.5">{stats?.severity_breakdown?.medium || 0}</div>
+                  <div className="p-1.5 rounded bg-[#111827] border border-[#3B82F6]/20">
+                    <div className="text-[9px] text-[#60A5FA] uppercase">Medium (P2)</div>
+                    <div className="font-mono text-xs font-bold text-[#60A5FA] mt-0.5">{stats?.severity_breakdown?.medium || 0}</div>
                   </div>
-                  <div className="p-1.5 rounded bg-[#0e1117] border border-[#171b26]">
-                    <div className="text-[9px] text-[#8b95a8] uppercase">Low (P3)</div>
-                    <div className="font-mono text-xs font-bold text-[#8b95a8] mt-0.5">{stats?.severity_breakdown?.low || 0}</div>
+                  <div className="p-1.5 rounded bg-[#111827] border border-[#1D2939]">
+                    <div className="text-[9px] text-[#A7B0C0] uppercase">Low (P3)</div>
+                    <div className="font-mono text-xs font-bold text-[#A7B0C0] mt-0.5">{stats?.severity_breakdown?.low || 0}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end pt-2.5 border-t border-[#171b26] font-mono">
+            <div className="flex justify-end pt-2.5 border-t border-[#1D2939] font-mono">
               <button
                 onClick={() => setShowRiskExplanation(false)}
-                className="px-3 py-1 rounded bg-[#07080a] hover:bg-[#12151e] border border-[#171b26] text-xs text-[#f0f3f8] font-medium"
+                className="px-3 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-xs text-[#F3F4F6] font-medium"
               >
                 DONE
               </button>

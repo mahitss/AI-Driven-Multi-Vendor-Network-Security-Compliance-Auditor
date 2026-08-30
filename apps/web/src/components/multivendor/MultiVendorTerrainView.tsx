@@ -90,7 +90,7 @@ export default function MultiVendorTerrainView({
         subtitle: "AST NORMALIZATION",
         category: "CANONICAL MODEL",
         desc: "Unified deterministic security facts extracted from vendor configurations",
-        color: "#00D9FF",
+        color: "#3B82F6",
         isHub: true,
         priority: 1,
         chipOffset: { x: 0, y: -72 },
@@ -105,7 +105,7 @@ export default function MultiVendorTerrainView({
         subtitle: "CLI Native Parser",
         category: "VENDOR INGEST",
         desc: "ip ssh version 1 → remote_access.ssh_version = 1",
-        color: "#00D9FF",
+        color: "#3B82F6",
         priority: 2,
         chipOffset: { x: -18, y: -52 },
       },
@@ -575,7 +575,7 @@ export default function MultiVendorTerrainView({
           ctx.beginPath();
           ctx.arc(pktX, pktY, isHighlighted ? 4 : 2.5, 0, Math.PI * 2);
           ctx.fillStyle = "#FFFFFF";
-          ctx.shadowColor = pipe.vendor === "fortinet" ? "#F59E0B" : pipe.vendor === "juniper" ? "#10B981" : "#00D9FF";
+          ctx.shadowColor = pipe.vendor === "fortinet" ? "#F59E0B" : pipe.vendor === "juniper" ? "#10B981" : "#3B82F6";
           ctx.shadowBlur = isHighlighted ? 14 : 4;
           ctx.fill();
           ctx.shadowBlur = 0;
@@ -595,11 +595,11 @@ export default function MultiVendorTerrainView({
       // 5. LAYER 5: Central Universal Security Model Summit Beacon & Orbiting Data Satellites
       const hubNode = projectedNodes[0];
       if (hubNode) {
-        // Vertical Cyan Signal Beam
+        // Vertical Signal Beam
         const beaconGrad = ctx.createLinearGradient(hubNode.screenX, hubNode.screenY, hubNode.screenX, hubNode.screenY - 80);
-        beaconGrad.addColorStop(0, "rgba(0, 217, 255, 0.55)");
-        beaconGrad.addColorStop(0.6, "rgba(0, 217, 255, 0.15)");
-        beaconGrad.addColorStop(1, "rgba(0, 217, 255, 0)");
+        beaconGrad.addColorStop(0, "rgba(59, 130, 246, 0.55)");
+        beaconGrad.addColorStop(0.6, "rgba(59, 130, 246, 0.15)");
+        beaconGrad.addColorStop(1, "rgba(59, 130, 246, 0)");
         ctx.fillStyle = beaconGrad;
         ctx.fillRect(hubNode.screenX - 2.5, hubNode.screenY - 80, 5, 80);
 
@@ -607,13 +607,13 @@ export default function MultiVendorTerrainView({
         const ringT = (tick * 0.02) % 1;
         ctx.beginPath();
         ctx.arc(hubNode.screenX, hubNode.screenY, 12 + ringT * 22, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 217, 255, ${0.5 * (1 - ringT)})`;
+        ctx.strokeStyle = `rgba(59, 130, 246, ${0.5 * (1 - ringT)})`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(hubNode.screenX, hubNode.screenY, 8 + ((ringT + 0.5) % 1) * 22, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 217, 255, ${0.4 * (1 - ((ringT + 0.5) % 1))})`;
+        ctx.strokeStyle = `rgba(59, 130, 246, ${0.4 * (1 - ((ringT + 0.5) % 1))})`;
         ctx.lineWidth = 1.2;
         ctx.stroke();
 
@@ -626,8 +626,8 @@ export default function MultiVendorTerrainView({
 
           ctx.beginPath();
           ctx.arc(sat1X, sat1Y, 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = "#00D9FF";
-          ctx.shadowColor = "#00D9FF";
+          ctx.fillStyle = "#3B82F6";
+          ctx.shadowColor = "#3B82F6";
           ctx.shadowBlur = 8;
           ctx.fill();
           ctx.shadowBlur = 0;
@@ -686,7 +686,7 @@ export default function MultiVendorTerrainView({
         ctx.beginPath();
         ctx.moveTo(screenX, screenY - (node.isHub ? 10 : 7));
         ctx.lineTo(chipX, chipY + 14);
-        ctx.strokeStyle = isSelected || isHovered ? "rgba(0, 217, 255, 0.6)" : "rgba(255, 255, 255, 0.22)";
+        ctx.strokeStyle = isSelected || isHovered ? "rgba(59, 130, 246, 0.6)" : "rgba(255, 255, 255, 0.22)";
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -701,7 +701,7 @@ export default function MultiVendorTerrainView({
         const boxTop = chipY - boxHeight * 0.5;
 
         // Glassmorphism Dark Charcoal Backing
-        ctx.fillStyle = isSelected ? "rgba(7, 15, 34, 0.95)" : isHovered ? "rgba(11, 21, 42, 0.95)" : "rgba(6, 10, 18, 0.88)";
+        ctx.fillStyle = isSelected ? "rgba(8, 11, 18, 0.95)" : isHovered ? "rgba(13, 18, 28, 0.95)" : "rgba(10, 15, 24, 0.88)";
         if (ctx.roundRect) {
           ctx.beginPath();
           ctx.roundRect(boxLeft, boxTop, boxWidth, boxHeight, 6);
@@ -712,9 +712,9 @@ export default function MultiVendorTerrainView({
 
         // 1px Subtle Border
         ctx.strokeStyle = isSelected
-          ? "#00D9FF"
+          ? "#3B82F6"
           : isHovered
-          ? "#38BDF8"
+          ? "#60A5FA"
           : (node as any).isEvidence
           ? "rgba(239, 68, 68, 0.6)"
           : (node as any).verdict === "FAIL"
@@ -744,7 +744,7 @@ export default function MultiVendorTerrainView({
           ctx.fillText(node.title, chipX, chipY - 4);
 
           ctx.font = "8px monospace";
-          ctx.fillStyle = isSelected ? "#00D9FF" : isHovered ? "#38BDF8" : "#94A3B8";
+          ctx.fillStyle = isSelected ? "#3B82F6" : isHovered ? "#60A5FA" : "#94A3B8";
           ctx.fillText(node.subtitle, chipX, chipY + 9);
         } else {
           ctx.font = "bold 10px monospace";
@@ -771,19 +771,19 @@ export default function MultiVendorTerrainView({
   }, [selectedVendor, selectedFramework, onSelectVendor, onSelectFramework, onSelectNodeInfo, hoveredNodeId]);
 
   return (
-    <div className="relative w-full h-[540px] sm:h-[600px] lg:h-[660px] rounded-2xl bg-[#03060A] border border-white/[0.08] overflow-hidden select-none shadow-[0_0_40px_rgba(0,0,0,0.8)]">
+    <div className="relative w-full h-[540px] sm:h-[600px] lg:h-[660px] rounded-2xl bg-[#080B12] border border-[#1D2939] overflow-hidden select-none shadow-[0_0_40px_rgba(0,0,0,0.8)]">
       {/* 3D Canvas Viewport */}
       <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
       {/* Top Left Viewport Overlay & Orbit Controls Hint */}
       <div className="absolute top-4 left-4 font-mono text-[11px] space-y-1 pointer-events-none">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#00D9FF] animate-pulse" />
-          <span className="text-[#00D9FF] font-extrabold tracking-wider text-xs">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] animate-pulse" />
+          <span className="text-[#3B82F6] font-extrabold tracking-wider text-xs">
             3D SECURITY TERRAIN
           </span>
         </div>
-        <div className="text-[#94A3B8] text-[10px]">
+        <div className="text-[#667085] text-[10px]">
           CLICK OR DRAG TO ROTATE • SCROLL TO ZOOM
         </div>
       </div>
@@ -791,7 +791,7 @@ export default function MultiVendorTerrainView({
       {/* Top Right Reset View Action */}
       <button
         onClick={resetCamera}
-        className="absolute top-4 right-4 px-3.5 py-1.5 rounded-lg bg-[#070A10]/90 hover:bg-[#0B152A] border border-white/[0.12] hover:border-[#00D9FF]/50 text-[#00D9FF] text-xs font-mono font-bold transition-all shadow-lg active:scale-95 flex items-center gap-1.5"
+        className="absolute top-4 right-4 px-3.5 py-1.5 rounded-lg bg-[#0D121C]/90 hover:bg-[#111827] border border-[#1D2939] hover:border-[#3B82F6]/50 text-[#3B82F6] text-xs font-mono font-bold transition-all shadow-lg active:scale-95 flex items-center gap-1.5"
       >
         <span>Reset View</span>
         <span className="text-[10px]">↺</span>
@@ -800,38 +800,38 @@ export default function MultiVendorTerrainView({
       {/* Evidence Hover Tooltip Card (Line 17 AST Proof) */}
       {isEvidenceHovered && evidenceTooltipPos && (
         <div
-          className="absolute z-20 pointer-events-none p-3 rounded-xl bg-[#070C18]/95 border border-[#EF4444]/60 shadow-[0_0_20px_rgba(239,68,68,0.25)] text-xs font-mono space-y-1.5 min-w-[230px] animate-fadeIn"
+          className="absolute z-20 pointer-events-none p-3 rounded-xl bg-[#0D121C]/95 border border-[#EF4444]/60 shadow-[0_0_20px_rgba(239,68,68,0.25)] text-xs font-mono space-y-1.5 min-w-[230px] animate-fadeIn"
           style={{
             left: Math.min(evidenceTooltipPos.x + 20, 480),
             top: Math.max(evidenceTooltipPos.y - 120, 20),
           }}
         >
-          <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5">
+          <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
             <span className="text-[#EF4444] font-bold text-[10px]">EVIDENCE: LINE 17</span>
             <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EF4444]/20 text-[#EF4444] font-extrabold">FAIL</span>
           </div>
           <div className="space-y-1 text-[11px]">
-            <div className="text-[#94A3B8]">Vendor: <strong className="text-white">Cisco IOS</strong></div>
-            <div className="text-[#94A3B8]">Raw Line: <span className="text-[#EF4444] font-bold">ip ssh version 1</span></div>
-            <div className="text-[#94A3B8]">Normalized Fact: <span className="text-[#00D9FF]">remote_access.ssh_version = 1</span></div>
-            <div className="text-[#94A3B8]">Control: <strong className="text-white">CIS-1.2.1 / NIST AC-17</strong></div>
+            <div className="text-[#A7B0C0]">Vendor: <strong className="text-white">Cisco IOS</strong></div>
+            <div className="text-[#A7B0C0]">Raw Line: <span className="text-[#EF4444] font-bold">ip ssh version 1</span></div>
+            <div className="text-[#A7B0C0]">Normalized Fact: <span className="text-[#3B82F6]">remote_access.ssh_version = 1</span></div>
+            <div className="text-[#A7B0C0]">Control: <strong className="text-white">CIS-1.2.1 / NIST AC-17</strong></div>
           </div>
-          <div className="text-[9px] text-[#64748B] pt-0.5 border-t border-white/[0.04]">
+          <div className="text-[9px] text-[#667085] pt-0.5 border-t border-[#1D2939]">
             Deterministic SHA-256 AST Provenance
           </div>
         </div>
       )}
 
       {/* Bottom Architectural Readout (System Readout Bar) */}
-      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between font-mono text-[10px] text-[#64748B] pointer-events-none border-t border-white/[0.06] pt-2">
+      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between font-mono text-[10px] text-[#667085] pointer-events-none border-t border-[#1D2939] pt-2">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <span className="text-[#94A3B8]">[3 VENDORS]</span>
+          <span className="text-[#A7B0C0]">[3 VENDORS]</span>
           <span className="text-white/20">→</span>
-          <span className="text-[#94A3B8]">[AST NORMALIZATION]</span>
+          <span className="text-[#A7B0C0]">[AST NORMALIZATION]</span>
           <span className="text-white/20">→</span>
-          <span className="text-[#00D9FF] font-bold">[UNIVERSAL SECURITY MODEL]</span>
+          <span className="text-[#3B82F6] font-bold">[UNIVERSAL SECURITY MODEL]</span>
           <span className="text-white/20">→</span>
-          <span className="text-[#94A3B8]">[4 FRAMEWORKS]</span>
+          <span className="text-[#A7B0C0]">[4 FRAMEWORKS]</span>
         </div>
         <div className="text-[#10B981] font-bold tracking-wider hidden sm:block">
           IMMUTABLE AST PROOF

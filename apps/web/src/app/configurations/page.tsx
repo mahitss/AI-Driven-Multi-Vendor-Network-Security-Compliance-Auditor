@@ -566,25 +566,25 @@ function ConfigurationsPageContent() {
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* 1. Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#1D2939] pb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-[#00D9FF]/10 border border-[#00D9FF]/30 text-[#00D9FF]">
+            <div className="p-2 rounded-lg bg-[#3B82F6]/10 border border-[#3B82F6]/30 text-[#3B82F6]">
               <FileCode2 className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-extrabold text-[#F8FAFC] tracking-tight">
+                <h1 className="text-xl font-extrabold text-[#F3F4F6] tracking-tight">
                   CONFIGURATION AUDIT
                 </h1>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                   DETERMINISTIC VERIFICATION
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00D9FF]/10 text-[#00D9FF] border border-[#00D9FF]/20">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
                   MULTI-VENDOR
                 </span>
               </div>
-              <p className="text-xs text-[#94A3B8] mt-0.5">
+              <p className="text-xs text-[#A7B0C0] mt-0.5">
                 Analyze network configurations with deterministic, line-level security evidence.
               </p>
             </div>
@@ -593,9 +593,9 @@ function ConfigurationsPageContent() {
 
         {/* Global Security Invariant Badge */}
         <div className="flex items-center gap-2.5">
-          <div className="px-3 py-1.5 rounded-lg bg-[#070A10] border border-white/[0.08] text-xs font-mono flex items-center gap-2">
+          <div className="px-3 py-1.5 rounded-lg bg-[#0D121C] border border-[#1D2939] text-xs font-mono flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-            <span className="text-[#64748B]">NETWORK PUSH:</span>
+            <span className="text-[#667085]">NETWORK PUSH:</span>
             <strong className="text-[#10B981]">DISABLED (READ-ONLY)</strong>
           </div>
 
@@ -606,31 +606,31 @@ function ConfigurationsPageContent() {
                 queryClient.invalidateQueries({ queryKey: ["analysis-findings", activeAnalysisId] });
               }
             }}
-            className="p-2 rounded-lg bg-[#070A10] border border-white/[0.08] text-[#94A3B8] hover:text-white transition-colors"
+            className="p-2 rounded-lg bg-[#0D121C] border border-[#1D2939] text-[#A7B0C0] hover:text-white transition-colors"
             title="Refresh Analysis State"
           >
-            <RefreshCw className={cn("w-4 h-4", isAuditing && "animate-spin")} />
+            <RefreshCw className={cn("w-4 h-4", isAuditing && "animate-spin text-[#3B82F6]")} />
           </button>
         </div>
       </div>
 
       {/* Ingest Mode State Banner */}
       {isIngestMode && (
-        <div className="p-4 rounded-xl bg-[#00D9FF]/10 border border-[#00D9FF]/30 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg shadow-[#00D9FF]/5 animate-fadeIn">
+        <div className="p-4 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/30 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm animate-fadeIn">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <UploadCloud className="w-5 h-5 text-[#00D9FF]" />
-              <h2 className="text-sm font-bold font-mono text-[#F8FAFC] uppercase tracking-wider">
+              <UploadCloud className="w-5 h-5 text-[#3B82F6]" />
+              <h2 className="text-sm font-bold font-mono text-[#F3F4F6] uppercase tracking-wider">
                 INGEST CONFIGURATION
               </h2>
             </div>
-            <p className="text-xs text-[#94A3B8]">
+            <p className="text-xs text-[#A7B0C0]">
               Upload or paste a network configuration to begin deterministic security analysis.
             </p>
           </div>
           <Link
             href="/configurations"
-            className="self-start md:self-auto px-3.5 py-1.5 rounded-lg bg-[#0B0F19] border border-white/[0.1] hover:border-white/[0.25] text-xs font-mono font-semibold text-[#94A3B8] hover:text-white transition-colors flex items-center gap-1.5"
+            className="self-start md:self-auto px-3.5 py-1.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-xs font-mono font-semibold text-[#A7B0C0] hover:text-white transition-colors flex items-center gap-1.5"
           >
             <span>← AUDIT WORKSPACE</span>
           </Link>
@@ -638,22 +638,22 @@ function ConfigurationsPageContent() {
       )}
 
       {/* 2. Top Ingestion & Audit Activation Control */}
-      <div ref={ingestionRef} id="ingestion-workspace" className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 shadow-xl scroll-mt-20">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+      <div ref={ingestionRef} id="ingestion-workspace" className="p-5 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-4 shadow-xl scroll-mt-20">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1D2939] pb-3">
           <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-[#00D9FF]" />
-            <span className="text-xs font-mono font-bold text-[#F8FAFC] uppercase tracking-wider">
+            <Terminal className="w-4 h-4 text-[#3B82F6]" />
+            <span className="text-xs font-mono font-bold text-[#F3F4F6] uppercase tracking-wider">
               INGESTION WORKSPACE
             </span>
           </div>
 
           {/* Mode Selector Tabs */}
-          <div className="flex items-center p-1 rounded-lg bg-[#0B0F19] border border-white/[0.06] text-xs font-mono">
+          <div className="flex items-center p-1 rounded-lg bg-[#080B12] border border-[#1D2939] text-xs font-mono">
             <button
               onClick={() => setInputMode("samples")}
               className={cn(
                 "px-3 py-1 rounded transition-all",
-                inputMode === "samples" ? "bg-[#00D9FF] text-black font-bold" : "text-[#94A3B8] hover:text-white"
+                inputMode === "samples" ? "bg-[#3B82F6] text-white font-bold" : "text-[#A7B0C0] hover:text-white"
               )}
             >
               PRESET FIXTURES (6)
@@ -662,7 +662,7 @@ function ConfigurationsPageContent() {
               onClick={() => setInputMode("paste")}
               className={cn(
                 "px-3 py-1 rounded transition-all",
-                inputMode === "paste" ? "bg-[#00D9FF] text-black font-bold" : "text-[#94A3B8] hover:text-white"
+                inputMode === "paste" ? "bg-[#3B82F6] text-white font-bold" : "text-[#A7B0C0] hover:text-white"
               )}
             >
               CUSTOM TEXT / PASTE
@@ -674,7 +674,7 @@ function ConfigurationsPageContent() {
               }}
               className={cn(
                 "px-3 py-1 rounded transition-all",
-                inputMode === "upload" ? "bg-[#00D9FF] text-black font-bold" : "text-[#94A3B8] hover:text-white"
+                inputMode === "upload" ? "bg-[#3B82F6] text-white font-bold" : "text-[#A7B0C0] hover:text-white"
               )}
             >
               UPLOAD FILE
@@ -692,12 +692,12 @@ function ConfigurationsPageContent() {
                 className={cn(
                   "p-3.5 rounded-xl border cursor-pointer transition-all space-y-1.5",
                   selectedFixtureId === fixture.id
-                    ? "bg-[#0B101E] border-[#00D9FF]/60 shadow-lg shadow-[#00D9FF]/10"
-                    : "bg-[#0B0F19] border-white/[0.05] hover:border-white/[0.15] hover:bg-[#0E1424]"
+                    ? "bg-[#111827] border-[#3B82F6] shadow-sm"
+                    : "bg-[#0A0F18] border-[#1D2939] hover:border-[#263B55] hover:bg-[#111827]"
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#F8FAFC]">{fixture.label}</span>
+                  <span className="text-xs font-bold text-[#F3F4F6]">{fixture.label}</span>
                   <span
                     className={cn(
                       "px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase",
@@ -709,12 +709,12 @@ function ConfigurationsPageContent() {
                     {fixture.id.includes("insecure") ? "VULNERABLE" : "HARDENED"}
                   </span>
                 </div>
-                <div className="text-[11px] text-[#94A3B8] line-clamp-2 leading-relaxed">
+                <div className="text-[11px] text-[#A7B0C0] line-clamp-2 leading-relaxed font-sans">
                   {fixture.description}
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-[#64748B] pt-1">
+                <div className="flex items-center justify-between text-[10px] font-mono text-[#667085] pt-1">
                   <span>{fixture.name}</span>
-                  <span className="uppercase text-[#00D9FF]">{fixture.vendor} ({fixture.platform})</span>
+                  <span className="uppercase text-[#3B82F6]">{fixture.vendor} ({fixture.platform})</span>
                 </div>
               </div>
             ))}
@@ -730,9 +730,9 @@ function ConfigurationsPageContent() {
                 value={configFilename}
                 onChange={(e) => setConfigFilename(e.target.value)}
                 placeholder="filename.cfg"
-                className="px-2.5 py-1 rounded bg-[#0B0F19] border border-white/[0.08] text-[#F8FAFC] text-xs font-mono focus:border-[#00D9FF] focus:outline-none w-64"
+                className="px-2.5 py-1 rounded bg-[#080B12] border border-[#1D2939] text-[#F3F4F6] text-xs font-mono focus:border-[#3B82F6] focus:outline-none w-64"
               />
-              <span className="text-[11px] text-[#64748B]">
+              <span className="text-[11px] text-[#667085]">
                 {rawText.split("\n").length} Lines • {formatBytes(rawText.length)}
               </span>
             </div>
@@ -741,7 +741,7 @@ function ConfigurationsPageContent() {
               onChange={(e) => setRawText(e.target.value)}
               placeholder="Paste raw configuration here..."
               rows={8}
-              className="w-full p-3.5 rounded-xl bg-[#03060A] border border-white/[0.08] font-mono text-xs text-[#E2E8F0] focus:border-[#00D9FF] focus:outline-none resize-y leading-relaxed"
+              className="w-full p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] font-mono text-xs text-[#A7B0C0] focus:border-[#3B82F6] focus:outline-none resize-y leading-relaxed"
             />
           </div>
         )}
@@ -757,8 +757,8 @@ function ConfigurationsPageContent() {
             onDrop={handleFileDrop}
             onClick={() => fileInputRef.current?.click()}
             className={cn(
-              "p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-[#03060A]",
-              dragOver ? "border-[#00D9FF] bg-[#00D9FF]/5" : "border-white/[0.1] hover:border-[#00D9FF]/40"
+              "p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-[#080B12]",
+              dragOver ? "border-[#3B82F6] bg-[#3B82F6]/5" : "border-[#1D2939] hover:border-[#3B82F6]/50"
             )}
           >
             <input
@@ -768,33 +768,33 @@ function ConfigurationsPageContent() {
               onChange={handleFileInputChange}
               className="hidden"
             />
-            <UploadCloud className="w-8 h-8 text-[#00D9FF] mb-2 animate-bounce" />
-            <div className="text-xs font-bold text-[#F8FAFC]">
+            <UploadCloud className="w-8 h-8 text-[#3B82F6] mb-2 animate-bounce" />
+            <div className="text-xs font-bold text-[#F3F4F6]">
               Click to browse or drag & drop configuration file
             </div>
-            <div className="text-[11px] text-[#64748B] mt-1">
+            <div className="text-[11px] text-[#667085] mt-1">
               Supports Cisco IOS (.cfg), Juniper JunOS (.conf), and Fortinet FortiOS (.conf, .txt)
             </div>
           </div>
         )}
 
         {/* Live Detection Metadata & Primary CTA */}
-        <div className="pt-2 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div className="pt-2 border-t border-[#1D2939] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0B0F19] border border-white/[0.06]">
-              <span className="text-[#64748B]">DETECTED:</span>
-              <strong className="text-[#00D9FF] uppercase">{detectedVendorState.vendor}</strong>
-              <span className="text-[#64748B]">({detectedVendorState.platform || "generic"})</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#080B12] border border-[#1D2939]">
+              <span className="text-[#667085]">DETECTED:</span>
+              <strong className="text-[#3B82F6] uppercase">{detectedVendorState.vendor}</strong>
+              <span className="text-[#667085]">({detectedVendorState.platform || "generic"})</span>
             </div>
 
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0B0F19] border border-white/[0.06]">
-              <span className="text-[#64748B]">SHA-256:</span>
-              <span className="text-[#E2E8F0] max-w-[120px] truncate" title={clientHash}>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#080B12] border border-[#1D2939]">
+              <span className="text-[#667085]">SHA-256:</span>
+              <span className="text-[#A7B0C0] max-w-[120px] truncate" title={clientHash}>
                 {clientHash ? clientHash.slice(0, 16) + "..." : "computing..."}
               </span>
             </div>
 
-            <div className="text-[11px] text-[#64748B]">
+            <div className="text-[11px] text-[#667085]">
               Confidence: <strong className="text-[#10B981]">{(detectedVendorState.confidence * 100).toFixed(0)}%</strong>
             </div>
           </div>
@@ -802,7 +802,7 @@ function ConfigurationsPageContent() {
           <button
             onClick={handleRunGoldenAudit}
             disabled={isAuditing || !rawText.trim()}
-            className="px-5 py-2.5 rounded-xl bg-[#00D9FF] hover:bg-[#00c2e6] text-black font-extrabold font-mono text-xs flex items-center gap-2 transition-all shadow-lg shadow-[#00D9FF]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-extrabold font-mono text-xs flex items-center gap-2 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAuditing ? (
               <>
@@ -828,10 +828,10 @@ function ConfigurationsPageContent() {
       </div>
 
       {/* Real Pipeline Stages Progress Bar */}
-      <div className="p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] font-mono">
-        <div className="text-[10px] text-[#64748B] uppercase font-bold tracking-wider mb-2.5 flex items-center justify-between">
+      <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] font-mono">
+        <div className="text-[10px] text-[#667085] uppercase font-bold tracking-wider mb-2.5 flex items-center justify-between">
           <span>DETERMINISTIC ANALYSIS PIPELINE</span>
-          <span className="text-[#00D9FF]">REAL BACKEND PROVENANCE</span>
+          <span className="text-[#3B82F6]">REAL BACKEND PROVENANCE</span>
         </div>
         <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs">
           {[
@@ -851,8 +851,8 @@ function ConfigurationsPageContent() {
                 stage.done
                   ? "bg-[#10B981]/10 border-[#10B981]/40 text-[#10B981]"
                   : isAuditing
-                  ? "bg-[#00D9FF]/5 border-[#00D9FF]/20 text-[#00D9FF] animate-pulse"
-                  : "bg-[#0B0F19] border-white/[0.04] text-[#64748B]"
+                  ? "bg-[#3B82F6]/5 border-[#3B82F6]/20 text-[#3B82F6] animate-pulse"
+                  : "bg-[#080B12] border-[#1D2939] text-[#667085]"
               )}
             >
               <div className="text-[10px] font-extrabold">{stage.label}</div>
@@ -862,11 +862,11 @@ function ConfigurationsPageContent() {
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </span>
                 ) : stage.isVerify ? (
-                  <span className="text-[#64748B] font-bold">—</span>
+                  <span className="text-[#667085] font-bold">—</span>
                 ) : isAuditing ? (
-                  <span className="text-[#00D9FF] font-bold">...</span>
+                  <span className="text-[#3B82F6] font-bold">...</span>
                 ) : (
-                  <span className="text-[#64748B]">○</span>
+                  <span className="text-[#667085]">○</span>
                 )}
               </div>
             </div>
@@ -876,39 +876,39 @@ function ConfigurationsPageContent() {
 
       {/* Audit Execution Progress Overlay Card */}
       {isAuditing && (
-        <div className="p-6 rounded-2xl bg-[#070A10] border border-[#00D9FF]/40 space-y-4 font-mono shadow-2xl shadow-[#00D9FF]/10 animate-fadeIn">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#00D9FF]">
+        <div className="p-6 rounded-2xl bg-[#0D121C] border border-[#3B82F6]/40 space-y-4 font-mono shadow-2xl animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-[#1D2939] pb-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#3B82F6]">
               <RefreshCw className="w-4 h-4 animate-spin" />
               <span>ANALYZING CONFIGURATION DETERMINISTICALLY</span>
             </div>
-            <span className="text-[10px] text-[#64748B]">ZERO SPECULATION ENGINE</span>
+            <span className="text-[10px] text-[#667085]">ZERO SPECULATION ENGINE</span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span className="text-[#E2E8F0]">Vendor Detection</span>
+              <span className="text-[#A7B0C0]">Vendor Detection</span>
             </div>
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span className="text-[#E2E8F0]">AST Fact Extraction</span>
+              <span className="text-[#A7B0C0]">AST Fact Extraction</span>
             </div>
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span className="text-[#E2E8F0]">Security Normalization</span>
+              <span className="text-[#A7B0C0]">Security Normalization</span>
             </div>
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span className="text-[#E2E8F0]">Framework Evaluation</span>
+              <span className="text-[#A7B0C0]">Framework Evaluation</span>
             </div>
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span className="text-[#E2E8F0]">Deterministic Risk</span>
+              <span className="text-[#A7B0C0]">Deterministic Risk</span>
             </div>
-            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04]">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span className="text-[#E2E8F0]">Evidence Line Mapping</span>
+              <span className="text-[#A7B0C0]">Evidence Line Mapping</span>
             </div>
           </div>
         </div>
@@ -924,36 +924,36 @@ function ConfigurationsPageContent() {
             </div>
             <button
               onClick={() => setReanalyzeBannerVisible(false)}
-              className="text-[#64748B] hover:text-white"
+              className="text-[#667085] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
-              <div className="text-[10px] text-[#64748B]">COMPLIANCE SCORE</div>
+            <div className="p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">COMPLIANCE SCORE</div>
               <div className="text-sm font-bold text-[#10B981] mt-0.5">
                 {reanalyzeResult.previous_compliance_score.toFixed(1)}% → {reanalyzeResult.new_compliance_score.toFixed(1)}%
               </div>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
-              <div className="text-[10px] text-[#64748B]">FAILED CONTROLS</div>
+            <div className="p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">FAILED CONTROLS</div>
               <div className="text-sm font-bold text-[#EF4444] mt-0.5">
                 {reanalyzeResult.previous_fail_count} FAIL → {reanalyzeResult.new_fail_count} FAIL
               </div>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
-              <div className="text-[10px] text-[#64748B]">RESOLVED CONTROLS</div>
-              <div className="text-sm font-bold text-[#00D9FF] mt-0.5">
+            <div className="p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">RESOLVED CONTROLS</div>
+              <div className="text-sm font-bold text-[#3B82F6] mt-0.5">
                 +{reanalyzeResult.resolved_controls.length} RESOLVED
               </div>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.06]">
-              <div className="text-[10px] text-[#64748B]">VERDICT TRANSITION</div>
+            <div className="p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">VERDICT TRANSITION</div>
               <div className="text-sm font-bold text-[#10B981] mt-0.5">
                 FAIL → PASS ✓
               </div>
@@ -961,7 +961,7 @@ function ConfigurationsPageContent() {
           </div>
 
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="text-[10px] text-[#64748B] uppercase self-center mr-1">Controls Resolved:</span>
+            <span className="text-[10px] text-[#667085] uppercase self-center mr-1">Controls Resolved:</span>
             {reanalyzeResult.resolved_controls.map((ctrl) => (
               <span
                 key={ctrl}
@@ -978,23 +978,23 @@ function ConfigurationsPageContent() {
       {activeAnalysisId ? (
         <div className="space-y-6">
           {/* Polished Enterprise Audit Result Summary Header */}
-          <div className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 font-mono">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+          <div className="p-5 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-4 font-mono">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1D2939] pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-[#10B981]/15 border border-[#10B981]/30 flex items-center justify-center text-[#10B981]">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-[#F8FAFC] tracking-wider uppercase">AUDIT COMPLETE</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#00D9FF]/15 text-[#00D9FF] border border-[#00D9FF]/30">
+                    <span className="text-xs font-black text-[#F3F4F6] tracking-wider uppercase">AUDIT COMPLETE</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30">
                       {detectedVendorState.vendor.toUpperCase() || analysisStatus?.vendor?.toUpperCase() || "CISCO"}
                     </span>
                   </div>
-                  <div className="text-[11px] text-[#64748B] flex items-center gap-2 mt-0.5">
-                    <span>Target: <strong className="text-[#E2E8F0]">{configFilename.replace(/\.[^/.]+$/, "") || "DEVICE-01"}</strong></span>
+                  <div className="text-[11px] text-[#667085] flex items-center gap-2 mt-0.5">
+                    <span>Target: <strong className="text-[#F3F4F6]">{configFilename.replace(/\.[^/.]+$/, "") || "DEVICE-01"}</strong></span>
                     <span>•</span>
-                    <span>File: <strong className="text-[#E2E8F0]">{configFilename}</strong></span>
+                    <span>File: <strong className="text-[#F3F4F6]">{configFilename}</strong></span>
                   </div>
                 </div>
               </div>
@@ -1006,7 +1006,7 @@ function ConfigurationsPageContent() {
                     const el = document.getElementById("panel-findings");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#00D9FF] font-bold transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#3B82F6] font-bold transition-all flex items-center gap-1.5"
                 >
                   <Search className="w-3.5 h-3.5" />
                   <span>INVESTIGATE FINDINGS</span>
@@ -1018,7 +1018,7 @@ function ConfigurationsPageContent() {
                     const el = document.getElementById("panel-evidence");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#00D9FF] font-bold transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#3B82F6] font-bold transition-all flex items-center gap-1.5"
                 >
                   <FileCode2 className="w-3.5 h-3.5" />
                   <span>VIEW EVIDENCE</span>
@@ -1029,7 +1029,7 @@ function ConfigurationsPageContent() {
                     const el = document.getElementById("panel-remediation");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-[#10B981] font-bold transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#10B981] font-bold transition-all flex items-center gap-1.5"
                 >
                   <Wrench className="w-3.5 h-3.5" />
                   <span>REVIEW REMEDIATION</span>
@@ -1038,7 +1038,7 @@ function ConfigurationsPageContent() {
                 <button
                   onClick={handleReanalyzeWithRemediation}
                   disabled={isReanalyzing}
-                  className="px-3.5 py-1.5 rounded-lg bg-[#10B981] hover:bg-[#0ea371] text-black font-extrabold transition-all shadow-md shadow-[#10B981]/20 flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-3.5 py-1.5 rounded-lg bg-[#10B981] hover:bg-[#0ea371] text-white font-extrabold transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <RotateCcw className={cn("w-3.5 h-3.5", isReanalyzing && "animate-spin")} />
                   <span>RE-ANALYZE</span>
@@ -1047,18 +1047,18 @@ function ConfigurationsPageContent() {
             </div>
 
             {/* SHA-256 Fingerprint */}
-            <div className="flex items-center justify-between text-[11px] bg-[#03060A] px-3 py-2 rounded-lg border border-white/[0.04]">
-              <span className="text-[#64748B]">CRYPTOGRAPHIC HASH (SHA-256):</span>
-              <span className="text-[#00D9FF] font-mono select-all">
+            <div className="flex items-center justify-between text-[11px] bg-[#080B12] px-3 py-2 rounded-lg border border-[#1D2939]">
+              <span className="text-[#667085]">CRYPTOGRAPHIC HASH (SHA-256):</span>
+              <span className="text-[#3B82F6] font-mono select-all">
                 {clientHash || (analysisStatus as any)?.file_hash || (analysisStatus as any)?.config_hash || "Computing..."}
               </span>
             </div>
 
             {/* Posture KPI Strip */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-1">
-              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
-                <div className="text-[10px] text-[#64748B] uppercase font-bold">COMPLIANCE</div>
-                <div className="text-2xl font-black text-[#F8FAFC]">
+              <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
+                <div className="text-[10px] text-[#667085] uppercase font-bold">COMPLIANCE</div>
+                <div className="text-2xl font-black text-[#F3F4F6]">
                   {analysisStatus?.compliance_score !== undefined
                     ? `${analysisStatus.compliance_score.toFixed(1)}%`
                     : "--"}
@@ -1066,8 +1066,8 @@ function ConfigurationsPageContent() {
                 <div className="text-[9px] text-[#10B981]">CIS • NIST • STIG • ISO</div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
-                <div className="text-[10px] text-[#64748B] uppercase font-bold">RISK INDEX</div>
+              <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
+                <div className="text-[10px] text-[#667085] uppercase font-bold">RISK INDEX</div>
                 <div className="text-2xl font-black text-[#EF4444]">
                   {riskReport?.risk_score !== undefined
                     ? `${riskReport.risk_score.toFixed(1)}/100`
@@ -1078,28 +1078,28 @@ function ConfigurationsPageContent() {
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
-                <div className="text-[10px] text-[#64748B] uppercase font-bold">FAILED CONTROLS</div>
+              <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
+                <div className="text-[10px] text-[#667085] uppercase font-bold">FAILED CONTROLS</div>
                 <div className="text-2xl font-black text-[#EF4444]">
                   {analysisStatus?.fail_count ?? findings.filter(f => f.status === "FAIL").length}
                 </div>
                 <div className="text-[9px] text-[#EF4444]">VIOLATIONS DETECTED</div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
-                <div className="text-[10px] text-[#64748B] uppercase font-bold">PASSED CONTROLS</div>
+              <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
+                <div className="text-[10px] text-[#667085] uppercase font-bold">PASSED CONTROLS</div>
                 <div className="text-2xl font-black text-[#10B981]">
                   {analysisStatus?.pass_count ?? findings.filter(f => f.status === "PASS").length}
                 </div>
                 <div className="text-[9px] text-[#10B981]">HARDENED COMPLIANT</div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#0B0F19] border border-white/[0.06] space-y-1">
-                <div className="text-[10px] text-[#64748B] uppercase font-bold">NORMALIZED FACTS</div>
-                <div className="text-2xl font-black text-[#00D9FF]">
+              <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
+                <div className="text-[10px] text-[#667085] uppercase font-bold">NORMALIZED FACTS</div>
+                <div className="text-2xl font-black text-[#3B82F6]">
                   {analysisStatus?.facts_extracted_count ?? evidenceItems.length}
                 </div>
-                <div className="text-[9px] text-[#00D9FF]">UNIVERSAL MODEL AST</div>
+                <div className="text-[9px] text-[#3B82F6]">UNIVERSAL MODEL AST</div>
               </div>
             </div>
           </div>
@@ -1107,11 +1107,11 @@ function ConfigurationsPageContent() {
           {/* 3-Panel Audit Engine Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Panel 1: Left Findings Navigator (4 cols) */}
-            <div id="panel-findings" className="lg:col-span-4 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+            <div id="panel-findings" className="lg:col-span-4 p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-3 font-mono">
+              <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-[#EF4444]" />
-                  <span className="text-xs font-bold text-[#F8FAFC]">
+                  <span className="text-xs font-bold text-[#F3F4F6]">
                     FINDINGS ({filteredFindings.length})
                   </span>
                 </div>
@@ -1135,8 +1135,8 @@ function ConfigurationsPageContent() {
                       className={cn(
                         "px-2 py-0.5 rounded border transition-colors",
                         frameworkFilter === fw
-                          ? "bg-[#00D9FF]/20 border-[#00D9FF] text-[#00D9FF] font-bold"
-                          : "bg-[#0B0F19] border-white/[0.06] text-[#64748B] hover:text-white"
+                          ? "bg-[#3B82F6]/20 border-[#3B82F6] text-[#3B82F6] font-bold"
+                          : "bg-[#080B12] border-[#1D2939] text-[#667085] hover:text-white"
                       )}
                     >
                       {fw}
@@ -1146,20 +1146,20 @@ function ConfigurationsPageContent() {
 
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-[#667085] absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       placeholder="Search controls..."
                       value={searchFilter}
                       onChange={(e) => setSearchFilter(e.target.value)}
-                      className="w-full pl-8 pr-2.5 py-1 rounded-lg bg-[#0B0F19] border border-white/[0.06] text-xs text-[#E2E8F0] focus:outline-none focus:border-[#00D9FF]"
+                      className="w-full pl-8 pr-2.5 py-1 rounded-lg bg-[#080B12] border border-[#1D2939] text-xs text-[#A7B0C0] focus:outline-none focus:border-[#3B82F6]"
                     />
                   </div>
 
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-2 py-1 rounded-lg bg-[#0B0F19] border border-white/[0.06] text-[10px] text-[#94A3B8] focus:outline-none"
+                    className="px-2 py-1 rounded-lg bg-[#080B12] border border-[#1D2939] text-[10px] text-[#A7B0C0] focus:outline-none"
                   >
                     <option value="ALL">ALL STATUS</option>
                     <option value="FAIL">FAIL ONLY</option>
@@ -1171,7 +1171,7 @@ function ConfigurationsPageContent() {
               {/* Findings List */}
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
                 {filteredFindings.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-[#64748B] rounded-xl bg-[#0B0F19] border border-dashed border-white/[0.06]">
+                  <div className="p-6 text-center text-xs text-[#667085] rounded-xl bg-[#080B12] border border-dashed border-[#1D2939]">
                     No findings matching active filters.
                   </div>
                 ) : (
@@ -1192,14 +1192,14 @@ function ConfigurationsPageContent() {
                         className={cn(
                           "p-3 rounded-xl border cursor-pointer transition-all space-y-1.5",
                           isSelected
-                            ? "bg-[#0B101E] border-[#00D9FF] shadow-lg shadow-[#00D9FF]/10"
-                            : "bg-[#0B0F19] border-white/[0.04] hover:border-white/[0.12] hover:bg-[#0D1424]"
+                            ? "bg-[#111827] border-[#3B82F6] shadow-sm"
+                            : "bg-[#080B12] border-[#1D2939] hover:border-[#263B55] hover:bg-[#111827]"
                         )}
                       >
                         <div className="flex items-center justify-between gap-1 text-[10px]">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-[#00D9FF]">{finding.control_id}</span>
-                            <span className="text-[#64748B]">({finding.framework})</span>
+                            <span className="font-bold text-[#3B82F6]">{finding.control_id}</span>
+                            <span className="text-[#667085]">({finding.framework})</span>
                           </div>
 
                           <div className="flex items-center gap-1 font-bold">
@@ -1226,11 +1226,11 @@ function ConfigurationsPageContent() {
                           </div>
                         </div>
 
-                        <div className="text-xs font-sans font-medium text-[#F8FAFC] line-clamp-1">
+                        <div className="text-xs font-sans font-medium text-[#F3F4F6] line-clamp-1">
                           {finding.title}
                         </div>
 
-                        <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-0.5">
+                        <div className="flex items-center justify-between text-[10px] text-[#667085] pt-0.5">
                           <span>
                             Line(s):{" "}
                             <strong className="text-[#EF4444]">
@@ -1252,11 +1252,11 @@ function ConfigurationsPageContent() {
             </div>
 
             {/* Panel 2: Center Interactive Evidence & Source Viewer (5 cols) */}
-            <div id="panel-evidence" className="lg:col-span-5 p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 font-mono">
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+            <div id="panel-evidence" className="lg:col-span-5 p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-3 font-mono">
+              <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
                 <div className="flex items-center gap-2">
-                  <Code2 className="w-4 h-4 text-[#00D9FF]" />
-                  <span className="text-xs font-bold text-[#F8FAFC] uppercase">
+                  <Code2 className="w-4 h-4 text-[#3B82F6]" />
+                  <span className="text-xs font-bold text-[#F3F4F6] uppercase">
                     EVIDENCE EXPLORER
                   </span>
                 </div>
@@ -1268,8 +1268,8 @@ function ConfigurationsPageContent() {
                     className={cn(
                       "px-2 py-0.5 rounded transition-colors",
                       centerTab === "evidence"
-                        ? "bg-[#00D9FF]/20 text-[#00D9FF] font-bold border border-[#00D9FF]/40"
-                        : "text-[#64748B] hover:text-white"
+                        ? "bg-[#3B82F6]/20 text-[#3B82F6] font-bold border border-[#3B82F6]/40"
+                        : "text-[#667085] hover:text-white"
                     )}
                   >
                     LINE CITATIONS
@@ -1279,8 +1279,8 @@ function ConfigurationsPageContent() {
                     className={cn(
                       "px-2 py-0.5 rounded transition-colors",
                       centerTab === "universal"
-                        ? "bg-[#00D9FF]/20 text-[#00D9FF] font-bold border border-[#00D9FF]/40"
-                        : "text-[#64748B] hover:text-white"
+                        ? "bg-[#3B82F6]/20 text-[#3B82F6] font-bold border border-[#3B82F6]/40"
+                        : "text-[#667085] hover:text-white"
                     )}
                   >
                     UNIVERSAL MODEL AST
@@ -1291,7 +1291,7 @@ function ConfigurationsPageContent() {
               {/* View 1: Line-by-Line Verbatim Evidence Viewer */}
               {centerTab === "evidence" && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] px-1">
+                  <div className="flex items-center justify-between text-[11px] text-[#667085] px-1">
                     <span>
                       File: <strong className="text-white">{configData?.filename || configFilename}</strong>
                     </span>
@@ -1305,7 +1305,7 @@ function ConfigurationsPageContent() {
 
                   <div
                     ref={evidenceContainerRef}
-                    className="p-3 rounded-xl bg-[#03060A] border border-white/[0.08] max-h-[540px] overflow-y-auto text-xs space-y-0.5 font-mono select-text"
+                    className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] max-h-[540px] overflow-y-auto text-xs space-y-0.5 font-mono select-text"
                   >
                     {configData?.lines?.map((item) => {
                       const isCited = selectedFinding?.evidence_lines?.some((e) => e.line === item.line);
@@ -1340,7 +1340,7 @@ function ConfigurationsPageContent() {
                                 ? "text-white font-bold"
                                 : isCited
                                 ? "text-[#FCA5A5]"
-                                : "text-[#94A3B8]"
+                                : "text-[#A7B0C0]"
                             )}
                           >
                             {item.text || "\u00A0"}
@@ -1357,16 +1357,16 @@ function ConfigurationsPageContent() {
 
                   {/* Selected Finding Evidence Summary at bottom of Center Panel */}
                   {selectedFinding && (
-                    <div className="p-3 rounded-xl bg-[#03060A] border border-white/[0.08] space-y-2">
+                    <div className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
                       <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-[#64748B] uppercase font-bold">WHY THIS FAILED</span>
-                        <span className="text-[#00D9FF] font-bold">CONTROL: {selectedFinding.control_id}</span>
+                        <span className="text-[#667085] uppercase font-bold">WHY THIS FAILED</span>
+                        <span className="text-[#3B82F6] font-bold">CONTROL: {selectedFinding.control_id}</span>
                       </div>
-                      <p className="text-xs text-[#E2E8F0] font-sans leading-relaxed">
+                      <p className="text-xs text-[#A7B0C0] font-sans leading-relaxed">
                         {selectedFinding.why_it_failed || selectedFinding.title || "Deterministic compliance rule evaluated against extracted security facts."}
                       </p>
                       {selectedFinding.actual_value && (
-                        <div className="flex items-center gap-3 text-[11px] pt-1 border-t border-white/[0.04]">
+                        <div className="flex items-center gap-3 text-[11px] pt-1 border-t border-[#1D2939]">
                           <span>Observed: <strong className="text-[#EF4444] font-mono">{selectedFinding.actual_value}</strong></span>
                           <span>•</span>
                           <span>Expected: <strong className="text-[#10B981] font-mono">{selectedFinding.expected_value || "Hardened standard"}</strong></span>
@@ -1380,13 +1380,13 @@ function ConfigurationsPageContent() {
               {/* View 2: Universal Security Model AST Facts */}
               {centerTab === "universal" && (
                 <div className="space-y-2">
-                  <div className="text-[11px] text-[#64748B]">
+                  <div className="text-[11px] text-[#667085]">
                     Extracted security facts mapped to normalized schema:
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#03060A] border border-white/[0.08] max-h-[540px] overflow-y-auto text-xs space-y-2">
+                  <div className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] max-h-[540px] overflow-y-auto text-xs space-y-2">
                     {evidenceItems.length === 0 ? (
-                      <div className="text-center text-[#64748B] py-6">
+                      <div className="text-center text-[#667085] py-6">
                         No AST facts extracted for this profile.
                       </div>
                     ) : (
@@ -1397,13 +1397,13 @@ function ConfigurationsPageContent() {
                             setHighlightedLine(item.line);
                             setCenterTab("evidence");
                           }}
-                          className="p-2.5 rounded-lg bg-[#070A10] border border-white/[0.04] hover:border-[#00D9FF]/40 cursor-pointer transition-all space-y-1"
+                          className="p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#3B82F6]/40 cursor-pointer transition-all space-y-1"
                         >
                           <div className="flex items-center justify-between text-[10px]">
-                            <span className="text-[#00D9FF] font-bold">{item.property_path}</span>
+                            <span className="text-[#3B82F6] font-bold">{item.property_path}</span>
                             <span className="text-[#EF4444]">Line {item.line}</span>
                           </div>
-                          <div className="text-xs text-[#E2E8F0] font-mono">{item.raw_text}</div>
+                          <div className="text-xs text-[#A7B0C0] font-mono">{item.raw_text}</div>
                         </div>
                       ))
                     )}
@@ -1415,8 +1415,8 @@ function ConfigurationsPageContent() {
             {/* Panel 3: Right Context, Deterministic Risk & Safe Re-Analysis (3 cols) */}
             <div id="panel-remediation" className="lg:col-span-3 space-y-4 font-mono">
               {/* Top Risk & Contributing Factors Card */}
-              <div className="p-4 rounded-2xl bg-[#070A10] border border-[#EF4444]/30 space-y-3 text-xs">
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+              <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#EF4444]/30 space-y-3 text-xs">
+                <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
                   <div className="flex items-center gap-1.5 text-[#EF4444] font-extrabold">
                     <Flame className="w-4 h-4" />
                     <span>OVERALL RISK</span>
@@ -1429,26 +1429,26 @@ function ConfigurationsPageContent() {
                 <div className="flex items-baseline justify-between">
                   <div className="text-2xl font-black text-[#EF4444]">
                     {riskReport?.risk_score !== undefined ? riskReport.risk_score.toFixed(1) : "92.5"}
-                    <span className="text-xs text-[#64748B] font-normal"> / 100</span>
+                    <span className="text-xs text-[#667085] font-normal"> / 100</span>
                   </div>
-                  <span className="text-[10px] text-[#94A3B8]">DETERMINISTIC FORMULA</span>
+                  <span className="text-[10px] text-[#A7B0C0]">DETERMINISTIC FORMULA</span>
                 </div>
 
                 {/* Contributing factors */}
-                <div className="space-y-1.5 pt-1 border-t border-white/[0.04]">
-                  <div className="text-[10px] text-[#64748B] uppercase font-bold tracking-wider">
+                <div className="space-y-1.5 pt-1 border-t border-[#1D2939]">
+                  <div className="text-[10px] text-[#667085] uppercase font-bold tracking-wider">
                     CONTRIBUTORS (WHY):
                   </div>
-                  <div className="space-y-1 text-[11px] text-[#E2E8F0]">
-                    <div className="flex items-center justify-between p-1.5 rounded bg-[#03060A] border border-white/[0.04]">
+                  <div className="space-y-1 text-[11px] text-[#A7B0C0]">
+                    <div className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
                       <span>SSHv1 legacy protocol enabled</span>
                       <span className="text-[#EF4444] font-bold">+25.0</span>
                     </div>
-                    <div className="flex items-center justify-between p-1.5 rounded bg-[#03060A] border border-white/[0.04]">
+                    <div className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
                       <span>Telnet unencrypted management</span>
                       <span className="text-[#EF4444] font-bold">+30.0</span>
                     </div>
-                    <div className="flex items-center justify-between p-1.5 rounded bg-[#03060A] border border-white/[0.04]">
+                    <div className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
                       <span>AAA security model disabled</span>
                       <span className="text-[#EF4444] font-bold">+25.0</span>
                     </div>
@@ -1459,9 +1459,9 @@ function ConfigurationsPageContent() {
               {selectedFinding ? (
                 <>
                   {/* Selected Finding Provenance & Verdict Card */}
-                  <div className="p-4 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-3 text-xs">
-                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-                      <span className="text-[10px] text-[#00D9FF] uppercase font-bold">
+                  <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
+                    <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+                      <span className="text-[10px] text-[#3B82F6] uppercase font-bold">
                         {selectedFinding.control_id}
                       </span>
                       <span
@@ -1476,16 +1476,16 @@ function ConfigurationsPageContent() {
                       </span>
                     </div>
 
-                    <div className="text-xs font-sans font-bold text-[#F8FAFC]">
+                    <div className="text-xs font-sans font-bold text-[#F3F4F6]">
                       {selectedFinding.title}
                     </div>
 
                     {/* Deterministic Provenance Chain */}
-                    <div className="p-2.5 rounded-lg bg-[#03060A] border border-white/[0.06] space-y-1.5 text-[10px]">
-                      <div className="text-[9px] text-[#64748B] uppercase font-bold tracking-wider">
+                    <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1.5 text-[10px]">
+                      <div className="text-[9px] text-[#667085] uppercase font-bold tracking-wider">
                         DETERMINISTIC PROVENANCE CHAIN
                       </div>
-                      <div className="flex flex-col gap-1 text-[#94A3B8]">
+                      <div className="flex flex-col gap-1 text-[#A7B0C0]">
                         <div className="flex items-center justify-between">
                           <span>SOURCE:</span>
                           <span className="text-white font-semibold">{configFilename}</span>
@@ -1510,7 +1510,7 @@ function ConfigurationsPageContent() {
                             {selectedFinding.expected_value || "Hardened Standard"}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between border-t border-white/[0.06] pt-1 mt-0.5">
+                        <div className="flex items-center justify-between border-t border-[#1D2939] pt-1 mt-0.5">
                           <span>VERDICT:</span>
                           <span className="text-[#EF4444] font-extrabold">{selectedFinding.status} ({selectedFinding.severity})</span>
                         </div>
@@ -1518,31 +1518,31 @@ function ConfigurationsPageContent() {
                     </div>
 
                     {/* Why Failed Explanation */}
-                    <div className="p-2.5 rounded-lg bg-[#0B0F19] border border-white/[0.04] space-y-1">
-                      <div className="text-[9px] text-[#64748B] uppercase font-bold">WHY FAILED?</div>
-                      <p className="text-[11px] text-[#E2E8F0] font-sans leading-relaxed">
+                    <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                      <div className="text-[9px] text-[#667085] uppercase font-bold">WHY FAILED?</div>
+                      <p className="text-[11px] text-[#A7B0C0] font-sans leading-relaxed">
                         {selectedFinding.why_it_failed || "Deterministic security rule evaluation identified a violation against baseline control specifications."}
                       </p>
                     </div>
                   </div>
 
                   {/* Safe Remediation & Re-Analysis Action Card */}
-                  <div className="p-4 rounded-2xl bg-[#070A10] border border-[#10B981]/30 space-y-3 text-xs">
-                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                  <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#10B981]/30 space-y-3 text-xs">
+                    <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
                       <div className="flex items-center gap-1.5 text-[#10B981] font-bold">
                         <Wrench className="w-3.5 h-3.5" />
                         <span>SAFE REMEDIATION</span>
                       </div>
-                      <span className="text-[9px] text-[#64748B]">READ-ONLY ADVISORY</span>
+                      <span className="text-[9px] text-[#667085]">READ-ONLY ADVISORY</span>
                     </div>
 
                     {/* Diff Preview: Current vs Proposed */}
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-[#64748B]">
+                      <div className="flex items-center justify-between text-[10px] text-[#667085]">
                         <span>CURRENT vs PROPOSED DIFF</span>
                         <span className="text-[#10B981] font-bold">ALLOWLISTED</span>
                       </div>
-                      <div className="p-2.5 rounded-lg bg-[#03060A] border border-white/[0.06] text-[11px] font-mono space-y-1 select-text">
+                      <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[11px] font-mono space-y-1 select-text">
                         {selectedFinding.remediation_diff?.diff_lines ? (
                           selectedFinding.remediation_diff.diff_lines.map((dl: any, idx: number) => (
                             <div
@@ -1552,7 +1552,7 @@ function ConfigurationsPageContent() {
                                   ? "text-[#EF4444]"
                                   : dl.type === "ADD"
                                   ? "text-[#10B981]"
-                                  : "text-[#64748B]"
+                                  : "text-[#667085]"
                               )}
                             >
                               {dl.type === "REMOVE" ? "- " : dl.type === "ADD" ? "+ " : "  "}
@@ -1567,7 +1567,7 @@ function ConfigurationsPageContent() {
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-[#64748B] flex items-center justify-between pt-1">
+                    <div className="text-[10px] text-[#667085] flex items-center justify-between pt-1">
                       <span>NETWORK PUSH:</span>
                       <span className="text-[#EF4444] font-bold">DISABLED (LOCAL DIFF ONLY)</span>
                     </div>
@@ -1580,7 +1580,7 @@ function ConfigurationsPageContent() {
                             "cli"
                           )
                         }
-                        className="w-full py-2 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#E2E8F0] hover:text-white font-bold transition-all flex items-center justify-center gap-1.5"
+                        className="w-full py-2 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white font-bold transition-all flex items-center justify-center gap-1.5"
                       >
                         {copiedText === "cli" ? (
                           <>
@@ -1599,7 +1599,7 @@ function ConfigurationsPageContent() {
                       <button
                         onClick={handleReanalyzeWithRemediation}
                         disabled={isReanalyzing}
-                        className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0ea371] text-black font-extrabold text-xs transition-all shadow-lg shadow-[#10B981]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0ea371] text-white font-extrabold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {isReanalyzing ? (
                           <>
@@ -1617,18 +1617,18 @@ function ConfigurationsPageContent() {
                   </div>
 
                   {/* AI Advisory Note */}
-                  <div className="p-4 rounded-2xl bg-[#0E0B19] border border-[#A855F7]/30 space-y-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-[#A855F7] font-bold text-[10px]">
+                  <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#8B5CF6]/30 space-y-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-[#8B5CF6] font-bold text-[10px]">
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>AI ADVISORY — READ ONLY</span>
                     </div>
-                    <p className="text-[11px] text-[#E2E8F0] font-sans leading-relaxed">
+                    <p className="text-[11px] text-[#A7B0C0] font-sans leading-relaxed">
                       This control enforces deterministic hardening standards defined by CIS and NIST. The AI boundary maintains strict read-only isolation and does not alter the mathematical compliance verdict.
                     </p>
                   </div>
                 </>
               ) : (
-                <div className="p-6 rounded-2xl bg-[#070A10] border border-white/[0.08] text-center text-[#64748B] text-xs">
+                <div className="p-6 rounded-2xl bg-[#0D121C] border border-[#1D2939] text-center text-[#667085] text-xs">
                   Select a finding from the left panel to inspect evidence and remediation.
                 </div>
               )}
@@ -1637,36 +1637,36 @@ function ConfigurationsPageContent() {
         </div>
       ) : (
         /* Empty State */
-        <div className="p-12 rounded-2xl bg-[#070A10] border border-dashed border-white/[0.08] text-center space-y-3 font-mono">
-          <div className="w-10 h-10 rounded-xl bg-[#0B0F19] border border-white/[0.08] text-[#00D9FF] flex items-center justify-center mx-auto">
+        <div className="p-12 rounded-2xl bg-[#0D121C] border border-dashed border-[#1D2939] text-center space-y-3 font-mono">
+          <div className="w-10 h-10 rounded-xl bg-[#080B12] border border-[#1D2939] text-[#3B82F6] flex items-center justify-center mx-auto">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div className="space-y-1">
-            <div className="text-sm font-bold text-[#F8FAFC]">NO ACTIVE AUDIT SESSION</div>
-            <p className="text-xs text-[#94A3B8] max-w-md mx-auto font-sans">
+            <div className="text-sm font-bold text-[#F3F4F6]">NO ACTIVE AUDIT SESSION</div>
+            <p className="text-xs text-[#A7B0C0] max-w-md mx-auto font-sans">
               Select a preset fixture or upload a network configuration above and click{" "}
-              <strong className="text-[#00D9FF]">AUDIT CONFIGURATION</strong> to begin deterministic evaluation.
+              <strong className="text-[#3B82F6]">AUDIT CONFIGURATION</strong> to begin deterministic evaluation.
             </p>
           </div>
         </div>
       )}
 
       {/* 5. Ingested Configuration Repository History Table */}
-      <div className="p-5 rounded-2xl bg-[#070A10] border border-white/[0.08] space-y-4 font-mono">
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+      <div className="p-5 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-4 font-mono">
+        <div className="flex items-center justify-between border-b border-[#1D2939] pb-3">
           <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-[#00D9FF]" />
-            <span className="text-xs font-bold text-[#F8FAFC] uppercase tracking-wider">
+            <Database className="w-4 h-4 text-[#3B82F6]" />
+            <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
               INGESTED CONFIGURATION REPOSITORY ({storedConfigs.length})
             </span>
           </div>
-          <span className="text-[10px] text-[#64748B]">Persistent Database Records</span>
+          <span className="text-[10px] text-[#667085]">Persistent Database Records</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-white/[0.06] text-[#64748B] text-[10px] uppercase">
+              <tr className="border-b border-[#1D2939] text-[#667085] text-[10px] uppercase">
                 <th className="py-2.5 px-3">Filename</th>
                 <th className="py-2.5 px-3">Vendor</th>
                 <th className="py-2.5 px-3">SHA-256 Hash</th>
@@ -1675,19 +1675,19 @@ function ConfigurationsPageContent() {
                 <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-[#1D2939]/60">
               {storedConfigs.slice(0, 8).map((cfg) => (
-                <tr key={cfg.id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={cfg.id} className="hover:bg-[#111827] transition-colors">
                   <td className="py-2.5 px-3 font-bold text-white flex items-center gap-2">
-                    <FileText className="w-3.5 h-3.5 text-[#00D9FF]" />
+                    <FileText className="w-3.5 h-3.5 text-[#3B82F6]" />
                     <span>{cfg.original_filename}</span>
                   </td>
                   <td className="py-2.5 px-3">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#00D9FF]/10 text-[#00D9FF] border border-[#00D9FF]/20 uppercase">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20 uppercase">
                       {cfg.detected_vendor}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-[#94A3B8] font-mono text-[10px]">
+                  <td className="py-2.5 px-3 text-[#A7B0C0] font-mono text-[10px]">
                     {cfg.hash ? cfg.hash.slice(0, 16) + "..." : "--"}
                   </td>
                   <td className="py-2.5 px-3">
@@ -1695,7 +1695,7 @@ function ConfigurationsPageContent() {
                       {cfg.parser_status || "PARSED"}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-[#64748B] text-[10px]">
+                  <td className="py-2.5 px-3 text-[#667085] text-[10px]">
                     {new Date(cfg.uploaded_at || Date.now()).toLocaleDateString()}
                   </td>
                   <td className="py-2.5 px-3 text-right">
@@ -1704,7 +1704,7 @@ function ConfigurationsPageContent() {
                         setActiveAnalysisId(cfg.id);
                         setRawText(cfg.original_filename);
                       }}
-                      className="px-2.5 py-1 rounded bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#00D9FF] font-bold text-[10px] transition-all"
+                      className="px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#3B82F6] font-bold text-[10px] transition-all"
                     >
                       Inspect Audit →
                     </button>
@@ -1723,7 +1723,7 @@ export default function ConfigurationsPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-xs font-mono text-[#666666]">
+        <div className="p-12 text-center text-xs font-mono text-[#667085]">
           Loading Configuration Audit Workspace...
         </div>
       }

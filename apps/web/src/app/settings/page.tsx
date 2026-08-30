@@ -111,14 +111,14 @@ const SETTINGS_NAV: SettingsNavGroup[] = [
     items: [
       { id: "authentication", label: "Authentication", icon: Key, badge: "OAuth 2.0" },
       { id: "sessions", label: "Sessions", icon: Clock },
-      { id: "security", label: "Security Posture", icon: Shield, badge: "Enforced", badgeColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+      { id: "security", label: "Security Posture", icon: Shield, badge: "Enforced", badgeColor: "text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20" },
     ],
   },
   {
     group: "AI",
     items: [
       { id: "ai-config", label: "AI Configuration", icon: Cpu, badge: "Advisory" },
-      { id: "ai-privacy", label: "AI Privacy & Safety", icon: EyeOff, badge: "Isolated", badgeColor: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20" },
+      { id: "ai-privacy", label: "AI Privacy & Safety", icon: EyeOff, badge: "Isolated", badgeColor: "text-[#8B5CF6] bg-[#8B5CF6]/10 border-[#8B5CF6]/20" },
     ],
   },
   {
@@ -227,21 +227,21 @@ function SettingsContent() {
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 border border-cyan-500/40 shadow-2xl text-xs font-medium text-cyan-300 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#0D121C] border border-[#3B82F6]/40 shadow-2xl text-xs font-medium text-[#3B82F6] animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-[#3B82F6] shrink-0" />
           <span>{toast}</span>
         </div>
       )}
 
       {/* Header Banner */}
-      <div className="border-b border-white/5 pb-5">
+      <div className="border-b border-[#1D2939] pb-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-              <SettingsIcon className="w-6 h-6 text-cyan-400" />
+            <h1 className="text-2xl font-bold text-[#F3F4F6] tracking-tight flex items-center gap-2.5">
+              <SettingsIcon className="w-6 h-6 text-[#3B82F6]" />
               <span>Settings</span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#A7B0C0] mt-1">
               Manage your NetVigil workspace, security posture, AI gateway, and platform policies.
             </p>
           </div>
@@ -250,14 +250,14 @@ function SettingsContent() {
               className={cn(
                 "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border",
                 isOnline
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                  : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  ? "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20"
+                  : "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20"
               )}
             >
-              <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-emerald-400 animate-pulse" : "bg-amber-400")} />
+              <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-[#10B981] animate-pulse" : "bg-[#F59E0B]")} />
               {isOnline ? "SYSTEM ONLINE" : isChecking ? "CHECKING HEALTH..." : "OFFLINE STANDBY"}
             </span>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
               v1.0.0-RC1
             </span>
           </div>
@@ -268,10 +268,10 @@ function SettingsContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Sticky Navigation Sidebar */}
         <aside className="lg:col-span-3 space-y-6 lg:sticky lg:top-20">
-          <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 backdrop-blur-sm space-y-5">
+          <div className="p-3 rounded-xl bg-[#0D121C] border border-[#1D2939] backdrop-blur-sm space-y-5">
             {SETTINGS_NAV.map((group) => (
               <div key={group.group} className="space-y-1">
-                <div className="px-2.5 text-[10px] font-mono tracking-wider font-semibold text-slate-400 uppercase">
+                <div className="px-2.5 text-[10px] font-mono tracking-wider font-semibold text-[#667085] uppercase">
                   {group.group}
                 </div>
                 <div className="space-y-0.5 pt-1">
@@ -285,15 +285,15 @@ function SettingsContent() {
                         className={cn(
                           "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left group",
                           isActive
-                            ? "bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-                            : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] border border-transparent"
+                            ? "bg-[#3B82F6]/15 text-[#3B82F6] font-semibold border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+                            : "text-[#A7B0C0] hover:text-[#F3F4F6] hover:bg-[#111827] border border-transparent"
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Icon
                             className={cn(
                               "w-4 h-4 shrink-0 transition-colors",
-                              isActive ? "text-cyan-400" : "text-slate-400 group-hover:text-slate-300"
+                              isActive ? "text-[#3B82F6]" : "text-[#667085] group-hover:text-[#A7B0C0]"
                             )}
                           />
                           <span className="truncate">{item.label}</span>
@@ -302,7 +302,7 @@ function SettingsContent() {
                           <span
                             className={cn(
                               "text-[10px] font-mono px-1.5 py-0.5 rounded border leading-none ml-2 shrink-0",
-                              item.badgeColor || (isActive ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" : "bg-slate-800 text-slate-400 border-white/5")
+                              item.badgeColor || (isActive ? "bg-[#3B82F6]/20 text-[#3B82F6] border-[#3B82F6]/30" : "bg-[#111827] text-[#667085] border-[#1D2939]")
                             )}
                           >
                             {item.badge}
@@ -317,12 +317,12 @@ function SettingsContent() {
           </div>
 
           {/* Quick Security Badge Box */}
-          <div className="p-3.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-2 text-[11px]">
-            <div className="flex items-center gap-2 text-slate-300 font-semibold">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2 text-[11px]">
+            <div className="flex items-center gap-2 text-[#F3F4F6] font-semibold">
+              <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
               <span>Air-Gapped SOC Policy</span>
             </div>
-            <p className="text-slate-400 leading-relaxed text-[11px]">
+            <p className="text-[#A7B0C0] leading-relaxed text-[11px]">
               NetVigil operates in read-only advisory mode. Live network write APIs are physically disabled.
             </p>
           </div>
@@ -332,79 +332,79 @@ function SettingsContent() {
         <main className="lg:col-span-9 space-y-6 min-w-0">
           {/* =========================================================================
               SECTION: PROFILE
-             ========================================================================= */}
+              ========================================================================= */}
           {activeSection === "profile" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Profile Information</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Profile Information</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Managed identity and enterprise authorization credentials.
                 </p>
               </div>
 
               {/* User Identity Card */}
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-5 pb-6 border-b border-white/5">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-5 pb-6 border-b border-[#1D2939]">
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
                       alt={displayName}
-                      className="w-16 h-16 rounded-full border-2 border-cyan-500/40 shadow-lg object-cover"
+                      className="w-16 h-16 rounded-full border-2 border-[#3B82F6]/40 shadow-lg object-cover"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border-2 border-cyan-500/40 shadow-lg flex items-center justify-center text-lg font-bold text-cyan-300">
+                    <div className="w-16 h-16 rounded-full bg-[#111827] border-2 border-[#3B82F6]/40 shadow-lg flex items-center justify-center text-lg font-bold text-[#3B82F6]">
                       {userInitials}
                     </div>
                   )}
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2.5">
-                      <h3 className="text-base font-bold text-white">{displayName}</h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <h3 className="text-base font-bold text-[#F3F4F6]">{displayName}</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
                         Identity Verified
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 font-mono">{displayEmail}</p>
-                    <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
-                      <span>Provider: <strong className="text-slate-300 font-normal">{authProvider}</strong></span>
+                    <p className="text-xs text-[#A7B0C0] font-mono">{displayEmail}</p>
+                    <div className="flex items-center gap-3 pt-1 text-[11px] text-[#667085]">
+                      <span>Provider: <strong className="text-[#A7B0C0] font-normal">{authProvider}</strong></span>
                       <span>•</span>
-                      <span>Member Since: <strong className="text-slate-300 font-normal">{memberSince}</strong></span>
+                      <span>Member Since: <strong className="text-[#A7B0C0] font-normal">{memberSince}</strong></span>
                     </div>
                   </div>
                 </div>
 
                 {/* Identity Attribute Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-white/5 space-y-1">
-                    <span className="text-slate-400 text-[11px]">Authentication Protocol</span>
-                    <p className="font-mono text-white font-medium">OAuth 2.0 / OpenID Connect (OIDC)</p>
+                  <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                    <span className="text-[#667085] text-[11px]">Authentication Protocol</span>
+                    <p className="font-mono text-[#F3F4F6] font-medium">OAuth 2.0 / OpenID Connect (OIDC)</p>
                   </div>
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-white/5 space-y-1">
-                    <span className="text-slate-400 text-[11px]">Organizational Role</span>
-                    <p className="font-mono text-cyan-300 font-medium">SOC Security Compliance Lead</p>
+                  <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                    <span className="text-[#667085] text-[11px]">Organizational Role</span>
+                    <p className="font-mono text-[#3B82F6] font-medium">SOC Security Compliance Lead</p>
                   </div>
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-white/5 space-y-1">
-                    <span className="text-slate-400 text-[11px]">Subject / Diagnostic Identifier</span>
+                  <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                    <span className="text-[#667085] text-[11px]">Subject / Diagnostic Identifier</span>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-mono text-slate-300 truncate text-[11px]">{diagnosticUserId}</p>
+                      <p className="font-mono text-[#A7B0C0] truncate text-[11px]">{diagnosticUserId}</p>
                       <button
                         onClick={() => handleCopy(user?.id || "usr_ntro_sec_26155_verified", "User ID")}
-                        className="text-slate-400 hover:text-cyan-400 transition-colors p-1"
+                        className="text-[#667085] hover:text-[#3B82F6] transition-colors p-1"
                         title="Copy Identifier"
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
-                  <div className="p-3.5 rounded-lg bg-slate-950/60 border border-white/5 space-y-1">
-                    <span className="text-slate-400 text-[11px]">Audit Attribution Scoping</span>
-                    <p className="font-mono text-emerald-400 font-medium">Strict Tenant Scoped (No Cross-Tenant Read)</p>
+                  <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                    <span className="text-[#667085] text-[11px]">Audit Attribution Scoping</span>
+                    <p className="font-mono text-[#10B981] font-medium">Strict Tenant Scoped (No Cross-Tenant Read)</p>
                   </div>
                 </div>
 
                 {/* Notice Banner */}
-                <div className="p-3.5 rounded-lg bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 text-xs text-slate-300">
-                  <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] flex items-start gap-3 text-xs text-[#A7B0C0]">
+                  <Info className="w-4 h-4 text-[#3B82F6] shrink-0 mt-0.5" />
                   <p className="leading-relaxed">
                     Profile metadata is synchronized with your enterprise identity provider (Google Workspace / Supabase). Direct credential changes must be performed through your organization’s identity administration console.
                   </p>
@@ -419,33 +419,33 @@ function SettingsContent() {
           {activeSection === "preferences" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Workspace Preferences</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Workspace Preferences</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Customize your local client rendering, density, and animation parameters.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-6 text-xs">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-6 text-xs">
                 {/* Save Status Banner */}
-                <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                <div className="flex items-center justify-between pb-4 border-b border-[#1D2939]">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-mono text-slate-300">
+                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                    <span className="text-xs font-mono text-[#A7B0C0]">
                       {isSaving ? "Saving preferences..." : "All preferences persisted and active globally."}
                     </span>
                   </div>
                   {lastSaved && (
-                    <span className="text-[10px] font-mono text-slate-400">
+                    <span className="text-[10px] font-mono text-[#667085]">
                       Last updated: {lastSaved.toLocaleTimeString()}
                     </span>
                   )}
                 </div>
 
                 {/* Appearance Mode */}
-                <div className="space-y-3 pb-6 border-b border-white/5">
+                <div className="space-y-3 pb-6 border-b border-[#1D2939]">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-semibold text-white">Appearance Theme</label>
-                    <p className="text-xs text-slate-400">Select the display theme for the NetVigil operator interface.</p>
+                    <label className="text-sm font-semibold text-[#F3F4F6]">Appearance Theme</label>
+                    <p className="text-xs text-[#667085]">Select the display theme for the NetVigil operator interface.</p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                     {[
@@ -462,17 +462,17 @@ function SettingsContent() {
                         className={cn(
                           "p-3.5 rounded-xl text-left border transition-all flex flex-col justify-between gap-3",
                           preferences.theme === t.id
-                            ? "bg-cyan-500/10 border-cyan-500/40 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)]"
-                            : "bg-slate-950/60 border-white/5 text-slate-400 hover:border-white/10 hover:text-slate-200"
+                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6] shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                            : "bg-[#080B12] border-[#1D2939] text-[#A7B0C0] hover:border-[#263B55] hover:text-[#F3F4F6]"
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <t.icon className={cn("w-4 h-4", preferences.theme === t.id ? "text-cyan-400" : "text-slate-400")} />
-                          {preferences.theme === t.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                          <t.icon className={cn("w-4 h-4", preferences.theme === t.id ? "text-[#3B82F6]" : "text-[#667085]")} />
+                          {preferences.theme === t.id && <Check className="w-3.5 h-3.5 text-[#3B82F6]" />}
                         </div>
                         <div>
-                          <div className="font-semibold text-xs text-white">{t.label}</div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">{t.desc}</div>
+                          <div className="font-semibold text-xs text-[#F3F4F6]">{t.label}</div>
+                          <div className="text-[11px] text-[#667085] mt-0.5">{t.desc}</div>
                         </div>
                       </button>
                     ))}
@@ -480,10 +480,10 @@ function SettingsContent() {
                 </div>
 
                 {/* Table & Interface Density */}
-                <div className="space-y-3 pb-6 border-b border-white/5">
+                <div className="space-y-3 pb-6 border-b border-[#1D2939]">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-semibold text-white">Interface Density</label>
-                    <p className="text-xs text-slate-400">Adjust the vertical table height and card padding for findings.</p>
+                    <label className="text-sm font-semibold text-[#F3F4F6]">Interface Density</label>
+                    <p className="text-xs text-[#667085]">Adjust the vertical table height and card padding for findings.</p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     {[
@@ -499,25 +499,25 @@ function SettingsContent() {
                         className={cn(
                           "p-3.5 rounded-xl text-left border transition-all flex items-center justify-between",
                           preferences.density === d.id
-                            ? "bg-cyan-500/10 border-cyan-500/40 text-white"
-                            : "bg-slate-950/60 border-white/5 text-slate-400 hover:border-white/10"
+                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
+                            : "bg-[#080B12] border-[#1D2939] text-[#A7B0C0] hover:border-[#263B55]"
                         )}
                       >
                         <div>
-                          <div className="font-semibold text-xs text-white">{d.label}</div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">{d.desc}</div>
+                          <div className="font-semibold text-xs text-[#F3F4F6]">{d.label}</div>
+                          <div className="text-[11px] text-[#667085] mt-0.5">{d.desc}</div>
                         </div>
-                        {preferences.density === d.id && <Check className="w-4 h-4 text-cyan-400 shrink-0" />}
+                        {preferences.density === d.id && <Check className="w-4 h-4 text-[#3B82F6] shrink-0" />}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Reduced Motion Toggle */}
-                <div className="flex items-center justify-between py-2 border-b border-white/5">
+                <div className="flex items-center justify-between py-2 border-b border-[#1D2939]">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-semibold text-white">Reduced Motion</label>
-                    <p className="text-xs text-slate-400">Disable smooth parallax, pulse, and chart animations across all pages.</p>
+                    <label className="text-sm font-semibold text-[#F3F4F6]">Reduced Motion</label>
+                    <p className="text-xs text-[#667085]">Disable smooth parallax, pulse, and chart animations across all pages.</p>
                   </div>
                   <button
                     onClick={() => {
@@ -527,7 +527,7 @@ function SettingsContent() {
                     }}
                     className={cn(
                       "w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5",
-                      preferences.reducedMotion ? "bg-cyan-500" : "bg-slate-800 border border-white/10"
+                      preferences.reducedMotion ? "bg-[#3B82F6]" : "bg-[#111827] border border-[#1D2939]"
                     )}
                   >
                     <span
@@ -540,10 +540,10 @@ function SettingsContent() {
                 </div>
 
                 {/* Default Audit Framework */}
-                <div className="space-y-3 pb-6 border-b border-white/5">
+                <div className="space-y-3 pb-6 border-b border-[#1D2939]">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-semibold text-white">Default Framework Focus</label>
-                    <p className="text-xs text-slate-400">Default regulatory standard pre-selected during configuration ingestion.</p>
+                    <label className="text-sm font-semibold text-[#F3F4F6]">Default Framework Focus</label>
+                    <p className="text-xs text-[#667085]">Default regulatory standard pre-selected during configuration ingestion.</p>
                   </div>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {["CIS", "NIST", "STIG", "ISO"].map((fw) => (
@@ -556,8 +556,8 @@ function SettingsContent() {
                         className={cn(
                           "px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all border",
                           preferences.defaultFramework === fw
-                            ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
-                            : "bg-slate-950 text-slate-400 border-white/5 hover:text-slate-200"
+                            ? "bg-[#3B82F6]/20 text-[#3B82F6] border-[#3B82F6]/40"
+                            : "bg-[#080B12] text-[#A7B0C0] border-[#1D2939] hover:text-[#F3F4F6]"
                         )}
                       >
                         {fw === "CIS" && "CIS Benchmarks (CIS-1.x)"}
@@ -572,21 +572,21 @@ function SettingsContent() {
                 {/* Reset Preferences Action */}
                 <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="space-y-0.5">
-                    <h4 className="font-semibold text-white text-xs">Reset All Preferences</h4>
-                    <p className="text-[11px] text-slate-400">Restore theme, density, motion, and framework to default SOC baseline.</p>
+                    <h4 className="font-semibold text-[#F3F4F6] text-xs">Reset All Preferences</h4>
+                    <p className="text-[11px] text-[#667085]">Restore theme, density, motion, and framework to default SOC baseline.</p>
                   </div>
 
                   {confirmReset ? (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setConfirmReset(false)}
-                        className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white border border-white/10"
+                        className="px-3 py-1.5 rounded-lg text-xs text-[#A7B0C0] hover:text-white border border-[#1D2939]"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleReset}
-                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg transition-colors flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg transition-colors flex items-center gap-1.5"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         Confirm Reset
@@ -595,9 +595,9 @@ function SettingsContent() {
                   ) : (
                     <button
                       onClick={() => setConfirmReset(true)}
-                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 hover:border-cyan-500/40 hover:text-cyan-300 transition-all flex items-center gap-2"
+                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#111827] hover:bg-[#151E2D] text-[#A7B0C0] border border-[#1D2939] hover:border-[#3B82F6]/40 hover:text-[#3B82F6] transition-all flex items-center gap-2"
                     >
-                      <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+                      <RefreshCw className="w-3.5 h-3.5 text-[#667085]" />
                       Reset to Defaults
                     </button>
                   )}
@@ -612,80 +612,80 @@ function SettingsContent() {
           {activeSection === "authentication" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Authentication & Identity</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Authentication & Identity</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Single Sign-On federation and asymmetric JWT validation status.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-6 text-xs">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-6 text-xs">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-white/5 space-y-2">
+                  <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400 text-[11px]">Federated Identity Provider</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="text-[#667085] text-[11px]">Federated Identity Provider</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
                         CONNECTED
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-white flex items-center gap-2">
-                      <Key className="w-4 h-4 text-cyan-400" />
+                    <p className="text-sm font-semibold text-[#F3F4F6] flex items-center gap-2">
+                      <Key className="w-4 h-4 text-[#3B82F6]" />
                       Google Workspace OAuth 2.0
                     </p>
-                    <p className="text-[11px] text-slate-400">Authenticated via Supabase Auth identity service.</p>
+                    <p className="text-[11px] text-[#667085]">Authenticated via Supabase Auth identity service.</p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-white/5 space-y-2">
+                  <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400 text-[11px]">JWT Signature Verification</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="text-[#667085] text-[11px]">JWT Signature Verification</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
                         VERIFIED
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-white flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-emerald-400" />
+                    <p className="text-sm font-semibold text-[#F3F4F6] flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-[#10B981]" />
                       RS256 Asymmetric Key
                     </p>
-                    <p className="text-[11px] text-slate-400">FastAPI backend validates token signature on every request.</p>
+                    <p className="text-[11px] text-[#667085]">FastAPI backend validates token signature on every request.</p>
                   </div>
                 </div>
 
                 {/* Authentication Controls Table */}
-                <div className="space-y-2 font-mono text-xs border-t border-white/5 pt-4">
-                  <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-slate-400">Session Refresh Protocol:</span>
-                    <span className="text-slate-200">Sliding Window Automatic Renewal</span>
+                <div className="space-y-2 font-mono text-xs border-t border-[#1D2939] pt-4">
+                  <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                    <span className="text-[#667085]">Session Refresh Protocol:</span>
+                    <span className="text-[#A7B0C0]">Sliding Window Automatic Renewal</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-slate-400">Client Secret Exposure:</span>
-                    <span className="text-emerald-400">ZERO (Strictly Isolated on Server)</span>
+                  <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                    <span className="text-[#667085]">Client Secret Exposure:</span>
+                    <span className="text-[#10B981]">ZERO (Strictly Isolated on Server)</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-slate-400">Cross-Origin Cookie Protection:</span>
-                    <span className="text-slate-200">SameSite=Lax, Secure HTTPS</span>
+                  <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                    <span className="text-[#667085]">Cross-Origin Cookie Protection:</span>
+                    <span className="text-[#A7B0C0]">SameSite=Lax, Secure HTTPS</span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-slate-400">Unauthorized Request Handling:</span>
-                    <span className="text-cyan-400">HTTP 401 Challenge $\rightarrow$ /login Redirect</span>
+                    <span className="text-[#667085]">Unauthorized Request Handling:</span>
+                    <span className="text-[#3B82F6]">HTTP 401 Challenge $\rightarrow$ /login Redirect</span>
                   </div>
                 </div>
 
                 {/* Sign Out Action */}
-                <div className="pt-4 border-t border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="pt-4 border-t border-[#1D2939] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h4 className="font-semibold text-white text-xs">Device Session Termination</h4>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Revoke active credentials and sign out of this workstation.</p>
+                    <h4 className="font-semibold text-[#F3F4F6] text-xs">Device Session Termination</h4>
+                    <p className="text-[11px] text-[#667085] mt-0.5">Revoke active credentials and sign out of this workstation.</p>
                   </div>
                   {confirmSignOut ? (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setConfirmSignOut(false)}
-                        className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white border border-white/10"
+                        className="px-3 py-1.5 rounded-lg text-xs text-[#A7B0C0] hover:text-white border border-[#1D2939]"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={() => logout()}
-                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-lg transition-colors flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#EF4444] hover:bg-[#DC2626] text-white shadow-lg transition-colors flex items-center gap-1.5"
                       >
                         <LogOut className="w-3.5 h-3.5" />
                         Confirm Sign Out
@@ -694,9 +694,9 @@ function SettingsContent() {
                   ) : (
                     <button
                       onClick={() => setConfirmSignOut(true)}
-                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 hover:border-rose-500/40 hover:text-rose-300 transition-all flex items-center gap-2"
+                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#EF4444]/15 hover:bg-[#EF4444]/25 text-[#EF4444] border border-[#EF4444]/40 transition-all flex items-center gap-2"
                     >
-                      <LogOut className="w-3.5 h-3.5 text-slate-400" />
+                      <LogOut className="w-3.5 h-3.5" />
                       Sign Out of This Device
                     </button>
                   )}
@@ -711,29 +711,29 @@ function SettingsContent() {
           {activeSection === "sessions" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Active Client Sessions</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Active Client Sessions</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Inspect authorized browser instances connected to your NetVigil workstation.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-4">
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4">
+                <div className="p-4 rounded-xl bg-[#080B12] border border-[#3B82F6]/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-start gap-3.5">
-                    <div className="p-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 shrink-0">
+                    <div className="p-2.5 rounded-lg bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] shrink-0">
                       <Monitor className="w-5 h-5" />
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-white">Current Workstation</span>
-                        <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="font-semibold text-xs text-[#F3F4F6]">Current Workstation</span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
                           THIS DEVICE
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 font-mono">
+                      <p className="text-[11px] text-[#667085] font-mono">
                         Windows PC · Next.js Web Shell (Port 3000)
                       </p>
-                      <p className="text-[10px] text-slate-400">
+                      <p className="text-[10px] text-[#667085]">
                         IP: 127.0.0.1 (Local) · Active Now · Authenticated via Google OAuth
                       </p>
                     </div>
@@ -741,7 +741,7 @@ function SettingsContent() {
 
                   <button
                     onClick={() => logout()}
-                    className="px-3 py-1.5 rounded-lg text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 transition-all shrink-0"
+                    className="px-3 py-1.5 rounded-lg text-xs text-[#EF4444] hover:text-[#FFAAAA] hover:bg-[#EF4444]/15 border border-[#EF4444]/30 transition-all shrink-0"
                   >
                     Revoke Session
                   </button>
@@ -756,26 +756,26 @@ function SettingsContent() {
           {activeSection === "security" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Security Posture & Boundaries</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Security Posture & Boundaries</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Immutable security guardrails enforcing read-only auditing and data privacy.
                 </p>
               </div>
 
               {/* Core Security Invariant Callout */}
-              <div className="p-5 rounded-xl bg-gradient-to-r from-cyan-950/30 via-slate-900 to-slate-900 border border-cyan-500/30 space-y-2">
-                <div className="flex items-center gap-2 text-cyan-300 font-bold text-xs uppercase tracking-wider font-mono">
-                  <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+              <div className="p-5 rounded-xl bg-gradient-to-r from-[#0D121C] via-[#080B12] to-[#0D121C] border border-[#3B82F6]/30 space-y-2">
+                <div className="flex items-center gap-2 text-[#3B82F6] font-bold text-xs uppercase tracking-wider font-mono">
+                  <ShieldCheck className="w-4 h-4 text-[#3B82F6] shrink-0" />
                   <span>Authoritative Security Invariant</span>
                 </div>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-[#F3F4F6]">
                   &ldquo;NetVigil operates strictly as an air-gapped compliance auditor. The platform contains zero device-write APIs and never automatically pushes configuration changes to live network devices.&rdquo;
                 </p>
               </div>
 
               {/* Posture Controls Matrix */}
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-3 text-xs">
-                <h3 className="font-semibold text-white text-xs mb-3">Enforced Architectural Controls</h3>
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
+                <h3 className="font-semibold text-[#F3F4F6] text-xs mb-3">Enforced Architectural Controls</h3>
                 {[
                   { name: "API Route Protection", status: "ENFORCED", desc: "JWT bearer validation required on all /api/v1 domain routes." },
                   { name: "Tenant & Audit Isolation", status: "ENFORCED", desc: "Database queries are strictly scoped to audit IDs to prevent IDOR." },
@@ -785,12 +785,12 @@ function SettingsContent() {
                   { name: "Security Headers (CSP / HSTS)", status: "ACTIVE", desc: "Injects X-Content-Type-Options: nosniff, X-Frame-Options: DENY, and strict HSTS." },
                   { name: "High-Risk Endpoint Rate Limiter", status: "ACTIVE", desc: "Sliding window token bucket throttles file upload and AI reasoning abuse." },
                 ].map((ctrl) => (
-                  <div key={ctrl.name} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg bg-slate-950/60 border border-white/5 gap-2">
+                  <div key={ctrl.name} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg bg-[#080B12] border border-[#1D2939] gap-2">
                     <div className="space-y-0.5">
-                      <span className="font-semibold text-white">{ctrl.name}</span>
-                      <p className="text-[11px] text-slate-400">{ctrl.desc}</p>
+                      <span className="font-semibold text-[#F3F4F6]">{ctrl.name}</span>
+                      <p className="text-[11px] text-[#667085]">{ctrl.desc}</p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0 self-start sm:self-auto">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 shrink-0 self-start sm:self-auto">
                       {ctrl.status}
                     </span>
                   </div>
@@ -805,59 +805,59 @@ function SettingsContent() {
           {activeSection === "ai-config" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">AI Multi-Model Gateway Configuration</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">AI Multi-Model Gateway Configuration</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Server-side model routing and air-gapped fallback sequence.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-6 text-xs">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-6 text-xs">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-white/5 space-y-2">
-                    <span className="text-slate-400 text-[11px]">AI Gateway Provider</span>
-                    <p className="text-sm font-semibold text-white flex items-center gap-2">
-                      <Cpu className="w-4 h-4 text-cyan-400" />
+                  <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
+                    <span className="text-[#667085] text-[11px]">AI Gateway Provider</span>
+                    <p className="text-sm font-semibold text-[#F3F4F6] flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-[#8B5CF6]" />
                       OpenRouter Gateway
                     </p>
-                    <p className="text-[11px] text-slate-400">Multi-model router with automatic latency & credit fallback.</p>
+                    <p className="text-[11px] text-[#667085]">Multi-model router with automatic latency & credit fallback.</p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-white/5 space-y-2">
-                    <span className="text-slate-400 text-[11px]">Authority Tier</span>
-                    <p className="text-sm font-semibold text-white flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
+                    <span className="text-[#667085] text-[11px]">Authority Tier</span>
+                    <p className="text-sm font-semibold text-[#F3F4F6] flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-[#10B981]" />
                       ADVISORY ONLY
                     </p>
-                    <p className="text-[11px] text-slate-400">Deterministic AST engine retains 100% decision authority.</p>
+                    <p className="text-[11px] text-[#667085]">Deterministic AST engine retains 100% decision authority.</p>
                   </div>
                 </div>
 
                 {/* Candidate Model Sequence */}
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-white text-xs">Model Fallback Sequence</h4>
+                  <h4 className="font-semibold text-[#F3F4F6] text-xs">Model Fallback Sequence</h4>
                   <div className="space-y-2 font-mono text-[11px]">
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/60 border border-white/5">
-                      <span className="text-slate-300">1. Primary Reasoner:</span>
-                      <span className="text-cyan-400 font-semibold">qwen/qwen3-235b-a22b-thinking-2507</span>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                      <span className="text-[#A7B0C0]">1. Primary Reasoner:</span>
+                      <span className="text-[#8B5CF6] font-semibold">qwen/qwen3-235b-a22b-thinking-2507</span>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/60 border border-white/5">
-                      <span className="text-slate-300">2. Secondary Reasoner:</span>
-                      <span className="text-cyan-400 font-semibold">nvidia/nemotron-3-ultra-550b-a55b:free</span>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                      <span className="text-[#A7B0C0]">2. Secondary Reasoner:</span>
+                      <span className="text-[#8B5CF6] font-semibold">nvidia/nemotron-3-ultra-550b-a55b:free</span>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/60 border border-white/5">
-                      <span className="text-slate-300">3. Offline Standby:</span>
-                      <span className="text-emerald-400 font-semibold">Deterministic OfflineStandbyProvider (Air-Gapped)</span>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                      <span className="text-[#A7B0C0]">3. Offline Standby:</span>
+                      <span className="text-[#10B981] font-semibold">Deterministic OfflineStandbyProvider (Air-Gapped)</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Safe Key Masking Display */}
-                <div className="p-3.5 rounded-lg bg-slate-950/80 border border-white/5 flex items-center justify-between">
+                <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <span className="text-slate-400 text-[11px]">OpenRouter API Key</span>
-                    <p className="font-mono text-slate-300">••••••••••••••••••••••••••••••••</p>
+                    <span className="text-[#667085] text-[11px]">OpenRouter API Key</span>
+                    <p className="font-mono text-[#A7B0C0]">••••••••••••••••••••••••••••••••</p>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/20">
                     CONFIGURED IN SERVER ENV
                   </span>
                 </div>
@@ -871,18 +871,18 @@ function SettingsContent() {
           {activeSection === "ai-privacy" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">AI Privacy, Safety & Trust Controls</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">AI Privacy, Safety & Trust Controls</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Verifiable safeguards protecting sensitive network configurations from prompt injection and exfiltration.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-4 text-xs">
-                <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/30 to-slate-900 border border-emerald-500/30 flex items-start gap-3">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4 text-xs">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-[#0D121C] to-[#080B12] border border-[#10B981]/30 flex items-start gap-3">
+                  <ShieldCheck className="w-5 h-5 text-[#10B981] shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <h3 className="font-bold text-white text-xs uppercase tracking-wider font-mono">Zero-Trust AI Sandbox</h3>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                    <h3 className="font-bold text-[#F3F4F6] text-xs uppercase tracking-wider font-mono">Zero-Trust AI Sandbox</h3>
+                    <p className="text-[11px] text-[#A7B0C0] leading-relaxed">
                       AI is never granted access to raw credentials or device execution. Raw configuration lines are sanitized by the sensitive data redactor and enclosed within passive XML fences before prompt dispatch.
                     </p>
                   </div>
@@ -899,11 +899,11 @@ function SettingsContent() {
                     { title: "Zero Live Execution", desc: "AI cannot trigger network commands or device writes." },
                     { title: "Air-Gapped Offline Fallback", desc: "Fully operational without internet connectivity." },
                   ].map((g) => (
-                    <div key={g.title} className="p-3 rounded-lg bg-slate-950/60 border border-white/5 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div key={g.title} className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-white text-xs">{g.title}</span>
-                        <p className="text-[11px] text-slate-400 mt-0.5">{g.desc}</p>
+                        <span className="font-semibold text-[#F3F4F6] text-xs">{g.title}</span>
+                        <p className="text-[11px] text-[#667085] mt-0.5">{g.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -918,13 +918,13 @@ function SettingsContent() {
           {activeSection === "general" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">General Platform Details</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">General Platform Details</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Core release metadata, environment parameters, and project attributes.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-3 font-mono text-xs">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 font-mono text-xs">
                 {[
                   { label: "Product Name", val: "NetVigil Network Security Compliance Auditor" },
                   { label: "Problem Statement", val: "NTRO / SIH26155" },
@@ -934,9 +934,9 @@ function SettingsContent() {
                   { label: "Frontend Web Shell", val: "Next.js 15 (React 19, TypeScript, Tailwind CSS)" },
                   { label: "Operational Integrity", val: "100% Deterministic Compliance Decision Engine" },
                 ].map((row) => (
-                  <div key={row.label} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-white/5 gap-1">
-                    <span className="text-slate-400 font-sans">{row.label}:</span>
-                    <span className="text-white font-medium">{row.val}</span>
+                  <div key={row.label} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-[#1D2939] gap-1">
+                    <span className="text-[#667085] font-sans">{row.label}:</span>
+                    <span className="text-[#F3F4F6] font-medium">{row.val}</span>
                   </div>
                 ))}
               </div>
@@ -949,53 +949,53 @@ function SettingsContent() {
           {activeSection === "ingestion" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Configuration Ingestion Policies</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Configuration Ingestion Policies</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Cryptographic hashing, file limits, and parser grammar specifications.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-4 text-xs">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-white/5">
-                  <span className="text-slate-400 font-semibold">Policy Authority:</span>
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4 text-xs">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                  <span className="text-[#A7B0C0] font-semibold">Policy Authority:</span>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
                     MANAGED BY PLATFORM
                   </span>
                 </div>
 
                 <div className="space-y-2 font-mono">
-                  <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-slate-400 font-sans">Maximum Ingestion File Size:</span>
-                    <span className="text-white font-bold">10 MB</span>
+                  <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                    <span className="text-[#667085] font-sans">Maximum Ingestion File Size:</span>
+                    <span className="text-[#F3F4F6] font-bold">10 MB</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-slate-400 font-sans">Supported File Extensions:</span>
-                    <span className="text-cyan-300">.cfg, .conf, .txt, .log</span>
+                  <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                    <span className="text-[#667085] font-sans">Supported File Extensions:</span>
+                    <span className="text-[#3B82F6]">.cfg, .conf, .txt, .log</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-slate-400 font-sans">Cryptographic Fingerprint:</span>
-                    <span className="text-emerald-400">SHA-256 (256-bit Digest)</span>
+                  <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                    <span className="text-[#667085] font-sans">Cryptographic Fingerprint:</span>
+                    <span className="text-[#10B981]">SHA-256 (256-bit Digest)</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-slate-400 font-sans">Grammar Autodetection:</span>
-                    <span className="text-emerald-400">ACTIVE (Deterministic Heuristics)</span>
+                  <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                    <span className="text-[#667085] font-sans">Grammar Autodetection:</span>
+                    <span className="text-[#10B981]">ACTIVE (Deterministic Heuristics)</span>
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <h4 className="font-semibold text-white text-xs mb-2">Supported Vendor Grammars</h4>
+                  <h4 className="font-semibold text-[#F3F4F6] text-xs mb-2">Supported Vendor Grammars</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="p-3 rounded-lg bg-slate-950/60 border border-white/5 space-y-1">
-                      <span className="font-semibold text-white">Cisco IOS / IOS-XE</span>
-                      <p className="text-[11px] text-slate-400">Line-oriented hierarchy with indent blocks.</p>
+                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                      <span className="font-semibold text-[#F3F4F6]">Cisco IOS / IOS-XE</span>
+                      <p className="text-[11px] text-[#667085]">Line-oriented hierarchy with indent blocks.</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-slate-950/60 border border-white/5 space-y-1">
-                      <span className="font-semibold text-white">Juniper JunOS</span>
-                      <p className="text-[11px] text-slate-400">Hierarchical brace syntax and set commands.</p>
+                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                      <span className="font-semibold text-[#F3F4F6]">Juniper JunOS</span>
+                      <p className="text-[11px] text-[#667085]">Hierarchical brace syntax and set commands.</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-slate-950/60 border border-white/5 space-y-1">
-                      <span className="font-semibold text-white">Fortinet FortiOS</span>
-                      <p className="text-[11px] text-slate-400">Block-level config/edit/set hierarchy.</p>
+                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
+                      <span className="font-semibold text-[#F3F4F6]">Fortinet FortiOS</span>
+                      <p className="text-[11px] text-[#667085]">Block-level config/edit/set hierarchy.</p>
                     </div>
                   </div>
                 </div>
@@ -1009,36 +1009,36 @@ function SettingsContent() {
           {activeSection === "database" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Database & Persistence</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Database & Persistence</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Relational storage state and migration metadata.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-4 text-xs font-mono">
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">Primary Database Engine:</span>
-                  <span className="text-white">PostgreSQL 16 / SQLite AIO</span>
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4 text-xs font-mono">
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">Primary Database Engine:</span>
+                  <span className="text-[#F3F4F6]">PostgreSQL 16 / SQLite AIO</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">Connection State:</span>
-                  <span className="text-emerald-400">ONLINE & CONNECTED</span>
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">Connection State:</span>
+                  <span className="text-[#10B981]">ONLINE & CONNECTED</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">ORM & Migration Driver:</span>
-                  <span className="text-slate-200">SQLAlchemy 2.0 Async (Alembic)</span>
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">ORM & Migration Driver:</span>
+                  <span className="text-[#A7B0C0]">SQLAlchemy 2.0 Async (Alembic)</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">Current Migration Level:</span>
-                  <span className="text-cyan-300">0005_add_risk_and_remediation_models</span>
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">Current Migration Level:</span>
+                  <span className="text-[#3B82F6]">0005_add_risk_and_remediation_models</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-slate-400 font-sans">Connection Credentials:</span>
-                  <span className="text-emerald-400">PROTECTED (Server Isolated)</span>
+                  <span className="text-[#667085] font-sans">Connection Credentials:</span>
+                  <span className="text-[#10B981]">PROTECTED (Server Isolated)</span>
                 </div>
 
-                <div className="p-3.5 rounded-lg bg-cyan-950/20 border border-cyan-500/20 flex items-start gap-3 font-sans text-slate-300">
-                  <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] flex items-start gap-3 font-sans text-[#A7B0C0]">
+                  <Info className="w-4 h-4 text-[#3B82F6] shrink-0 mt-0.5" />
                   <p className="text-[11px] leading-relaxed">
                     Database credentials, connection pools, and migration locks are managed exclusively by the backend service. No database passwords or connection URIs are transmitted to client browsers.
                   </p>
@@ -1053,32 +1053,32 @@ function SettingsContent() {
           {activeSection === "network" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">API Protocols & Network Security</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">API Protocols & Network Security</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Ingress routing, rate limiting policies, and HTTP security headers.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-4 text-xs font-mono">
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">API Service Protocol:</span>
-                  <span className="text-white">FastAPI ASGI (REST / JSON)</span>
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4 text-xs font-mono">
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">API Service Protocol:</span>
+                  <span className="text-[#F3F4F6]">FastAPI ASGI (REST / JSON)</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">Rate Limiter Defense:</span>
-                  <span className="text-emerald-400">ACTIVE (Sliding Window Bucket)</span>
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">Rate Limiter Defense:</span>
+                  <span className="text-[#10B981]">ACTIVE (Sliding Window Bucket)</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">CORS Origin Isolation:</span>
-                  <span className="text-slate-200">Enforced for Authorized Domains</span>
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">CORS Origin Isolation:</span>
+                  <span className="text-[#A7B0C0]">Enforced for Authorized Domains</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400 font-sans">Security Headers Middleware:</span>
-                  <span className="text-emerald-400">nosniff, DENY, HSTS active</span>
+                <div className="flex justify-between py-2 border-b border-[#1D2939]">
+                  <span className="text-[#667085] font-sans">Security Headers Middleware:</span>
+                  <span className="text-[#10B981]">nosniff, DENY, HSTS active</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-slate-400 font-sans">TLS / Ingress Termination:</span>
-                  <span className="text-slate-200 font-sans text-[11px]">Managed by Reverse Proxy / Ingress</span>
+                  <span className="text-[#667085] font-sans">TLS / Ingress Termination:</span>
+                  <span className="text-[#A7B0C0] font-sans text-[11px]">Managed by Reverse Proxy / Ingress</span>
                 </div>
               </div>
             </div>
@@ -1090,8 +1090,8 @@ function SettingsContent() {
           {activeSection === "frameworks" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Compliance Standards & Frameworks</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Compliance Standards & Frameworks</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Regulatory catalogs and standards evaluated by the deterministic engine.
                 </p>
               </div>
@@ -1103,18 +1103,18 @@ function SettingsContent() {
                   { id: "STIG", name: "DISA STIG", version: "V2R1", desc: "Department of Defense cybersecurity policy and implementation guides." },
                   { id: "ISO", name: "ISO/IEC 27001", version: "2022", desc: "International standard for information security management system controls." },
                 ].map((fw) => (
-                  <div key={fw.id} className="p-5 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                  <div key={fw.id} className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-cyan-400" />
-                        <h3 className="font-bold text-white text-sm">{fw.name}</h3>
+                        <Layers className="w-4 h-4 text-[#3B82F6]" />
+                        <h3 className="font-bold text-[#F3F4F6] text-sm">{fw.name}</h3>
                       </div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20">
                         ACTIVE
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">{fw.desc}</p>
-                    <div className="pt-2 text-[11px] font-mono text-cyan-300">
+                    <p className="text-xs text-[#667085] leading-relaxed">{fw.desc}</p>
+                    <div className="pt-2 text-[11px] font-mono text-[#3B82F6]">
                       Standard Version: {fw.version}
                     </div>
                   </div>
@@ -1129,13 +1129,13 @@ function SettingsContent() {
           {activeSection === "audit-policies" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Audit & Provenance Policies</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">Audit & Provenance Policies</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Invariants governing evidence extraction, historical scoping, and score reproduction.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-3 text-xs">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
                 {[
                   { title: "Latest Audit Active Fleet Scoping", status: "ACTIVE", desc: "Posture metrics exclusively aggregate the latest audit per configuration to prevent score inflation." },
                   { title: "Historical Audit Immutability", status: "ACTIVE", desc: "Historical audit records are preserved permanently and cannot be modified after execution." },
@@ -1143,12 +1143,12 @@ function SettingsContent() {
                   { title: "Security Time Machine Delta Engine", status: "ACTIVE", desc: "Deterministic before/after audit comparison tracking resolved and regressed controls." },
                   { title: "Read-Only Remediation Guarantee", status: "ENFORCED", desc: "Allowlisted diffs are generated for human review; live device push is disabled." },
                 ].map((pol) => (
-                  <div key={pol.title} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg bg-slate-950/60 border border-white/5 gap-2">
+                  <div key={pol.title} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] gap-2">
                     <div className="space-y-0.5">
-                      <span className="font-semibold text-white">{pol.title}</span>
-                      <p className="text-[11px] text-slate-400">{pol.desc}</p>
+                      <span className="font-semibold text-[#F3F4F6]">{pol.title}</span>
+                      <p className="text-[11px] text-[#667085]">{pol.desc}</p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0 self-start sm:self-auto">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 shrink-0 self-start sm:self-auto">
                       {pol.status}
                     </span>
                   </div>
@@ -1163,65 +1163,65 @@ function SettingsContent() {
           {activeSection === "system-status" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">System Status & Subsystem Diagnostics</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">System Status & Subsystem Diagnostics</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   Centralized operational health metrics across core subsystems.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-xs">FastAPI Engine</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[#667085] text-xs">FastAPI Engine</span>
+                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
                   </div>
-                  <p className="text-base font-bold text-white">ONLINE</p>
-                  <p className="text-[11px] font-mono text-slate-400">Port 8000 · v0.1.0</p>
+                  <p className="text-base font-bold text-[#F3F4F6]">ONLINE</p>
+                  <p className="text-[11px] font-mono text-[#667085]">Port 8000 · v0.1.0</p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-xs">Database Layer</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="text-[#667085] text-xs">Database Layer</span>
+                    <span className="w-2 h-2 rounded-full bg-[#10B981]" />
                   </div>
-                  <p className="text-base font-bold text-white">CONNECTED</p>
-                  <p className="text-[11px] font-mono text-slate-400">PostgreSQL / SQLite AIO</p>
+                  <p className="text-base font-bold text-[#F3F4F6]">CONNECTED</p>
+                  <p className="text-[11px] font-mono text-[#667085]">PostgreSQL / SQLite AIO</p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-xs">Auth Provider</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="text-[#667085] text-xs">Auth Provider</span>
+                    <span className="w-2 h-2 rounded-full bg-[#10B981]" />
                   </div>
-                  <p className="text-base font-bold text-white">VERIFIED</p>
-                  <p className="text-[11px] font-mono text-slate-400">Google OAuth 2.0 / Supabase</p>
+                  <p className="text-base font-bold text-[#F3F4F6]">VERIFIED</p>
+                  <p className="text-[11px] font-mono text-[#667085]">Google OAuth 2.0 / Supabase</p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-xs">AI Gateway</span>
-                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                    <span className="text-[#667085] text-xs">AI Gateway</span>
+                    <span className="w-2 h-2 rounded-full bg-[#8B5CF6]" />
                   </div>
-                  <p className="text-base font-bold text-white">READY / STANDBY</p>
-                  <p className="text-[11px] font-mono text-slate-400">OpenRouter + Offline Standby</p>
+                  <p className="text-base font-bold text-[#F3F4F6]">READY / STANDBY</p>
+                  <p className="text-[11px] font-mono text-[#667085]">OpenRouter + Offline Standby</p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-xs">Multi-Vendor Parsers</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="text-[#667085] text-xs">Multi-Vendor Parsers</span>
+                    <span className="w-2 h-2 rounded-full bg-[#10B981]" />
                   </div>
-                  <p className="text-base font-bold text-white">3 VENDORS</p>
-                  <p className="text-[11px] font-mono text-slate-400">Cisco, Juniper, Fortinet</p>
+                  <p className="text-base font-bold text-[#F3F4F6]">3 VENDORS</p>
+                  <p className="text-[11px] font-mono text-[#667085]">Cisco, Juniper, Fortinet</p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-xs">Compliance Engine</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="text-[#667085] text-xs">Compliance Engine</span>
+                    <span className="w-2 h-2 rounded-full bg-[#10B981]" />
                   </div>
-                  <p className="text-base font-bold text-white">DETERMINISTIC</p>
-                  <p className="text-[11px] font-mono text-slate-400">4 Frameworks Active</p>
+                  <p className="text-base font-bold text-[#F3F4F6]">DETERMINISTIC</p>
+                  <p className="text-[11px] font-mono text-[#667085]">4 Frameworks Active</p>
                 </div>
               </div>
             </div>
@@ -1233,77 +1233,77 @@ function SettingsContent() {
           {activeSection === "about" && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">About NetVigil</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h2 className="text-lg font-bold text-[#F3F4F6] tracking-tight">About NetVigil</h2>
+                <p className="text-xs text-[#A7B0C0] mt-0.5">
                   AI-Driven Multi-Vendor Network Security Compliance Auditor.
                 </p>
               </div>
 
-              <div className="p-6 rounded-xl bg-slate-900/60 border border-white/5 space-y-6 text-xs">
+              <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-6 text-xs">
                 <div className="space-y-2">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-cyan-400" />
+                  <h3 className="text-base font-bold text-[#F3F4F6] flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-[#3B82F6]" />
                     <span>NetVigil v1.0.0-RC1</span>
                   </h3>
-                  <p className="text-slate-300 leading-relaxed">
+                  <p className="text-[#A7B0C0] leading-relaxed">
                     Engineered for the National Technical Research Organisation (NTRO) under SIH26155 to audit heterogeneous multi-vendor network device configurations against regulatory compliance standards with mathematical determinism.
                   </p>
                 </div>
 
                 {/* Pipeline Flow */}
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-white/5 space-y-2 font-mono text-[11px]">
-                  <span className="text-slate-400 font-sans font-semibold">Deterministic Execution Pipeline</span>
-                  <p className="text-cyan-300 leading-relaxed">
+                <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2 font-mono text-[11px]">
+                  <span className="text-[#667085] font-sans font-semibold">Deterministic Execution Pipeline</span>
+                  <p className="text-[#3B82F6] leading-relaxed">
                     Raw Config $\rightarrow$ SHA-256 Fingerprint $\rightarrow$ Multi-Vendor AST Parser $\rightarrow$ Universal Security Model $\rightarrow$ Deterministic Compliance $\rightarrow$ Risk Graph $\rightarrow$ Allowlisted Remediation $\rightarrow$ Re-Analysis Delta $\rightarrow$ Executive Report
                   </p>
                 </div>
 
                 {/* Quick Navigation Links */}
                 <div className="pt-2">
-                  <h4 className="font-semibold text-white text-xs mb-3">Platform Navigation</h4>
+                  <h4 className="font-semibold text-[#F3F4F6] text-xs mb-3">Platform Navigation</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Link
                       href="/security-time-machine"
-                      className="p-3 rounded-lg bg-slate-950 border border-white/5 hover:border-cyan-500/30 text-slate-300 hover:text-white flex items-center justify-between transition-all"
+                      className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] hover:border-[#3B82F6]/30 text-[#A7B0C0] hover:text-[#F3F4F6] flex items-center justify-between transition-all"
                     >
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-cyan-400" />
+                        <Clock className="w-4 h-4 text-[#3B82F6]" />
                         <span>Security Time Machine</span>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                      <ChevronRight className="w-3.5 h-3.5 text-[#667085]" />
                     </Link>
 
                     <Link
                       href="/ai-security-briefing"
-                      className="p-3 rounded-lg bg-slate-950 border border-white/5 hover:border-cyan-500/30 text-slate-300 hover:text-white flex items-center justify-between transition-all"
+                      className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] hover:border-[#3B82F6]/30 text-[#A7B0C0] hover:text-[#F3F4F6] flex items-center justify-between transition-all"
                     >
                       <div className="flex items-center gap-2">
-                        <Cpu className="w-4 h-4 text-cyan-400" />
+                        <Cpu className="w-4 h-4 text-[#8B5CF6]" />
                         <span>AI Security Briefing</span>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                      <ChevronRight className="w-3.5 h-3.5 text-[#667085]" />
                     </Link>
 
                     <Link
                       href="/reports"
-                      className="p-3 rounded-lg bg-slate-950 border border-white/5 hover:border-cyan-500/30 text-slate-300 hover:text-white flex items-center justify-between transition-all"
+                      className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] hover:border-[#3B82F6]/30 text-[#A7B0C0] hover:text-[#F3F4F6] flex items-center justify-between transition-all"
                     >
                       <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-cyan-400" />
+                        <FileText className="w-4 h-4 text-[#3B82F6]" />
                         <span>Executive Reports</span>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                      <ChevronRight className="w-3.5 h-3.5 text-[#667085]" />
                     </Link>
 
                     <Link
                       href="/ai-boundary"
-                      className="p-3 rounded-lg bg-slate-950 border border-white/5 hover:border-cyan-500/30 text-slate-300 hover:text-white flex items-center justify-between transition-all"
+                      className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] hover:border-[#3B82F6]/30 text-[#A7B0C0] hover:text-[#F3F4F6] flex items-center justify-between transition-all"
                     >
                       <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-cyan-400" />
+                        <Shield className="w-4 h-4 text-[#3B82F6]" />
                         <span>AI Decision Boundary</span>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                      <ChevronRight className="w-3.5 h-3.5 text-[#667085]" />
                     </Link>
                   </div>
                 </div>
@@ -1320,7 +1320,7 @@ export default function SettingsPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-slate-500 text-xs font-mono animate-pulse">
+        <div className="p-12 text-center text-[#667085] text-xs font-mono animate-pulse">
           Loading NetVigil Enterprise Settings...
         </div>
       }

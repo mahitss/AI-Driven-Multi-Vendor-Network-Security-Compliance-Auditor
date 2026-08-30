@@ -73,19 +73,19 @@ export default function TopographicScene() {
       // 0: Foreground Radiant Beacon Node (Center-Bottom Pyramid Summit)
       { id: "beacon", x: 20, z: 160, label: "", color: "#FFFFFF", isBeacon: true, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
       // 1: JunOS Pyramid Peak (Upper-Center Summit)
-      { id: "junos", x: 40, z: -140, label: "JUNOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
+      { id: "junos", x: 40, z: -140, label: "JUNOS → AST → USM", color: "#3B82F6", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
       // 2: FortiOS Pyramid Peak (Upper-Right Summit)
-      { id: "fortios", x: 320, z: -80, label: "FORTIOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
+      { id: "fortios", x: 320, z: -80, label: "FORTIOS → AST → USM", color: "#3B82F6", isBeacon: false, chipOffset: { x: 0, y: -48 }, lineDir: "up" },
       // 3: Cisco IOS Pyramid Shoulder (Mid-Left Summit)
-      { id: "cisco", x: -240, z: 20, label: "CISCO IOS → AST → USM", color: "#00D9FF", isBeacon: false, chipOffset: { x: -20, y: -38 }, lineDir: "up" },
+      { id: "cisco", x: -240, z: 20, label: "CISCO IOS → AST → USM", color: "#3B82F6", isBeacon: false, chipOffset: { x: -20, y: -38 }, lineDir: "up" },
       // 4: Midground Ridge Node (between Cisco and JunOS)
-      { id: "mid_node", x: -90, z: -50, label: "", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
+      { id: "mid_node", x: -90, z: -50, label: "", color: "#3B82F6", isBeacon: false, chipOffset: { x: 0, y: 0 }, lineDir: "none" },
       // 5: CIS-1.2.1 / FAIL (Right Flank Upper)
-      { id: "cis_fail", x: 340, z: 30, label: "CIS-1.2.1 / FAIL", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -34 }, lineDir: "up", isFail: true },
+      { id: "cis_fail", x: 340, z: 30, label: "CIS-1.2.1 / FAIL", color: "#EF4444", isBeacon: false, chipOffset: { x: 0, y: -34 }, lineDir: "up", isFail: true },
       // 6: AI Advisory (Right Flank Mid)
-      { id: "ai_advisory", x: 330, z: 120, label: "AI_ADVISORY:READ_ONLY", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
+      { id: "ai_advisory", x: 330, z: 120, label: "AI_ADVISORY:READ_ONLY", color: "#8B5CF6", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
       // 7: Remote Push Absent (Right Flank Lower)
-      { id: "remote_push", x: 330, z: 220, label: "REMOTE_PUSH:ABSENT", color: "#00D9FF", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
+      { id: "remote_push", x: 330, z: 220, label: "REMOTE_PUSH:ABSENT", color: "#10B981", isBeacon: false, chipOffset: { x: 0, y: -32 }, lineDir: "up" },
     ];
 
     // Luminous Curved Network Connection Splines
@@ -202,9 +202,9 @@ export default function TopographicScene() {
         height * 0.50,
         width * 0.65
       );
-      centerGlow.addColorStop(0, "rgba(0, 217, 255, 0.15)");
-      centerGlow.addColorStop(0.45, "rgba(0, 201, 139, 0.04)");
-      centerGlow.addColorStop(1, "rgba(3, 7, 12, 0)");
+      centerGlow.addColorStop(0, "rgba(59, 130, 246, 0.14)");
+      centerGlow.addColorStop(0.45, "rgba(34, 211, 238, 0.03)");
+      centerGlow.addColorStop(1, "rgba(8, 11, 18, 0)");
       ctx.fillStyle = centerGlow;
       ctx.fillRect(0, 0, width, height);
 
@@ -228,7 +228,7 @@ export default function TopographicScene() {
       // 3. Render 3D Wireframe Latitudinal Contour Lines
       for (let r = 0; r < gridRows; r++) {
         const depthRatio = r / (gridRows - 1);
-        const lineAlpha = 0.08 + Math.pow(depthRatio, 1.2) * 0.45;
+        const lineAlpha = 0.06 + Math.pow(depthRatio, 1.2) * 0.38;
 
         ctx.beginPath();
         let started = false;
@@ -252,13 +252,13 @@ export default function TopographicScene() {
 
         const isPeakRow = r === 8 || r === 14 || r === 22 || r === 30 || r === gridRows - 1;
         if (isPeakRow && depthRatio > 0.25) {
-          ctx.shadowColor = "rgba(0, 217, 255, 0.65)";
+          ctx.shadowColor = "rgba(59, 130, 246, 0.50)";
           ctx.shadowBlur = 8;
         } else {
           ctx.shadowBlur = 0;
         }
 
-        ctx.strokeStyle = `rgba(0, 217, 255, ${lineAlpha})`;
+        ctx.strokeStyle = `rgba(59, 130, 246, ${lineAlpha})`;
         ctx.lineWidth = 0.85 + depthRatio * 0.7;
         ctx.stroke();
       }
@@ -283,8 +283,8 @@ export default function TopographicScene() {
         }
 
         const colDepth = Math.abs(c - gridCols / 2) / (gridCols / 2);
-        const ribAlpha = 0.04 + (1 - colDepth) * 0.06;
-        ctx.strokeStyle = `rgba(0, 201, 139, ${ribAlpha})`;
+        const ribAlpha = 0.03 + (1 - colDepth) * 0.05;
+        ctx.strokeStyle = `rgba(96, 165, 250, ${ribAlpha})`;
         ctx.lineWidth = 0.7;
         ctx.stroke();
       }
@@ -319,8 +319,8 @@ export default function TopographicScene() {
             }
           }
 
-          const ringAlpha = 0.16 + (pyr.maxR - radius) * 0.0016;
-          ctx.strokeStyle = `rgba(0, 217, 255, ${ringAlpha})`;
+          const ringAlpha = 0.12 + (pyr.maxR - radius) * 0.0014;
+          ctx.strokeStyle = `rgba(59, 130, 246, ${ringAlpha})`;
           ctx.lineWidth = 1.0;
           ctx.stroke();
         }
@@ -370,7 +370,7 @@ export default function TopographicScene() {
         const midY = Math.min(n1.y, n2.y) - 28;
         ctx.quadraticCurveTo(midX, midY, n2.x, n2.y);
 
-        ctx.strokeStyle = "rgba(0, 217, 255, 0.38)";
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.35)";
         ctx.lineWidth = 1.25;
         ctx.setLineDash([3, 5]);
         ctx.stroke();
@@ -385,7 +385,7 @@ export default function TopographicScene() {
           ctx.beginPath();
           ctx.arc(px, py, 2.8, 0, Math.PI * 2);
           ctx.fillStyle = "#FFFFFF";
-          ctx.shadowColor = "#00D9FF";
+          ctx.shadowColor = "#3B82F6";
           ctx.shadowBlur = 12;
           ctx.fill();
           ctx.shadowBlur = 0;
@@ -399,12 +399,12 @@ export default function TopographicScene() {
 
         // A. Glowing Node Dot
         if (pn.node.isBeacon) {
-          // Radiant White-Cyan Foreground Beacon Node
+          // Radiant White Foreground Beacon Node
           ctx.beginPath();
           ctx.arc(pn.x, pn.y, 5.2 * pn.scale * pn.pulse, 0, Math.PI * 2);
           ctx.fillStyle = "#FFFFFF";
-          ctx.shadowColor = "#00D9FF";
-          ctx.shadowBlur = 28;
+          ctx.shadowColor = "#3B82F6";
+          ctx.shadowBlur = 24;
           ctx.fill();
           ctx.shadowBlur = 0;
         } else {
@@ -412,7 +412,7 @@ export default function TopographicScene() {
           ctx.arc(pn.x, pn.y, 3.2 * pn.scale * pn.pulse, 0, Math.PI * 2);
           ctx.fillStyle = pn.node.color;
           ctx.shadowColor = pn.node.color;
-          ctx.shadowBlur = 14 * pn.scale;
+          ctx.shadowBlur = 12 * pn.scale;
           ctx.fill();
           ctx.shadowBlur = 0;
         }
@@ -425,7 +425,7 @@ export default function TopographicScene() {
           ctx.beginPath();
           ctx.moveTo(pn.x, pn.y);
           ctx.lineTo(chipX, chipY + 14);
-          ctx.strokeStyle = "rgba(0, 217, 255, 0.55)";
+          ctx.strokeStyle = "rgba(59, 130, 246, 0.50)";
           ctx.lineWidth = 0.9;
           ctx.stroke();
 
@@ -440,24 +440,24 @@ export default function TopographicScene() {
           const rectY = chipY - chipH / 2;
 
           // Chip Background
-          ctx.fillStyle = "rgba(5, 12, 22, 0.94)";
+          ctx.fillStyle = "rgba(13, 18, 28, 0.95)";
           ctx.fillRect(rectX, rectY, chipW, chipH);
 
           // Chip Border
           if (pn.node.isFail) {
-            ctx.strokeStyle = "rgba(255, 77, 77, 0.55)";
+            ctx.strokeStyle = "rgba(239, 68, 68, 0.55)";
           } else {
-            ctx.strokeStyle = "rgba(0, 217, 255, 0.45)";
+            ctx.strokeStyle = "rgba(59, 130, 246, 0.40)";
           }
           ctx.lineWidth = 0.9;
           ctx.strokeRect(rectX, rectY, chipW, chipH);
 
           // Chip Text
           if (pn.node.isFail) {
-            ctx.fillStyle = "#00D9FF";
+            ctx.fillStyle = "#A7B0C0";
             ctx.fillText("CIS-1.2.1 / ", rectX + 8, rectY + fontSize + 1);
             const prefixW = ctx.measureText("CIS-1.2.1 / ").width;
-            ctx.fillStyle = "#FF4D4D";
+            ctx.fillStyle = "#EF4444";
             ctx.fillText("FAIL", rectX + 8 + prefixW, rectY + fontSize + 1);
           } else {
             ctx.fillStyle = pn.node.color;

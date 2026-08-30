@@ -344,20 +344,20 @@ function FindingsContent() {
   return (
     <div className="space-y-4 max-w-[1440px] mx-auto pb-12 font-sans">
       {/* 1. Header & Identity */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#171b26] pb-3.5 font-mono bg-[#07080a]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1D2939] pb-3.5 font-mono bg-[#080B12]">
         <div>
           <div className="flex items-center gap-2 mb-1 text-xs">
-            <span className="flex items-center gap-1.5 text-[#0ea5e9]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0ea5e9] tactical-pulse-green" />
+            <span className="flex items-center gap-1.5 text-[#3B82F6]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] tactical-pulse-green" />
               <strong className="tracking-wider text-[11px]">DETERMINISTIC EVIDENCE INVESTIGATOR</strong>
             </span>
-            <span className="text-[#525c70]">•</span>
-            <span className="text-[#525c70] text-[11px]">ZERO SPECULATION</span>
+            <span className="text-[#667085]">•</span>
+            <span className="text-[#667085] text-[11px]">ZERO SPECULATION</span>
           </div>
-          <h1 className="text-lg lg:text-xl font-bold text-[#f0f3f8] tracking-tight font-mono">
+          <h1 className="text-lg lg:text-xl font-bold text-[#F3F4F6] tracking-tight font-mono">
             EVIDENCE EXPLORER
           </h1>
-          <p className="text-xs text-[#8b95a8] mt-0.5 max-w-3xl font-sans leading-relaxed">
+          <p className="text-xs text-[#A7B0C0] mt-0.5 max-w-3xl font-sans leading-relaxed">
             Trace every security decision from configuration line to control, risk, and allowlisted remediation.
           </p>
         </div>
@@ -365,7 +365,7 @@ function FindingsContent() {
         <div className="flex items-center gap-2.5 self-start md:self-auto text-xs">
           <Link
             href="/configurations?mode=ingest"
-            className="px-3 py-1.5 rounded bg-[#0ea5e9] text-white font-mono font-medium flex items-center gap-1.5 hover:bg-[#0284c7] transition-all shadow-sm text-xs"
+            className="px-3 py-1.5 rounded bg-[#3B82F6] text-white font-mono font-medium flex items-center gap-1.5 hover:bg-[#2563EB] transition-all shadow-sm text-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>AUDIT CONFIGURATION</span>
@@ -373,92 +373,92 @@ function FindingsContent() {
 
           <button
             onClick={() => refetchFindings()}
-            className="p-1.5 rounded bg-[#0a0c10] hover:bg-[#12151e] border border-[#171b26] text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
+            className="p-1.5 rounded bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-[#F3F4F6] transition-colors"
             title="Refresh Findings"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", isFindingsLoading && "animate-spin text-[#0ea5e9]")} />
+            <RefreshCw className={cn("w-3.5 h-3.5", isFindingsLoading && "animate-spin text-[#3B82F6]")} />
           </button>
         </div>
       </div>
 
       {/* 2. Top Summary KPI Row (Real Backend Metrics) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono">
-        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
-          <div className="text-[10px] text-[#525c70] uppercase font-semibold">OPEN FINDINGS</div>
-          <div className="text-xl font-bold text-[#f0f3f8] mt-0.5 font-mono">
+        <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors">
+          <div className="text-[10px] text-[#667085] uppercase font-semibold">OPEN FINDINGS</div>
+          <div className="text-xl font-bold text-[#F3F4F6] mt-0.5 font-mono">
             {totalFindingsCount > 0 ? totalFindingsCount : "—"}
           </div>
-          <div className="text-[10px] text-[#8b95a8] font-sans mt-0.5">
+          <div className="text-[10px] text-[#A7B0C0] font-sans mt-0.5">
             {totalFindingsCount > 0 ? "Audited policy violations" : "No audits yet"}
           </div>
         </div>
 
-        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
-          <div className="text-[10px] text-[#ef4444] uppercase font-semibold">CRITICAL (P0)</div>
-          <div className="text-xl font-bold text-[#ef4444] mt-0.5 font-mono">
+        <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors">
+          <div className="text-[10px] text-[#EF4444] uppercase font-semibold">CRITICAL (P0)</div>
+          <div className="text-xl font-bold text-[#EF4444] mt-0.5 font-mono">
             {totalFindingsCount > 0 ? criticalCount : "—"}
           </div>
-          <div className="text-[10px] text-[#525c70] font-sans mt-0.5">Immediate intervention</div>
+          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Immediate intervention</div>
         </div>
 
-        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
-          <div className="text-[10px] text-[#f59e0b] uppercase font-semibold">HIGH TIER</div>
-          <div className="text-xl font-bold text-[#f59e0b] mt-0.5 font-mono">
+        <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors">
+          <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">HIGH TIER</div>
+          <div className="text-xl font-bold text-[#F59E0B] mt-0.5 font-mono">
             {totalFindingsCount > 0 ? highCount : "—"}
           </div>
-          <div className="text-[10px] text-[#525c70] font-sans mt-0.5">Elevated risk posture</div>
+          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Elevated risk posture</div>
         </div>
 
-        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
-          <div className="text-[10px] text-[#10b981] uppercase font-semibold">EVIDENCE PROVEN</div>
-          <div className="text-xl font-bold text-[#10b981] mt-0.5 font-mono">
+        <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors">
+          <div className="text-[10px] text-[#10B981] uppercase font-semibold">EVIDENCE PROVEN</div>
+          <div className="text-xl font-bold text-[#10B981] mt-0.5 font-mono">
             {totalFindingsCount > 0 ? `${verifiedEvidenceCount}` : "—"}
           </div>
-          <div className="text-[10px] text-[#525c70] font-sans mt-0.5">100% AST Line Proof</div>
+          <div className="text-[10px] text-[#667085] font-sans mt-0.5">100% AST Line Proof</div>
         </div>
       </div>
 
       {/* 3. Re-Analysis Hero Verification Banner */}
       {reanalyzeBannerVisible && reanalyzeResult && (
-        <div className="p-3.5 rounded bg-[#10b981]/10 border border-[#10b981]/30 space-y-2.5 font-mono animate-fadeIn">
+        <div className="p-3.5 rounded bg-[#10B981]/10 border border-[#10B981]/30 space-y-2.5 font-mono animate-fadeIn">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#10b981]">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#10B981]">
               <CheckCircle2 className="w-4 h-4" />
               <span>VERIFICATION COMPLETE ✓ — DETERMINISTIC HARDENING PROVEN</span>
             </div>
             <button
               onClick={() => setReanalyzeBannerVisible(false)}
-              className="text-[#525c70] hover:text-white"
+              className="text-[#667085] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
-              <div className="text-[10px] text-[#525c70]">RISK REDUCTION</div>
-              <div className="text-xs font-bold text-[#ef4444] mt-0.5 font-mono">
+            <div className="p-2 rounded bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">RISK REDUCTION</div>
+              <div className="text-xs font-bold text-[#EF4444] mt-0.5 font-mono">
                 {reanalyzeResult.previous_risk_score.toFixed(1)} → {reanalyzeResult.new_risk_score.toFixed(1)}
               </div>
             </div>
 
-            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
-              <div className="text-[10px] text-[#525c70]">COMPLIANCE SCORE</div>
-              <div className="text-xs font-bold text-[#10b981] mt-0.5 font-mono">
+            <div className="p-2 rounded bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">COMPLIANCE SCORE</div>
+              <div className="text-xs font-bold text-[#10B981] mt-0.5 font-mono">
                 {reanalyzeResult.previous_compliance_score.toFixed(1)}% → {reanalyzeResult.new_compliance_score.toFixed(1)}%
               </div>
             </div>
 
-            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
-              <div className="text-[10px] text-[#525c70]">FAILED CONTROLS</div>
-              <div className="text-xs font-bold text-[#f59e0b] mt-0.5 font-mono">
+            <div className="p-2 rounded bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">FAILED CONTROLS</div>
+              <div className="text-xs font-bold text-[#F59E0B] mt-0.5 font-mono">
                 {reanalyzeResult.previous_fail_count} FAIL → {reanalyzeResult.new_fail_count} FAIL
               </div>
             </div>
 
-            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
-              <div className="text-[10px] text-[#525c70]">RESOLVED CONTROLS</div>
-              <div className="text-xs font-bold text-[#0ea5e9] mt-0.5 font-mono">
+            <div className="p-2 rounded bg-[#0D121C] border border-[#1D2939]">
+              <div className="text-[10px] text-[#667085]">RESOLVED CONTROLS</div>
+              <div className="text-xs font-bold text-[#3B82F6] mt-0.5 font-mono">
                 +{reanalyzeResult.resolved_controls.length} RESOLVED
               </div>
             </div>
@@ -468,7 +468,7 @@ function FindingsContent() {
             {reanalyzeResult.resolved_controls.map((ctrl) => (
               <span
                 key={ctrl}
-                className="px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/40 text-[9px] font-bold"
+                className="px-2 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 text-[9px] font-bold"
               >
                 {ctrl}: FAIL → PASS ✓
               </span>
@@ -478,21 +478,21 @@ function FindingsContent() {
       )}
 
       {/* 4. Filter and Search Toolbar */}
-      <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2.5 font-mono">
+      <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] space-y-2.5 font-mono">
         <div className="flex flex-col md:flex-row items-center gap-2.5">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#525c70]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#667085]" />
             <input
               type="text"
               placeholder="Search findings, control ID (e.g. CIS-1.2.1), asset, or syntax..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-4 py-1.5 rounded bg-[#07080a] border border-[#171b26] text-xs text-[#f0f3f8] placeholder-[#525c70] focus:outline-none focus:border-[#0ea5e9]/50 transition-colors font-sans"
+              className="w-full pl-8 pr-4 py-1.5 rounded bg-[#080B12] border border-[#1D2939] text-xs text-[#F3F4F6] placeholder-[#667085] focus:outline-none focus:border-[#3B82F6]/50 transition-colors font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525c70] hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#667085] hover:text-white"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -503,7 +503,7 @@ function FindingsContent() {
             <select
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="px-2.5 py-1.5 rounded bg-[#07080a] border border-[#171b26] text-[#8b95a8] focus:outline-none focus:border-[#0ea5e9]/50 text-xs font-mono"
+              className="px-2.5 py-1.5 rounded bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] focus:outline-none focus:border-[#3B82F6]/50 text-xs font-mono"
             >
               <option value="ALL">Severity: All</option>
               <option value="CRITICAL">Critical</option>
@@ -515,7 +515,7 @@ function FindingsContent() {
             <select
               value={selectedFramework}
               onChange={(e) => setSelectedFramework(e.target.value)}
-              className="px-2.5 py-1.5 rounded bg-[#07080a] border border-[#171b26] text-[#8b95a8] focus:outline-none focus:border-[#0ea5e9]/50 text-xs font-mono"
+              className="px-2.5 py-1.5 rounded bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] focus:outline-none focus:border-[#3B82F6]/50 text-xs font-mono"
             >
               <option value="ALL">Framework: All</option>
               <option value="CIS">CIS Benchmark</option>
@@ -527,7 +527,7 @@ function FindingsContent() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-2.5 py-1.5 rounded bg-[#07080a] border border-[#171b26] text-[#8b95a8] focus:outline-none focus:border-[#0ea5e9]/50 text-xs font-mono"
+              className="px-2.5 py-1.5 rounded bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] focus:outline-none focus:border-[#3B82F6]/50 text-xs font-mono"
             >
               <option value="ALL">Status: All</option>
               <option value="FAIL">Failed Only</option>
@@ -541,20 +541,20 @@ function FindingsContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
         {/* LEFT PANEL (4 Cols): Scrollable Findings List */}
         <div className="lg:col-span-4 space-y-2 font-mono">
-          <div className="flex items-center justify-between px-1 border-b border-[#171b26] pb-1.5">
-            <span className="text-[10px] font-bold text-[#525c70] uppercase tracking-wider">
+          <div className="flex items-center justify-between px-1 border-b border-[#1D2939] pb-1.5">
+            <span className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">
               FINDINGS REGISTRY ({filteredFindings.length})
             </span>
-            <span className="text-[10px] text-[#0ea5e9]">SELECT TO INSPECT</span>
+            <span className="text-[10px] text-[#3B82F6]">SELECT TO INSPECT</span>
           </div>
 
           {/* Loading Skeleton */}
           {isFindingsLoading && (
             <div className="space-y-1.5">
               {[1, 2, 3, 4, 5].map((n) => (
-                <div key={n} className="p-3 rounded bg-[#0a0c10] border border-[#171b26] animate-pulse space-y-2">
-                  <div className="h-3.5 bg-[#171b26] rounded w-2/3" />
-                  <div className="h-2.5 bg-[#171b26] rounded w-1/3" />
+                <div key={n} className="p-3 rounded bg-[#0D121C] border border-[#1D2939] animate-pulse space-y-2">
+                  <div className="h-3.5 bg-[#1D2939] rounded w-2/3" />
+                  <div className="h-2.5 bg-[#1D2939] rounded w-1/3" />
                 </div>
               ))}
             </div>
@@ -562,13 +562,13 @@ function FindingsContent() {
 
           {/* Error State */}
           {isFindingsError && (
-            <div className="p-5 rounded bg-[#0a0c10] border border-[#ef4444]/30 text-center space-y-2.5">
-              <AlertTriangle className="w-5 h-5 text-[#ef4444] mx-auto" />
-              <div className="text-xs font-bold text-[#f0f3f8]">FINDINGS UNAVAILABLE</div>
-              <p className="text-[11px] text-[#8b95a8] font-sans">Unable to retrieve security findings from API.</p>
+            <div className="p-5 rounded bg-[#0D121C] border border-[#EF4444]/30 text-center space-y-2.5">
+              <AlertTriangle className="w-5 h-5 text-[#EF4444] mx-auto" />
+              <div className="text-xs font-bold text-[#F3F4F6]">FINDINGS UNAVAILABLE</div>
+              <p className="text-[11px] text-[#A7B0C0] font-sans">Unable to retrieve security findings from API.</p>
               <button
                 onClick={() => refetchFindings()}
-                className="px-2.5 py-1 rounded bg-[#ef4444]/15 text-[#ef4444] border border-[#ef4444]/30 text-xs font-mono font-semibold"
+                className="px-2.5 py-1 rounded bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 text-xs font-mono font-semibold"
               >
                 Retry Connection
               </button>
@@ -577,15 +577,15 @@ function FindingsContent() {
 
           {/* Empty State */}
           {!isFindingsLoading && !isFindingsError && filteredFindings.length === 0 && (
-            <div className="p-6 rounded bg-[#0a0c10] border border-[#171b26] text-center space-y-2.5">
-              <ShieldCheck className="w-6 h-6 text-[#0ea5e9] mx-auto" />
-              <div className="text-xs font-bold text-[#f0f3f8]">NO FINDINGS RECORDED</div>
-              <p className="text-[11px] text-[#8b95a8] font-sans">
+            <div className="p-6 rounded bg-[#0D121C] border border-[#1D2939] text-center space-y-2.5">
+              <ShieldCheck className="w-6 h-6 text-[#3B82F6] mx-auto" />
+              <div className="text-xs font-bold text-[#F3F4F6]">NO FINDINGS RECORDED</div>
+              <p className="text-[11px] text-[#A7B0C0] font-sans">
                 Audit a configuration to generate evidence-backed findings.
               </p>
               <Link
                 href="/configurations?mode=ingest"
-                className="inline-block px-3 py-1 rounded bg-[#0ea5e9] text-white text-xs font-mono font-medium shadow-sm"
+                className="inline-block px-3 py-1 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-mono font-medium shadow-sm"
               >
                 AUDIT CONFIGURATION →
               </Link>
@@ -606,8 +606,8 @@ function FindingsContent() {
                     className={cn(
                       "w-full text-left p-2.5 rounded border transition-all space-y-1.5 block group relative",
                       isSelected
-                        ? "bg-[#0e1117] border-[#0ea5e9] shadow-sm"
-                        : "bg-[#0a0c10] border-[#171b26] hover:border-[#222838] hover:bg-[#0e1117]"
+                        ? "bg-[#111827] border-[#3B82F6] shadow-sm"
+                        : "bg-[#0D121C] border-[#1D2939] hover:border-[#263B55] hover:bg-[#111827]"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -615,32 +615,32 @@ function FindingsContent() {
                         <span className={cn(
                           "px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border",
                           f.severity === "CRITICAL"
-                            ? "bg-[#ef4444]/15 text-[#ef4444] border-[#ef4444]/30"
+                            ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
                             : f.severity === "HIGH"
-                            ? "bg-[#f59e0b]/15 text-[#f59e0b] border-[#f59e0b]/30"
-                            : "bg-[#0ea5e9]/15 text-[#0ea5e9] border-[#0ea5e9]/30"
+                            ? "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
+                            : "bg-[#3B82F6]/15 text-[#60A5FA] border-[#3B82F6]/30"
                         )}>
                           {f.severity}
                         </span>
-                        <span className="text-[11px] font-mono font-bold text-[#0ea5e9]">
+                        <span className="text-[11px] font-mono font-bold text-[#3B82F6]">
                           {f.control_id}
                         </span>
                       </div>
                       <span className={cn(
                         "text-[9px] font-mono font-bold",
-                        f.status === "FAIL" ? "text-[#ef4444]" : "text-[#10b981]"
+                        f.status === "FAIL" ? "text-[#EF4444]" : "text-[#10B981]"
                       )}>
                         {f.status}
                       </span>
                     </div>
 
-                    <div className="text-xs font-sans font-medium text-[#f0f3f8] group-hover:text-[#0ea5e9] transition-colors line-clamp-1">
+                    <div className="text-xs font-sans font-medium text-[#F3F4F6] group-hover:text-[#3B82F6] transition-colors line-clamp-1">
                       {f.title}
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-[#525c70] pt-1 border-t border-[#171b26] font-mono">
+                    <div className="flex items-center justify-between text-[10px] text-[#667085] pt-1 border-t border-[#1D2939] font-mono">
                       <span>{f.framework || "CIS"} • {(f as any).device_name || "CORE-RTR-01"}</span>
-                      <span className="text-[#ef4444] font-bold">LINE {citedLine}</span>
+                      <span className="text-[#EF4444] font-bold">LINE {citedLine}</span>
                     </div>
                   </button>
                 );
@@ -651,54 +651,54 @@ function FindingsContent() {
 
         {/* CENTER PANEL (5 Cols): Evidence Configuration Viewer with Highlight */}
         <div className="lg:col-span-5 space-y-2 font-mono">
-          <div className="flex items-center justify-between px-1 border-b border-[#171b26] pb-1.5">
-            <span className="text-[10px] font-bold text-[#525c70] uppercase tracking-wider">
+          <div className="flex items-center justify-between px-1 border-b border-[#1D2939] pb-1.5">
+            <span className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">
               EVIDENCE VIEWER
             </span>
-            <span className="text-[10px] text-[#10b981]">EXACT LINE PROOF</span>
+            <span className="text-[10px] text-[#10B981]">EXACT LINE PROOF</span>
           </div>
 
           {/* Evidence Metadata Box */}
-          <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2 text-xs">
+          <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] space-y-2 text-xs">
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <div>
-                <span className="text-[#525c70] text-[9px] block uppercase font-mono">SOURCE CONFIGURATION</span>
-                <span className="font-bold text-[#f0f3f8] font-mono text-[11px] truncate block">
+                <span className="text-[#667085] text-[9px] block uppercase font-mono">SOURCE CONFIGURATION</span>
+                <span className="font-bold text-[#F3F4F6] font-mono text-[11px] truncate block">
                   {configDetail?.original_filename || "cisco-core-router.cfg"}
                 </span>
               </div>
               <div>
-                <span className="text-[#525c70] text-[9px] block uppercase font-mono">DETECTED VENDOR</span>
-                <span className="font-bold text-[#0ea5e9] font-mono text-[11px]">
+                <span className="text-[#667085] text-[9px] block uppercase font-mono">DETECTED VENDOR</span>
+                <span className="font-bold text-[#3B82F6] font-mono text-[11px]">
                   {configDetail?.detected_vendor ? configDetail.detected_vendor.toUpperCase() : "CISCO IOS"}
                 </span>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-[#171b26] flex items-center justify-between text-[10px] text-[#525c70] font-mono">
+            <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[10px] text-[#667085] font-mono">
               <div className="flex items-center gap-1.5 truncate max-w-[200px]">
-                <Hash className="w-3 h-3 text-[#0ea5e9]" />
+                <Hash className="w-3 h-3 text-[#3B82F6]" />
                 <span className="truncate">{configDetail?.hash ? `${configDetail.hash.slice(0, 16)}...` : "e7785a819b32c..."}</span>
               </div>
-              <span className="font-bold text-[#ef4444]">
+              <span className="font-bold text-[#EF4444]">
                 EVIDENCE CITED: LINE {evidenceLines.join(", ")}
               </span>
             </div>
           </div>
 
           {/* Configuration Code Text Viewer */}
-          <div className="rounded border border-[#171b26] bg-[#07080a] overflow-hidden">
-            <div className="p-2 bg-[#0a0c10] border-b border-[#171b26] flex items-center justify-between text-[10px] text-[#525c70] font-mono">
+          <div className="rounded border border-[#1D2939] bg-[#080B12] overflow-hidden">
+            <div className="p-2 bg-[#0D121C] border-b border-[#1D2939] flex items-center justify-between text-[10px] text-[#667085] font-mono">
               <div className="flex items-center gap-2">
-                <FileCode2 className="w-3.5 h-3.5 text-[#0ea5e9]" />
-                <span className="text-[#f0f3f8] font-semibold">{configDetail?.original_filename || "cisco-core-router.cfg"}</span>
+                <FileCode2 className="w-3.5 h-3.5 text-[#3B82F6]" />
+                <span className="text-[#F3F4F6] font-semibold">{configDetail?.original_filename || "cisco-core-router.cfg"}</span>
               </div>
               <span>{rawLines.length} lines</span>
             </div>
 
             <div
               ref={evidenceContainerRef}
-              className="max-h-[560px] overflow-y-auto p-2 text-[11px] leading-relaxed select-text font-mono bg-[#07080a]"
+              className="max-h-[560px] overflow-y-auto p-2 text-[11px] leading-relaxed select-text font-mono bg-[#080B12]"
             >
               {rawLines.map((lineText, idx) => {
                 const lineNum = idx + 1;
@@ -711,14 +711,14 @@ function FindingsContent() {
                     className={cn(
                       "flex items-start rounded transition-colors group px-1 py-0.5 font-mono",
                       isEvidenceLine
-                        ? "bg-[#ef4444]/15 border-l-2 border-[#ef4444] text-[#f0f3f8] font-semibold"
-                        : "hover:bg-[#12151e] text-[#8b95a8]"
+                        ? "bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-[#F3F4F6] font-semibold"
+                        : "hover:bg-[#111827] text-[#A7B0C0]"
                     )}
                   >
                     <span
                       className={cn(
                         "w-9 shrink-0 text-right pr-2.5 select-none text-[10px]",
-                        isEvidenceLine ? "text-[#ef4444] font-bold" : "text-[#525c70]"
+                        isEvidenceLine ? "text-[#EF4444] font-bold" : "text-[#667085]"
                       )}
                     >
                       {lineNum}
@@ -727,7 +727,7 @@ function FindingsContent() {
                     <div className="flex-1 overflow-x-auto whitespace-pre font-mono">
                       <span>{lineText || " "}</span>
                       {isEvidenceLine && (
-                        <div className="text-[9px] text-[#ef4444] font-bold mt-0.5 flex items-center gap-1">
+                        <div className="text-[9px] text-[#EF4444] font-bold mt-0.5 flex items-center gap-1">
                           <span>▲ CITATION FOR {selectedFinding?.control_id || "CIS-1.2.1"}</span>
                         </div>
                       )}
@@ -741,42 +741,42 @@ function FindingsContent() {
 
         {/* RIGHT PANEL (3 Cols): Security Context, Risk, Remediation & Re-Analysis */}
         <div className="lg:col-span-3 space-y-2.5 font-mono">
-          <div className="flex items-center justify-between px-1 border-b border-[#171b26] pb-1.5">
-            <span className="text-[10px] font-bold text-[#525c70] uppercase tracking-wider">
+          <div className="flex items-center justify-between px-1 border-b border-[#1D2939] pb-1.5">
+            <span className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">
               SECURITY CONTEXT
             </span>
-            <span className="text-[10px] text-[#ef4444] font-bold">FAIL</span>
+            <span className="text-[10px] text-[#EF4444] font-bold">FAIL</span>
           </div>
 
           {selectedFinding ? (
             <div className="space-y-2.5">
               {/* 1. Why Did This Fail Card */}
-              <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2 text-xs">
-                <div className="flex items-center justify-between border-b border-[#171b26] pb-1.5">
-                  <span className="text-[10px] text-[#0ea5e9] uppercase font-bold">{selectedFinding.control_id}</span>
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#ef4444]/15 text-[#ef4444] border border-[#ef4444]/30">
+              <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
+                  <span className="text-[10px] text-[#3B82F6] uppercase font-bold">{selectedFinding.control_id}</span>
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
                     {selectedFinding.status} ({selectedFinding.severity})
                   </span>
                 </div>
 
                 <div>
-                  <div className="text-[9px] text-[#525c70] uppercase">TITLE</div>
-                  <div className="font-semibold text-[#f0f3f8] font-sans text-xs mt-0.5">{selectedFinding.title}</div>
+                  <div className="text-[9px] text-[#667085] uppercase">TITLE</div>
+                  <div className="font-semibold text-[#F3F4F6] font-sans text-xs mt-0.5">{selectedFinding.title}</div>
                 </div>
 
-                <div className="p-2 rounded bg-[#07080a] border border-[#171b26] space-y-1">
-                  <div className="text-[9px] text-[#525c70] uppercase font-bold">WHY THIS FAILED</div>
-                  <p className="text-[11px] text-[#c5cbd8] font-sans leading-relaxed">
+                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] space-y-1">
+                  <div className="text-[9px] text-[#667085] uppercase font-bold">WHY THIS FAILED</div>
+                  <p className="text-[11px] text-[#A7B0C0] font-sans leading-relaxed">
                     {(selectedFinding as any).why_it_failed || selectedFinding.description || "Insecure baseline state detected in device configuration."}
                   </p>
                 </div>
 
                 {/* Related Framework Controls */}
-                <div className="space-y-1 pt-1 border-t border-[#171b26]">
-                  <div className="text-[9px] text-[#525c70] uppercase font-bold">RELATED CONTROLS</div>
+                <div className="space-y-1 pt-1 border-t border-[#1D2939]">
+                  <div className="text-[9px] text-[#667085] uppercase font-bold">RELATED CONTROLS</div>
                   <div className="flex flex-wrap gap-1">
                     {relatedControls.map((ctrl) => (
-                      <span key={ctrl} className="px-1.5 py-0.2 rounded bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/20 text-[9px] font-bold">
+                      <span key={ctrl} className="px-1.5 py-0.2 rounded bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20 text-[9px] font-bold">
                         {ctrl}
                       </span>
                     ))}
@@ -785,67 +785,67 @@ function FindingsContent() {
               </div>
 
               {/* 2. Risk Connection Card */}
-              <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2 text-xs">
-                <div className="flex items-center justify-between border-b border-[#171b26] pb-1.5">
-                  <span className="text-[10px] text-[#ef4444] uppercase font-bold flex items-center gap-1.5">
+              <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
+                  <span className="text-[10px] text-[#EF4444] uppercase font-bold flex items-center gap-1.5">
                     <Flame className="w-3.5 h-3.5" />
                     <span>RISK CONTRIBUTION</span>
                   </span>
-                  <span className="text-[10px] text-[#ef4444] font-bold">{findingRiskContribution}</span>
+                  <span className="text-[10px] text-[#EF4444] font-bold">{findingRiskContribution}</span>
                 </div>
 
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <div className="text-[9px] text-[#525c70]">SEVERITY TIER</div>
-                    <div className="text-base font-bold text-[#ef4444] mt-0.5">
+                    <div className="text-[9px] text-[#667085]">SEVERITY TIER</div>
+                    <div className="text-base font-bold text-[#EF4444] mt-0.5">
                       {selectedFinding.severity}
                     </div>
                   </div>
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#ef4444]/15 text-[#ef4444] border border-[#ef4444]/30">
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
                     EXPOSURE ACTIVE
                   </span>
                 </div>
 
-                <div className="p-2 rounded bg-[#07080a] border border-[#171b26] text-[10px] text-[#8b95a8] font-sans">
-                  <strong className="text-[#f0f3f8] block mb-0.5 font-mono text-[9px]">SECURITY IMPLICATION:</strong>
+                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[10px] text-[#A7B0C0] font-sans">
+                  <strong className="text-[#F3F4F6] block mb-0.5 font-mono text-[9px]">SECURITY IMPLICATION:</strong>
                   Management plane exposure or weak crypto parameters violating fleet compliance baseline.
                 </div>
               </div>
 
               {/* 3. Allowlisted Remediation & Re-Analysis Card */}
-              <div className="p-3 rounded bg-[#0a0c10] border border-[#10b981]/25 space-y-2 text-xs">
-                <div className="flex items-center justify-between border-b border-[#171b26] pb-1.5">
-                  <span className="text-[10px] text-[#10b981] uppercase font-bold flex items-center gap-1.5">
+              <div className="p-3 rounded bg-[#0D121C] border border-[#10B981]/25 space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
+                  <span className="text-[10px] text-[#10B981] uppercase font-bold flex items-center gap-1.5">
                     <Wrench className="w-3.5 h-3.5" />
                     <span>ALLOWLISTED REMEDIATION</span>
                   </span>
-                  <span className="text-[9px] text-[#525c70]">PROPOSED PATCH</span>
+                  <span className="text-[9px] text-[#667085]">PROPOSED PATCH</span>
                 </div>
 
                 {/* Before / After Preview */}
-                <div className="p-2 rounded bg-[#07080a] border border-[#171b26] text-[10px] space-y-0.5 font-mono">
-                  <div className="text-[#ef4444]">- {selectedFinding.evidence || "non-compliant configuration line"}</div>
-                  <div className="text-[#10b981]">+ {remediation?.remediation_commands?.split("\n")[0] || "hardened configuration line"}</div>
+                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[10px] space-y-0.5 font-mono">
+                  <div className="text-[#EF4444]">- {selectedFinding.evidence || "non-compliant configuration line"}</div>
+                  <div className="text-[#10B981]">+ {remediation?.remediation_commands?.split("\n")[0] || "hardened configuration line"}</div>
                 </div>
 
-                <div className="text-[10px] text-[#525c70] flex items-center justify-between font-mono">
+                <div className="text-[10px] text-[#667085] flex items-center justify-between font-mono">
                   <span>NETWORK PUSH:</span>
-                  <span className="text-[#ef4444] font-semibold">GATE PROTECTED</span>
+                  <span className="text-[#EF4444] font-semibold">GATE PROTECTED</span>
                 </div>
 
                 <div className="space-y-1.5 pt-1">
                   <button
                     onClick={handleCopyCommands}
-                    className="w-full py-1.5 rounded bg-[#0e1117] hover:bg-[#161b26] border border-[#171b26] text-[#c5cbd8] hover:text-white font-mono transition-all flex items-center justify-center gap-1.5 text-xs"
+                    className="w-full py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-white font-mono transition-all flex items-center justify-center gap-1.5 text-xs"
                   >
-                    {copiedCode ? <Check className="w-3 h-3 text-[#10b981]" /> : <Copy className="w-3 h-3" />}
+                    {copiedCode ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedCode ? "Copied" : "Copy Remediation CLI"}</span>
                   </button>
 
                   <button
                     onClick={handleReanalyze}
                     disabled={isReanalyzing}
-                    className="w-full py-2 rounded bg-[#10b981] hover:bg-[#0ea371] text-black font-mono font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-2 rounded bg-[#10B981] hover:bg-[#059669] text-white font-mono font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isReanalyzing ? (
                       <>
@@ -863,7 +863,7 @@ function FindingsContent() {
               </div>
             </div>
           ) : (
-            <div className="p-6 rounded bg-[#0a0c10] border border-[#171b26] text-center text-[#525c70] text-xs font-mono">
+            <div className="p-6 rounded bg-[#0D121C] border border-[#1D2939] text-center text-[#667085] text-xs font-mono">
               Select a finding to inspect control context.
             </div>
           )}
@@ -875,7 +875,7 @@ function FindingsContent() {
 
 export default function EvidenceExplorerPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-[#64748B] font-mono">Loading Evidence Explorer...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-[#667085] font-mono">Loading Evidence Explorer...</div>}>
       <FindingsContent />
     </Suspense>
   );

@@ -225,39 +225,40 @@ export default function AuditsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-cyan-400" />
+          <h1 className="text-xl font-bold text-[#F3F4F6] tracking-tight flex items-center gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-[#3B82F6]" />
             <span>Multi-Framework Compliance Engine</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#A7B0C0] mt-1">
             Deterministic security baseline audits evaluating configurations against CIS, NIST SP 800-53, DISA STIG,
             and ISO/IEC 27001 with AI-grounded explanations.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          {/* AI Co-Pilot Button */}
+          {/* Executive Report Button */}
           <Link
             href={`/reports?auditId=${selectedAuditId || ""}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0F19] hover:bg-[#131B2E] border border-white/[0.08] text-[#00D9FF] hover:text-white text-xs font-mono font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-white text-xs font-mono font-semibold transition-colors"
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>Executive Report</span>
           </Link>
 
+          {/* AI Co-Pilot Button */}
           <button
             onClick={() => setIsAssistantOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 hover:text-white hover:bg-indigo-900/80 text-xs font-mono font-semibold transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 text-[#8B5CF6] hover:text-white hover:bg-[#8B5CF6]/20 text-xs font-mono font-semibold transition-colors shadow-sm"
           >
-            <Bot className="w-3.5 h-3.5 text-indigo-400" />
+            <Bot className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span>AI Co-Pilot</span>
           </button>
 
           <button
             onClick={() => refetchAudits()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D121C] border border-[#1D2939] text-[#A7B0C0] hover:text-white text-xs font-mono transition-colors"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", isAuditsLoading && "animate-spin")} />
+            <RefreshCw className={cn("w-3.5 h-3.5", isAuditsLoading && "animate-spin text-[#3B82F6]")} />
             <span>Refresh</span>
           </button>
 
@@ -268,7 +269,7 @@ export default function AuditsPage() {
               }
               setIsLaunchModalOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold shadow-sm transition-colors"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>New Compliance Audit</span>
@@ -277,38 +278,38 @@ export default function AuditsPage() {
       </div>
 
       {isAuditsError ? (
-        <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/30 text-center space-y-3 font-mono">
+        <div className="p-8 rounded-xl bg-[#0D121C] border border-[#EF4444]/30 text-center space-y-3 font-mono">
           <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
             <AlertTriangle className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
+            <div className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
             <div className="text-[11px] text-[#EF4444] mt-1">
               {auditsError instanceof Error ? auditsError.message : "Failed to retrieve audit sessions from backend API."}
             </div>
           </div>
           <button
             onClick={() => refetchAudits()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/40 text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] text-[#3B82F6] border border-[#3B82F6]/40 text-xs font-semibold"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Retry Request</span>
           </button>
         </div>
       ) : isAuditsLoading ? (
-        <div className="py-16 text-center text-[#8A8A8A] font-mono text-xs flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#00D9FF]" />
+        <div className="py-16 text-center text-[#667085] font-mono text-xs flex items-center justify-center gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
           <span>Loading compliance audit sessions...</span>
         </div>
       ) : audits.length === 0 ? (
         /* Empty State */
-        <div className="p-12 rounded-xl bg-slate-900/40 border border-white/5 text-center space-y-4 font-mono text-xs">
-          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto">
+        <div className="p-12 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center space-y-4 font-mono text-xs">
+          <div className="w-14 h-14 rounded-2xl bg-[#3B82F6]/10 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] mx-auto">
             <ShieldCheck className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-white font-sans">No Compliance Audits Executed</h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto font-sans">
+            <h3 className="text-sm font-semibold text-[#F3F4F6] font-sans">No Compliance Audits Executed</h3>
+            <p className="text-xs text-[#A7B0C0] max-w-md mx-auto font-sans">
               Run a deterministic compliance audit against an ingested configuration to evaluate CIS, NIST, DISA STIG,
               and ISO 27001 baseline checks.
             </p>
@@ -320,7 +321,7 @@ export default function AuditsPage() {
               }
               setIsLaunchModalOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-colors font-mono"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold transition-colors font-mono shadow-sm"
           >
             <Play className="w-4 h-4 fill-current" />
             <span>Launch Initial Audit</span>
@@ -330,9 +331,9 @@ export default function AuditsPage() {
         /* Main Audit Workspace */
         <div className="space-y-6">
           {/* Audit Session Selector Bar */}
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-              <span className="text-xs font-mono text-slate-400 whitespace-nowrap">Audit Session:</span>
+              <span className="text-xs font-mono text-[#667085] whitespace-nowrap">Audit Session:</span>
               <div className="flex items-center gap-1.5">
                 {audits.map((a) => (
                   <button
@@ -344,8 +345,8 @@ export default function AuditsPage() {
                     className={cn(
                       "px-3 py-1 rounded-md text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-1.5",
                       selectedAuditId === a.id
-                        ? "bg-cyan-950 text-cyan-300 border border-cyan-700/50 font-semibold"
-                        : "bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-transparent"
+                        ? "bg-[#111827] text-[#3B82F6] border border-[#3B82F6] font-semibold shadow-sm"
+                        : "bg-[#080B12] text-[#A7B0C0] hover:text-[#F3F4F6] border border-[#1D2939]"
                     )}
                   >
                     <span>ID: {a.id.slice(0, 8)}...</span>
@@ -353,7 +354,7 @@ export default function AuditsPage() {
                       <span
                         className={cn(
                           "px-1.5 py-0.2 rounded text-[10px] font-bold",
-                          a.score >= 80 ? "text-emerald-400" : a.score >= 60 ? "text-amber-400" : "text-rose-400"
+                          a.score >= 80 ? "text-[#10B981]" : a.score >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
                         )}
                       >
                         {a.score.toFixed(0)}%
@@ -365,15 +366,15 @@ export default function AuditsPage() {
             </div>
 
             {auditDetail && (
-              <div className="text-[11px] font-mono text-slate-400 flex items-center gap-3 self-end md:self-auto">
+              <div className="text-[11px] font-mono text-[#667085] flex items-center gap-3 self-end md:self-auto">
                 <span>
                   Executed:{" "}
-                  <strong className="text-slate-300">
+                  <strong className="text-[#A7B0C0]">
                     {new Date(auditDetail.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </strong>
                 </span>
                 <span>•</span>
-                <span className="text-emerald-400 font-semibold uppercase">{auditDetail.status}</span>
+                <span className="text-[#10B981] font-semibold uppercase">{auditDetail.status}</span>
               </div>
             )}
           </div>
@@ -381,31 +382,31 @@ export default function AuditsPage() {
           {/* Compliance Posture Overview Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Overall Score Card */}
-            <div className="p-5 rounded-xl bg-gradient-to-br from-[#0c1322] to-[#080d18] border border-cyan-500/20 flex flex-col justify-between relative overflow-hidden">
+            <div className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] flex flex-col justify-between relative overflow-hidden">
               <div className="space-y-1">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                <div className="text-xs font-semibold text-[#667085] uppercase tracking-wider font-mono">
                   NetVigil Compliance Score
                 </div>
-                <div className="text-xs text-slate-500 font-mono">Deterministic Multi-Framework Average</div>
+                <div className="text-xs text-[#667085] font-mono">Deterministic Multi-Framework Average</div>
               </div>
 
               <div className="my-4 flex items-baseline gap-2 font-mono">
                 <span
                   className={cn(
                     "text-4xl font-black tracking-tight",
-                    currentScore >= 80 ? "text-emerald-400" : currentScore >= 60 ? "text-amber-400" : "text-rose-400"
+                    currentScore >= 80 ? "text-[#10B981]" : currentScore >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
                   )}
                 >
                   {currentScore.toFixed(0)}
                 </span>
-                <span className="text-slate-500 text-sm font-semibold">/ 100</span>
+                <span className="text-[#667085] text-sm font-semibold">/ 100</span>
               </div>
 
-              <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-[#080B12] rounded-full h-1.5 overflow-hidden border border-[#1D2939]">
                 <div
                   className={cn(
                     "h-full transition-all duration-500",
-                    currentScore >= 80 ? "bg-emerald-400" : currentScore >= 60 ? "bg-amber-400" : "bg-rose-400"
+                    currentScore >= 80 ? "bg-[#10B981]" : currentScore >= 60 ? "bg-[#F59E0B]" : "bg-[#EF4444]"
                   )}
                   style={{ width: `${currentScore}%` }}
                 />
@@ -429,25 +430,25 @@ export default function AuditsPage() {
                     className={cn(
                       "p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between",
                       activeFrameworkFilter === fw.key
-                        ? "bg-cyan-950/40 border-cyan-500/60 shadow-md shadow-cyan-950/20"
-                        : "bg-slate-900/60 border-white/5 hover:border-white/20 hover:bg-slate-900/80"
+                        ? "bg-[#111827] border-[#3B82F6] shadow-sm"
+                        : "bg-[#0D121C] border-[#1D2939] hover:border-[#263B55] hover:bg-[#111827]"
                     )}
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white font-mono">{fw.key}</span>
+                        <span className="text-xs font-bold text-[#F3F4F6] font-mono">{fw.key}</span>
                         {fwData && (
-                          <span className="text-[10px] font-mono text-slate-400">
+                          <span className="text-[10px] font-mono text-[#667085]">
                             {fwData.passed_count}/{fwData.total_applicable}
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-medium mt-0.5">{fw.label}</div>
+                      <div className="text-[11px] text-[#A7B0C0] font-medium mt-0.5">{fw.label}</div>
                     </div>
 
                     <div className="mt-3">
-                      <div className="text-xl font-bold font-mono text-cyan-300">{scoreVal.toFixed(0)}%</div>
-                      <div className="text-[10px] text-slate-500 font-mono mt-0.5">{fw.sub}</div>
+                      <div className="text-xl font-bold font-mono text-[#3B82F6]">{scoreVal.toFixed(0)}%</div>
+                      <div className="text-[10px] text-[#667085] font-mono mt-0.5">{fw.sub}</div>
                     </div>
                   </div>
                 );
@@ -457,51 +458,51 @@ export default function AuditsPage() {
 
           {/* Severity Badges Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-            <div className="p-3 rounded-lg bg-rose-950/30 border border-rose-800/40 flex items-center justify-between">
+            <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex items-center justify-between">
               <div>
-                <div className="text-[10px] text-rose-400 uppercase font-semibold">Critical Findings</div>
-                <div className="text-lg font-bold text-rose-300 mt-0.5">{sevStats.critical}</div>
+                <div className="text-[10px] text-[#EF4444] uppercase font-semibold">Critical Findings</div>
+                <div className="text-lg font-bold text-[#EF4444] mt-0.5">{sevStats.critical}</div>
               </div>
-              <ShieldAlert className="w-5 h-5 text-rose-400" />
+              <ShieldAlert className="w-5 h-5 text-[#EF4444]" />
             </div>
 
-            <div className="p-3 rounded-lg bg-amber-950/30 border border-amber-800/40 flex items-center justify-between">
+            <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex items-center justify-between">
               <div>
-                <div className="text-[10px] text-amber-400 uppercase font-semibold">High Findings</div>
-                <div className="text-lg font-bold text-amber-300 mt-0.5">{sevStats.high}</div>
+                <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">High Findings</div>
+                <div className="text-lg font-bold text-[#F59E0B] mt-0.5">{sevStats.high}</div>
               </div>
-              <AlertTriangle className="w-5 h-5 text-amber-400" />
+              <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
             </div>
 
-            <div className="p-3 rounded-lg bg-yellow-950/20 border border-yellow-800/30 flex items-center justify-between">
+            <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939] flex items-center justify-between">
               <div>
-                <div className="text-[10px] text-yellow-400 uppercase font-semibold">Medium Findings</div>
-                <div className="text-lg font-bold text-yellow-300 mt-0.5">{sevStats.medium}</div>
+                <div className="text-[10px] text-[#A7B0C0] uppercase font-semibold">Medium Findings</div>
+                <div className="text-lg font-bold text-[#F3F4F6] mt-0.5">{sevStats.medium}</div>
               </div>
-              <Info className="w-5 h-5 text-yellow-400" />
+              <Info className="w-5 h-5 text-[#A7B0C0]" />
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-900/60 border border-white/5 flex items-center justify-between">
+            <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939] flex items-center justify-between">
               <div>
-                <div className="text-[10px] text-slate-400 uppercase font-semibold">Low / Informational</div>
-                <div className="text-lg font-bold text-slate-300 mt-0.5">{sevStats.low + sevStats.info}</div>
+                <div className="text-[10px] text-[#667085] uppercase font-semibold">Low / Informational</div>
+                <div className="text-lg font-bold text-[#A7B0C0] mt-0.5">{sevStats.low + sevStats.info}</div>
               </div>
-              <ShieldCheck className="w-5 h-5 text-slate-400" />
+              <ShieldCheck className="w-5 h-5 text-[#667085]" />
             </div>
           </div>
 
           {/* Findings Explorer */}
-          <div className="p-5 rounded-xl bg-slate-900/40 border border-white/5 space-y-4">
+          <div className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4">
             {/* Filter Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-white/5">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#1D2939]">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-white font-mono flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-xs font-semibold text-[#F3F4F6] font-mono flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-[#3B82F6]" />
                   <span>Findings ({filteredFindings.length})</span>
                 </span>
 
                 {/* Framework Filters */}
-                <div className="flex items-center gap-1 bg-[#0b101c] border border-white/10 p-1 rounded-md text-xs font-mono">
+                <div className="flex items-center gap-1 bg-[#080B12] border border-[#1D2939] p-1 rounded-md text-xs font-mono">
                   {["ALL", "CIS", "NIST", "STIG", "ISO"].map((fw) => (
                     <button
                       key={fw}
@@ -509,8 +510,8 @@ export default function AuditsPage() {
                       className={cn(
                         "px-2.5 py-0.5 rounded text-[11px] font-semibold transition-colors",
                         activeFrameworkFilter === fw
-                          ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
-                          : "text-slate-400 hover:text-slate-200"
+                          ? "bg-[#3B82F6]/20 text-[#3B82F6] border border-[#3B82F6]/40"
+                          : "text-[#A7B0C0] hover:text-white"
                       )}
                     >
                       {fw}
@@ -519,7 +520,7 @@ export default function AuditsPage() {
                 </div>
 
                 {/* Status Filter */}
-                <div className="flex items-center gap-1 bg-[#0b101c] border border-white/10 p-1 rounded-md text-xs font-mono">
+                <div className="flex items-center gap-1 bg-[#080B12] border border-[#1D2939] p-1 rounded-md text-xs font-mono">
                   {["ALL", "FAIL", "PASS", "UNKNOWN"].map((st) => (
                     <button
                       key={st}
@@ -528,11 +529,11 @@ export default function AuditsPage() {
                         "px-2 py-0.5 rounded text-[10px] font-semibold uppercase transition-colors",
                         activeStatusFilter === st
                           ? st === "FAIL"
-                            ? "bg-rose-950 text-rose-300 border border-rose-800/40"
+                            ? "bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40"
                             : st === "PASS"
-                            ? "bg-emerald-950 text-emerald-300 border border-emerald-800/40"
-                            : "bg-cyan-950 text-cyan-300 border border-cyan-800/40"
-                          : "text-slate-400 hover:text-slate-200"
+                            ? "bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40"
+                            : "bg-[#3B82F6]/20 text-[#3B82F6] border border-[#3B82F6]/40"
+                          : "text-[#A7B0C0] hover:text-white"
                       )}
                     >
                       {st}
@@ -543,28 +544,28 @@ export default function AuditsPage() {
 
               {/* Search Box */}
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-[#667085] absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search finding or control..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 rounded-md bg-[#0b101c] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 w-full sm:w-64 font-mono"
+                  className="pl-8 pr-3 py-1.5 rounded-md bg-[#080B12] border border-[#1D2939] text-xs text-[#F3F4F6] placeholder-[#667085] focus:outline-none focus:border-[#3B82F6]/50 w-full sm:w-64 font-mono"
                 />
               </div>
             </div>
 
             {/* Findings Table */}
             {isDetailLoading ? (
-              <div className="py-16 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin" />
+              <div className="py-16 text-center text-[#667085] font-mono text-xs flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
                 <span>Loading compliance findings...</span>
               </div>
             ) : filteredFindings.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 space-y-2">
-                <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500/50" />
-                <div className="text-xs font-medium text-slate-400">No matching findings</div>
-                <p className="text-[11px] text-slate-500">
+              <div className="py-12 text-center text-[#667085] space-y-2">
+                <CheckCircle2 className="w-8 h-8 mx-auto text-[#10B981]/50" />
+                <div className="text-xs font-medium text-[#A7B0C0]">No matching findings</div>
+                <p className="text-[11px] text-[#667085]">
                   Try adjusting your framework, severity, or status filters.
                 </p>
               </div>
@@ -572,7 +573,7 @@ export default function AuditsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/5 text-[11px] font-mono text-slate-500 uppercase tracking-wider">
+                    <tr className="border-b border-[#1D2939] text-[11px] font-mono text-[#667085] uppercase tracking-wider">
                       <th className="py-2.5 px-3">Status</th>
                       <th className="py-2.5 px-3">Severity</th>
                       <th className="py-2.5 px-3">Framework & Control</th>
@@ -581,7 +582,7 @@ export default function AuditsPage() {
                       <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-[#1D2939]/60">
                     {filteredFindings.map((f) => {
                       const isPass = f.status === "PASS";
                       const isFail = f.status === "FAIL";
@@ -594,15 +595,15 @@ export default function AuditsPage() {
                             setInspectingFinding(f);
                             setFindingExplanation(null);
                           }}
-                          className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                          className="hover:bg-[#111827] transition-colors cursor-pointer group"
                         >
                           <td className="py-3 px-3">
                             <span
                               className={cn(
                                 "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border",
-                                isPass && "bg-emerald-950/80 text-emerald-400 border-emerald-800/40",
-                                isFail && "bg-rose-950/80 text-rose-400 border-rose-800/40",
-                                isUnknown && "bg-amber-950/80 text-amber-400 border-amber-800/40"
+                                isPass && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30",
+                                isFail && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30",
+                                isUnknown && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                               )}
                             >
                               {isPass && <CheckCircle2 className="w-3 h-3" />}
@@ -616,11 +617,11 @@ export default function AuditsPage() {
                             <span
                               className={cn(
                                 "text-[10px] font-bold uppercase",
-                                f.severity === "CRITICAL" && "text-rose-400",
-                                f.severity === "HIGH" && "text-amber-400",
-                                f.severity === "MEDIUM" && "text-yellow-400",
-                                f.severity === "LOW" && "text-cyan-400",
-                                f.severity === "INFO" && "text-slate-400"
+                                f.severity === "CRITICAL" && "text-[#EF4444]",
+                                f.severity === "HIGH" && "text-[#F59E0B]",
+                                f.severity === "MEDIUM" && "text-[#F59E0B]/80",
+                                f.severity === "LOW" && "text-[#3B82F6]",
+                                f.severity === "INFO" && "text-[#667085]"
                               )}
                             >
                               {f.severity}
@@ -629,32 +630,32 @@ export default function AuditsPage() {
 
                           <td className="py-3 px-3 font-mono">
                             <div className="flex items-center gap-1.5">
-                              <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 text-[10px] font-bold">
+                              <span className="px-1.5 py-0.2 rounded bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] text-[10px] font-bold">
                                 {f.framework}
                               </span>
-                              <span className="text-slate-300 font-semibold">{f.control_id}</span>
+                              <span className="text-[#F3F4F6] font-semibold">{f.control_id}</span>
                             </div>
                             {f.category && (
-                              <div className="text-[10px] text-slate-500 mt-0.5">{f.category}</div>
+                              <div className="text-[10px] text-[#667085] mt-0.5">{f.category}</div>
                             )}
                           </td>
 
                           <td className="py-3 px-3">
-                            <div className="font-medium text-slate-200 group-hover:text-cyan-300 transition-colors">
+                            <div className="font-medium text-[#F3F4F6] group-hover:text-[#3B82F6] transition-colors">
                               {f.title}
                             </div>
-                            <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
+                            <div className="text-[10px] text-[#A7B0C0] line-clamp-1 mt-0.5">
                               {f.description}
                             </div>
                           </td>
 
                           <td className="py-3 px-3 font-mono text-[11px]">
                             <div className="space-y-0.5">
-                              <div className="text-slate-400">
-                                Actual: <span className="text-cyan-300">{f.actual_value}</span>
+                              <div className="text-[#667085]">
+                                Actual: <span className="text-[#3B82F6] font-semibold">{f.actual_value}</span>
                               </div>
-                              <div className="text-slate-500">
-                                Expected: <span className="text-slate-300">{f.expected_value}</span>
+                              <div className="text-[#667085]">
+                                Expected: <span className="text-[#A7B0C0]">{f.expected_value}</span>
                               </div>
                             </div>
                           </td>
@@ -667,9 +668,9 @@ export default function AuditsPage() {
                                 setFindingExplanation(null);
                                 handleExplainFinding(f.id);
                               }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 hover:text-indigo-200 border border-indigo-800/40 text-[11px] font-mono transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/30 text-[11px] font-mono transition-colors"
                             >
-                              <Sparkles className="w-3 h-3 text-indigo-400" />
+                              <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
                               <span>AI Explain</span>
                             </button>
 
@@ -679,9 +680,9 @@ export default function AuditsPage() {
                                 setInspectingFinding(f);
                                 setFindingExplanation(null);
                               }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-white/5 hover:border-cyan-800/40 text-[11px] font-mono transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#151E2D] text-[#A7B0C0] hover:text-white border border-[#1D2939] text-[11px] font-mono transition-colors"
                             >
-                              <Terminal className="w-3 h-3 text-cyan-400" />
+                              <Terminal className="w-3 h-3 text-[#3B82F6]" />
                               <span>Details</span>
                             </button>
                           </td>
@@ -699,26 +700,26 @@ export default function AuditsPage() {
       {/* Slide-Over Finding Evidence & AI Explanation Inspector Drawer */}
       {inspectingFinding && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
-          <div className="bg-[#0a0f1d] border-l border-white/10 w-full max-w-2xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
+          <div className="bg-[#0D121C] border-l border-[#1D2939] w-full max-w-2xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
-            <div className="p-5 border-b border-white/10 bg-slate-900/90 flex items-start justify-between gap-4">
+            <div className="p-5 border-b border-[#1D2939] bg-[#0A0F18] flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span
                     className={cn(
                       "px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border",
-                      inspectingFinding.status === "PASS" && "bg-emerald-950 text-emerald-400 border-emerald-800/40",
-                      inspectingFinding.status === "FAIL" && "bg-rose-950 text-rose-400 border-rose-800/40",
-                      inspectingFinding.status === "UNKNOWN" && "bg-amber-950 text-amber-400 border-amber-800/40"
+                      inspectingFinding.status === "PASS" && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30",
+                      inspectingFinding.status === "FAIL" && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30",
+                      inspectingFinding.status === "UNKNOWN" && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                     )}
                   >
                     {inspectingFinding.status}
                   </span>
-                  <span className="text-xs font-mono font-bold text-cyan-400">
+                  <span className="text-xs font-mono font-bold text-[#3B82F6]">
                     {inspectingFinding.framework} • {inspectingFinding.control_id}
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-white">{inspectingFinding.title}</h3>
+                <h3 className="text-sm font-bold text-[#F3F4F6]">{inspectingFinding.title}</h3>
               </div>
 
               <button
@@ -726,7 +727,7 @@ export default function AuditsPage() {
                   setInspectingFinding(null);
                   setFindingExplanation(null);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-[#667085] hover:text-white hover:bg-[#111827] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -735,17 +736,17 @@ export default function AuditsPage() {
             {/* Drawer Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs font-mono">
               {/* AI Explanation Banner / Action */}
-              <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-950/60 to-slate-900 border border-indigo-500/30 space-y-3">
+              <div className="p-4 rounded-xl bg-[#0A0F18] border border-[#8B5CF6]/30 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-indigo-300 font-semibold text-xs">
-                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                  <div className="flex items-center gap-2 text-[#8B5CF6] font-semibold text-xs">
+                    <Sparkles className="w-4 h-4 text-[#8B5CF6]" />
                     <span>Evidence-Grounded AI Analysis</span>
                   </div>
 
                   <button
                     onClick={() => handleExplainFinding(inspectingFinding.id)}
                     disabled={isExplaining}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-mono font-semibold disabled:opacity-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-[11px] font-mono font-semibold disabled:opacity-50 transition-colors shadow-sm"
                   >
                     {isExplaining ? (
                       <>
@@ -762,29 +763,29 @@ export default function AuditsPage() {
                 </div>
 
                 {findingExplanation && (
-                  <div className="space-y-3 pt-2 border-t border-indigo-500/20 font-sans text-xs">
+                  <div className="space-y-3 pt-2 border-t border-[#8B5CF6]/20 font-sans text-xs">
                     <div className="space-y-1">
-                      <div className="text-[10px] font-mono text-indigo-400 uppercase font-bold">Executive Summary</div>
-                      <p className="text-slate-200 leading-relaxed bg-slate-950/60 p-2.5 rounded border border-white/5">
+                      <div className="text-[10px] font-mono text-[#8B5CF6] uppercase font-bold">Executive Summary</div>
+                      <p className="text-[#F3F4F6] leading-relaxed bg-[#080B12] p-2.5 rounded border border-[#1D2939]">
                         {findingExplanation.summary}
                       </p>
                     </div>
 
                     <div className="space-y-1">
-                      <div className="text-[10px] font-mono text-indigo-400 uppercase font-bold">Why It Matters & Risk Context</div>
-                      <p className="text-slate-300 leading-relaxed bg-slate-950/60 p-2.5 rounded border border-white/5">
+                      <div className="text-[10px] font-mono text-[#8B5CF6] uppercase font-bold">Why It Matters & Risk Context</div>
+                      <p className="text-[#A7B0C0] leading-relaxed bg-[#080B12] p-2.5 rounded border border-[#1D2939]">
                         {findingExplanation.why_it_matters} {findingExplanation.risk_context}
                       </p>
                     </div>
 
                     <div className="space-y-1">
-                      <div className="text-[10px] font-mono text-emerald-400 uppercase font-bold">Recommended Remediation</div>
-                      <pre className="p-2.5 rounded bg-[#060911] border border-emerald-500/30 text-[11px] font-mono text-emerald-300 overflow-x-auto">
+                      <div className="text-[10px] font-mono text-[#10B981] uppercase font-bold">Recommended Remediation</div>
+                      <pre className="p-2.5 rounded bg-[#080B12] border border-[#10B981]/30 text-[11px] font-mono text-[#10B981] overflow-x-auto">
                         {findingExplanation.recommended_action}
                       </pre>
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-1">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#667085] pt-1">
                       <span>Model Confidence: {(findingExplanation.confidence * 100).toFixed(0)}%</span>
                       <span>{findingExplanation.disclaimer}</span>
                     </div>
@@ -794,24 +795,24 @@ export default function AuditsPage() {
 
               {/* Metadata Grid */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-                  <div className="text-[10px] text-slate-500 uppercase">Severity Level</div>
+                <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                  <div className="text-[10px] text-[#667085] uppercase">Severity Level</div>
                   <div
                     className={cn(
                       "text-xs font-bold mt-1 uppercase",
-                      inspectingFinding.severity === "CRITICAL" && "text-rose-400",
-                      inspectingFinding.severity === "HIGH" && "text-amber-400",
-                      inspectingFinding.severity === "MEDIUM" && "text-yellow-400",
-                      inspectingFinding.severity === "LOW" && "text-cyan-400"
+                      inspectingFinding.severity === "CRITICAL" && "text-[#EF4444]",
+                      inspectingFinding.severity === "HIGH" && "text-[#F59E0B]",
+                      inspectingFinding.severity === "MEDIUM" && "text-[#F59E0B]/80",
+                      inspectingFinding.severity === "LOW" && "text-[#3B82F6]"
                     )}
                   >
                     {inspectingFinding.severity}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-                  <div className="text-[10px] text-slate-500 uppercase">Category Domain</div>
-                  <div className="text-xs font-bold text-slate-300 mt-1">
+                <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                  <div className="text-[10px] text-[#667085] uppercase">Category Domain</div>
+                  <div className="text-xs font-bold text-[#A7B0C0] mt-1">
                     {inspectingFinding.category || "General"}
                   </div>
                 </div>
@@ -819,15 +820,15 @@ export default function AuditsPage() {
 
               {/* Verified Document Citation */}
               {inspectingFinding.finding_metadata?.source && (
-                <div className="p-3.5 rounded-lg bg-slate-900/60 border border-cyan-500/20 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-cyan-400 text-[11px] font-semibold">
+                <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#3B82F6]/20 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[#3B82F6] text-[11px] font-semibold">
                     <BookOpen className="w-3.5 h-3.5" />
                     <span>Verified Official Citation</span>
                   </div>
-                  <div className="text-slate-300 text-[11px]">
+                  <div className="text-[#F3F4F6] text-[11px]">
                     Document: <strong>{inspectingFinding.finding_metadata.source.document}</strong>
                   </div>
-                  <div className="text-slate-400 text-[10px]">
+                  <div className="text-[#667085] text-[10px]">
                     Reference: {inspectingFinding.finding_metadata.source.reference} (v
                     {inspectingFinding.finding_metadata.source.version})
                   </div>
@@ -835,38 +836,38 @@ export default function AuditsPage() {
               )}
 
               {/* Value Comparison */}
-              <div className="p-3.5 rounded-lg bg-slate-900/80 border border-white/5 space-y-2">
-                <div className="text-[10px] text-slate-500 uppercase">Deterministic Value Evaluation</div>
+              <div className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-2">
+                <div className="text-[10px] text-[#667085] uppercase">Deterministic Value Evaluation</div>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-2 rounded bg-[#060911] border border-white/5">
-                    <div className="text-slate-500 text-[10px]">Actual Extracted Value:</div>
-                    <div className="text-cyan-300 font-bold mt-0.5">{inspectingFinding.actual_value}</div>
+                  <div className="p-2 rounded bg-[#0D121C] border border-[#1D2939]">
+                    <div className="text-[#667085] text-[10px]">Actual Extracted Value:</div>
+                    <div className="text-[#3B82F6] font-bold mt-0.5">{inspectingFinding.actual_value}</div>
                   </div>
-                  <div className="p-2 rounded bg-[#060911] border border-white/5">
-                    <div className="text-slate-500 text-[10px]">Expected Baseline Value:</div>
-                    <div className="text-emerald-400 font-bold mt-0.5">{inspectingFinding.expected_value}</div>
+                  <div className="p-2 rounded bg-[#0D121C] border border-[#1D2939]">
+                    <div className="text-[#667085] text-[10px]">Expected Baseline Value:</div>
+                    <div className="text-[#10B981] font-bold mt-0.5">{inspectingFinding.expected_value}</div>
                   </div>
                 </div>
               </div>
 
               {/* Verbatim Configuration Evidence Box */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="flex items-center gap-1 text-cyan-400 font-semibold">
+                <div className="flex items-center justify-between text-[11px] text-[#667085]">
+                  <span className="flex items-center gap-1 text-[#3B82F6] font-semibold">
                     <Terminal className="w-3 h-3" />
                     <span>Verbatim Configuration Evidence</span>
                   </span>
                   {inspectingFinding.finding_metadata?.source_lines && (
-                    <span className="text-slate-400">
+                    <span className="text-[#667085]">
                       Line(s):{" "}
-                      <strong className="text-cyan-300">
+                      <strong className="text-[#3B82F6]">
                         {inspectingFinding.finding_metadata.source_lines.join(", ")}
                       </strong>
                     </span>
                   )}
                 </div>
 
-                <pre className="p-3.5 rounded-lg bg-[#060911] border border-white/10 text-[11px] font-mono text-cyan-200 overflow-x-auto leading-relaxed select-text">
+                <pre className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[11px] font-mono text-[#3B82F6] overflow-x-auto leading-relaxed select-text">
                   {inspectingFinding.evidence || "[No direct line evidence — evaluated from default baseline]"}
                 </pre>
               </div>
@@ -874,8 +875,8 @@ export default function AuditsPage() {
               {/* Technical Risk Explanation */}
               {inspectingFinding.description && (
                 <div className="space-y-1">
-                  <div className="text-[10px] text-slate-500 uppercase">Baseline Specification</div>
-                  <p className="text-slate-300 text-xs leading-relaxed font-sans bg-slate-900/40 p-3 rounded-lg border border-white/5">
+                  <div className="text-[10px] text-[#667085] uppercase">Baseline Specification</div>
+                  <p className="text-[#A7B0C0] text-xs leading-relaxed font-sans bg-[#080B12] p-3 rounded-lg border border-[#1D2939]">
                     {inspectingFinding.description}
                   </p>
                 </div>
@@ -883,12 +884,12 @@ export default function AuditsPage() {
             </div>
 
             {/* Drawer Footer */}
-            <div className="p-4 border-t border-white/10 bg-slate-900/90 flex items-center justify-between">
+            <div className="p-4 border-t border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
               <Link
                 href="/remediation"
-                className="px-3.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/40 text-xs font-mono font-semibold transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-1.5 rounded-lg bg-[#10B981]/10 hover:bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-xs font-mono font-semibold transition-colors flex items-center gap-1.5"
               >
-                <Wrench className="w-3.5 h-3.5 text-emerald-400" />
+                <Wrench className="w-3.5 h-3.5 text-[#10B981]" />
                 <span>View Remediation Fix</span>
               </Link>
 
@@ -897,7 +898,7 @@ export default function AuditsPage() {
                   setInspectingFinding(null);
                   setFindingExplanation(null);
                 }}
-                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono transition-colors"
+                className="px-4 py-1.5 rounded-lg bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-white text-xs font-mono transition-colors"
               >
                 Close Inspector
               </button>
@@ -909,35 +910,35 @@ export default function AuditsPage() {
       {/* AI Co-Pilot Interactive Assistant Slide-Over Panel */}
       {isAssistantOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
-          <div className="bg-[#0b101c] border-l border-indigo-500/30 w-full max-w-xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
+          <div className="bg-[#0D121C] border-l border-[#8B5CF6]/30 w-full max-w-xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
             {/* Assistant Header */}
-            <div className="p-4 border-b border-white/10 bg-indigo-950/60 flex items-center justify-between">
+            <div className="p-4 border-b border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300">
+                <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6]">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-[#F3F4F6] flex items-center gap-2">
                     <span>NetVigil AI Audit Co-Pilot</span>
-                    <span className="text-[10px] font-mono font-normal px-1.5 py-0.2 rounded bg-indigo-900/60 text-indigo-300 border border-indigo-700/40">
+                    <span className="text-[10px] font-mono font-normal px-1.5 py-0.2 rounded bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">
                       Read-Only Grounded
                     </span>
                   </h3>
-                  <p className="text-[10px] text-slate-400 font-mono">Grounded in Active Audit Session Findings</p>
+                  <p className="text-[10px] text-[#667085] font-mono">Grounded in Active Audit Session Findings</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setIsAssistantOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-[#667085] hover:text-white hover:bg-[#111827] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Quick Prompt Chips */}
-            <div className="p-3 bg-slate-900/80 border-b border-white/5 flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono">
-              <span className="text-slate-500 text-[10px] whitespace-nowrap">Suggested:</span>
+            <div className="p-3 bg-[#0A0F18] border-b border-[#1D2939] flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono">
+              <span className="text-[#667085] text-[10px] whitespace-nowrap">Suggested:</span>
               {[
                 "What should I fix first?",
                 "Why did this device fail CIS?",
@@ -947,7 +948,7 @@ export default function AuditsPage() {
                 <button
                   key={chip}
                   onClick={() => handleSendAssistantQuery(chip)}
-                  className="px-2.5 py-1 rounded bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-slate-300 border border-white/5 whitespace-nowrap transition-colors"
+                  className="px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#8B5CF6]/15 hover:text-[#8B5CF6] text-[#A7B0C0] border border-[#1D2939] whitespace-nowrap transition-colors"
                 >
                   {chip}
                 </button>
@@ -961,7 +962,7 @@ export default function AuditsPage() {
                 return (
                   <div key={idx} className={cn("flex gap-3", isAssistant ? "items-start" : "items-end justify-end")}>
                     {isAssistant && (
-                      <div className="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 flex-shrink-0 mt-0.5">
+                      <div className="w-7 h-7 rounded-lg bg-[#8B5CF6]/15 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] flex-shrink-0 mt-0.5">
                         <Bot className="w-3.5 h-3.5" />
                       </div>
                     )}
@@ -970,16 +971,16 @@ export default function AuditsPage() {
                       className={cn(
                         "p-3.5 rounded-xl text-xs max-w-[85%] leading-relaxed",
                         isAssistant
-                          ? "bg-slate-900/90 border border-white/5 text-slate-200 font-sans"
-                          : "bg-indigo-600 text-white font-sans"
+                          ? "bg-[#080B12] border border-[#1D2939] text-[#F3F4F6] font-sans"
+                          : "bg-[#3B82F6] text-white font-sans"
                       )}
                     >
                       <div className="whitespace-pre-wrap">{msg.content}</div>
 
                       {/* Supporting Findings Badges */}
                       {msg.supporting_findings && msg.supporting_findings.length > 0 && (
-                        <div className="mt-3 pt-2.5 border-t border-white/10 space-y-1.5">
-                          <div className="text-[10px] font-mono text-indigo-400 font-bold uppercase">
+                        <div className="mt-3 pt-2.5 border-t border-[#1D2939] space-y-1.5">
+                          <div className="text-[10px] font-mono text-[#8B5CF6] font-bold uppercase">
                             Supporting Finding Citations ({msg.supporting_findings.length}):
                           </div>
                           <div className="flex flex-wrap gap-1">
@@ -987,7 +988,6 @@ export default function AuditsPage() {
                               <button
                                 key={findingRef}
                                 onClick={() => {
-                                  // Locate finding and open inspector
                                   const match = findings.find(
                                     (f) => f.control_id === findingRef || f.id === findingRef
                                   );
@@ -995,7 +995,7 @@ export default function AuditsPage() {
                                     setInspectingFinding(match);
                                   }
                                 }}
-                                className="px-2 py-0.5 rounded bg-indigo-950 hover:bg-indigo-900 text-indigo-300 hover:text-indigo-200 border border-indigo-800/40 text-[10px] font-mono font-semibold transition-colors"
+                                className="px-2 py-0.5 rounded bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/30 text-[10px] font-mono font-semibold transition-colors"
                               >
                                 {findingRef}
                               </button>
@@ -1004,22 +1004,22 @@ export default function AuditsPage() {
                         </div>
                       )}
 
-                      <div className="text-[10px] font-mono text-slate-500 mt-2 text-right">{msg.timestamp}</div>
+                      <div className="text-[10px] font-mono text-[#667085] mt-2 text-right">{msg.timestamp}</div>
                     </div>
                   </div>
                 );
               })}
 
               {isAssistantLoading && (
-                <div className="flex gap-3 items-center text-slate-400 font-mono text-xs p-3 rounded-lg bg-slate-900/40 border border-white/5">
-                  <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
+                <div className="flex gap-3 items-center text-[#A7B0C0] font-mono text-xs p-3 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#8B5CF6]" />
                   <span>NetVigil AI is analyzing audit session findings...</span>
                 </div>
               )}
             </div>
 
             {/* Chat Input Bar */}
-            <div className="p-3.5 border-t border-white/10 bg-slate-900/90">
+            <div className="p-3.5 border-t border-[#1D2939] bg-[#0A0F18]">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1032,12 +1032,12 @@ export default function AuditsPage() {
                   placeholder="Ask about this audit (e.g. Which findings are high risk?)..."
                   value={assistantInput}
                   onChange={(e) => setAssistantInput(e.target.value)}
-                  className="flex-1 px-3.5 py-2 rounded-lg bg-[#060911] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-sans"
+                  className="flex-1 px-3.5 py-2 rounded-lg bg-[#080B12] border border-[#1D2939] text-xs text-[#F3F4F6] placeholder-[#667085] focus:outline-none focus:border-[#3B82F6] font-sans"
                 />
                 <button
                   type="submit"
                   disabled={!assistantInput.trim() || isAssistantLoading}
-                  className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white transition-colors"
+                  className="p-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-40 text-white transition-colors"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -1050,15 +1050,15 @@ export default function AuditsPage() {
       {/* New Compliance Audit Launcher Modal */}
       {isLaunchModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0c121e] border border-cyan-500/30 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-4 border-b border-white/10 bg-slate-900/80 flex items-center justify-between">
+          <div className="bg-[#0D121C] border border-[#1D2939] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-4 border-b border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Play className="w-4 h-4 text-cyan-400 fill-current" />
-                <h3 className="text-sm font-bold text-white">Execute Compliance Audit</h3>
+                <Play className="w-4 h-4 text-[#3B82F6] fill-current" />
+                <h3 className="text-sm font-bold text-[#F3F4F6]">Execute Compliance Audit</h3>
               </div>
               <button
                 onClick={() => setIsLaunchModalOpen(false)}
-                className="p-1 rounded text-slate-400 hover:text-white"
+                className="p-1 rounded text-[#667085] hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1066,11 +1066,11 @@ export default function AuditsPage() {
 
             <div className="p-5 space-y-4 text-xs font-mono">
               <div className="space-y-1.5">
-                <label className="text-slate-300 font-semibold">Select Configuration Target:</label>
+                <label className="text-[#A7B0C0] font-semibold">Select Configuration Target:</label>
                 <select
                   value={selectedConfigForAudit}
                   onChange={(e) => setSelectedConfigForAudit(e.target.value)}
-                  className="w-full p-2 rounded-lg bg-[#070b12] border border-white/10 text-slate-200 text-xs focus:outline-none focus:border-cyan-500/50"
+                  className="w-full p-2 rounded-lg bg-[#080B12] border border-[#1D2939] text-[#F3F4F6] text-xs focus:outline-none focus:border-[#3B82F6]"
                 >
                   {configurations.map((cfg) => (
                     <option key={cfg.id} value={cfg.id}>
@@ -1081,7 +1081,7 @@ export default function AuditsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-slate-300 font-semibold">Target Compliance Frameworks:</label>
+                <label className="text-[#A7B0C0] font-semibold">Target Compliance Frameworks:</label>
                 <div className="grid grid-cols-2 gap-2">
                   {["CIS", "NIST", "STIG", "ISO"].map((fw) => {
                     const isSelected = selectedFrameworks.includes(fw);
@@ -1093,15 +1093,15 @@ export default function AuditsPage() {
                         className={cn(
                           "p-2.5 rounded-lg border text-left flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-cyan-950/80 border-cyan-600 text-cyan-200"
-                            : "bg-slate-900/60 border-white/5 text-slate-400 hover:text-slate-300"
+                            ? "bg-[#111827] border-[#3B82F6] text-[#3B82F6]"
+                            : "bg-[#080B12] border-[#1D2939] text-[#667085] hover:text-[#A7B0C0]"
                         )}
                       >
                         <span className="font-bold">{fw}</span>
                         <div
                           className={cn(
                             "w-4 h-4 rounded flex items-center justify-center border",
-                            isSelected ? "bg-cyan-500 border-cyan-400 text-black" : "border-slate-600"
+                            isSelected ? "bg-[#3B82F6] border-[#3B82F6] text-white" : "border-[#1D2939]"
                           )}
                         >
                           {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -1112,22 +1112,22 @@ export default function AuditsPage() {
                 </div>
               </div>
 
-              <p className="text-[11px] text-slate-500 leading-relaxed pt-1">
+              <p className="text-[11px] text-[#667085] leading-relaxed pt-1">
                 Deterministic rules will evaluate the canonical Universal Security Model. Zero unverified LLM trust.
               </p>
             </div>
 
-            <div className="p-4 border-t border-white/10 bg-slate-900/80 flex items-center justify-end gap-2">
+            <div className="p-4 border-t border-[#1D2939] bg-[#0A0F18] flex items-center justify-end gap-2">
               <button
                 onClick={() => setIsLaunchModalOpen(false)}
-                className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono"
+                className="px-3.5 py-1.5 rounded-lg bg-[#111827] hover:bg-[#151E2D] text-[#A7B0C0] hover:text-white border border-[#1D2939] text-xs font-mono transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleLaunchAudit}
                 disabled={createAuditMutation.isPending || configurations.length === 0}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold font-mono disabled:opacity-50 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold font-mono disabled:opacity-50 transition-colors shadow-sm"
               >
                 {createAuditMutation.isPending ? (
                   <>

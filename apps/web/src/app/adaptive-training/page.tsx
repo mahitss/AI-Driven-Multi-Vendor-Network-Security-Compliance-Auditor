@@ -219,11 +219,11 @@ export default function AdaptiveTrainingPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#F5F5F5] tracking-tight flex items-center gap-2.5 font-mono">
+          <h1 className="text-xl font-bold text-[#F3F4F6] tracking-tight flex items-center gap-2.5 font-mono">
             <Sparkles className="w-5 h-5 text-[#8B5CF6]" />
             <span>Adaptive Training & Knowledge System</span>
           </h1>
-          <p className="text-xs text-[#A3A3A3] mt-1">
+          <p className="text-xs text-[#A7B0C0] mt-1 font-sans">
             Human-in-the-loop learning workflow that teaches NetVigil previously unseen vendor syntax without backend redeployment.
           </p>
         </div>
@@ -235,7 +235,7 @@ export default function AdaptiveTrainingPage() {
               refetchPending();
               refetchMappings();
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-[#A3A3A3] hover:text-[#F5F5F5] hover:border-[#242424] text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D121C] border border-[#1D2939] text-[#A7B0C0] hover:text-white hover:border-[#263B55] text-xs font-mono transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh</span>
@@ -244,8 +244,8 @@ export default function AdaptiveTrainingPage() {
       </div>
 
       {/* Adaptive Learning Workflow Stepper */}
-      <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A]">
-        <div className="text-[10px] font-mono text-[#666666] uppercase tracking-wider mb-2 font-bold">
+      <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+        <div className="text-[10px] font-mono text-[#667085] uppercase tracking-wider mb-2 font-bold">
           Adaptive Knowledge Lifecycle Flow
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 font-mono text-[11px]">
@@ -257,13 +257,13 @@ export default function AdaptiveTrainingPage() {
             { step: "05", name: "Knowledge Mapping", state: "Live In-Memory Base" },
             { step: "06", name: "Re-Analysis", state: "Instant Score Lift" },
           ].map((flow, i) => (
-            <div key={flow.step} className="p-2.5 rounded-lg bg-[#0D0D0D] border border-[#1A1A1A] flex flex-col justify-between">
-              <div className="flex items-center justify-between text-[10px] text-[#666666]">
+            <div key={flow.step} className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[10px] text-[#667085]">
                 <span>{flow.step}</span>
-                {i < 5 && <ChevronRight className="w-3 h-3 text-[#333333]" />}
+                {i < 5 && <ChevronRight className="w-3 h-3 text-[#1D2939]" />}
               </div>
-              <div className="text-[#F5F5F5] font-semibold mt-1">{flow.name}</div>
-              <div className="text-[10px] text-[#A3A3A3] mt-0.5">{flow.state}</div>
+              <div className="text-[#F3F4F6] font-semibold mt-1">{flow.name}</div>
+              <div className="text-[10px] text-[#A7B0C0] mt-0.5">{flow.state}</div>
             </div>
           ))}
         </div>
@@ -271,7 +271,7 @@ export default function AdaptiveTrainingPage() {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#8B5CF6]/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0D121C] border border-[#8B5CF6]/40 flex items-center justify-between">
           <div>
             <div className="text-[10px] text-[#8B5CF6] uppercase font-semibold">Pending Reviews</div>
             <div className="text-2xl font-bold text-[#8B5CF6] mt-1">{stats?.pending_count ?? 0}</div>
@@ -279,15 +279,15 @@ export default function AdaptiveTrainingPage() {
           <Bot className="w-5 h-5 text-[#8B5CF6]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#22C55E]/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0D121C] border border-[#10B981]/40 flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-[#22C55E] uppercase font-semibold">Approved Mappings</div>
-            <div className="text-2xl font-bold text-[#22C55E] mt-1">{stats?.approved_count ?? 0}</div>
+            <div className="text-[10px] text-[#10B981] uppercase font-semibold">Approved Mappings</div>
+            <div className="text-2xl font-bold text-[#10B981] mt-1">{stats?.approved_count ?? 0}</div>
           </div>
-          <CheckCircle2 className="w-5 h-5 text-[#22C55E]" />
+          <CheckCircle2 className="w-5 h-5 text-[#10B981]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/40 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0D121C] border border-[#EF4444]/40 flex items-center justify-between">
           <div>
             <div className="text-[10px] text-[#EF4444] uppercase font-semibold">Rejected Mappings</div>
             <div className="text-2xl font-bold text-[#EF4444] mt-1">{stats?.rejected_count ?? 0}</div>
@@ -295,24 +295,24 @@ export default function AdaptiveTrainingPage() {
           <XCircle className="w-5 h-5 text-[#EF4444]" />
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-[#A3A3A3] uppercase font-semibold">Vendors Learned</div>
-            <div className="text-2xl font-bold text-[#00D9FF] mt-1">{stats?.vendors_learned_count ?? 0}</div>
+            <div className="text-[10px] text-[#667085] uppercase font-semibold">Vendors Learned</div>
+            <div className="text-2xl font-bold text-[#3B82F6] mt-1">{stats?.vendors_learned_count ?? 0}</div>
           </div>
-          <Layers className="w-5 h-5 text-[#00D9FF]" />
+          <Layers className="w-5 h-5 text-[#3B82F6]" />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#1A1A1A] pb-2 text-xs font-mono">
+      <div className="flex items-center gap-2 border-b border-[#1D2939] pb-2 text-xs font-mono">
         <button
           onClick={() => setActiveTab("pending")}
           className={cn(
             "px-3.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1.5",
             activeTab === "pending"
-              ? "bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/40"
-              : "text-[#A3A3A3] hover:text-[#F5F5F5]"
+              ? "bg-[#0D121C] text-[#8B5CF6] border border-[#8B5CF6]/40"
+              : "text-[#667085] hover:text-white"
           )}
         >
           <Bot className="w-4 h-4" />
@@ -324,8 +324,8 @@ export default function AdaptiveTrainingPage() {
           className={cn(
             "px-3.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1.5",
             activeTab === "knowledge"
-              ? "bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/40"
-              : "text-[#A3A3A3] hover:text-[#F5F5F5]"
+              ? "bg-[#0D121C] text-[#8B5CF6] border border-[#8B5CF6]/40"
+              : "text-[#667085] hover:text-white"
           )}
         >
           <BookOpen className="w-4 h-4" />
@@ -337,8 +337,8 @@ export default function AdaptiveTrainingPage() {
           className={cn(
             "px-3.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1.5",
             activeTab === "reanalyze"
-              ? "bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/40"
-              : "text-[#A3A3A3] hover:text-[#F5F5F5]"
+              ? "bg-[#0D121C] text-[#8B5CF6] border border-[#8B5CF6]/40"
+              : "text-[#667085] hover:text-white"
           )}
         >
           <Play className="w-4 h-4 fill-current" />
@@ -350,35 +350,35 @@ export default function AdaptiveTrainingPage() {
       {activeTab === "pending" && (
         <div className="space-y-4">
           {isPendingError ? (
-            <div className="p-8 rounded-xl bg-[#0A0A0A] border border-[#EF4444]/30 text-center space-y-3 font-mono">
+            <div className="p-8 rounded-xl bg-[#0D121C] border border-[#EF4444]/30 text-center space-y-3 font-mono">
               <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
                 <XCircle className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
+                <div className="text-xs font-bold text-white uppercase tracking-wider">DATA SOURCE UNAVAILABLE</div>
                 <div className="text-[11px] text-[#EF4444] mt-1">
                   {pendingError instanceof Error ? pendingError.message : "Failed to retrieve pending review candidates."}
                 </div>
               </div>
               <button
                 onClick={() => refetchPending()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#8B5CF6] border border-[#8B5CF6]/40 text-xs font-semibold"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#080B12] hover:bg-[#111827] text-[#8B5CF6] border border-[#8B5CF6]/40 text-xs font-semibold"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Retry Request</span>
               </button>
             </div>
           ) : isPendingLoading ? (
-            <div className="py-16 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
+            <div className="py-16 text-center text-[#667085] font-mono text-xs flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-[#8B5CF6]" />
               <span>Loading pending review candidates...</span>
             </div>
           ) : pendingMappings.length === 0 ? (
-            <div className="p-12 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] text-center space-y-3">
-              <CheckCircle2 className="w-10 h-10 text-[#22C55E]/60 mx-auto" />
+            <div className="p-12 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center space-y-3">
+              <CheckCircle2 className="w-10 h-10 text-[#10B981]/60 mx-auto" />
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-[#F5F5F5]">No Pending Review Items</h3>
-                <p className="text-xs text-[#A3A3A3] max-w-md mx-auto">
+                <h3 className="text-sm font-semibold text-white font-sans">No Pending Review Items</h3>
+                <p className="text-xs text-[#A7B0C0] max-w-md mx-auto font-sans">
                   All unparsed configuration directives have been reviewed. When new unknown directives are uploaded or analyzed, they will queue here for administrator approval.
                 </p>
               </div>
@@ -388,48 +388,48 @@ export default function AdaptiveTrainingPage() {
               {pendingMappings.map((m) => (
                 <div
                   key={m.id}
-                  className="p-4 rounded-xl bg-[#0D0D0D] border border-[#8B5CF6]/30 space-y-3 font-mono text-xs"
+                  className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors space-y-3 font-mono text-xs"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-[#111111] text-[#8B5CF6] border border-[#8B5CF6]/30 font-bold uppercase text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-[#080B12] text-[#8B5CF6] border border-[#8B5CF6]/30 font-bold uppercase text-[10px]">
                         {m.vendor}
                       </span>
-                      <span className="text-[#F5F5F5] font-bold">{m.raw_pattern}</span>
+                      <span className="text-white font-bold">{m.raw_pattern}</span>
                     </div>
 
-                    <span className="px-2 py-0.5 rounded bg-[#111111] text-[#F59E0B] border border-[#F59E0B]/30 text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded bg-[#080B12] text-[#F59E0B] border border-[#F59E0B]/30 text-[10px] font-bold">
                       Confidence: {(m.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
 
                   {/* AI Suggestion Box */}
-                  <div className="p-3 rounded-lg bg-[#050505] border border-[#1A1A1A] space-y-1.5 font-sans">
-                    <div className="flex items-center justify-between font-mono text-[10px] text-[#666666]">
+                  <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1.5 font-sans">
+                    <div className="flex items-center justify-between font-mono text-[10px] text-[#667085]">
                       <span className="flex items-center gap-1 text-[#8B5CF6]">
                         <Bot className="w-3.5 h-3.5" />
                         <span>AI Candidate Interpretation</span>
                       </span>
                       <span>Category: {m.category}</span>
                     </div>
-                    <p className="text-[#D4D4D4] text-xs">{m.semantic_meaning}</p>
-                    <div className="font-mono text-[11px] text-[#00D9FF]">
+                    <p className="text-[#A7B0C0] text-xs">{m.semantic_meaning}</p>
+                    <div className="font-mono text-[11px] text-[#22D3EE]">
                       Maps to: <strong className="text-white">{m.candidate_property}</strong> = {String(m.candidate_value)}
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#1A1A1A]">
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#1D2939]">
                     <button
                       onClick={() => setRejectingMapping(m)}
-                      className="px-3 py-1 rounded bg-[#0B0B0B] border border-[#EF4444]/40 hover:border-[#EF4444] text-[#EF4444] text-[11px] transition-colors"
+                      className="px-3 py-1 rounded bg-[#080B12] border border-[#EF4444]/40 hover:border-[#EF4444] text-[#EF4444] text-[11px] transition-colors"
                     >
                       Reject
                     </button>
 
                     <button
                       onClick={() => handleOpenEditModal(m)}
-                      className="px-3 py-1 rounded bg-[#0B0B0B] border border-[#1A1A1A] hover:border-[#242424] text-[#A3A3A3] hover:text-[#F5F5F5] text-[11px] flex items-center gap-1 transition-colors"
+                      className="px-3 py-1 rounded bg-[#080B12] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-white text-[11px] flex items-center gap-1 transition-colors"
                     >
                       <Edit3 className="w-3 h-3" />
                       <span>Edit & Correct</span>
@@ -438,7 +438,7 @@ export default function AdaptiveTrainingPage() {
                     <button
                       onClick={() => approveMutation.mutate(m.id)}
                       disabled={approveMutation.isPending}
-                      className="px-3.5 py-1 rounded bg-[#0B0B0B] border border-[#22C55E]/50 hover:border-[#22C55E] hover:bg-[#141414] text-[#22C55E] font-semibold text-[11px] flex items-center gap-1 transition-colors"
+                      className="px-3.5 py-1 rounded bg-[#080B12] border border-[#10B981]/50 hover:border-[#10B981] hover:bg-[#111827] text-[#10B981] font-semibold text-[11px] flex items-center gap-1 transition-colors"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>Approve</span>
@@ -453,16 +453,16 @@ export default function AdaptiveTrainingPage() {
 
       {/* Tab Content: Knowledge Base */}
       {activeTab === "knowledge" && (
-        <div className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-4">
+        <div className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4">
           {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1A1A1A] font-mono">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1D2939] font-mono">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#F5F5F5] flex items-center gap-1.5">
-                <Filter className="w-3.5 h-3.5 text-[#00D9FF]" />
+              <span className="text-xs font-semibold text-[#F3F4F6] flex items-center gap-1.5">
+                <Filter className="w-3.5 h-3.5 text-[#3B82F6]" />
                 <span>Status:</span>
               </span>
 
-              <div className="flex items-center gap-1 bg-[#0D0D0D] border border-[#1A1A1A] p-1 rounded-md text-xs">
+              <div className="flex items-center gap-1 bg-[#080B12] border border-[#1D2939] p-1 rounded-md text-xs">
                 {["ALL", "APPROVED", "PENDING", "REJECTED", "DISABLED"].map((st) => (
                   <button
                     key={st}
@@ -470,8 +470,8 @@ export default function AdaptiveTrainingPage() {
                     className={cn(
                       "px-2.5 py-0.5 rounded text-[11px] font-semibold transition-colors",
                       selectedStatusFilter === st
-                        ? "bg-[#141414] text-[#00D9FF] border border-[#00D9FF]/30"
-                        : "text-[#A3A3A3] hover:text-[#F5F5F5]"
+                        ? "bg-[#111827] text-[#3B82F6] border border-[#3B82F6]/30"
+                        : "text-[#667085] hover:text-white"
                     )}
                   >
                     {st}
@@ -482,27 +482,27 @@ export default function AdaptiveTrainingPage() {
 
             {/* Search Box */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#666666] absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#667085] absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search mapping or pattern..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-md bg-[#0D0D0D] border border-[#1A1A1A] text-xs text-[#F5F5F5] placeholder-[#666666] focus:outline-none focus:border-[#00D9FF]/50 w-full sm:w-64"
+                className="pl-8 pr-3 py-1.5 rounded-md bg-[#080B12] border border-[#1D2939] text-xs text-[#F3F4F6] placeholder-[#667085] focus:outline-none focus:border-[#3B82F6]/50 w-full sm:w-64"
               />
             </div>
           </div>
 
           {/* Table */}
           {filteredKnowledgeMappings.length === 0 ? (
-            <div className="py-12 text-center text-[#666666] space-y-1 font-mono text-xs">
+            <div className="py-12 text-center text-[#667085] space-y-1 font-mono text-xs">
               <p>No knowledge mappings found matching filters.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
                 <thead>
-                  <tr className="border-b border-[#1A1A1A] text-[11px] text-[#666666] uppercase tracking-wider">
+                  <tr className="border-b border-[#1D2939] text-[11px] text-[#667085] uppercase tracking-wider">
                     <th className="py-2.5 px-3">Status</th>
                     <th className="py-2.5 px-3">Vendor</th>
                     <th className="py-2.5 px-3">CLI Pattern</th>
@@ -511,17 +511,17 @@ export default function AdaptiveTrainingPage() {
                     <th className="py-2.5 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1A1A1A]">
+                <tbody className="divide-y divide-[#1D2939]">
                   {filteredKnowledgeMappings.map((m) => (
-                    <tr key={m.id} className="hover:bg-[#111111] transition-colors">
+                    <tr key={m.id} className="hover:bg-[#111827] transition-colors">
                       <td className="py-3 px-3">
                         <span
                           className={cn(
                             "px-2 py-0.5 rounded text-[10px] font-bold uppercase border",
-                            m.status === "APPROVED" && "bg-[#141414] text-[#22C55E] border-[#22C55E]/40",
-                            m.status === "PENDING" && "bg-[#141414] text-[#8B5CF6] border-[#8B5CF6]/40",
-                            m.status === "REJECTED" && "bg-[#141414] text-[#EF4444] border-[#EF4444]/40",
-                            m.status === "DISABLED" && "bg-[#111111] text-[#666666] border-[#1A1A1A]"
+                            m.status === "APPROVED" && "bg-[#080B12] text-[#10B981] border-[#10B981]/40",
+                            m.status === "PENDING" && "bg-[#080B12] text-[#8B5CF6] border-[#8B5CF6]/40",
+                            m.status === "REJECTED" && "bg-[#080B12] text-[#EF4444] border-[#EF4444]/40",
+                            m.status === "DISABLED" && "bg-[#080B12] text-[#667085] border-[#1D2939]"
                           )}
                         >
                           {m.status}
@@ -529,34 +529,34 @@ export default function AdaptiveTrainingPage() {
                       </td>
 
                       <td className="py-3 px-3">
-                        <span className="text-[#A3A3A3] font-bold uppercase">{m.vendor}</span>
+                        <span className="text-[#A7B0C0] font-bold uppercase">{m.vendor}</span>
                       </td>
 
                       <td className="py-3 px-3">
-                        <div className="text-[#F5F5F5] font-semibold">{m.raw_pattern}</div>
+                        <div className="text-white font-semibold">{m.raw_pattern}</div>
                         {m.normalized_pattern && m.normalized_pattern !== m.raw_pattern && (
-                          <div className="text-[10px] text-[#666666] mt-0.5">
+                          <div className="text-[10px] text-[#667085] mt-0.5">
                             Pattern: {m.normalized_pattern}
                           </div>
                         )}
                       </td>
 
                       <td className="py-3 px-3">
-                        <div className="text-[#00D9FF] font-semibold">{m.candidate_property}</div>
-                        <div className="text-[10px] text-[#A3A3A3] font-sans mt-0.5 line-clamp-1">
+                        <div className="text-[#22D3EE] font-semibold">{m.candidate_property}</div>
+                        <div className="text-[10px] text-[#A7B0C0] font-sans mt-0.5 line-clamp-1">
                           {m.semantic_meaning}
                         </div>
                       </td>
 
-                      <td className="py-3 px-3 text-[11px] text-[#666666]">
+                      <td className="py-3 px-3 text-[11px] text-[#667085]">
                         <div>Rev v{m.version}</div>
-                        <div className="text-[10px] text-[#444444] mt-0.5">Used: {m.usage_count} times</div>
+                        <div className="text-[10px] text-[#667085] mt-0.5">Used: {m.usage_count} times</div>
                       </td>
 
                       <td className="py-3 px-3 text-right space-x-1.5">
                         <button
                           onClick={() => handleOpenEditModal(m)}
-                          className="px-2 py-1 rounded bg-[#0B0B0B] hover:bg-[#141414] text-[#A3A3A3] border border-[#1A1A1A] text-[11px]"
+                          className="px-2 py-1 rounded bg-[#080B12] hover:bg-[#111827] text-[#A7B0C0] border border-[#1D2939] text-[11px]"
                         >
                           Edit
                         </button>
@@ -564,14 +564,14 @@ export default function AdaptiveTrainingPage() {
                         {m.status === "APPROVED" ? (
                           <button
                             onClick={() => disableMutation.mutate(m.id)}
-                            className="px-2 py-1 rounded bg-[#0B0B0B] hover:bg-[#141414] text-[#F59E0B] border border-[#F59E0B]/30 text-[11px]"
+                            className="px-2 py-1 rounded bg-[#080B12] hover:bg-[#111827] text-[#F59E0B] border border-[#F59E0B]/30 text-[11px]"
                           >
                             Disable
                           </button>
                         ) : m.status === "DISABLED" ? (
                           <button
                             onClick={() => reEnableMutation.mutate(m.id)}
-                            className="px-2 py-1 rounded bg-[#0B0B0B] hover:bg-[#141414] text-[#22C55E] border border-[#22C55E]/30 text-[11px]"
+                            className="px-2 py-1 rounded bg-[#080B12] hover:bg-[#111827] text-[#10B981] border border-[#10B981]/30 text-[11px]"
                           >
                             Re-enable
                           </button>
@@ -588,24 +588,24 @@ export default function AdaptiveTrainingPage() {
 
       {/* Tab Content: Re-Analysis & Impact Delta */}
       {activeTab === "reanalyze" && (
-        <div className="p-6 rounded-xl bg-[#0A0A0A] border border-[#1A1A1A] space-y-6">
+        <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-6">
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-[#F5F5F5] flex items-center gap-2 font-mono">
-              <Play className="w-4 h-4 text-[#00D9FF] fill-current" />
+            <h3 className="text-sm font-bold text-[#F3F4F6] flex items-center gap-2 font-mono">
+              <Play className="w-4 h-4 text-[#3B82F6] fill-current" />
               <span>1-Click Configuration Re-Analysis & Compliance Delta</span>
             </h3>
-            <p className="text-xs text-[#A3A3A3] font-sans">
+            <p className="text-xs text-[#A7B0C0] font-sans">
               Re-evaluates an ingested configuration using all approved knowledge mappings. Demonstrates real-time compliance score improvements without requiring backend code changes.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 font-mono text-xs">
             <div className="flex-1 space-y-1">
-              <label className="text-[#A3A3A3]">Target Configuration:</label>
+              <label className="text-[#667085]">Target Configuration:</label>
               <select
                 value={reanalyzeConfigId}
                 onChange={(e) => setReanalyzeConfigId(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-[#0B0B0B] border border-[#1A1A1A] text-[#00D9FF] font-semibold focus:outline-none focus:border-[#00D9FF]"
+                className="w-full p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[#3B82F6] font-semibold focus:outline-none focus:border-[#3B82F6]"
               >
                 {configurations.map((cfg) => (
                   <option key={cfg.id} value={cfg.id}>
@@ -619,7 +619,7 @@ export default function AdaptiveTrainingPage() {
               <button
                 onClick={() => reanalyzeMutation.mutate(reanalyzeConfigId)}
                 disabled={reanalyzeMutation.isPending || !reanalyzeConfigId}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#0B0B0B] border border-[#00D9FF]/50 hover:border-[#00D9FF] hover:bg-[#141414] disabled:opacity-50 text-[#00D9FF] text-xs font-semibold font-mono transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#080B12] border border-[#3B82F6]/50 hover:border-[#3B82F6] hover:bg-[#111827] disabled:opacity-50 text-[#3B82F6] text-xs font-semibold font-mono transition-colors"
               >
                 {reanalyzeMutation.isPending ? (
                   <>
@@ -638,42 +638,42 @@ export default function AdaptiveTrainingPage() {
 
           {/* Impact Results Card */}
           {impactResult && (
-            <div className="p-5 rounded-xl bg-[#0D0D0D] border border-[#00D9FF]/30 space-y-5 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] font-mono text-xs">
-                <div className="flex items-center gap-2 text-[#00D9FF] font-bold">
-                  <CheckCircle2 className="w-4 h-4 text-[#22C55E]" />
+            <div className="p-5 rounded-xl bg-[#080B12] border border-[#3B82F6]/30 space-y-5 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between pb-3 border-b border-[#1D2939] font-mono text-xs">
+                <div className="flex items-center gap-2 text-[#3B82F6] font-bold">
+                  <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
                   <span>Adaptive Training Impact Verified</span>
                 </div>
-                <span className="text-[10px] text-[#666666]">
+                <span className="text-[10px] text-[#667085]">
                   Mappings Applied: <strong>{impactResult.mappings_applied_count}</strong>
                 </span>
               </div>
 
               {/* Score and Delta Summary */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-                <div className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A]">
-                  <div className="text-[10px] text-[#666666] uppercase">Previous Score</div>
-                  <div className="text-lg font-bold text-[#A3A3A3] mt-0.5">
+                <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+                  <div className="text-[10px] text-[#667085] uppercase">Previous Score</div>
+                  <div className="text-lg font-bold text-[#A7B0C0] mt-0.5">
                     {impactResult.previous_score.toFixed(0)}%
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A]">
-                  <div className="text-[10px] text-[#666666] uppercase">New Re-Analyzed Score</div>
-                  <div className="text-lg font-bold text-[#22C55E] mt-0.5">
+                <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+                  <div className="text-[10px] text-[#667085] uppercase">New Re-Analyzed Score</div>
+                  <div className="text-lg font-bold text-[#10B981] mt-0.5">
                     {impactResult.new_score.toFixed(0)}%
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A]">
-                  <div className="text-[10px] text-[#666666] uppercase">Score Improvement</div>
-                  <div className="text-lg font-bold text-[#00D9FF] mt-0.5">
+                <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+                  <div className="text-[10px] text-[#667085] uppercase">Score Improvement</div>
+                  <div className="text-lg font-bold text-[#3B82F6] mt-0.5">
                     +{impactResult.score_delta.toFixed(1)}%
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#0A0A0A] border border-[#1A1A1A]">
-                  <div className="text-[10px] text-[#666666] uppercase">Resolved Directives</div>
+                <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+                  <div className="text-[10px] text-[#667085] uppercase">Resolved Directives</div>
                   <div className="text-lg font-bold text-[#8B5CF6] mt-0.5">
                     {impactResult.resolved_directives_count}
                   </div>
@@ -683,26 +683,26 @@ export default function AdaptiveTrainingPage() {
               {/* Finding Transitions Table */}
               {impactResult.finding_transitions.length > 0 && (
                 <div className="space-y-2 font-mono">
-                  <div className="text-xs text-[#A3A3A3] font-semibold">
+                  <div className="text-xs text-[#A7B0C0] font-semibold">
                     Evaluated Control Transitions ({impactResult.finding_transitions.length}):
                   </div>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
                     {impactResult.finding_transitions.map((ft, idx) => (
                       <div
                         key={idx}
-                        className="p-2.5 rounded bg-[#0A0A0A] border border-[#1A1A1A] flex items-center justify-between text-xs"
+                        className="p-2.5 rounded bg-[#0D121C] border border-[#1D2939] flex items-center justify-between text-xs"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="px-1.5 py-0.2 rounded bg-[#111111] text-[#00D9FF] text-[10px] font-bold border border-[#1A1A1A]">
+                          <span className="px-1.5 py-0.2 rounded bg-[#080B12] text-[#3B82F6] text-[10px] font-bold border border-[#1D2939]">
                             {ft.framework} • {ft.control_id}
                           </span>
-                          <span className="text-[#F5F5F5]">{ft.title}</span>
+                          <span className="text-white">{ft.title}</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-[10px] font-bold">
                           <span className="text-[#F59E0B]">{ft.previous_status}</span>
-                          <ArrowRight className="w-3 h-3 text-[#666666]" />
-                          <span className="text-[#22C55E]">{ft.new_status}</span>
+                          <ArrowRight className="w-3 h-3 text-[#667085]" />
+                          <span className="text-[#10B981]">{ft.new_status}</span>
                         </div>
                       </div>
                     ))}
@@ -717,31 +717,31 @@ export default function AdaptiveTrainingPage() {
       {/* Edit & Correct Modal */}
       {editingMapping && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in duration-150">
-            <div className="p-4 border-b border-[#1A1A1A] bg-[#0B0B0B] flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#F5F5F5] font-bold">
+          <div className="bg-[#0D121C] border border-[#1D2939] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in duration-150">
+            <div className="p-4 border-b border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white font-bold">
                 <Edit3 className="w-4 h-4 text-[#8B5CF6]" />
                 <span>Human Knowledge Correction</span>
               </div>
-              <button onClick={() => setEditingMapping(null)} className="p-1 text-[#666666] hover:text-white">
+              <button onClick={() => setEditingMapping(null)} className="p-1 text-[#667085] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-5 space-y-3.5">
               <div className="space-y-1">
-                <label className="text-[#A3A3A3] text-[11px]">Vendor CLI Directive:</label>
-                <div className="p-2 rounded bg-[#050505] border border-[#1A1A1A] text-[#00D9FF] select-text">
+                <label className="text-[#667085] text-[11px]">Vendor CLI Directive:</label>
+                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[#22D3EE] select-text">
                   {editingMapping.raw_pattern}
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[#A3A3A3] text-[11px]">Normalized Security Property (Safety Allowlist):</label>
+                <label className="text-[#667085] text-[11px]">Normalized Security Property (Safety Allowlist):</label>
                 <select
                   value={editProperty}
                   onChange={(e) => setEditProperty(e.target.value)}
-                  className="w-full p-2 rounded bg-[#0B0B0B] border border-[#1A1A1A] text-[#F5F5F5] text-xs focus:outline-none focus:border-[#8B5CF6]"
+                  className="w-full p-2 rounded bg-[#080B12] border border-[#1D2939] text-white text-xs focus:outline-none focus:border-[#8B5CF6]"
                 >
                   {allowlist.map((item) => (
                     <option key={item.property} value={item.property}>
@@ -753,60 +753,60 @@ export default function AdaptiveTrainingPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[#A3A3A3] text-[11px]">Parsed Fact Value:</label>
+                  <label className="text-[#667085] text-[11px]">Parsed Fact Value:</label>
                   <input
                     type="text"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     placeholder="true, 15, false..."
-                    className="w-full p-2 rounded bg-[#0B0B0B] border border-[#1A1A1A] text-[#F5F5F5] text-xs focus:outline-none focus:border-[#8B5CF6]"
+                    className="w-full p-2 rounded bg-[#080B12] border border-[#1D2939] text-white text-xs focus:outline-none focus:border-[#8B5CF6]"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[#A3A3A3] text-[11px]">Category:</label>
+                  <label className="text-[#667085] text-[11px]">Category:</label>
                   <input
                     type="text"
                     value={editCategory}
                     onChange={(e) => setEditCategory(e.target.value)}
-                    className="w-full p-2 rounded bg-[#0B0B0B] border border-[#1A1A1A] text-[#F5F5F5] text-xs focus:outline-none focus:border-[#8B5CF6]"
+                    className="w-full p-2 rounded bg-[#080B12] border border-[#1D2939] text-white text-xs focus:outline-none focus:border-[#8B5CF6]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[#A3A3A3] text-[11px]">Semantic Description:</label>
+                <label className="text-[#667085] text-[11px]">Semantic Description:</label>
                 <input
                   type="text"
                   value={editMeaning}
                   onChange={(e) => setEditMeaning(e.target.value)}
-                  className="w-full p-2 rounded bg-[#0B0B0B] border border-[#1A1A1A] text-[#F5F5F5] text-xs focus:outline-none focus:border-[#8B5CF6] font-sans"
+                  className="w-full p-2 rounded bg-[#080B12] border border-[#1D2939] text-white text-xs focus:outline-none focus:border-[#8B5CF6] font-sans"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[#A3A3A3] text-[11px]">Audit Reason for Edit:</label>
+                <label className="text-[#667085] text-[11px]">Audit Reason for Edit:</label>
                 <input
                   type="text"
                   value={editReason}
                   onChange={(e) => setEditReason(e.target.value)}
                   placeholder="e.g. Corrected property to match official vendor hardening standard..."
-                  className="w-full p-2 rounded bg-[#0B0B0B] border border-[#1A1A1A] text-[#F5F5F5] text-xs focus:outline-none focus:border-[#8B5CF6] font-sans"
+                  className="w-full p-2 rounded bg-[#080B12] border border-[#1D2939] text-white text-xs focus:outline-none focus:border-[#8B5CF6] font-sans"
                 />
               </div>
             </div>
 
-            <div className="p-4 border-t border-[#1A1A1A] bg-[#070707] flex items-center justify-end gap-2">
+            <div className="p-4 border-t border-[#1D2939] bg-[#0A0F18] flex items-center justify-end gap-2">
               <button
                 onClick={() => setEditingMapping(null)}
-                className="px-3.5 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#A3A3A3] border border-[#1A1A1A]"
+                className="px-3.5 py-1.5 rounded bg-[#080B12] hover:bg-[#111827] text-[#A7B0C0] border border-[#1D2939]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
                 disabled={editMutation.isPending}
-                className="px-4 py-1.5 rounded bg-[#0B0B0B] border border-[#8B5CF6]/50 hover:border-[#8B5CF6] text-[#8B5CF6] font-semibold flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded bg-[#080B12] border border-[#8B5CF6]/50 hover:border-[#8B5CF6] text-[#8B5CF6] font-semibold flex items-center gap-1.5"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Save & Approve</span>
@@ -819,48 +819,48 @@ export default function AdaptiveTrainingPage() {
       {/* Reject Confirmation Modal */}
       {rejectingMapping && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl w-full max-w-md shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in duration-150">
-            <div className="p-4 border-b border-[#1A1A1A] bg-[#0B0B0B] flex items-center justify-between">
+          <div className="bg-[#0D121C] border border-[#1D2939] rounded-xl w-full max-w-md shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in duration-150">
+            <div className="p-4 border-b border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
               <div className="flex items-center gap-2 text-[#EF4444] font-bold">
                 <XCircle className="w-4 h-4" />
                 <span>Reject Candidate Mapping</span>
               </div>
-              <button onClick={() => setRejectingMapping(null)} className="p-1 text-[#666666] hover:text-white">
+              <button onClick={() => setRejectingMapping(null)} className="p-1 text-[#667085] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-5 space-y-3">
-              <p className="text-[#A3A3A3] font-sans leading-relaxed">
+              <p className="text-[#A7B0C0] font-sans leading-relaxed">
                 Are you sure you want to reject the candidate mapping for:
               </p>
-              <div className="p-2.5 rounded bg-[#050505] border border-[#1A1A1A] text-[#F59E0B]">
+              <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939] text-[#F59E0B]">
                 {rejectingMapping.raw_pattern}
               </div>
 
               <div className="space-y-1">
-                <label className="text-[#A3A3A3] text-[11px]">Rejection Reason:</label>
+                <label className="text-[#667085] text-[11px]">Rejection Reason:</label>
                 <input
                   type="text"
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder="e.g. Non-standard proprietary telemetry directive..."
-                  className="w-full p-2 rounded bg-[#0B0B0B] border border-[#1A1A1A] text-[#F5F5F5] text-xs focus:outline-none focus:border-[#EF4444] font-sans"
+                  className="w-full p-2 rounded bg-[#080B12] border border-[#1D2939] text-white text-xs focus:outline-none focus:border-[#EF4444] font-sans"
                 />
               </div>
             </div>
 
-            <div className="p-4 border-t border-[#1A1A1A] bg-[#070707] flex items-center justify-end gap-2">
+            <div className="p-4 border-t border-[#1D2939] bg-[#0A0F18] flex items-center justify-end gap-2">
               <button
                 onClick={() => setRejectingMapping(null)}
-                className="px-3.5 py-1.5 rounded bg-[#0D0D0D] hover:bg-[#141414] text-[#A3A3A3] border border-[#1A1A1A]"
+                className="px-3.5 py-1.5 rounded bg-[#080B12] hover:bg-[#111827] text-[#A7B0C0] border border-[#1D2939]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmReject}
                 disabled={rejectMutation.isPending}
-                className="px-4 py-1.5 rounded bg-[#0B0B0B] border border-[#EF4444]/50 hover:border-[#EF4444] text-[#EF4444] font-semibold"
+                className="px-4 py-1.5 rounded bg-[#080B12] border border-[#EF4444]/50 hover:border-[#EF4444] text-[#EF4444] font-semibold"
               >
                 Confirm Rejection
               </button>

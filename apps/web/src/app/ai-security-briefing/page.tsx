@@ -26,7 +26,6 @@ import {
   Info,
   Terminal,
 } from "lucide-react";
-import AppShell from "@/components/layout/AppShell";
 import {
   fetchAudits,
   AuditItem,
@@ -191,38 +190,37 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
   };
 
   return (
-    <AppShell>
-      <div className="space-y-6 font-mono max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 font-mono max-w-7xl mx-auto pb-16">
         {/* Top Header & Advisory Notice */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#222] pb-5">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#1D2939] pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400">
+              <div className="p-1.5 rounded-lg bg-[#0D121C] border border-[#8B5CF6]/30 text-[#8B5CF6]">
                 <Bot className="w-5 h-5" />
               </div>
-              <h1 className="text-xl font-bold tracking-wider text-white">AI SECURITY BRIEFING</h1>
-              <span className="px-2 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] uppercase font-bold">
+              <h1 className="text-xl font-bold tracking-wider text-[#F3F4F6] font-sans">AI SECURITY BRIEFING</h1>
+              <span className="px-2 py-0.5 rounded bg-[#8B5CF6]/15 border border-[#8B5CF6]/30 text-[#8B5CF6] text-[10px] uppercase font-bold">
                 Analyst Copilot
               </span>
             </div>
-            <p className="text-neutral-400 text-xs mt-1">
+            <p className="text-[#A7B0C0] text-xs mt-1 font-sans">
               Evidence-grounded executive briefing and interactive SOC copilot powered by the multi-model AI gateway.
             </p>
           </div>
 
           {/* Strict Invariant Disclaimer Badge */}
-          <div className="bg-[#111] border border-[#262626] rounded-xl p-3 flex items-center gap-3 text-xs max-w-md">
-            <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 shrink-0">
+          <div className="bg-[#0D121C] border border-[#1D2939] rounded-xl p-3 flex items-center gap-3 text-xs max-w-md">
+            <div className="p-2 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-[#F59E0B] shrink-0">
               <Shield className="w-4 h-4" />
             </div>
             <div className="text-[11px] leading-tight">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-amber-400">AI ADVISORY ONLY</span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#1A1A1A] border border-[#333] text-neutral-400">
+                <span className="font-bold text-[#F59E0B]">AI ADVISORY ONLY</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#080B12] border border-[#1D2939] text-[#667085]">
                   AST GROUNDED
                 </span>
               </div>
-              <p className="text-neutral-400 text-[10px] mt-0.5">
+              <p className="text-[#667085] text-[10px] mt-0.5 font-sans">
                 Deterministic AST compliance decisions and risk scoring remain strictly authoritative. Zero device write capability.
               </p>
             </div>
@@ -230,18 +228,18 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
         </div>
 
         {/* Audit Context Selection Bar */}
-        <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4 flex-1">
             {/* Primary Audit Selection */}
             <div className="space-y-1 min-w-[240px]">
-              <label className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center gap-1.5">
-                <FileCode className="w-3.5 h-3.5 text-[#00D9FF]" />
+              <label className="text-[10px] text-[#667085] uppercase font-semibold flex items-center gap-1.5">
+                <FileCode className="w-3.5 h-3.5 text-[#3B82F6]" />
                 Target Audit Session
               </label>
               <select
                 value={selectedAuditId}
                 onChange={(e) => setSelectedAuditId(e.target.value)}
-                className="w-full bg-[#141414] border border-[#282828] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00D9FF]"
+                className="w-full bg-[#080B12] border border-[#1D2939] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3B82F6]"
               >
                 {audits.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -253,14 +251,14 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
 
             {/* Optional Baseline Evolution Audit */}
             <div className="space-y-1 min-w-[240px]">
-              <label className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center gap-1.5">
-                <History className="w-3.5 h-3.5 text-purple-400" />
+              <label className="text-[10px] text-[#667085] uppercase font-semibold flex items-center gap-1.5">
+                <History className="w-3.5 h-3.5 text-[#8B5CF6]" />
                 Evolution Baseline (Time Machine)
               </label>
               <select
                 value={selectedBaselineId}
                 onChange={(e) => setSelectedBaselineId(e.target.value)}
-                className="w-full bg-[#141414] border border-[#282828] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-[#080B12] border border-[#1D2939] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6]"
               >
                 <option value="">None (Single Audit Assessment)</option>
                 {audits
@@ -278,7 +276,7 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
             <button
               onClick={handleGenerateBriefing}
               disabled={isLoadingBriefing || !selectedAuditId}
-              className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-[#8B5CF6] hover:bg-[#7C3AED] disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-[#8B5CF6]/20 transition-all cursor-pointer"
             >
               {isLoadingBriefing ? (
                 <>
@@ -296,17 +294,17 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
             {briefing && (
               <button
                 onClick={handleCopyBriefing}
-                className="p-2.5 rounded-xl bg-[#141414] hover:bg-[#1C1C1C] border border-[#262626] text-neutral-300 hover:text-white transition-colors"
+                className="p-2.5 rounded-xl bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white transition-colors"
                 title="Copy Briefing"
               >
-                {copiedBriefing ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                {copiedBriefing ? <Check className="w-4 h-4 text-[#10B981]" /> : <Copy className="w-4 h-4" />}
               </button>
             )}
           </div>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+          <div className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-xl text-xs text-[#EF4444] flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -316,65 +314,65 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
         {briefing && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Compliance Score */}
-            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4 relative overflow-hidden">
-              <div className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center justify-between">
+            <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-4 relative overflow-hidden">
+              <div className="text-[10px] text-[#667085] uppercase font-semibold flex items-center justify-between">
                 <span>Compliance Posture</span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/30">
                   AUTHORITATIVE
                 </span>
               </div>
               <div className="text-3xl font-black text-white mt-2">
                 {briefing.compliance_score.toFixed(1)}%
               </div>
-              <div className="text-[10px] text-neutral-500 mt-1">
+              <div className="text-[10px] text-[#667085] mt-1">
                 Asset: {briefing.device_hostname} ({briefing.detected_vendor.toUpperCase()})
               </div>
             </div>
 
             {/* Risk Score */}
-            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4">
-              <div className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center justify-between">
+            <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-4">
+              <div className="text-[10px] text-[#667085] uppercase font-semibold flex items-center justify-between">
                 <span>Algorithmic Risk</span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/30">
                   DETERMINISTIC
                 </span>
               </div>
               <div className="text-3xl font-black text-white mt-2">
                 {briefing.risk_score.toFixed(1)}
-                <span className="text-sm font-normal text-neutral-500"> / 100</span>
+                <span className="text-sm font-normal text-[#667085]"> / 100</span>
               </div>
-              <div className="text-[10px] text-neutral-500 mt-1">Composite Topological Exposure</div>
+              <div className="text-[10px] text-[#667085] mt-1">Composite Topological Exposure</div>
             </div>
 
             {/* P0 / Critical Exposures */}
-            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4">
-              <div className="text-[10px] text-neutral-400 uppercase font-semibold flex items-center justify-between">
+            <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-4">
+              <div className="text-[10px] text-[#667085] uppercase font-semibold flex items-center justify-between">
                 <span>Critical / P0 Risks</span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/30">
                   URGENT
                 </span>
               </div>
-              <div className="text-3xl font-black text-purple-400 mt-2">
+              <div className="text-3xl font-black text-[#8B5CF6] mt-2">
                 {briefing.critical_p0_count}
               </div>
-              <div className="text-[10px] text-neutral-500 mt-1">
+              <div className="text-[10px] text-[#667085] mt-1">
                 {briefing.high_p1_count} High (P1) Exposures
               </div>
             </div>
 
             {/* Posture Trend */}
-            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-4">
-              <div className="text-[10px] text-neutral-400 uppercase font-semibold">Posture Evaluation</div>
+            <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-4">
+              <div className="text-[10px] text-[#667085] uppercase font-semibold">Posture Evaluation</div>
               <div className="text-base font-bold text-white mt-2 flex items-center gap-2">
                 <span
                   className={cn(
                     "w-2.5 h-2.5 rounded-full",
-                    briefing.posture_trend.includes("CRITICAL") ? "bg-rose-500 animate-pulse" : "bg-emerald-500"
+                    briefing.posture_trend.includes("CRITICAL") ? "bg-[#EF4444] animate-pulse" : "bg-[#10B981]"
                   )}
                 />
                 <span className="truncate">{briefing.posture_trend.replace(/_/g, " ")}</span>
               </div>
-              <div className="text-[10px] text-neutral-500 mt-1">Provider: {briefing.provider.toUpperCase()}</div>
+              <div className="text-[10px] text-[#667085] mt-1">Provider: {briefing.provider.toUpperCase()}</div>
             </div>
           </div>
         )}
@@ -384,96 +382,96 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
           {/* Left Column: Briefing Sections (7 Cols) */}
           <div className="lg:col-span-7 space-y-6">
             {!briefing && !isLoadingBriefing ? (
-              <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-12 text-center text-neutral-500 space-y-3">
-                <Bot className="w-10 h-10 text-neutral-600 mx-auto" />
-                <h3 className="text-white text-sm font-semibold">No Security Briefing Synthesized</h3>
-                <p className="text-xs text-neutral-400 max-w-md mx-auto">
+              <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-12 text-center text-[#667085] space-y-3">
+                <Bot className="w-10 h-10 text-[#667085] mx-auto" />
+                <h3 className="text-white text-sm font-semibold font-sans">No Security Briefing Synthesized</h3>
+                <p className="text-xs text-[#A7B0C0] max-w-md mx-auto font-sans">
                   Select an audit session above and click &quot;Generate Security Briefing&quot; to synthesize an evidence-grounded executive briefing and investigation playbook.
                 </p>
               </div>
             ) : isLoadingBriefing ? (
               /* Loading Skeletons */
               <div className="space-y-4">
-                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-3 animate-pulse">
-                  <div className="h-4 bg-neutral-800 rounded w-1/3" />
-                  <div className="h-3 bg-neutral-800/60 rounded w-full" />
-                  <div className="h-3 bg-neutral-800/60 rounded w-5/6" />
-                  <div className="h-3 bg-neutral-800/60 rounded w-4/6" />
+                <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-6 space-y-3 animate-pulse">
+                  <div className="h-4 bg-[#111827] rounded w-1/3" />
+                  <div className="h-3 bg-[#111827]/60 rounded w-full" />
+                  <div className="h-3 bg-[#111827]/60 rounded w-5/6" />
+                  <div className="h-3 bg-[#111827]/60 rounded w-4/6" />
                 </div>
-                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-3 animate-pulse">
-                  <div className="h-4 bg-neutral-800 rounded w-1/4" />
-                  <div className="h-16 bg-neutral-800/40 rounded-xl" />
-                  <div className="h-16 bg-neutral-800/40 rounded-xl" />
+                <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-6 space-y-3 animate-pulse">
+                  <div className="h-4 bg-[#111827] rounded w-1/4" />
+                  <div className="h-16 bg-[#111827]/40 rounded-xl" />
+                  <div className="h-16 bg-[#111827]/40 rounded-xl" />
                 </div>
               </div>
             ) : briefing ? (
               <>
                 {/* 1. Executive Summary Narrative */}
-                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-3">
-                  <div className="text-[10px] text-purple-400 uppercase font-semibold flex items-center justify-between">
+                <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-6 space-y-3">
+                  <div className="text-[10px] text-[#8B5CF6] uppercase font-semibold flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5" />
                       Executive Posture Summary
                     </span>
-                    <span className="text-neutral-500 text-[9px]">Grounded in AST Facts</span>
+                    <span className="text-[#667085] text-[9px]">Grounded in AST Facts</span>
                   </div>
-                  <p className="text-neutral-200 text-xs leading-relaxed whitespace-pre-line">
+                  <p className="text-[#A7B0C0] text-xs leading-relaxed whitespace-pre-line font-sans">
                     {briefing.executive_summary}
                   </p>
                 </div>
 
                 {/* 2. Top Critical Risks & Evidence */}
-                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-4">
-                  <div className="text-[10px] text-rose-400 uppercase font-semibold flex items-center justify-between">
+                <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-6 space-y-4">
+                  <div className="text-[10px] text-[#EF4444] uppercase font-semibold flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5" />
                       Top Critical Risks ({briefing.top_risks.length})
                     </span>
-                    <span className="text-neutral-500 text-[9px]">Prioritized Exposures</span>
+                    <span className="text-[#667085] text-[9px]">Prioritized Exposures</span>
                   </div>
 
                   <div className="space-y-3">
                     {briefing.top_risks.map((risk) => (
                       <div
                         key={risk.control_id}
-                        className="bg-[#121212] border border-[#222] rounded-xl p-4 space-y-2.5"
+                        className="bg-[#080B12] border border-[#1D2939] rounded-xl p-4 space-y-2.5"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30 text-[10px] font-bold">
                               {risk.priority}
                             </span>
                             <span className="text-white font-bold text-xs">{risk.control_id}</span>
-                            <span className="text-neutral-300 text-xs truncate max-w-xs">{risk.title}</span>
+                            <span className="text-[#A7B0C0] text-xs truncate max-w-xs font-sans">{risk.title}</span>
                           </div>
-                          <span className="text-[10px] text-neutral-500 uppercase">{risk.severity}</span>
+                          <span className="text-[10px] text-[#667085] uppercase">{risk.severity}</span>
                         </div>
 
-                        <p className="text-neutral-300 text-[11px] leading-relaxed">
+                        <p className="text-[#A7B0C0] text-[11px] leading-relaxed font-sans">
                           {risk.why_it_matters}
                         </p>
 
                         {/* Evidence Citation Tag */}
                         {risk.evidence_citation && (
-                          <div className="pt-2 border-t border-[#1C1C1C] flex items-center justify-between gap-2 flex-wrap text-[10px]">
+                          <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between gap-2 flex-wrap text-[10px]">
                             <button
                               onClick={() => setActiveCitation(risk.evidence_citation!)}
-                              className="px-2 py-1 rounded bg-[#181818] hover:bg-[#222] border border-[#333] text-[#00D9FF] flex items-center gap-1.5 transition-colors cursor-pointer"
+                              className="px-2 py-1 rounded bg-[#0D121C] hover:bg-[#111827] border border-[#1D2939] text-[#22D3EE] flex items-center gap-1.5 transition-colors cursor-pointer"
                             >
-                              <Terminal className="w-3 h-3 text-[#00D9FF]" />
+                              <Terminal className="w-3 h-3 text-[#22D3EE]" />
                               <span>
                                 {risk.evidence_citation.line_number
                                   ? `[EVIDENCE · LINE ${risk.evidence_citation.line_number}]`
                                   : "[EVIDENCE · AST PROOF]"}
                               </span>
                             </button>
-                            <span className="text-neutral-500 font-mono truncate max-w-sm">
+                            <span className="text-[#667085] font-mono truncate max-w-sm">
                               {risk.evidence_citation.evidence_snippet || "Verified AST rule match"}
                             </span>
                           </div>
                         )}
 
-                        <div className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                        <div className="text-[10px] text-[#10B981] font-mono bg-[#10B981]/10 p-2 rounded-lg border border-[#10B981]/20">
                           <strong>Allowlisted Action:</strong> {risk.recommended_action}
                         </div>
                       </div>
@@ -483,15 +481,15 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
 
                 {/* 3. Security Time Machine Evolution (If Baseline Supplied) */}
                 {briefing.security_evolution && (
-                  <div className="bg-[#0D0D0D] border border-purple-500/30 rounded-2xl p-6 space-y-4">
-                    <div className="text-[10px] text-purple-300 uppercase font-semibold flex items-center justify-between">
+                  <div className="bg-[#0D121C] border border-[#8B5CF6]/30 rounded-2xl p-6 space-y-4">
+                    <div className="text-[10px] text-[#8B5CF6] uppercase font-semibold flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <History className="w-3.5 h-3.5 text-purple-400" />
+                        <History className="w-3.5 h-3.5 text-[#8B5CF6]" />
                         Security Time Machine Evolution
                       </span>
                       <Link
                         href={`/security-time-machine?before_id=${briefing.security_evolution.baseline_audit_id}&after_id=${briefing.security_evolution.current_audit_id}`}
-                        className="text-[10px] text-[#00D9FF] hover:underline flex items-center gap-1"
+                        className="text-[10px] text-[#3B82F6] hover:underline flex items-center gap-1"
                       >
                         <span>Open Diff Viewer</span>
                         <ExternalLink className="w-3 h-3" />
@@ -499,35 +497,35 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
                     </div>
 
                     <div className="grid grid-cols-3 gap-3 text-center">
-                      <div className="p-3 bg-[#141414] rounded-xl border border-[#222]">
-                        <div className="text-[10px] text-neutral-400">Baseline Score</div>
+                      <div className="p-3 bg-[#080B12] rounded-xl border border-[#1D2939]">
+                        <div className="text-[10px] text-[#667085]">Baseline Score</div>
                         <div className="text-lg font-bold text-white mt-1">
                           {briefing.security_evolution.before_score.toFixed(1)}%
                         </div>
                       </div>
-                      <div className="p-3 bg-[#141414] rounded-xl border border-[#222]">
-                        <div className="text-[10px] text-neutral-400">Remediated Score</div>
-                        <div className="text-lg font-bold text-emerald-400 mt-1">
+                      <div className="p-3 bg-[#080B12] rounded-xl border border-[#1D2939]">
+                        <div className="text-[10px] text-[#667085]">Remediated Score</div>
+                        <div className="text-lg font-bold text-[#10B981] mt-1">
                           {briefing.security_evolution.after_score.toFixed(1)}%
                         </div>
                       </div>
-                      <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/30">
-                        <div className="text-[10px] text-purple-300">Posture Delta</div>
-                        <div className="text-lg font-bold text-purple-300 mt-1">
+                      <div className="p-3 bg-[#8B5CF6]/10 rounded-xl border border-[#8B5CF6]/30">
+                        <div className="text-[10px] text-[#8B5CF6]">Posture Delta</div>
+                        <div className="text-lg font-bold text-[#8B5CF6] mt-1">
                           +{briefing.security_evolution.score_delta.toFixed(1)}%
                         </div>
                       </div>
                     </div>
 
-                    <p className="text-neutral-300 text-xs leading-relaxed">
+                    <p className="text-[#A7B0C0] text-xs leading-relaxed font-sans">
                       {briefing.security_evolution.narrative}
                     </p>
 
                     {briefing.security_evolution.resolved_controls_summary.length > 0 && (
-                      <div className="text-[10px] text-neutral-400 flex items-center gap-2 flex-wrap">
-                        <span className="text-emerald-400 font-semibold">Resolved Controls:</span>
+                      <div className="text-[10px] text-[#667085] flex items-center gap-2 flex-wrap">
+                        <span className="text-[#10B981] font-semibold">Resolved Controls:</span>
                         {briefing.security_evolution.resolved_controls_summary.map((c) => (
-                          <span key={c} className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                          <span key={c} className="px-1.5 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                             {c}
                           </span>
                         ))}
@@ -537,38 +535,38 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
                 )}
 
                 {/* 4. Recommended Investigation Checklist */}
-                <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-6 space-y-4">
-                  <div className="text-[10px] text-blue-400 uppercase font-semibold flex items-center justify-between">
+                <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-6 space-y-4">
+                  <div className="text-[10px] text-[#3B82F6] uppercase font-semibold flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Shield className="w-3.5 h-3.5" />
                       Recommended Investigation Order
                     </span>
-                    <span className="text-neutral-500 text-[9px]">Deterministic Priority Sequence</span>
+                    <span className="text-[#667085] text-[9px]">Deterministic Priority Sequence</span>
                   </div>
 
                   <div className="space-y-2">
                     {briefing.recommended_investigation_order.map((step) => (
                       <div
                         key={step.step_number}
-                        className="p-3 bg-[#121212] border border-[#222] rounded-xl flex items-start gap-3 text-xs"
+                        className="p-3 bg-[#080B12] border border-[#1D2939] rounded-xl flex items-start gap-3 text-xs"
                       >
-                        <div className="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                        <div className="w-6 h-6 rounded-lg bg-[#3B82F6]/20 text-[#3B82F6] border border-[#3B82F6]/30 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                           {step.step_number}
                         </div>
                         <div className="space-y-1 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-white font-bold">{step.control_id}</span>
-                            <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[9px]">
+                            <span className="px-1.5 py-0.2 rounded bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30 text-[9px]">
                               {step.priority}
                             </span>
                             {step.target_lines.length > 0 && (
-                              <span className="text-[10px] text-neutral-400">
+                              <span className="text-[10px] text-[#667085]">
                                 Line {step.target_lines.join(", ")}
                               </span>
                             )}
                           </div>
-                          <p className="text-neutral-300 text-[11px]">{step.action_summary}</p>
-                          <p className="text-neutral-500 text-[10px]">{step.reason}</p>
+                          <p className="text-[#A7B0C0] text-[11px] font-sans">{step.action_summary}</p>
+                          <p className="text-[#667085] text-[10px] font-sans">{step.reason}</p>
                         </div>
                       </div>
                     ))}
@@ -580,33 +578,33 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
 
           {/* Right Column: Interactive Analyst Copilot (5 Cols) */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="bg-[#0D0D0D] border border-[#1E1E1E] rounded-2xl p-5 flex flex-col h-[720px] sticky top-6">
+            <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-5 flex flex-col h-[720px] sticky top-6">
               {/* Copilot Header */}
-              <div className="flex items-center justify-between border-b border-[#1E1E1E] pb-3">
+              <div className="flex items-center justify-between border-b border-[#1D2939] pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-1 rounded bg-purple-500/20 text-purple-400">
+                  <div className="p-1 rounded bg-[#8B5CF6]/20 text-[#8B5CF6]">
                     <Bot className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-white text-xs font-bold">Analyst Copilot</h3>
-                    <div className="text-[9px] text-neutral-400">Grounded in verified AST records</div>
+                    <h3 className="text-white text-xs font-bold font-sans">Analyst Copilot</h3>
+                    <div className="text-[9px] text-[#667085]">Grounded in verified AST records</div>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-[#161616] text-neutral-400 border border-[#262626] text-[9px]">
+                <span className="px-2 py-0.5 rounded bg-[#080B12] text-[#A7B0C0] border border-[#1D2939] text-[9px]">
                   {briefing?.model_used || "OpenRouter Standby"}
                 </span>
               </div>
 
               {/* Suggested Questions Chips */}
-              <div className="py-3 border-b border-[#1A1A1A] space-y-1.5">
-                <div className="text-[9px] text-neutral-400 uppercase font-semibold">Suggested Questions:</div>
+              <div className="py-3 border-b border-[#1D2939] space-y-1.5">
+                <div className="text-[9px] text-[#667085] uppercase font-semibold">Suggested Questions:</div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {SUGGESTED_QUESTIONS.map((q) => (
                     <button
                       key={q}
                       onClick={() => handleSendChat(q)}
                       disabled={isSendingChat || !selectedAuditId}
-                      className="px-2 py-1 rounded-lg bg-[#141414] hover:bg-[#1E1E1E] border border-[#262626] text-[10px] text-neutral-300 hover:text-white transition-colors cursor-pointer text-left"
+                      className="px-2 py-1 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[10px] text-[#A7B0C0] hover:text-white transition-colors cursor-pointer text-left"
                     >
                       {q}
                     </button>
@@ -615,12 +613,12 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
               </div>
 
               {/* Chat Stream History */}
-              <div className="flex-1 overflow-y-auto py-3 space-y-3 pr-1 text-xs">
+              <div className="flex-1 overflow-y-auto py-3 space-y-3 pr-1 text-xs font-mono">
                 {chatMessages.length === 0 ? (
-                  <div className="text-center py-12 text-neutral-500 space-y-2">
-                    <Bot className="w-8 h-8 text-neutral-600 mx-auto" />
-                    <p className="text-neutral-400">Ask the Analyst Copilot any question about this audit.</p>
-                    <p className="text-[10px] text-neutral-600">
+                  <div className="text-center py-12 text-[#667085] space-y-2 font-sans">
+                    <Bot className="w-8 h-8 text-[#667085] mx-auto" />
+                    <p className="text-[#A7B0C0]">Ask the Analyst Copilot any question about this audit.</p>
+                    <p className="text-[10px] text-[#667085]">
                       Responses reference verified AST line evidence and deterministic control invariants.
                     </p>
                   </div>
@@ -631,25 +629,25 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
                       className={cn(
                         "p-3 rounded-xl border space-y-2",
                         msg.role === "user"
-                          ? "bg-[#181818] border-[#2A2A2A] text-white ml-6"
-                          : "bg-[#101010] border-[#1E1E1E] text-neutral-200 mr-2"
+                          ? "bg-[#111827] border-[#263B55] text-white ml-6"
+                          : "bg-[#080B12] border-[#1D2939] text-[#A7B0C0] mr-2"
                       )}
                     >
-                      <div className="flex items-center justify-between text-[9px] text-neutral-500 font-semibold">
+                      <div className="flex items-center justify-between text-[9px] text-[#667085] font-semibold">
                         <span>{msg.role === "user" ? "SECURITY ANALYST" : "NETVIGIL COPILOT"}</span>
                       </div>
-                      <div className="text-[11px] leading-relaxed whitespace-pre-line">
+                      <div className="text-[11px] leading-relaxed whitespace-pre-line font-sans">
                         {msg.content}
                       </div>
 
                       {/* Evidence Citations */}
                       {msg.evidence && msg.evidence.length > 0 && (
-                        <div className="pt-2 border-t border-[#1C1C1C] flex items-center gap-1.5 flex-wrap">
+                        <div className="pt-2 border-t border-[#1D2939] flex items-center gap-1.5 flex-wrap">
                           {msg.evidence.map((cit, cIdx) => (
                             <button
                               key={cIdx}
                               onClick={() => setActiveCitation(cit)}
-                              className="px-1.5 py-0.5 rounded bg-[#181818] hover:bg-[#262626] text-[#00D9FF] border border-[#00D9FF]/30 text-[9px] flex items-center gap-1 transition-colors cursor-pointer"
+                              className="px-1.5 py-0.5 rounded bg-[#0D121C] hover:bg-[#111827] text-[#22D3EE] border border-[#22D3EE]/30 text-[9px] flex items-center gap-1 transition-colors cursor-pointer font-mono"
                             >
                               <Terminal className="w-2.5 h-2.5" />
                               <span>{cit.citation_label || `[EVIDENCE · ${cit.control_id}]`}</span>
@@ -661,15 +659,15 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
                   ))
                 )}
                 {isSendingChat && (
-                  <div className="p-3 rounded-xl bg-[#101010] border border-[#1E1E1E] text-neutral-400 text-xs flex items-center gap-2 animate-pulse">
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                  <div className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] text-xs flex items-center gap-2 animate-pulse font-sans">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#8B5CF6]" />
                     <span>Evaluating AST evidence & synthesizing response...</span>
                   </div>
                 )}
               </div>
 
               {/* Chat Input Bar */}
-              <div className="pt-3 border-t border-[#1E1E1E] flex items-center gap-2">
+              <div className="pt-3 border-t border-[#1D2939] flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="Ask copilot about findings, blast radius, or fixes..."
@@ -682,12 +680,12 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
                     }
                   }}
                   disabled={isSendingChat || !selectedAuditId}
-                  className="flex-1 bg-[#141414] border border-[#282828] rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                  className="flex-1 bg-[#080B12] border border-[#1D2939] rounded-xl px-3 py-2 text-xs text-white placeholder-[#667085] focus:outline-none focus:border-[#8B5CF6] disabled:opacity-50 font-sans"
                 />
                 <button
                   onClick={() => handleSendChat()}
                   disabled={!chatInput.trim() || isSendingChat || !selectedAuditId}
-                  className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-colors cursor-pointer shrink-0"
+                  className="p-2 rounded-xl bg-[#8B5CF6] hover:bg-[#7C3AED] disabled:opacity-40 text-white transition-colors cursor-pointer shrink-0"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -703,48 +701,48 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
             onClick={() => setActiveCitation(null)}
           >
             <div
-              className="bg-[#0D0D0D] border border-[#282828] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl font-mono text-xs"
+              className="bg-[#0D121C] border border-[#1D2939] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl font-mono text-xs"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-[#1E1E1E] pb-3">
+              <div className="flex items-center justify-between border-b border-[#1D2939] pb-3">
                 <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-[#00D9FF]" />
+                  <Terminal className="w-4 h-4 text-[#22D3EE]" />
                   <span className="text-white font-bold">
                     {activeCitation.control_id} Evidence Inspection
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] uppercase font-semibold">
+                <span className="px-2 py-0.5 rounded bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30 text-[10px] uppercase font-semibold">
                   {activeCitation.status} ({activeCitation.severity})
                 </span>
               </div>
 
               <div className="space-y-2">
-                <div className="text-[10px] text-neutral-400 uppercase">Framework Standard:</div>
-                <div className="text-neutral-200">
+                <div className="text-[10px] text-[#667085] uppercase">Framework Standard:</div>
+                <div className="text-[#A7B0C0]">
                   {activeCitation.framework} • Control {activeCitation.control_id}
                 </div>
               </div>
 
               {activeCitation.line_number && (
                 <div className="space-y-1">
-                  <div className="text-[10px] text-neutral-400 uppercase">Configuration Line:</div>
-                  <div className="px-2.5 py-1 rounded bg-[#161616] text-[#00D9FF] inline-block font-bold">
+                  <div className="text-[10px] text-[#667085] uppercase">Configuration Line:</div>
+                  <div className="px-2.5 py-1 rounded bg-[#080B12] text-[#22D3EE] inline-block font-bold">
                     Line {activeCitation.line_number}
                   </div>
                 </div>
               )}
 
               <div className="space-y-1">
-                <div className="text-[10px] text-neutral-400 uppercase">Verbatim Evidence Snippet:</div>
-                <div className="p-3 bg-[#141414] border border-[#222] rounded-xl font-mono text-rose-300 text-xs overflow-x-auto whitespace-pre">
+                <div className="text-[10px] text-[#667085] uppercase">Verbatim Evidence Snippet:</div>
+                <div className="p-3 bg-[#080B12] border border-[#1D2939] rounded-xl font-mono text-[#EF4444] text-xs overflow-x-auto whitespace-pre">
                   {activeCitation.evidence_snippet || "Evidence verified via AST rule match"}
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#1E1E1E] flex items-center justify-between">
+              <div className="pt-3 border-t border-[#1D2939] flex items-center justify-between">
                 <Link
                   href={`/findings?control=${encodeURIComponent(activeCitation.control_id)}`}
-                  className="text-xs text-[#00D9FF] hover:underline flex items-center gap-1"
+                  className="text-xs text-[#3B82F6] hover:underline flex items-center gap-1"
                   onClick={() => setActiveCitation(null)}
                 >
                   <span>Open in Evidence Explorer</span>
@@ -752,7 +750,7 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
                 </Link>
                 <button
                   onClick={() => setActiveCitation(null)}
-                  className="px-4 py-1.5 rounded-lg bg-[#181818] hover:bg-[#222] text-neutral-300 text-xs transition-colors"
+                  className="px-4 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-[#A7B0C0] hover:text-white text-xs transition-colors"
                 >
                   Close
                 </button>
@@ -761,6 +759,5 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
           </div>
         )}
       </div>
-    </AppShell>
   );
 }

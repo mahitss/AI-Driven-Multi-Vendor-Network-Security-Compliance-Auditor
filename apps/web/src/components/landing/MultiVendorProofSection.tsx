@@ -9,69 +9,69 @@ export default function MultiVendorProofSection() {
     <section id="multi-vendor" className="py-20 px-4 sm:px-6 max-w-[1440px] mx-auto space-y-10 font-sans">
       {/* Section Header */}
       <div className="text-center space-y-2 max-w-3xl mx-auto">
-        <div className="text-xs font-mono text-[#06B6D4] font-semibold uppercase tracking-wider">
+        <div className="text-xs font-mono text-[#3B82F6] font-semibold uppercase tracking-wider">
           CROSS-OS EQUIVALENCE PROOF
         </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F3F4F6] tracking-tight">
           DIFFERENT DIALECTS. SAME SECURITY SEMANTICS.
         </h2>
-        <p className="text-sm text-[#A3A3A3] font-mono">
+        <p className="text-sm text-[#A7B0C0] font-mono">
           Heterogeneous syntax resolves to identical Universal Security Model slots.
         </p>
       </div>
 
       {/* Multi-Vendor Normalization Visual Proof Matrix */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-[#0E131F]/90 border border-white/10 space-y-8 font-mono text-xs shadow-2xl">
+      <div className="p-6 sm:p-8 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-8 font-mono text-xs shadow-2xl">
         {/* Dialects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Cisco IOS */}
-          <div className="p-4 rounded-xl bg-[#07090E] border border-[#06B6D4]/30 space-y-2">
+          <div className="p-4 rounded-xl bg-[#080B12] border border-[#3B82F6]/30 space-y-2">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-[#06B6D4] font-bold">CISCO IOS</span>
-              <span className="text-[#737373]">CLI Native</span>
+              <span className="text-[#3B82F6] font-bold">CISCO IOS</span>
+              <span className="text-[#667085]">CLI Native</span>
             </div>
-            <code className="text-sm text-white block bg-black/50 p-2.5 rounded border border-white/5">
+            <code className="text-sm text-[#F3F4F6] block bg-black/50 p-2.5 rounded border border-[#1D2939]">
               ip ssh version 1
             </code>
           </div>
 
           {/* Juniper JunOS */}
-          <div className="p-4 rounded-xl bg-[#07090E] border border-[#10B981]/30 space-y-2">
+          <div className="p-4 rounded-xl bg-[#080B12] border border-[#10B981]/30 space-y-2">
             <div className="flex items-center justify-between text-[10px]">
               <span className="text-[#10B981] font-bold">JUNIPER JUNOS</span>
-              <span className="text-[#737373]">Set Syntax</span>
+              <span className="text-[#667085]">Set Syntax</span>
             </div>
-            <code className="text-xs sm:text-[11px] text-white block bg-black/50 p-2.5 rounded border border-white/5 break-all">
+            <code className="text-xs sm:text-[11px] text-[#F3F4F6] block bg-black/50 p-2.5 rounded border border-[#1D2939] break-all">
               set system services ssh protocol-version v1
             </code>
           </div>
 
           {/* Fortinet FortiOS */}
-          <div className="p-4 rounded-xl bg-[#07090E] border border-[#F59E0B]/30 space-y-2">
+          <div className="p-4 rounded-xl bg-[#080B12] border border-[#F59E0B]/30 space-y-2">
             <div className="flex items-center justify-between text-[10px]">
               <span className="text-[#F59E0B] font-bold">FORTINET FORTIOS</span>
-              <span className="text-[#737373]">Config System</span>
+              <span className="text-[#667085]">Config System</span>
             </div>
-            <code className="text-sm text-white block bg-black/50 p-2.5 rounded border border-white/5">
+            <code className="text-sm text-[#F3F4F6] block bg-black/50 p-2.5 rounded border border-[#1D2939]">
               set admin-ssh-v1 enable
             </code>
           </div>
         </div>
 
         {/* Convergence Flow Indicator */}
-        <div className="flex items-center justify-center gap-3 text-xs text-[#06B6D4]">
-          <span className="h-px bg-gradient-to-r from-transparent via-[#06B6D4]/50 to-transparent flex-1" />
-          <span className="px-3 py-1 rounded-full bg-[#06B6D4]/10 border border-[#06B6D4]/30 font-bold uppercase tracking-wider text-[10px]">
+        <div className="flex items-center justify-center gap-3 text-xs text-[#3B82F6]">
+          <span className="h-px bg-gradient-to-r from-transparent via-[#3B82F6]/50 to-transparent flex-1" />
+          <span className="px-3 py-1 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/30 font-bold uppercase tracking-wider text-[10px]">
             CONVERGES TO CANONICAL SECURITY MODEL
           </span>
-          <span className="h-px bg-gradient-to-r from-transparent via-[#06B6D4]/50 to-transparent flex-1" />
+          <span className="h-px bg-gradient-to-r from-transparent via-[#3B82F6]/50 to-transparent flex-1" />
         </div>
 
         {/* Normalized Model & Compliance Verdict */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-[#07090E] border border-[#10B981]/40 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#080B12] border border-[#10B981]/40 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] text-[#737373] uppercase">UNIVERSAL SECURITY MODEL SLOT</span>
+              <span className="text-[10px] text-[#667085] uppercase">UNIVERSAL SECURITY MODEL SLOT</span>
               <div className="text-sm font-bold text-[#10B981]">
                 remote_access.ssh_version = 1
               </div>
@@ -79,10 +79,10 @@ export default function MultiVendorProofSection() {
             <CheckCircle2 className="w-5 h-5 text-[#10B981]" />
           </div>
 
-          <div className="p-4 rounded-xl bg-[#07090E] border border-[#EF4444]/40 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#080B12] border border-[#EF4444]/40 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] text-[#737373] uppercase">DETERMINISTIC COMPLIANCE RULE</span>
-              <div className="text-sm font-bold text-white flex items-center gap-2">
+              <span className="text-[10px] text-[#667085] uppercase">DETERMINISTIC COMPLIANCE RULE</span>
+              <div className="text-sm font-bold text-[#F3F4F6] flex items-center gap-2">
                 <span>RULE-SSH-001</span>
                 <span className="px-2 py-0.5 rounded bg-[#EF4444]/10 text-[#EF4444] text-xs font-bold border border-[#EF4444]/30">
                   FAIL
@@ -97,10 +97,10 @@ export default function MultiVendorProofSection() {
         <div className="pt-2 text-center">
           <Link
             href="/demo/multi-vendor"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#0E131F] border border-[#06B6D4]/30 hover:border-[#06B6D4] hover:bg-[#141B2D] text-white font-bold text-xs transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#111827] border border-[#1D2939] hover:border-[#3B82F6] hover:bg-[#151E2D] text-[#F3F4F6] font-bold text-xs transition-all shadow-sm"
           >
             <span>OPEN MULTI-VENDOR PROOF →</span>
-            <ArrowRight className="w-4 h-4 text-[#06B6D4]" />
+            <ArrowRight className="w-4 h-4 text-[#3B82F6]" />
           </Link>
         </div>
       </div>

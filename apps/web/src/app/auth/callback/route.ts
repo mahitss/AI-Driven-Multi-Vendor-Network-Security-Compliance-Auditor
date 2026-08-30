@@ -47,8 +47,8 @@ export async function GET(request: Request) {
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #070707;
-      color: #D4D4D4;
+      background-color: #080B12;
+      color: #A7B0C0;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       display: flex;
       align-items: center;
@@ -57,8 +57,8 @@ export async function GET(request: Request) {
       padding: 1rem;
     }
     .card {
-      background-color: #0D0D0D;
-      border: 1px solid #1F1F1F;
+      background-color: #0D121C;
+      border: 1px solid #1D2939;
       border-radius: 0.75rem;
       padding: 2rem;
       max-width: 26rem;
@@ -71,21 +71,21 @@ export async function GET(request: Request) {
       gap: 0.75rem;
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid #1A1A1A;
+      border-bottom: 1px solid #1D2939;
     }
     .badge {
       font-size: 0.65rem;
       padding: 0.15rem 0.4rem;
       border-radius: 0.25rem;
-      background: #141414;
-      color: #00D9FF;
-      border: 1px solid rgba(0, 217, 255, 0.3);
+      background: #111827;
+      color: #3B82F6;
+      border: 1px solid rgba(59, 130, 246, 0.3);
       font-weight: 600;
     }
     .title {
       font-size: 0.95rem;
       font-weight: 700;
-      color: #F5F5F5;
+      color: #F3F4F6;
       letter-spacing: 0.05em;
     }
     .checklist {
@@ -100,16 +100,16 @@ export async function GET(request: Request) {
       justify-content: space-between;
       font-size: 0.75rem;
       padding: 0.5rem 0.75rem;
-      background: #090909;
-      border: 1px solid #171717;
+      background: #080B12;
+      border: 1px solid #1D2939;
       border-radius: 0.375rem;
     }
-    .label { color: #A3A3A3; letter-spacing: 0.05em; }
-    .status { color: #22C55E; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; }
+    .label { color: #667085; letter-spacing: 0.05em; }
+    .status { color: #10B981; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; }
     .progress-bar {
       height: 2px;
       width: 100%;
-      background: #1A1A1A;
+      background: #1D2939;
       border-radius: 2px;
       overflow: hidden;
       position: relative;
@@ -117,7 +117,7 @@ export async function GET(request: Request) {
     .progress-fill {
       position: absolute;
       top: 0; left: 0; bottom: 0;
-      background: #00D9FF;
+      background: #3B82F6;
       animation: fill 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
     @keyframes fill {
