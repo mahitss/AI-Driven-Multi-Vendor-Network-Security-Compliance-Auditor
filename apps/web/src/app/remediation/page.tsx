@@ -252,28 +252,33 @@ function RemediationContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* 1. Header Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#181a22]">
+    <div className="max-w-7xl mx-auto space-y-4 font-sans pb-12">
+      {/* 1. Tactical Header Row */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[#171b26] bg-[#07080a] font-mono">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-[#f0f3f8] tracking-tight">Remediation Center</h1>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#0ea5e9]/10 text-[#0ea5e9] font-medium border border-[#0ea5e9]/20">
-              Allowlist Catalog
+            <h1 className="text-base font-semibold text-[#f0f3f8] tracking-tight">
+              REMEDIATION CENTER & DIFF AUDITOR
+            </h1>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#10b981]/10 text-[#10b981] font-medium border border-[#10b981]/25">
+              ALLOWLISTED CATALOG
+            </span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#ef4444]/10 text-[#ef4444] font-medium border border-[#ef4444]/25">
+              ZERO NETWORK PUSH
             </span>
           </div>
-          <p className="text-xs text-[#8b95a8] mt-0.5 max-w-3xl">
-            Review safe, vendor-aware configuration changes and verify deterministic improvement with zero network push.
+          <p className="text-xs text-[#8b95a8] mt-0.5 max-w-3xl font-sans">
+            Review safe, vendor-aware configuration changes and verify deterministic improvement with mathematical AST proof.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start md:self-auto text-xs">
           <Link
             href="/configurations?mode=ingest"
-            className="px-3 py-1.5 rounded-md bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+            className="px-3 py-1.5 rounded bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-medium flex items-center gap-1.5 transition-colors shadow-sm text-xs"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Audit Configuration</span>
+            <span>AUDIT CONFIG</span>
           </Link>
 
           <button
@@ -281,93 +286,93 @@ function RemediationContent() {
               refetchStats();
               refetchRemediations();
             }}
-            className="p-1.5 rounded-md bg-[#0d0e12] hover:bg-[#12141a] border border-[#181a22] text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
+            className="p-1.5 rounded bg-[#0a0c10] hover:bg-[#12151e] border border-[#171b26] text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
             title="Refresh Queue"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", isRemediationsLoading && "animate-spin")} />
+            <RefreshCw className={cn("w-3.5 h-3.5", isRemediationsLoading && "animate-spin text-[#0ea5e9]")} />
           </button>
         </div>
       </div>
 
       {/* 2. Top Summary KPI Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-lg bg-[#0d0e12] border border-[#181a22]">
-          <div className="text-[10px] text-[#5d677a] uppercase font-semibold">Open Remediations</div>
-          <div className="text-xl font-semibold text-[#f0f3f8] mt-1">{totalCount}</div>
-          <div className="text-[11px] text-[#8b95a8] mt-0.5">Catalog-supported fixes</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono">
+        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
+          <div className="text-[10px] text-[#525c70] uppercase font-semibold">OPEN REMEDIATIONS</div>
+          <div className="text-xl font-bold text-[#f0f3f8] mt-0.5">{totalCount}</div>
+          <div className="text-[10px] text-[#8b95a8] font-sans mt-0.5">Catalog-supported fixes</div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-[#0d0e12] border border-[#181a22]">
-          <div className="text-[10px] text-[#ef4444] uppercase font-semibold">Critical Fixes</div>
-          <div className="text-xl font-semibold text-[#ef4444] mt-1">{criticalCount}</div>
-          <div className="text-[11px] text-[#5d677a] mt-0.5">Immediate intervention</div>
+        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
+          <div className="text-[10px] text-[#ef4444] uppercase font-semibold">CRITICAL (P0) FIXES</div>
+          <div className="text-xl font-bold text-[#ef4444] mt-0.5">{criticalCount}</div>
+          <div className="text-[10px] text-[#525c70] font-sans mt-0.5">Immediate intervention</div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-[#0d0e12] border border-[#181a22]">
-          <div className="text-[10px] text-[#f59e0b] uppercase font-semibold">High Fixes</div>
-          <div className="text-xl font-semibold text-[#f59e0b] mt-1">{highCount}</div>
-          <div className="text-[11px] text-[#5d677a] mt-0.5">Elevated risk vectors</div>
+        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
+          <div className="text-[10px] text-[#f59e0b] uppercase font-semibold">HIGH TIER FIXES</div>
+          <div className="text-xl font-bold text-[#f59e0b] mt-0.5">{highCount}</div>
+          <div className="text-[10px] text-[#525c70] font-sans mt-0.5">Elevated risk vectors</div>
         </div>
 
-        <div className="p-3.5 rounded-lg bg-[#0d0e12] border border-[#181a22]">
-          <div className="text-[10px] text-[#10b981] uppercase font-semibold">Allowlisted</div>
-          <div className="text-xl font-semibold text-[#10b981] mt-1">100%</div>
-          <div className="text-[11px] text-[#5d677a] mt-0.5">Catalog-validated diffs</div>
+        <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] transition-colors">
+          <div className="text-[10px] text-[#10b981] uppercase font-semibold">ALLOWLISTED VALIDITY</div>
+          <div className="text-xl font-bold text-[#10b981] mt-0.5">100%</div>
+          <div className="text-[10px] text-[#525c70] font-sans mt-0.5">Catalog-validated diffs</div>
         </div>
       </div>
 
       {/* 3. Re-Analysis Verification Banner */}
       {reanalyzeBannerVisible && reanalyzeResult && (
-        <div className="p-4 rounded-lg bg-[#0d0e12] border border-[#10b981]/30 space-y-3">
+        <div className="p-3.5 rounded bg-[#10b981]/10 border border-[#10b981]/30 space-y-2.5 font-mono animate-fadeIn">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#10b981]">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#10b981]">
               <CheckCircle2 className="w-4 h-4" />
-              <span>Security Issue Resolved — Verification Complete</span>
+              <span>SECURITY ISSUE RESOLVED — VERIFICATION COMPLETE ✓</span>
             </div>
             <button
               onClick={() => setReanalyzeBannerVisible(false)}
-              className="text-[#5d677a] hover:text-[#f0f3f8]"
+              className="text-[#525c70] hover:text-white"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-            <div className="p-2.5 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase">Risk Reduction</div>
-              <div className="text-sm font-semibold text-[#ef4444] mt-0.5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
+              <div className="text-[10px] text-[#525c70]">RISK REDUCTION</div>
+              <div className="text-xs font-bold text-[#ef4444] mt-0.5">
                 {reanalyzeResult.previous_risk_score.toFixed(1)} → {reanalyzeResult.new_risk_score.toFixed(1)}
               </div>
             </div>
 
-            <div className="p-2.5 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase">Compliance Score</div>
-              <div className="text-sm font-semibold text-[#10b981] mt-0.5">
+            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
+              <div className="text-[10px] text-[#525c70]">COMPLIANCE SCORE</div>
+              <div className="text-xs font-bold text-[#10b981] mt-0.5">
                 {reanalyzeResult.previous_compliance_score.toFixed(1)}% → {reanalyzeResult.new_compliance_score.toFixed(1)}%
               </div>
             </div>
 
-            <div className="p-2.5 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase">Failed Controls</div>
-              <div className="text-sm font-semibold text-[#f59e0b] mt-0.5">
+            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
+              <div className="text-[10px] text-[#525c70]">FAILED CONTROLS</div>
+              <div className="text-xs font-bold text-[#f59e0b] mt-0.5">
                 {reanalyzeResult.previous_fail_count} FAIL → {reanalyzeResult.new_fail_count} FAIL
               </div>
             </div>
 
-            <div className="p-2.5 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase">Resolved Controls</div>
-              <div className="text-sm font-semibold text-[#0ea5e9] mt-0.5">
+            <div className="p-2 rounded bg-[#0a0c10] border border-[#171b26]">
+              <div className="text-[10px] text-[#0ea5e9]">RESOLVED CONTROLS</div>
+              <div className="text-xs font-bold text-[#0ea5e9] mt-0.5">
                 +{reanalyzeResult.resolved_controls.length} RESOLVED
               </div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1">
               {reanalyzeResult.resolved_controls.map((ctrl) => (
                 <span
                   key={ctrl}
-                  className="px-2 py-0.5 rounded bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20 text-[10px] font-semibold"
+                  className="px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30 text-[9px] font-bold"
                 >
                   {ctrl}: FAIL → PASS ✓
                 </span>
@@ -376,7 +381,7 @@ function RemediationContent() {
 
             <Link
               href={`/findings?findingId=${linkedFinding?.id}`}
-              className="px-2.5 py-1 rounded bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/30 text-xs font-medium hover:bg-[#0ea5e9]/20 transition-colors flex items-center gap-1"
+              className="px-2.5 py-1 rounded bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/30 text-xs font-mono font-medium hover:bg-[#0ea5e9]/20 transition-colors flex items-center gap-1"
             >
               <span>View Updated Evidence →</span>
             </Link>
@@ -385,23 +390,23 @@ function RemediationContent() {
       )}
 
       {/* 4. Filters & Search Toolbar */}
-      <div className="p-3.5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-3">
-        <div className="flex flex-col md:flex-row items-center gap-3">
+      <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2.5 font-mono">
+        <div className="flex flex-col md:flex-row items-center gap-2.5">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5d677a]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#525c70]" />
             <input
               type="text"
               placeholder="Search remediation template, control, vendor CLI, or finding..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-1.5 rounded-md bg-[#050608] border border-[#181a22] text-xs text-[#f0f3f8] placeholder-[#5d677a] focus:outline-none focus:border-[#0ea5e9] transition-colors"
+              className="w-full pl-8 pr-4 py-1.5 rounded bg-[#07080a] border border-[#171b26] text-xs text-[#f0f3f8] placeholder-[#525c70] focus:outline-none focus:border-[#0ea5e9]/50 transition-colors font-sans"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5d677a] hover:text-[#f0f3f8]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#525c70] hover:text-white"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -410,7 +415,7 @@ function RemediationContent() {
             <select
               value={selectedVendorFilter}
               onChange={(e) => setSelectedVendorFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-md bg-[#050608] border border-[#181a22] text-[#c5cbd8] focus:outline-none"
+              className="px-2.5 py-1.5 rounded bg-[#07080a] border border-[#171b26] text-[#8b95a8] focus:outline-none focus:border-[#0ea5e9]/50 text-xs font-mono"
             >
               <option value="ALL">Vendor: All</option>
               <option value="cisco">Cisco IOS</option>
@@ -421,7 +426,7 @@ function RemediationContent() {
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-md bg-[#050608] border border-[#181a22] text-[#c5cbd8] focus:outline-none"
+              className="px-2.5 py-1.5 rounded bg-[#07080a] border border-[#171b26] text-[#8b95a8] focus:outline-none focus:border-[#0ea5e9]/50 text-xs font-mono"
             >
               <option value="ALL">Status: All</option>
               <option value="PROPOSED">Ready for Review</option>
@@ -432,35 +437,35 @@ function RemediationContent() {
       </div>
 
       {/* 5. Main 3-Panel Remediation Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
         {/* LEFT PANEL (4 Cols): REMEDIATION QUEUE */}
-        <div className="lg:col-span-4 space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-semibold text-[#5d677a] uppercase tracking-wider">
-              Remediation Queue ({filteredRemediations.length})
+        <div className="lg:col-span-4 space-y-2 font-mono">
+          <div className="flex items-center justify-between px-1 border-b border-[#171b26] pb-1.5">
+            <span className="text-[10px] font-bold text-[#525c70] uppercase tracking-wider">
+              REMEDIATION QUEUE ({filteredRemediations.length})
             </span>
-            <span className="text-[10px] text-[#10b981] font-medium">Allowlisted</span>
+            <span className="text-[10px] text-[#10b981]">ALLOWLISTED</span>
           </div>
 
           {isRemediationsLoading && (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="p-3.5 rounded-lg bg-[#0d0e12] border border-[#181a22] animate-pulse space-y-2">
-                  <div className="h-4 bg-white/10 rounded w-2/3" />
-                  <div className="h-3 bg-white/5 rounded w-1/3" />
+                <div key={n} className="p-3 rounded bg-[#0a0c10] border border-[#171b26] animate-pulse space-y-2">
+                  <div className="h-3.5 bg-[#171b26] rounded w-2/3" />
+                  <div className="h-2.5 bg-[#171b26] rounded w-1/3" />
                 </div>
               ))}
             </div>
           )}
 
           {isRemediationsError && (
-            <div className="p-6 rounded-lg bg-[#0d0e12] border border-[#ef4444]/20 text-center space-y-3">
-              <AlertTriangle className="w-6 h-6 text-[#ef4444] mx-auto" />
-              <div className="text-xs font-semibold text-[#f0f3f8]">Remediation Data Unavailable</div>
-              <p className="text-[11px] text-[#8b95a8]">Unable to retrieve remediation proposals.</p>
+            <div className="p-5 rounded bg-[#0a0c10] border border-[#ef4444]/30 text-center space-y-2.5">
+              <AlertTriangle className="w-5 h-5 text-[#ef4444] mx-auto" />
+              <div className="text-xs font-bold text-[#f0f3f8]">REMEDIATION DATA UNAVAILABLE</div>
+              <p className="text-[11px] text-[#8b95a8] font-sans">Unable to retrieve remediation proposals.</p>
               <button
                 onClick={() => refetchRemediations()}
-                className="px-3 py-1 rounded bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/20 text-xs font-medium"
+                className="px-2.5 py-1 rounded bg-[#ef4444]/15 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold"
               >
                 Retry
               </button>
@@ -468,15 +473,15 @@ function RemediationContent() {
           )}
 
           {!isRemediationsLoading && !isRemediationsError && filteredRemediations.length === 0 && (
-            <div className="p-8 rounded-lg bg-[#0d0e12] border border-dashed border-[#181a22] text-center space-y-3">
-              <CheckCircle2 className="w-8 h-8 text-[#10b981] mx-auto" />
-              <div className="text-xs font-semibold text-[#f0f3f8]">No Remediations in Queue</div>
-              <p className="text-[11px] text-[#8b95a8]">
+            <div className="p-6 rounded bg-[#0a0c10] border border-[#171b26] text-center space-y-2.5">
+              <CheckCircle2 className="w-6 h-6 text-[#10b981] mx-auto" />
+              <div className="text-xs font-bold text-[#f0f3f8]">NO REMEDIATIONS IN QUEUE</div>
+              <p className="text-[11px] text-[#8b95a8] font-sans">
                 All audited configurations meet policy requirements or require custom templates.
               </p>
               <Link
                 href="/findings"
-                className="inline-block px-3 py-1.5 rounded-md bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/30 text-xs font-medium"
+                className="inline-block px-3 py-1 rounded bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/30 text-xs font-medium"
               >
                 View Findings →
               </Link>
@@ -484,7 +489,7 @@ function RemediationContent() {
           )}
 
           {!isRemediationsLoading && !isRemediationsError && (
-            <div className="space-y-2 max-h-[720px] overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-[700px] overflow-y-auto pr-1">
               {filteredRemediations.map((r: RemediationProposal) => {
                 const isSelected = selectedRemediation?.id === r.id;
                 return (
@@ -492,15 +497,15 @@ function RemediationContent() {
                     key={r.id}
                     onClick={() => setSelectedRemediationId(r.id)}
                     className={cn(
-                      "w-full text-left p-3.5 rounded-lg border transition-all space-y-2 block group relative",
+                      "w-full text-left p-2.5 rounded border transition-all space-y-1.5 block group relative font-mono",
                       isSelected
-                        ? "bg-[#12141a] border-[#0ea5e9]"
-                        : "bg-[#0d0e12] border-[#181a22] hover:border-[#222632] hover:bg-[#12141a]/60"
+                        ? "bg-[#0e1117] border-[#0ea5e9] shadow-sm"
+                        : "bg-[#0a0c10] border-[#171b26] hover:border-[#222838] hover:bg-[#0e1117]"
                     )}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20">
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20">
                           {r.vendor.toUpperCase()}
                         </span>
                         <span className="font-mono text-xs font-semibold text-[#f0f3f8] truncate max-w-[140px]">
@@ -508,18 +513,18 @@ function RemediationContent() {
                         </span>
                       </div>
                       <span className={cn(
-                        "text-[10px] font-semibold",
+                        "text-[9px] font-bold",
                         r.is_reviewed ? "text-[#10b981]" : "text-[#f59e0b]"
                       )}>
                         {r.is_reviewed ? "REVIEWED ✓" : "PROPOSED"}
                       </span>
                     </div>
 
-                    <div className="text-xs font-medium text-[#c5cbd8] group-hover:text-[#f0f3f8] transition-colors line-clamp-1">
+                    <div className="text-xs font-sans font-medium text-[#c5cbd8] group-hover:text-[#f0f3f8] transition-colors line-clamp-1">
                       {r.why_recommended}
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-[#5d677a] pt-1 border-t border-[#181a22]">
+                    <div className="flex items-center justify-between text-[9px] text-[#525c70] pt-1 border-t border-[#171b26]">
                       <span>Confidence: {(r.confidence * 100).toFixed(0)}%</span>
                       <span>Target: {r.vendor.toUpperCase()}</span>
                     </div>
@@ -530,88 +535,103 @@ function RemediationContent() {
           )}
         </div>
 
-        {/* CENTER PANEL (5 Cols): BEFORE / AFTER CLI DIFF & RE-ANALYSIS */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-semibold text-[#5d677a] uppercase tracking-wider">
-              Proposed Configuration Diff
+        {/* CENTER PANEL (5 Cols): 3-STATE BEFORE / PROPOSED / AFTER DIFF & RE-ANALYSIS */}
+        <div className="lg:col-span-5 space-y-2.5 font-mono">
+          <div className="flex items-center justify-between px-1 border-b border-[#171b26] pb-1.5">
+            <span className="text-[10px] font-bold text-[#525c70] uppercase tracking-wider">
+              PROPOSED CONFIGURATION DIFF
             </span>
-            <span className="text-[10px] text-[#10b981] font-medium">Allowlist Verified</span>
+            <span className="text-[10px] text-[#10b981]">ALLOWLIST VERIFIED</span>
           </div>
 
           {selectedRemediation ? (
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               {/* Metadata Provenance Box */}
-              <div className="p-3.5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-2 text-xs">
+              <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2 text-xs">
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <span className="text-[#5d677a] text-[10px] block uppercase">Catalog Source</span>
-                    <span className="font-semibold text-[#10b981]">REMEDIATION_CATALOG</span>
+                    <span className="text-[#525c70] text-[9px] block uppercase">CATALOG SOURCE</span>
+                    <span className="font-semibold text-[#10b981] text-[11px]">REMEDIATION_CATALOG</span>
                   </div>
                   <div>
-                    <span className="text-[#5d677a] text-[10px] block uppercase">Template Identifier</span>
-                    <span className="font-mono font-semibold text-[#f0f3f8]">{selectedRemediation.template_id}</span>
+                    <span className="text-[#525c70] text-[9px] block uppercase">TEMPLATE IDENTIFIER</span>
+                    <span className="font-mono font-semibold text-[#f0f3f8] text-[11px] truncate block">{selectedRemediation.template_id}</span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-[#181a22] flex items-center justify-between text-[10px] text-[#5d677a]">
+                <div className="pt-2 border-t border-[#171b26] flex items-center justify-between text-[10px] text-[#525c70]">
                   <span>VENDOR: <strong className="text-[#f0f3f8]">{selectedRemediation.vendor.toUpperCase()}</strong></span>
                   <span>VERSION: <strong className="text-[#f0f3f8]">{selectedRemediation.template_version}</strong></span>
                 </div>
               </div>
 
-              {/* Visual Before / After Diff Viewer */}
-              <div className="rounded-lg border border-[#181a22] bg-[#050608] overflow-hidden">
-                <div className="p-2.5 bg-[#0d0e12] border-b border-[#181a22] flex items-center justify-between text-xs text-[#8b95a8]">
-                  <div className="flex items-center gap-2">
+              {/* Visual 3-State Before / Proposed Change / After Diff Viewer */}
+              <div className="rounded border border-[#171b26] bg-[#07080a] overflow-hidden">
+                <div className="p-2 bg-[#0a0c10] border-b border-[#171b26] flex items-center justify-between text-xs text-[#8b95a8]">
+                  <div className="flex items-center gap-1.5">
                     <Terminal className="w-3.5 h-3.5 text-[#0ea5e9]" />
-                    <span className="text-[#f0f3f8] font-medium">CLI Syntax Diff</span>
+                    <span className="text-[#f0f3f8] font-semibold text-xs">CLI SYNTAX DIFF</span>
                   </div>
-                  <span className="text-[#10b981] font-medium text-[11px]">Allowlisted Patch</span>
+                  <span className="text-[#10b981] font-semibold text-[10px]">BEFORE ↓ PROPOSED ↓ AFTER</span>
                 </div>
 
-                <div className="p-3 text-[11px] font-mono leading-relaxed space-y-1.5 select-text">
-                  {/* Removed configuration */}
-                  <div className="p-2 rounded bg-[#ef4444]/10 border-l-2 border-[#ef4444] text-[#ef4444] flex items-center gap-2">
-                    <span className="font-bold select-none">-</span>
-                    <span>{selectedRemediation.diff_preview?.diff_lines?.find(d => d.type === "REMOVE")?.line || "ip ssh version 1"}</span>
+                <div className="p-2.5 text-[11px] font-mono leading-relaxed space-y-1.5 select-text">
+                  {/* BEFORE State */}
+                  <div>
+                    <div className="text-[9px] text-[#525c70] uppercase font-bold mb-0.5">1. BEFORE (OBSERVED DEFICIENT STATE):</div>
+                    <div className="p-1.5 rounded bg-[#ef4444]/10 border-l-2 border-[#ef4444] text-[#ef4444] flex items-center gap-2">
+                      <span className="font-bold select-none">-</span>
+                      <span>{selectedRemediation.diff_preview?.diff_lines?.find(d => d.type === "REMOVE")?.line || "ip ssh version 1"}</span>
+                    </div>
                   </div>
 
-                  {/* Added configuration */}
-                  <div className="p-2 rounded bg-[#10b981]/10 border-l-2 border-[#10b981] text-[#10b981] flex items-center gap-2">
-                    <span className="font-bold select-none">+</span>
-                    <span>{selectedRemediation.diff_preview?.diff_lines?.find(d => d.type === "ADD")?.line || selectedRemediation.remediation_commands}</span>
+                  {/* PROPOSED CHANGE */}
+                  <div>
+                    <div className="text-[9px] text-[#0ea5e9] uppercase font-bold mb-0.5">2. PROPOSED ALLOWLISTED PATCH:</div>
+                    <div className="p-1.5 rounded bg-[#0ea5e9]/10 border-l-2 border-[#0ea5e9] text-[#0ea5e9] flex items-center gap-2">
+                      <span className="font-bold select-none">Δ</span>
+                      <span>{selectedRemediation.remediation_commands.split("\n")[0]}</span>
+                    </div>
+                  </div>
+
+                  {/* AFTER State */}
+                  <div>
+                    <div className="text-[9px] text-[#10b981] uppercase font-bold mb-0.5">3. AFTER (HARDENED TARGET STATE):</div>
+                    <div className="p-1.5 rounded bg-[#10b981]/10 border-l-2 border-[#10b981] text-[#10b981] flex items-center gap-2">
+                      <span className="font-bold select-none">+</span>
+                      <span>{selectedRemediation.diff_preview?.diff_lines?.find(d => d.type === "ADD")?.line || selectedRemediation.remediation_commands}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Complete Allowlisted CLI Script & Actions */}
-              <div className="rounded-lg border border-[#181a22] bg-[#0d0e12] p-4 space-y-3 text-xs">
-                <div className="flex items-center justify-between text-[11px] text-[#5d677a]">
-                  <span className="uppercase font-semibold">Allowlisted Remediation Commands</span>
-                  <span>Vendor-compliant CLI</span>
+              <div className="rounded border border-[#171b26] bg-[#0a0c10] p-3 space-y-2 text-xs">
+                <div className="flex items-center justify-between text-[10px] text-[#525c70]">
+                  <span className="uppercase font-semibold">ALLOWLISTED REMEDIATION CLI</span>
+                  <span>Vendor-compliant script</span>
                 </div>
 
-                <pre className="p-3 rounded-md bg-[#050608] border border-[#181a22] text-[11px] text-[#0ea5e9] font-mono overflow-x-auto whitespace-pre">
+                <pre className="p-2.5 rounded bg-[#07080a] border border-[#171b26] text-[11px] text-[#0ea5e9] font-mono overflow-x-auto whitespace-pre">
                   {selectedRemediation.remediation_commands}
                 </pre>
 
                 {/* Primary Re-Analysis & Export Action Buttons */}
-                <div className="space-y-2 pt-1">
+                <div className="space-y-1.5 pt-1">
                   <button
                     onClick={handleReanalyze}
                     disabled={isReanalyzing}
-                    className="w-full py-2 rounded-md bg-[#10b981] hover:bg-[#059669] text-white font-medium text-xs transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-2 rounded bg-[#10b981] hover:bg-[#059669] text-black font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50"
                   >
                     {isReanalyzing ? (
                       <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Re-analyzing proposed configuration...</span>
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        <span>RE-ANALYZING PROPOSED CONFIGURATION...</span>
                       </>
                     ) : (
                       <>
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Re-Analyze Proposed Configuration</span>
+                        <RotateCcw className="w-3 h-3" />
+                        <span>RE-ANALYZE PROPOSED CONFIGURATION</span>
                       </>
                     )}
                   </button>
@@ -619,17 +639,17 @@ function RemediationContent() {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={handleCopyApply}
-                      className="p-2 rounded-md bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-[#c5cbd8] hover:text-[#f0f3f8] font-medium text-xs transition-colors flex items-center justify-center gap-1.5"
+                      className="p-1.5 rounded bg-[#0e1117] hover:bg-[#161b26] border border-[#171b26] text-[#c5cbd8] hover:text-[#f0f3f8] text-xs transition-colors flex items-center justify-center gap-1.5"
                     >
-                      {copiedApply ? <Check className="w-3.5 h-3.5 text-[#10b981]" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedApply ? <Check className="w-3 h-3 text-[#10b981]" /> : <Copy className="w-3 h-3" />}
                       <span>{copiedApply ? "Copied ✓" : "Copy Apply CLI"}</span>
                     </button>
 
                     <button
                       onClick={handleDownloadScript}
-                      className="p-2 rounded-md bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-[#c5cbd8] hover:text-[#f0f3f8] font-medium text-xs transition-colors flex items-center justify-center gap-1.5"
+                      className="p-1.5 rounded bg-[#0e1117] hover:bg-[#161b26] border border-[#171b26] text-[#c5cbd8] hover:text-[#f0f3f8] text-xs transition-colors flex items-center justify-center gap-1.5"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3 h-3" />
                       <span>Download .cfg</span>
                     </button>
                   </div>
@@ -637,29 +657,29 @@ function RemediationContent() {
               </div>
             </div>
           ) : (
-            <div className="p-8 rounded-lg bg-[#0d0e12] border border-[#181a22] text-center text-[#5d677a] text-xs">
+            <div className="p-6 rounded bg-[#0a0c10] border border-[#171b26] text-center text-[#525c70] text-xs">
               Select a remediation proposal to inspect the CLI diff.
             </div>
           )}
         </div>
 
         {/* RIGHT PANEL (3 Cols): SAFETY BOUNDARY, WHY & AI ADVISORY */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-semibold text-[#5d677a] uppercase tracking-wider">
-              Safety Boundary
+        <div className="lg:col-span-3 space-y-2.5 font-mono">
+          <div className="flex items-center justify-between px-1 border-b border-[#171b26] pb-1.5">
+            <span className="text-[10px] font-bold text-[#525c70] uppercase tracking-wider">
+              SAFETY BOUNDARY
             </span>
             <span className="text-[10px] text-[#ef4444] font-semibold">READ-ONLY</span>
           </div>
 
           {/* Strict Execution Boundary Box */}
-          <div className="p-4 rounded-lg bg-[#0d0e12] border border-[#ef4444]/30 space-y-2.5 text-xs">
-            <div className="flex items-center gap-2 text-[#ef4444] font-semibold">
-              <Lock className="w-4 h-4 shrink-0" />
+          <div className="p-3 rounded bg-[#0a0c10] border border-[#ef4444]/30 space-y-2 text-xs">
+            <div className="flex items-center gap-1.5 text-[#ef4444] font-semibold text-xs">
+              <Lock className="w-3.5 h-3.5 shrink-0" />
               <span>Read-Only Remediation</span>
             </div>
 
-            <div className="space-y-1 text-[11px] text-[#8b95a8] leading-relaxed">
+            <div className="space-y-1 text-[10px] text-[#8b95a8] leading-relaxed">
               <div className="flex items-center justify-between">
                 <span>Network Push:</span>
                 <span className="text-[#ef4444] font-semibold font-mono">DISABLED</span>
@@ -670,20 +690,20 @@ function RemediationContent() {
               </div>
             </div>
 
-            <p className="text-[10px] text-[#5d677a] pt-1 border-t border-[#181a22]">
+            <p className="text-[9px] text-[#525c70] pt-1 border-t border-[#171b26] font-sans">
               NetVigil generates and verifies proposed configuration changes. NetVigil does NOT connect directly to live network devices.
             </p>
           </div>
 
           {/* Remediation Explanation Box */}
-          <div className="p-4 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-2.5 text-xs">
-            <div className="text-[10px] text-[#5d677a] uppercase font-semibold border-b border-[#181a22] pb-1.5">
+          <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2 text-xs">
+            <div className="text-[9px] text-[#525c70] uppercase font-semibold border-b border-[#171b26] pb-1">
               Why This Change?
             </div>
-            <p className="text-[11px] text-[#c5cbd8] leading-relaxed">
+            <p className="text-[11px] text-[#c5cbd8] leading-relaxed font-sans">
               {selectedRemediation?.why_recommended || "Disables insecure legacy protocols and activates hardened cryptographic transport standard."}
             </p>
-            <div className="pt-1 border-t border-[#181a22] text-[10px] text-[#5d677a] space-y-1">
+            <div className="pt-1 border-t border-[#171b26] text-[9px] text-[#525c70] space-y-0.5">
               <div className="flex items-center justify-between">
                 <span>Affected Control:</span>
                 <span className="text-[#0ea5e9] font-mono font-semibold">{linkedFinding?.control_id || "CIS-1.2.1"}</span>
@@ -696,22 +716,22 @@ function RemediationContent() {
           </div>
 
           {/* Rollback Capability Box */}
-          <div className="p-4 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-2.5 text-xs">
-            <div className="flex items-center justify-between border-b border-[#181a22] pb-2">
-              <span className="text-[10px] text-[#10b981] font-semibold uppercase flex items-center gap-1.5">
-                <RotateCcw className="w-3.5 h-3.5" />
+          <div className="p-3 rounded bg-[#0a0c10] border border-[#171b26] space-y-2 text-xs">
+            <div className="flex items-center justify-between border-b border-[#171b26] pb-1.5">
+              <span className="text-[10px] text-[#10b981] font-semibold uppercase flex items-center gap-1">
+                <RotateCcw className="w-3 h-3" />
                 <span>Rollback Capability</span>
               </span>
-              <span className="text-[10px] text-[#10b981] font-semibold">AVAILABLE ✓</span>
+              <span className="text-[9px] text-[#10b981] font-semibold">AVAILABLE ✓</span>
             </div>
 
-            <pre className="p-2.5 rounded bg-[#050608] border border-[#181a22] text-[10px] text-[#f59e0b] font-mono overflow-x-auto whitespace-pre">
+            <pre className="p-2 rounded bg-[#07080a] border border-[#171b26] text-[10px] text-[#f59e0b] font-mono overflow-x-auto whitespace-pre">
               {selectedRemediation?.rollback_commands || "no ip ssh version\nip ssh version 1"}
             </pre>
 
             <button
               onClick={handleCopyRollback}
-              className="w-full p-2 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-[#c5cbd8] hover:text-[#f0f3f8] font-medium text-[11px] transition-colors flex items-center justify-center gap-1.5"
+              className="w-full p-1.5 rounded bg-[#0e1117] hover:bg-[#161b26] border border-[#171b26] text-[#c5cbd8] hover:text-[#f0f3f8] text-[10px] transition-colors flex items-center justify-center gap-1"
             >
               {copiedRollback ? <Check className="w-3 h-3 text-[#10b981]" /> : <Copy className="w-3 h-3" />}
               <span>{copiedRollback ? "Copied Rollback ✓" : "Copy Rollback CLI"}</span>
@@ -719,42 +739,42 @@ function RemediationContent() {
           </div>
 
           {/* AI Advisory (Read-Only) */}
-          <div className="p-4 rounded-lg bg-[#0d0e12] border border-[#8b5cf6]/30 space-y-3 text-xs">
+          <div className="p-3 rounded bg-[#0a0c10] border border-[#0ea5e9]/25 space-y-2 text-xs">
             <button
               onClick={() => setIsAiExpanded(!isAiExpanded)}
-              className="w-full flex items-center justify-between text-[#8b5cf6] font-semibold text-left"
+              className="w-full flex items-center justify-between text-[#0ea5e9] font-semibold text-left text-xs"
             >
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>AI Advisory — Read Only</span>
+                <Sparkles className="w-3 h-3" />
+                <span>AI ADVISORY — READ ONLY</span>
               </div>
-              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isAiExpanded && "rotate-180")} />
+              <ChevronDown className={cn("w-3 h-3 transition-transform", isAiExpanded && "rotate-180")} />
             </button>
 
             {isAiExpanded && (
-              <div className="space-y-2.5 pt-2 border-t border-[#181a22]">
-                <div className="text-[10px] text-[#5d677a] flex items-center justify-between">
+              <div className="space-y-2 pt-1.5 border-t border-[#171b26]">
+                <div className="text-[9px] text-[#525c70] flex items-center justify-between">
                   <span>Read Only</span>
-                  <span className="text-[#8b5cf6]">Grounded in Evidence</span>
+                  <span className="text-[#0ea5e9]">Grounded in Evidence</span>
                 </div>
 
                 {isAiLoading && (
-                  <div className="text-[11px] text-[#8b95a8] animate-pulse">
+                  <div className="text-[10px] text-[#8b95a8] animate-pulse">
                     Generating evidence-grounded explanation...
                   </div>
                 )}
 
                 {isAiError && (
-                  <div className="text-[11px] text-[#8b95a8] space-y-1">
+                  <div className="text-[10px] text-[#8b95a8] space-y-0.5">
                     <div className="text-[#ef4444] font-semibold">AI Advisory Unavailable</div>
                     <div>Remediation proposal remains fully usable.</div>
                   </div>
                 )}
 
                 {aiExplanation && !isAiLoading && (
-                  <div className="space-y-2 text-[11px] text-[#c5cbd8] leading-relaxed">
+                  <div className="space-y-1.5 text-[11px] text-[#c5cbd8] leading-relaxed font-sans">
                     <p>{aiExplanation.what_changes || aiExplanation.why_change_is_safe}</p>
-                    <div className="p-2 rounded bg-[#050608] border border-[#181a22] text-[10px] text-[#8b95a8] font-mono">
+                    <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26] text-[9px] text-[#525c70] font-mono">
                       Citation: {selectedRemediation?.template_id}
                     </div>
                   </div>

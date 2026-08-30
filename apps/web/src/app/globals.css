@@ -4,24 +4,24 @@
 
 @layer base {
   :root {
-    --background: #08090b;
+    --background: #07080a;
     --foreground: #f0f3f8;
-    --color-primary-bg: #050608;
-    --color-app-bg: #08090b;
+    --color-primary-bg: #040507;
+    --color-app-bg: #07080a;
     --color-sidebar-bg: #050608;
-    --color-header-bg: #08090b;
-    --color-card-bg: #0d0e12;
-    --color-elevated-bg: #12141a;
-    --color-input-bg: #090a0e;
-    --color-hover-bg: #151820;
-    --color-active-bg: #1a1d26;
-    --color-border: #181a22;
-    --color-border-strong: #222632;
-    --color-divider: #14161e;
+    --color-header-bg: #07080a;
+    --color-card-bg: #0a0c10;
+    --color-elevated-bg: #0e1117;
+    --color-input-bg: #08090d;
+    --color-hover-bg: #12151e;
+    --color-active-bg: #161b26;
+    --color-border: #171b26;
+    --color-border-strong: #222838;
+    --color-divider: #131620;
     --color-text-primary: #f0f3f8;
     --color-text-body: #c5cbd8;
     --color-text-secondary: #8b95a8;
-    --color-text-muted: #5d677a;
+    --color-text-muted: #525c70;
     --color-cyan: #0ea5e9;
     --color-green: #10b981;
     --color-yellow: #f59e0b;
@@ -30,12 +30,12 @@
 
   html {
     color-scheme: dark;
-    background-color: #08090b;
+    background-color: #07080a;
   }
 
   body {
     color: #c5cbd8;
-    background-color: #08090b;
+    background-color: #07080a;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -57,57 +57,87 @@
   }
 }
 
-/* Minimal Matte Dark Scrollbar */
+/* Minimal Precision SOC Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #08090b;
+  background: #07080a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #181a22;
-  border-radius: 3px;
+  background: #171b26;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #222632;
+  background: #222838;
 }
 
-/* Enterprise Surface Utilities */
+/* Tactical SOC Surface Utilities */
 .border-subtle {
-  border-color: #181a22;
+  border-color: #171b26;
 }
 
 .border-strong {
-  border-color: #222632;
+  border-color: #222838;
 }
 
 .bg-surface {
-  background-color: #0d0e12;
+  background-color: #0a0c10;
 }
 
 .bg-surface-elevated {
-  background-color: #12141a;
+  background-color: #0e1117;
 }
 
-/* High-Legibility Matte Card Utility */
+/* High-Density Tactical SOC Card */
+.soc-panel {
+  background-color: #0a0c10;
+  border: 1px solid #171b26;
+  border-radius: 4px;
+}
+
+.soc-panel:hover {
+  border-color: #222838;
+}
+
 .enterprise-card {
-  background: #0d0e12;
-  border: 1px solid #181a22;
-  border-radius: 8px;
+  background: #0a0c10;
+  border: 1px solid #171b26;
+  border-radius: 4px;
 }
 
 .enterprise-card:hover {
-  border-color: #222632;
+  border-color: #222838;
 }
 
 .matte-elevated {
-  background: #12141a;
-  border: 1px solid #222632;
-  border-radius: 8px;
+  background: #0e1117;
+  border: 1px solid #222838;
+  border-radius: 4px;
+}
+
+/* Tactical Pulse Indicator */
+@keyframes tactical-pulse-kf {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.tactical-pulse-green {
+  animation: tactical-pulse-kf 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 /* ==============================================================================

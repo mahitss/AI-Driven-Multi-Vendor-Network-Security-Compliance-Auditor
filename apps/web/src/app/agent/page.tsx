@@ -418,15 +418,51 @@ export default function AgentPage() {
     };
   }, [session, isLoading]);
 
+  // Calculate active stage in 10-stage lifecycle based on real backend session state
+  const currentLifecycleStageIndex = useMemo(() => {
+    if (!session) return isLoading ? 1 : 0;
+    if (session.status === "INVALID_OBJECTIVE") return 1;
+    if (session.status === "COMPLETED") return 9;
+    if (session.status === "WAITING_APPROVAL") return 7;
+    if (session.status === "REJECTED") return 7;
+
+    const timelinePhases: string[] = (session.timeline?.map((t) => t.phase || t.event_type) || []).filter((p): p is string => Boolean(p));
+    if (timelinePhases.some((p) => p.includes("VERIF"))) return 9;
+    if (timelinePhases.some((p) => p.includes("EXEC"))) return 8;
+    if (timelinePhases.some((p) => p.includes("APPROV") || p.includes("PROPOSAL"))) return 7;
+    if (timelinePhases.some((p) => p.includes("REMED"))) return 6;
+    if (timelinePhases.some((p) => p.includes("RISK"))) return 5;
+    if (timelinePhases.some((p) => p.includes("AUDIT") || p.includes("COMPLIANCE"))) return 4;
+    if (timelinePhases.some((p) => p.includes("PARSE") || p.includes("AST"))) return 3;
+    if (timelinePhases.some((p) => p.includes("DISCOV") || p.includes("DETECT"))) return 2;
+    if (timelinePhases.some((p) => p.includes("VALID") || p.includes("INTENT"))) return 1;
+    return 0;
+  }, [session, isLoading]);
+
+  const LIFECYCLE_STAGES = [
+    { id: "objective", label: "OBJECTIVE" },
+    { id: "validation", label: "VALIDATION" },
+    { id: "discovery", label: "DISCOVERY" },
+    { id: "parsing", label: "PARSING" },
+    { id: "compliance", label: "COMPLIANCE" },
+    { id: "risk", label: "RISK" },
+    { id: "remediation", label: "REMEDIATION" },
+    { id: "approval", label: "HUMAN APPROVAL" },
+    { id: "execution", label: "EXECUTION" },
+    { id: "verification", label: "VERIFICATION" },
+  ];
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* 1. Page Header & Action Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#181a22]">
+    <div className="max-w-6xl mx-auto space-y-4 font-sans">
+      {/* 1. Tactical Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#171b26] bg-[#07080a]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-[#f0f3f8] tracking-tight">Autonomous Security Engineer</h1>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#0ea5e9]/10 text-[#0ea5e9] font-mono font-medium border border-[#0ea5e9]/20">
-              Gemini 3.5 + ADK Control Plane
+            <h1 className="text-base font-semibold text-[#f0f3f8] tracking-tight font-mono">
+              AUTONOMOUS INVESTIGATION CONSOLE
+            </h1>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#0ea5e9]/10 text-[#0ea5e9] font-mono font-medium border border-[#0ea5e9]/20">
+              MISSION CONTROL
             </span>
           </div>
           <p className="text-xs text-[#8b95a8] mt-0.5">
@@ -437,25 +473,75 @@ export default function AgentPage() {
         {session && (
           <button
             onClick={handleResetSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors self-start sm:self-auto"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0a0c10] hover:bg-[#12151e] border border-[#171b26] text-xs font-mono text-[#8b95a8] hover:text-[#f0f3f8] transition-colors self-start sm:self-auto"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>New Objective</span>
+            <span>NEW OBJECTIVE</span>
           </button>
         )}
       </div>
 
-      {/* 2. Objective Command Input Console */}
-      <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-4">
+      {/* 2. 10-Stage Horizontal Tactical Lifecycle Stepper Ribbon */}
+      <div className="p-2.5 rounded bg-[#0a0c10] border border-[#171b26] overflow-x-auto">
+        <div className="flex items-center justify-between min-w-[760px] gap-1 font-mono text-[9px]">
+          {LIFECYCLE_STAGES.map((stage, idx) => {
+            const isCompleted = idx < currentLifecycleStageIndex;
+            const isCurrent = idx === currentLifecycleStageIndex;
+            const isPending = idx > currentLifecycleStageIndex;
+
+            return (
+              <React.Fragment key={stage.id}>
+                <div
+                  className={cn(
+                    "flex items-center gap-1.5 px-2 py-1 rounded border transition-all flex-shrink-0",
+                    isCurrent
+                      ? "bg-[#0ea5e9]/15 border-[#0ea5e9] text-[#0ea5e9] font-bold shadow-sm"
+                      : isCompleted
+                      ? "bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]"
+                      : "bg-[#07080a] border-[#171b26] text-[#525c70]"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold",
+                      isCurrent
+                        ? "bg-[#0ea5e9] text-black"
+                        : isCompleted
+                        ? "bg-[#10b981] text-black"
+                        : "bg-[#171b26] text-[#525c70]"
+                    )}
+                  >
+                    {isCompleted ? "✓" : idx + 1}
+                  </span>
+                  <span>{stage.label}</span>
+                </div>
+                {idx < LIFECYCLE_STAGES.length - 1 && (
+                  <span
+                    className={cn(
+                      "text-[9px]",
+                      isCompleted ? "text-[#10b981]" : "text-[#171b26]"
+                    )}
+                  >
+                    →
+                  </span>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Objective Command Input Console */}
+      <div className="p-4 rounded bg-[#0a0c10] border border-[#171b26] space-y-3">
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-medium text-[#f0f3f8] flex items-center gap-1.5">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-mono font-medium text-[#f0f3f8] flex items-center gap-1.5">
               <Cpu className="w-3.5 h-3.5 text-[#0ea5e9]" />
-              <span>What should NetVigil secure?</span>
+              <span>OPERATIONAL OBJECTIVE</span>
             </label>
             {session && (
-              <span className="text-[11px] text-[#0ea5e9] font-mono">
-                Bound to Session: {session.session_id.slice(0, 16)}...
+              <span className="text-[10px] text-[#0ea5e9] font-mono">
+                Bound Session: {session.session_id.slice(0, 16)}...
               </span>
             )}
           </div>
@@ -463,15 +549,15 @@ export default function AgentPage() {
             value={objective}
             onChange={(e) => handleObjectiveChange(e.target.value)}
             disabled={isLoading}
-            rows={3}
-            className="w-full p-3 rounded-md bg-[#050608] border border-[#181a22] focus:border-[#0ea5e9] text-xs text-[#f0f3f8] placeholder-[#5d677a] focus:outline-none transition-colors disabled:opacity-60"
+            rows={2}
+            className="w-full p-2.5 rounded bg-[#07080a] border border-[#171b26] focus:border-[#0ea5e9] text-xs text-[#f0f3f8] placeholder-[#525c70] focus:outline-none transition-colors disabled:opacity-60 font-mono"
             placeholder="e.g. Audit network configurations against CIS baseline. Fix high-risk violations, but do not modify SSH access."
           />
         </div>
 
         {/* Quick Suggestion Chips */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] text-[#5d677a]">Presets:</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-mono text-[#525c70]">PRESETS:</span>
           {QUICK_OBJECTIVES.map((chip) => (
             <button
               key={chip.id}
@@ -481,10 +567,10 @@ export default function AgentPage() {
               }}
               disabled={isLoading}
               className={cn(
-                "text-[11px] px-2.5 py-1 rounded border transition-colors",
+                "text-[10px] font-mono px-2 py-0.5 rounded border transition-colors",
                 objective === chip.objective
-                  ? "bg-[#0ea5e9]/10 text-[#0ea5e9] border-[#0ea5e9]/30"
-                  : "bg-[#12141a] text-[#8b95a8] hover:text-[#f0f3f8] border-[#181a22]"
+                  ? "bg-[#0ea5e9]/15 text-[#0ea5e9] border-[#0ea5e9]/40"
+                  : "bg-[#07080a] text-[#8b95a8] hover:text-[#f0f3f8] border-[#171b26]"
               )}
             >
               {chip.label}
@@ -493,14 +579,14 @@ export default function AgentPage() {
         </div>
 
         {/* Action Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#181a22]">
-          <div className="flex items-center gap-2 text-xs text-[#8b95a8]">
-            <span>Baseline Standard:</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2.5 border-t border-[#171b26]">
+          <div className="flex items-center gap-2 text-xs text-[#8b95a8] font-mono">
+            <span className="text-[11px]">BASELINE:</span>
             <select
               value={selectedBaseline}
               onChange={(e) => setSelectedBaseline(e.target.value)}
               disabled={isLoading}
-              className="p-1 rounded bg-[#12141a] border border-[#181a22] text-xs text-[#f0f3f8] focus:outline-none"
+              className="p-1 rounded bg-[#07080a] border border-[#171b26] text-xs text-[#f0f3f8] focus:outline-none font-mono"
             >
               <option value="CIS">CIS Benchmarks (Level 1 & 2)</option>
               <option value="NIST">NIST SP 800-53 (Rev 5)</option>
@@ -513,25 +599,25 @@ export default function AgentPage() {
             {session && (
               <button
                 onClick={handleResetSession}
-                className="px-3 py-2 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
+                className="px-2.5 py-1.5 rounded bg-[#07080a] hover:bg-[#12151e] border border-[#171b26] text-xs font-mono text-[#8b95a8] hover:text-[#f0f3f8] transition-colors"
               >
-                Clear / New Objective
+                CLEAR
               </button>
             )}
             <button
               onClick={() => handleStartAgent()}
               disabled={isLoading || !objective.trim()}
-              className="flex items-center justify-center gap-2 px-5 py-2 rounded-md bg-[#0ea5e9] hover:bg-[#0284c7] disabled:opacity-50 text-white text-xs font-medium transition-colors shadow-sm"
+              className="flex items-center justify-center gap-1.5 px-4 py-1.5 rounded bg-[#0ea5e9] hover:bg-[#0284c7] disabled:opacity-50 text-white text-xs font-mono font-medium transition-colors shadow-sm"
             >
               {isLoading ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Validating intent...</span>
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <span>VALIDATING INTENT...</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-3.5 h-3.5" />
-                  <span>{session ? "Re-Run Objective" : "Run Agent"}</span>
+                  <Play className="w-3 h-3" />
+                  <span>{session ? "RE-RUN INVESTIGATION" : "LAUNCH INVESTIGATION"}</span>
                 </>
               )}
             </button>
@@ -539,27 +625,27 @@ export default function AgentPage() {
         </div>
       </div>
 
-      {/* 3. Primary Agent State Banner */}
-      <div className="p-4 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#181a22]">
-          <div className="flex items-center gap-3">
-            <div className={cn("px-2.5 py-1 rounded border text-xs font-mono font-semibold flex items-center gap-2", statePresentation.badgeClass)}>
-              <span className={cn("w-2 h-2 rounded-full", statePresentation.indicatorDot)} />
+      {/* 4. Primary Agent State Banner */}
+      <div className="p-3.5 rounded bg-[#0a0c10] border border-[#171b26] space-y-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#171b26]">
+          <div className="flex items-center gap-2.5">
+            <div className={cn("px-2 py-0.5 rounded border text-[10px] font-mono font-semibold flex items-center gap-1.5", statePresentation.badgeClass)}>
+              <span className={cn("w-1.5 h-1.5 rounded-full", statePresentation.indicatorDot)} />
               <span>{statePresentation.label}</span>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-[#f0f3f8]">{statePresentation.title}</h2>
-              <p className="text-xs text-[#8b95a8] mt-0.5">{statePresentation.narrative}</p>
+              <h2 className="text-xs font-semibold text-[#f0f3f8] font-mono">{statePresentation.title}</h2>
+              <p className="text-[11px] text-[#8b95a8] mt-0.5">{statePresentation.narrative}</p>
             </div>
           </div>
 
           {session && (
             <div className="flex items-center gap-2 text-xs font-mono self-start sm:self-auto">
-              <span className="text-[11px] text-[#5d677a]">Stage {session.timeline?.length || 0}</span>
+              <span className="text-[10px] text-[#525c70]">Stage {session.timeline?.length || 0}/10</span>
               <button
                 onClick={handleCopySessionId}
                 title="Click to copy Session ID"
-                className="px-2 py-1 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-[11px] text-[#8b95a8] hover:text-[#f0f3f8] flex items-center gap-1 transition-colors"
+                className="px-2 py-0.5 rounded bg-[#07080a] hover:bg-[#12151e] border border-[#171b26] text-[10px] text-[#8b95a8] hover:text-[#f0f3f8] flex items-center gap-1 transition-colors"
               >
                 <span>{session.session_id.slice(0, 16)}...</span>
                 {copiedSessionId ? <Check className="w-3 h-3 text-[#10b981]" /> : <Copy className="w-3 h-3" />}
@@ -568,56 +654,56 @@ export default function AgentPage() {
           )}
         </div>
 
-        {/* 4. Live Telemetry Facts Strip (Only rendered when objective is valid and actionable) */}
+        {/* 5. Live Telemetry Facts Strip */}
         {telemetry && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-1 text-center font-mono">
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Configs</div>
-              <div className="text-sm font-semibold text-[#f0f3f8] mt-0.5">{telemetry.configsCount}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5 pt-0.5 text-center font-mono">
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">Configs</div>
+              <div className="text-xs font-bold text-[#f0f3f8] mt-0.5">{telemetry.configsCount}</div>
             </div>
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Vendors</div>
-              <div className="text-sm font-semibold text-[#0ea5e9] mt-0.5">{telemetry.vendorsCount}</div>
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">Vendors</div>
+              <div className="text-xs font-bold text-[#0ea5e9] mt-0.5">{telemetry.vendorsCount}</div>
             </div>
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Frameworks</div>
-              <div className="text-sm font-semibold text-[#f0f3f8] mt-0.5">{telemetry.frameworksCount}</div>
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">Frameworks</div>
+              <div className="text-xs font-bold text-[#f0f3f8] mt-0.5">{telemetry.frameworksCount}</div>
             </div>
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Violations</div>
-              <div className="text-sm font-semibold text-[#ef4444] mt-0.5">{telemetry.totalViolations}</div>
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">Violations</div>
+              <div className="text-xs font-bold text-[#ef4444] mt-0.5">{telemetry.totalViolations}</div>
             </div>
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#ef4444] uppercase font-sans">P1 High-Risk</div>
-              <div className="text-sm font-semibold text-[#ef4444] mt-0.5">{telemetry.highRiskViolations}</div>
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#ef4444] uppercase font-sans">P1 High-Risk</div>
+              <div className="text-xs font-bold text-[#ef4444] mt-0.5">{telemetry.highRiskViolations}</div>
             </div>
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#10b981] uppercase font-sans">Patches</div>
-              <div className="text-sm font-semibold text-[#10b981] mt-0.5">{telemetry.proposalsCount}</div>
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#10b981] uppercase font-sans">Patches</div>
+              <div className="text-xs font-bold text-[#10b981] mt-0.5">{telemetry.proposalsCount}</div>
             </div>
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#f59e0b] uppercase font-sans">Guardrails</div>
-              <div className="text-sm font-semibold text-[#f59e0b] mt-0.5">
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#f59e0b] uppercase font-sans">Guardrails</div>
+              <div className="text-xs font-bold text-[#f59e0b] mt-0.5">
                 {telemetry.guardrailsCount > 0 ? `${telemetry.guardrailsCount} Active` : "None"}
               </div>
             </div>
-            <div className="p-2 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Devices</div>
-              <div className="text-sm font-semibold text-[#f0f3f8] mt-0.5">{telemetry.affectedDevicesCount}</div>
+            <div className="p-1.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">Devices</div>
+              <div className="text-xs font-bold text-[#f0f3f8] mt-0.5">{telemetry.affectedDevicesCount}</div>
             </div>
           </div>
         )}
 
         {/* Clean Standby State Prompt When No Session Is Active */}
         {!session && (
-          <div className="p-4 rounded bg-[#050608] border border-[#181a22] text-xs text-[#8b95a8] flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="p-3 rounded bg-[#07080a] border border-[#171b26] text-xs text-[#8b95a8] flex flex-col sm:flex-row items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#0ea5e9]" />
-              <span>
-                Enter a security objective above. NetVigil validates intent, parses negative constraints, evaluates AST baselines, and generates allowlisted patches.
+              <Sparkles className="w-3.5 h-3.5 text-[#0ea5e9]" />
+              <span className="text-[11px]">
+                Enter an objective above. NetVigil validates intent, parses negative constraints, evaluates AST baselines, and generates allowlisted patches.
               </span>
             </div>
-            <span className="text-[10px] font-mono text-[#5d677a] px-2 py-0.5 rounded bg-[#12141a] border border-[#181a22]">
+            <span className="text-[9px] font-mono text-[#525c70] px-2 py-0.5 rounded bg-[#0a0c10] border border-[#171b26] flex-shrink-0">
               STANDBY • ZERO PENDING ACTIONS
             </span>
           </div>
@@ -626,44 +712,44 @@ export default function AgentPage() {
 
       {/* 4. CASE 1: INVALID OBJECTIVE REJECTION HERO CARD */}
       {isInvalidObjective && (
-        <div className="p-5 rounded-lg bg-[#0d0e12] border-2 border-[#ef4444]/30 space-y-4">
-          <div className="flex items-center gap-3 pb-3 border-b border-[#181a22]">
-            <div className="w-9 h-9 rounded bg-[#ef4444]/10 border border-[#ef4444]/20 flex items-center justify-center text-[#ef4444]">
-              <XCircle className="w-5 h-5" />
+        <div className="p-4 rounded bg-[#0a0c10] border-2 border-[#ef4444]/30 space-y-3 font-mono">
+          <div className="flex items-center gap-2.5 pb-2.5 border-b border-[#171b26]">
+            <div className="w-8 h-8 rounded bg-[#ef4444]/10 border border-[#ef4444]/20 flex items-center justify-center text-[#ef4444]">
+              <XCircle className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[#f0f3f8]">Objective Not Understood</h3>
-              <p className="text-xs text-[#8b95a8]">
+              <h3 className="text-xs font-bold text-[#f0f3f8] uppercase">OBJECTIVE NOT UNDERSTOOD</h3>
+              <p className="text-[11px] text-[#8b95a8] font-sans">
                 No security operation or configuration change was performed.
               </p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded bg-[#050608] border border-[#181a22] text-xs text-[#8b95a8] space-y-2">
-            <div className="text-[#c5cbd8]">
+          <div className="p-3 rounded bg-[#07080a] border border-[#171b26] text-xs text-[#8b95a8] space-y-1.5 font-sans">
+            <div className="text-[#c5cbd8] text-[11px]">
               The agent could not determine an actionable network security task or infrastructure target from your request:
             </div>
-            <div className="p-2.5 rounded bg-[#12141a] border border-[#181a22] font-mono text-xs text-[#ef4444]">
+            <div className="p-2 rounded bg-[#0e1117] border border-[#171b26] font-mono text-xs text-[#ef4444]">
               &quot;{session?.objective}&quot;
             </div>
           </div>
 
           {/* Clickable Suggested Valid Objectives */}
-          <div className="space-y-2 pt-1">
+          <div className="space-y-1.5 pt-1 font-mono">
             <div className="text-xs font-semibold text-[#f0f3f8] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-[#0ea5e9]" />
-              <span>Suggested Valid Objectives:</span>
+              <span className="text-[11px] uppercase">SUGGESTED VALID OBJECTIVES:</span>
             </div>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-1.5">
               {(session?.suggested_prompts?.length ? session.suggested_prompts : QUICK_OBJECTIVES.map((q) => q.objective)).map(
                 (prompt: string, idx: number) => (
                   <button
                     key={idx}
                     onClick={() => handleStartAgent(prompt)}
-                    className="p-3 rounded bg-[#050608] hover:bg-[#12141a] border border-[#181a22] hover:border-[#0ea5e9]/40 text-left text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors flex items-center justify-between group"
+                    className="p-2.5 rounded bg-[#07080a] hover:bg-[#0e1117] border border-[#171b26] hover:border-[#0ea5e9]/40 text-left text-xs text-[#8b95a8] hover:text-[#f0f3f8] transition-colors flex items-center justify-between group"
                   >
-                    <span>{prompt}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#5d677a] group-hover:text-[#0ea5e9] transition-colors ml-2 flex-shrink-0" />
+                    <span className="font-mono text-[11px]">{prompt}</span>
+                    <ArrowRight className="w-3 h-3 text-[#525c70] group-hover:text-[#0ea5e9] transition-colors ml-2 flex-shrink-0" />
                   </button>
                 )
               )}
@@ -674,68 +760,70 @@ export default function AgentPage() {
 
       {/* 5. CASE 2: INFORMATIONAL GUIDANCE CARD */}
       {isInformationQuery && session && (
-        <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#0ea5e9]/30 space-y-4">
-          <div className="flex items-center gap-3 pb-3 border-b border-[#181a22]">
-            <div className="w-9 h-9 rounded bg-[#0ea5e9]/10 border border-[#0ea5e9]/20 flex items-center justify-center text-[#0ea5e9]">
-              <HelpCircle className="w-5 h-5" />
+        <div className="p-4 rounded bg-[#0a0c10] border border-[#0ea5e9]/30 space-y-3 font-mono">
+          <div className="flex items-center gap-2.5 pb-2.5 border-b border-[#171b26]">
+            <div className="w-8 h-8 rounded bg-[#0ea5e9]/10 border border-[#0ea5e9]/20 flex items-center justify-center text-[#0ea5e9]">
+              <HelpCircle className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[#f0f3f8]">Compliance & Security Guidance</h3>
-              <p className="text-xs text-[#8b95a8]">Informational query resolved. Zero fleet changes performed.</p>
+              <h3 className="text-xs font-bold text-[#f0f3f8] uppercase">COMPLIANCE & SECURITY GUIDANCE</h3>
+              <p className="text-[11px] text-[#8b95a8] font-sans">Informational query resolved. Zero fleet changes performed.</p>
             </div>
           </div>
 
-          <div className="p-4 rounded bg-[#050608] border border-[#181a22] text-xs text-[#c5cbd8] leading-relaxed">
+          <div className="p-3 rounded bg-[#07080a] border border-[#171b26] text-xs text-[#c5cbd8] leading-relaxed font-sans">
             {session.intent_explanation}
           </div>
 
-          <div className="flex items-center justify-between pt-2 text-xs text-[#8b95a8]">
-            <span>To audit your devices against this standard, choose an actionable prompt:</span>
+          <div className="flex items-center justify-between pt-1 text-xs text-[#8b95a8] font-mono">
+            <span className="text-[10px]">To audit your devices against this standard, choose an actionable prompt:</span>
             <button
               onClick={() => handleStartAgent(QUICK_OBJECTIVES[0].objective)}
-              className="px-3 py-1.5 rounded bg-[#0ea5e9]/10 hover:bg-[#0ea5e9]/20 text-[#0ea5e9] font-medium border border-[#0ea5e9]/20 transition-colors"
+              className="px-2.5 py-1 rounded bg-[#0ea5e9]/10 hover:bg-[#0ea5e9]/20 text-[#0ea5e9] font-medium border border-[#0ea5e9]/20 transition-colors text-[10px]"
             >
-              Run Audit & Remediation
+              RUN AUDIT & REMEDIATION
             </button>
           </div>
         </div>
       )}
 
-      {/* 6. Show Autonomy: Autonomous Decisions & Guardrails (Only rendered when session active & valid) */}
+      {/* 6. Show Autonomy: Autonomous Decisions & Guardrails */}
       {session && !isInvalidObjective && !isInformationQuery && (
-        <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#181a22]">
+        <div className="p-4 rounded bg-[#0a0c10] border border-[#171b26] space-y-2.5">
+          <div className="flex items-center justify-between pb-2 border-b border-[#171b26]">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#0ea5e9]" />
-              <h3 className="text-sm font-semibold text-[#f0f3f8]">Autonomous Decisions & Guardrails</h3>
+              <Sparkles className="w-3.5 h-3.5 text-[#0ea5e9]" />
+              <h3 className="text-xs font-mono font-semibold text-[#f0f3f8] uppercase tracking-wider">
+                AUTONOMOUS POLICY DECISIONS & NEGATIVE CONSTRAINTS
+              </h3>
             </div>
-            <span className="text-[11px] text-[#5d677a] font-mono">Zero Hallucination Policy</span>
+            <span className="text-[10px] text-[#525c70] font-mono">FAIL-CLOSED ENFORCEMENT</span>
           </div>
 
-          <p className="text-xs text-[#8b95a8]">
+          <p className="text-[11px] text-[#8b95a8] leading-relaxed">
             {isReadOnlyAudit || isAmbiguousObjective
               ? "Read-only inspection completed. Remediation planning was withheld in accordance with operator directive."
-              : "NetVigil identified high-risk exposure points and formulated allowlisted remediation actions while strictly preserving your specified constraints."}
+              : "NetVigil identified high-risk exposure points and formulated allowlisted remediation actions while strictly preserving specified constraints."}
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs font-mono">
             {/* Pillar 1: Decision */}
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-1">
-              <div className="text-[10px] text-[#5d677a] uppercase font-mono">Autonomous Decision</div>
-              <div className="font-semibold text-[#f0f3f8]">{telemetry?.highRiskViolations || 0} P1 Findings Isolated</div>
-              <div className="text-[11px] text-[#8b95a8]">Prioritized cleartext protocols & insecure authentication.</div>
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26] space-y-0.5">
+              <div className="text-[9px] text-[#525c70] uppercase">Autonomous Decision</div>
+              <div className="font-semibold text-[#f0f3f8] text-[11px]">{telemetry?.highRiskViolations || 0} P1 Findings Isolated</div>
+              <div className="text-[10px] text-[#8b95a8] font-sans">Prioritized cleartext protocols & insecure auth.</div>
             </div>
 
             {/* Pillar 2: Constraint */}
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-1">
-              <div className="text-[10px] text-[#f59e0b] uppercase font-mono flex items-center gap-1">
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26] space-y-0.5">
+              <div className="text-[9px] text-[#f59e0b] uppercase flex items-center gap-1">
                 <Lock className="w-3 h-3 text-[#f59e0b]" />
                 <span>Operational Constraint</span>
               </div>
-              <div className="font-semibold text-[#f59e0b]">
+              <div className="font-semibold text-[#f59e0b] text-[11px]">
                 {telemetry?.guardrailsCount ? `${telemetry.guardrailNames} Protected ✓` : "Full Baseline Hardening"}
               </div>
-              <div className="text-[11px] text-[#8b95a8]">
+              <div className="text-[10px] text-[#8b95a8] font-sans">
                 {telemetry?.guardrailsCount
                   ? "Zero SSH modifications permitted in formulated patch set."
                   : "No negative user constraints specified by operator."}
@@ -743,27 +831,27 @@ export default function AgentPage() {
             </div>
 
             {/* Pillar 3: Plan */}
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-1">
-              <div className="text-[10px] text-[#10b981] uppercase font-mono">Remediation Plan</div>
-              <div className="font-semibold text-[#10b981]">
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26] space-y-0.5">
+              <div className="text-[9px] text-[#10b981] uppercase">Remediation Plan</div>
+              <div className="font-semibold text-[#10b981] text-[11px]">
                 {isReadOnlyAudit || isAmbiguousObjective ? "0 Patches (Read-Only)" : `${actionableProposals.length} Allowlisted Patches`}
               </div>
-              <div className="text-[11px] text-[#8b95a8]">
+              <div className="text-[10px] text-[#8b95a8] font-sans">
                 {isReadOnlyAudit || isAmbiguousObjective ? "Remediation withheld." : "100% catalog-grounded vendor CLI commands."}
               </div>
             </div>
 
             {/* Pillar 4: Approval */}
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-1">
-              <div className="text-[10px] text-[#0ea5e9] uppercase font-mono">Authority Boundary</div>
-              <div className="font-semibold text-[#0ea5e9]">
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26] space-y-0.5">
+              <div className="text-[9px] text-[#0ea5e9] uppercase">Authority Boundary</div>
+              <div className="font-semibold text-[#0ea5e9] text-[11px]">
                 {isReadOnlyAudit || isAmbiguousObjective
                   ? "Read-Only Mode"
                   : session.status === "COMPLETED"
                   ? "Approved & Verified ✓"
                   : "Operator Sign-off Required"}
               </div>
-              <div className="text-[11px] text-[#8b95a8]">
+              <div className="text-[10px] text-[#8b95a8] font-sans">
                 {isReadOnlyAudit || isAmbiguousObjective
                   ? "Zero modifications permitted."
                   : session.status === "COMPLETED"
@@ -777,74 +865,74 @@ export default function AgentPage() {
 
       {/* 7. HERO APPROVAL SCREEN (When WAITING_APPROVAL) */}
       {session && session.status === "WAITING_APPROVAL" && (
-        <div className="p-5 rounded-lg bg-[#0d0e12] border-2 border-[#f59e0b]/40 space-y-4 shadow-lg shadow-[#f59e0b]/5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#181a22]">
+        <div className="p-4 rounded bg-[#0a0c10] border-2 border-[#f59e0b]/40 space-y-3 shadow-lg shadow-[#f59e0b]/5 font-mono">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#171b26]">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] animate-pulse" />
-                <h3 className="text-sm font-semibold text-[#f0f3f8] uppercase tracking-wider">
-                  Remediation Requires Approval
+                <div className="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse" />
+                <h3 className="text-xs font-semibold text-[#f0f3f8] uppercase tracking-wider">
+                  HUMAN APPROVAL REQUIRED — ZERO DRIFT GATE
                 </h3>
               </div>
-              <p className="text-xs text-[#8b95a8]">
+              <p className="text-[11px] text-[#8b95a8] font-sans">
                 NetVigil completed the autonomous investigation and prepared the following controlled changes.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] px-2 py-0.5 rounded bg-[#f59e0b]/10 text-[#f59e0b] font-mono font-semibold border border-[#f59e0b]/20">
-                0 changes applied
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#f59e0b]/10 text-[#f59e0b] font-semibold border border-[#f59e0b]/20">
+                0 CHANGES COMMITTED
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-[#10b981]/10 text-[#10b981] font-mono font-semibold border border-[#10b981]/20">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#10b981]/10 text-[#10b981] font-semibold border border-[#10b981]/20">
                 SSH PROTECTED ✓
               </span>
             </div>
           </div>
 
           {/* Hero Metrics Row */}
-          <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#ef4444] uppercase font-sans font-semibold">High-Risk Findings</div>
-              <div className="text-xl font-semibold text-[#ef4444] mt-1">{telemetry?.highRiskViolations || 0}</div>
+          <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+            <div className="p-2 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#ef4444] uppercase font-sans font-semibold">High-Risk Findings</div>
+              <div className="text-base font-bold text-[#ef4444] mt-0.5">{telemetry?.highRiskViolations || 0}</div>
             </div>
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#10b981] uppercase font-sans font-semibold">Proposed Patches</div>
-              <div className="text-xl font-semibold text-[#10b981] mt-1">{actionableProposals.length}</div>
+            <div className="p-2 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#10b981] uppercase font-sans font-semibold">Proposed Patches</div>
+              <div className="text-base font-bold text-[#10b981] mt-0.5">{actionableProposals.length}</div>
             </div>
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#0ea5e9] uppercase font-sans font-semibold">Affected Devices</div>
-              <div className="text-xl font-semibold text-[#0ea5e9] mt-1">{telemetry?.affectedDevicesCount || 0}</div>
+            <div className="p-2 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#0ea5e9] uppercase font-sans font-semibold">Affected Devices</div>
+              <div className="text-base font-bold text-[#0ea5e9] mt-0.5">{telemetry?.affectedDevicesCount || 0}</div>
             </div>
           </div>
 
           {/* Proposals Before / After CLI Diff Viewer */}
-          <div className="space-y-3">
-            <div className="text-xs font-semibold text-[#f0f3f8] flex items-center justify-between">
-              <span>Proposed Configuration Patches</span>
-              <span className="text-[11px] text-[#5d677a] font-mono">BEFORE ↓ PROPOSED CHANGE ↓ AFTER</span>
+          <div className="space-y-2">
+            <div className="text-xs font-semibold text-[#f0f3f8] flex items-center justify-between font-mono">
+              <span className="text-[11px] uppercase text-[#8b95a8]">PROPOSED CONFIGURATION DIFFS</span>
+              <span className="text-[10px] text-[#525c70]">BEFORE ↓ PROPOSED CHANGE ↓ AFTER</span>
             </div>
 
             {actionableProposals.map((prop) => (
-              <div key={prop.proposal_id} className="p-3.5 rounded bg-[#050608] border border-[#181a22] space-y-2.5">
+              <div key={prop.proposal_id} className="p-3 rounded bg-[#07080a] border border-[#171b26] space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#ef4444]/10 text-[#ef4444] font-semibold border border-[#ef4444]/20">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-[#ef4444]/10 text-[#ef4444] font-semibold border border-[#ef4444]/20 font-mono">
                       {prop.severity}
                     </span>
                     <span className="font-mono text-xs font-semibold text-[#f0f3f8]">{prop.device_name}</span>
-                    <span className="text-xs text-[#8b95a8] truncate max-w-md">• {prop.title}</span>
+                    <span className="text-xs text-[#8b95a8] truncate max-w-md font-sans">• {prop.title}</span>
                   </div>
-                  <span className="text-[11px] text-[#5d677a] font-mono">{prop.control_id}</span>
+                  <span className="text-[10px] text-[#525c70] font-mono">{prop.control_id}</span>
                 </div>
 
                 {/* Diff Preview Lines */}
                 {prop.diff_preview?.diff_lines && prop.diff_preview.diff_lines.length > 0 ? (
-                  <div className="p-2.5 rounded bg-[#08090b] border border-[#181a22] text-[11px] font-mono space-y-1 max-h-44 overflow-y-auto">
+                  <div className="p-2 rounded bg-[#040507] border border-[#171b26] text-[10px] font-mono space-y-0.5 max-h-40 overflow-y-auto">
                     {prop.diff_preview.diff_lines.map((line, idx) => (
                       <div
                         key={idx}
                         className={cn(
-                          "truncate px-1.5 py-0.5 rounded",
+                          "truncate px-1 py-0.2 rounded",
                           line.type === "removed"
                             ? "text-[#ef4444] bg-[#ef4444]/10"
                             : line.type === "added"
@@ -858,13 +946,13 @@ export default function AgentPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] font-mono">
-                    <div className="p-2.5 rounded bg-[#12141a] border border-[#ef4444]/20">
-                      <div className="text-[10px] text-[#ef4444] uppercase font-sans font-semibold mb-1">Target Violation</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px] font-mono">
+                    <div className="p-2 rounded bg-[#0e1117] border border-[#ef4444]/20">
+                      <div className="text-[9px] text-[#ef4444] uppercase font-sans font-semibold mb-0.5">Target Violation</div>
                       <div className="text-[#c5cbd8] truncate">{prop.potential_impact || "Protocol configuration"}</div>
                     </div>
-                    <div className="p-2.5 rounded bg-[#12141a] border border-[#10b981]/20">
-                      <div className="text-[10px] text-[#10b981] uppercase font-sans font-semibold mb-1">Commands to Apply</div>
+                    <div className="p-2 rounded bg-[#0e1117] border border-[#10b981]/20">
+                      <div className="text-[9px] text-[#10b981] uppercase font-sans font-semibold mb-0.5">Commands to Apply</div>
                       <div className="text-[#10b981] truncate">{prop.commands}</div>
                     </div>
                   </div>
@@ -874,34 +962,34 @@ export default function AgentPage() {
 
             {/* Constrained Proposals Badge & Detailed View */}
             {constrainedProposals.length > 0 && (
-              <div className="space-y-2.5 pt-2 border-t border-[#181a22]">
-                <div className="p-3 rounded bg-[#12141a] border border-[#f59e0b]/20 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <Lock className="w-3.5 h-3.5 text-[#f59e0b]" />
-                    <span className="text-[#c5cbd8]">
+              <div className="space-y-2 pt-2 border-t border-[#171b26]">
+                <div className="p-2 rounded bg-[#07080a] border border-[#f59e0b]/25 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <Lock className="w-3 h-3 text-[#f59e0b]" />
+                    <span className="text-[#c5cbd8] text-[11px]">
                       {constrainedProposals.length} prohibited proposal(s) skipped to honor operator constraint ({telemetry?.guardrailNames || "Protected Subsystem"})
                     </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-[#f59e0b] bg-[#f59e0b]/10 px-2 py-0.5 rounded border border-[#f59e0b]/20 font-mono">
+                  <span className="text-[9px] font-semibold text-[#f59e0b] bg-[#f59e0b]/10 px-1.5 py-0.2 rounded border border-[#f59e0b]/20 font-mono">
                     SKIPPED — CONSTRAINED
                   </span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {constrainedProposals.map((prop) => (
-                    <div key={prop.proposal_id} className="p-3 rounded bg-[#08090b] border border-[#f59e0b]/20 space-y-1.5 opacity-90">
+                    <div key={prop.proposal_id} className="p-2.5 rounded bg-[#07080a] border border-[#f59e0b]/20 space-y-1 opacity-90">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f59e0b]/10 text-[#f59e0b] font-semibold border border-[#f59e0b]/20 font-mono">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-[#f59e0b]/10 text-[#f59e0b] font-semibold border border-[#f59e0b]/20 font-mono">
                             SKIPPED
                           </span>
                           <span className="font-mono text-xs font-semibold text-[#f0f3f8]">{prop.device_name}</span>
-                          <span className="text-xs text-[#8b95a8] truncate max-w-md">• {prop.title}</span>
+                          <span className="text-xs text-[#8b95a8] truncate max-w-md font-sans">• {prop.title}</span>
                         </div>
-                        <span className="text-[11px] text-[#f59e0b] font-mono">{prop.control_id}</span>
+                        <span className="text-[10px] text-[#f59e0b] font-mono">{prop.control_id}</span>
                       </div>
-                      <div className="text-[11px] text-[#8b95a8] flex items-center gap-1">
-                        <Lock className="w-3 h-3 text-[#f59e0b] inline shrink-0" />
+                      <div className="text-[10px] text-[#8b95a8] flex items-center gap-1">
+                        <Lock className="w-2.5 h-2.5 text-[#f59e0b] inline shrink-0" />
                         <span>{prop.constraint_reason || "Operator Negative Constraint: Subsystem modification prohibited."}</span>
                       </div>
                     </div>
@@ -912,28 +1000,28 @@ export default function AgentPage() {
           </div>
 
           {/* Decision Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#181a22]">
+          <div className="flex items-center justify-end gap-2.5 pt-2.5 border-t border-[#171b26]">
             <button
               onClick={() => handleApproval(false)}
               disabled={isApproving}
-              className="px-4 py-2 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-xs text-[#8b95a8] hover:text-[#ef4444] font-medium transition-colors"
+              className="px-3 py-1.5 rounded bg-[#07080a] hover:bg-[#12151e] border border-[#171b26] text-xs font-mono text-[#8b95a8] hover:text-[#ef4444] font-medium transition-colors"
             >
-              Reject Plan
+              REJECT PLAN
             </button>
             <button
               onClick={() => handleApproval(true)}
               disabled={isApproving}
-              className="flex items-center gap-1.5 px-5 py-2 rounded bg-[#10b981] hover:bg-[#059669] text-white text-xs font-medium transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded bg-[#10b981] hover:bg-[#059669] text-white text-xs font-mono font-semibold transition-colors shadow-sm"
             >
               {isApproving ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Applying & verifying...</span>
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <span>APPLYING & VERIFYING...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Approve & Verify</span>
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>APPROVE & VERIFY RESOLUTION</span>
                 </>
               )}
             </button>
@@ -943,75 +1031,75 @@ export default function AgentPage() {
 
       {/* 8. CLOSED-LOOP VERIFICATION SCORECARD (When COMPLETED) */}
       {session && session.status === "COMPLETED" && report && (
-        <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#10b981]/30 space-y-4 shadow-lg shadow-[#10b981]/5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#181a22]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center text-[#10b981]">
-                <CheckCircle2 className="w-5 h-5" />
+        <div className="p-4 rounded bg-[#0a0c10] border border-[#10b981]/30 space-y-3 shadow-lg shadow-[#10b981]/5 font-mono">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#171b26]">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center text-[#10b981]">
+                <CheckCircle2 className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-[#f0f3f8]">
+                <h3 className="text-xs font-semibold text-[#f0f3f8] uppercase tracking-wider">
                   {isReadOnlyAudit || isAmbiguousObjective
-                    ? "Read-Only Compliance Audit Report Compiled"
-                    : "Autonomous Remediation & Closed-Loop Verification Passed"}
+                    ? "READ-ONLY COMPLIANCE AUDIT REPORT COMPILED"
+                    : "AUTONOMOUS REMEDIATION & CLOSED-LOOP VERIFICATION PASSED"}
                 </h3>
-                <div className="text-[11px] text-[#5d677a]">
+                <div className="text-[10px] text-[#525c70]">
                   Verified by deterministic AST parsing, rule evaluation, and constraint verification.
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-xs px-2.5 py-1 rounded bg-[#10b981]/10 text-[#10b981] font-mono font-semibold border border-[#10b981]/20">
+              <span className="text-[10px] px-2 py-0.5 rounded bg-[#10b981]/10 text-[#10b981] font-semibold border border-[#10b981]/20">
                 {isReadOnlyAudit || isAmbiguousObjective ? "AUDIT COMPILED ✓" : "VERIFICATION PASSED ✓"}
               </span>
             </div>
           </div>
 
           {/* Verification Delta Scorecard */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs font-mono">
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Total Violations</div>
-              <div className="text-xl font-semibold text-[#ef4444] mt-1">{report.total_violations_before}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-xs font-mono">
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">Total Violations</div>
+              <div className="text-base font-bold text-[#ef4444] mt-0.5">{report.total_violations_before}</div>
             </div>
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">
                 {isReadOnlyAudit || isAmbiguousObjective ? "Active Exposure" : "Violations After"}
               </div>
-              <div className="text-xl font-semibold text-[#10b981] mt-1">
+              <div className="text-base font-bold text-[#10b981] mt-0.5">
                 {isReadOnlyAudit || isAmbiguousObjective ? report.total_violations_before : report.total_violations_after}
               </div>
             </div>
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#5d677a] uppercase font-sans">Patches Applied</div>
-              <div className="text-xl font-semibold text-[#0ea5e9] mt-1">{report.remediations_applied}</div>
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#525c70] uppercase font-sans">Patches Applied</div>
+              <div className="text-base font-bold text-[#0ea5e9] mt-0.5">{report.remediations_applied}</div>
             </div>
-            <div className="p-3 rounded bg-[#050608] border border-[#181a22]">
-              <div className="text-[10px] text-[#10b981] uppercase font-sans">SSH Subsystem</div>
-              <div className="text-xs font-semibold text-[#10b981] mt-2">100% UNTOUCHED ✓</div>
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26]">
+              <div className="text-[9px] text-[#10b981] uppercase font-sans">SSH Subsystem</div>
+              <div className="text-[11px] font-bold text-[#10b981] mt-1.5">100% UNTOUCHED ✓</div>
             </div>
           </div>
 
           {/* Executive Summary */}
           {report.overall_posture_delta && (
-            <div className="p-3.5 rounded bg-[#050608] border border-[#181a22] text-xs text-[#c5cbd8]">
-              <span className="font-semibold text-[#f0f3f8]">Outcome Proof: </span>
+            <div className="p-2.5 rounded bg-[#07080a] border border-[#171b26] text-xs text-[#c5cbd8] font-sans">
+              <span className="font-semibold text-[#f0f3f8] font-mono text-[11px]">Outcome Proof: </span>
               {report.overall_posture_delta}
             </div>
           )}
         </div>
       )}
 
-      {/* 9. REAL VERTICAL EXECUTION TIMELINE (Only rendered when session has timeline steps) */}
+      {/* 9. REAL VERTICAL EXECUTION TIMELINE */}
       {session && session.timeline && session.timeline.length > 0 && (
-        <div className="p-5 rounded-lg bg-[#0d0e12] border border-[#181a22] space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[#181a22]">
+        <div className="p-4 rounded bg-[#0a0c10] border border-[#171b26] space-y-3 font-mono">
+          <div className="flex items-center justify-between pb-2 border-b border-[#171b26]">
             <h3 className="text-xs font-semibold text-[#f0f3f8] uppercase tracking-wider">
-              Autonomous Execution Timeline ({session.timeline.length} Stages)
+              AUTONOMOUS EXECUTION TIMELINE ({session.timeline.length} STAGES)
             </h3>
-            <span className="text-[11px] text-[#5d677a] font-mono">Deterministic Telemetry</span>
+            <span className="text-[10px] text-[#525c70]">DETERMINISTIC TELEMETRY</span>
           </div>
 
-          <div className="relative border-l border-[#181a22] ml-3 space-y-4 pl-4">
+          <div className="relative border-l border-[#171b26] ml-2.5 space-y-3 pl-3.5">
             {session.timeline.map((step) => {
               const isExpanded = expandedSteps[step.step_id];
               return (
@@ -1019,7 +1107,7 @@ export default function AgentPage() {
                   {/* Timeline Node Dot */}
                   <div
                     className={cn(
-                      "absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full border-2 bg-[#050608]",
+                      "absolute -left-[19px] top-1 w-2 h-2 rounded-full border bg-[#07080a]",
                       step.status === "COMPLETED"
                         ? "border-[#10b981] bg-[#10b981]"
                         : step.status === "WAITING_APPROVAL"
@@ -1032,19 +1120,19 @@ export default function AgentPage() {
 
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <span className="text-xs font-semibold text-[#f0f3f8]">{step.title}</span>
-                        <span className="text-[10px] font-mono text-[#5d677a]">[{step.phase}]</span>
+                        <span className="text-[9px] text-[#525c70]">[{step.phase}]</span>
                       </div>
-                      <p className="text-xs text-[#8b95a8]">{step.summary}</p>
+                      <p className="text-[11px] text-[#8b95a8] font-sans">{step.summary}</p>
                     </div>
 
                     {step.details && Object.keys(step.details).length > 0 && (
                       <button
                         onClick={() => toggleStep(step.step_id)}
-                        className="text-[11px] text-[#5d677a] hover:text-[#8b95a8] flex items-center gap-1 font-mono flex-shrink-0"
+                        className="text-[10px] text-[#525c70] hover:text-[#8b95a8] flex items-center gap-1 flex-shrink-0"
                       >
-                        <span>{isExpanded ? "Hide" : "Details"}</span>
+                        <span>{isExpanded ? "HIDE" : "DETAILS"}</span>
                         <ChevronDown className={cn("w-3 h-3 transition-transform", isExpanded && "rotate-180")} />
                       </button>
                     )}
@@ -1052,7 +1140,7 @@ export default function AgentPage() {
 
                   {/* Expandable Step Details */}
                   {isExpanded && step.details && (
-                    <pre className="mt-2 p-2.5 rounded bg-[#050608] border border-[#181a22] text-[11px] font-mono text-[#8b95a8] overflow-x-auto">
+                    <pre className="mt-1.5 p-2 rounded bg-[#07080a] border border-[#171b26] text-[10px] text-[#8b95a8] overflow-x-auto">
                       {JSON.stringify(step.details, null, 2)}
                     </pre>
                   )}

@@ -145,30 +145,33 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#050608] border-r border-[#181a22] z-20 select-none">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#050608] border-r border-[#171b26] z-20 select-none">
         {/* Brand Header */}
-        <div className="p-4 border-b border-[#181a22] flex items-center justify-between">
+        <div className="p-3.5 border-b border-[#171b26] flex items-center justify-between bg-[#040507]">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded bg-[#0d0e12] border border-[#181a22] flex items-center justify-center text-[#0ea5e9] group-hover:border-[#222632] transition-colors">
-              <Shield className="w-4 h-4" />
+            <div className="w-7 h-7 rounded bg-[#0a0c10] border border-[#171b26] flex items-center justify-center text-[#0ea5e9] group-hover:border-[#222838] transition-colors shadow-inner">
+              <Shield className="w-3.5 h-3.5 text-[#0ea5e9]" />
             </div>
             <div>
-              <div className="text-sm font-semibold tracking-tight text-[#f0f3f8] flex items-center gap-1.5">
-                <span>NetVigil</span>
-                <span className="text-[10px] px-1 py-0.2 rounded bg-[#0d0e12] text-[#0ea5e9] font-medium border border-[#181a22]">
-                  Enterprise
+              <div className="text-xs font-semibold tracking-tight text-[#f0f3f8] flex items-center gap-1.5 font-mono">
+                <span>NETVIGIL</span>
+                <span className="text-[9px] px-1 py-0.2 rounded bg-[#0e1117] text-[#0ea5e9] font-medium border border-[#171b26]">
+                  SOC
                 </span>
               </div>
-              <div className="text-[11px] text-[#5d677a]">Autonomous Network Security</div>
+              <div className="text-[10px] text-[#525c70] font-mono tracking-tight">Mission Control Engine</div>
             </div>
           </Link>
+          <div className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] tactical-pulse-green" />
+          </div>
         </div>
 
         {/* Navigation Groups */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        <div className="flex-1 overflow-y-auto p-2.5 space-y-3.5">
           {navigationGroups.map((group) => (
-            <div key={group.category} className="space-y-1">
-              <div className="px-2.5 py-1 text-[11px] font-medium text-[#5d677a] uppercase tracking-wider">
+            <div key={group.category} className="space-y-0.5">
+              <div className="px-2 py-0.5 text-[10px] font-mono font-medium text-[#525c70] uppercase tracking-wider">
                 {group.category}
               </div>
               <div className="space-y-0.5">
@@ -180,28 +183,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-all group",
+                        "flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-medium transition-all group",
                         isActive
-                          ? "bg-[#12141a] text-[#f0f3f8] font-semibold border-l-2 border-[#0ea5e9] pl-2"
-                          : "text-[#8b95a8] hover:text-[#f0f3f8] hover:bg-[#0d0e12]"
+                          ? "bg-[#0e1117] text-[#f0f3f8] font-semibold border-l-2 border-[#0ea5e9] pl-2 shadow-sm"
+                          : "text-[#8b95a8] hover:text-[#f0f3f8] hover:bg-[#0a0c10]"
                       )}
                     >
                       <div className="flex items-center gap-2.5">
                         <Icon
                           className={cn(
-                            "w-4 h-4 transition-colors",
-                            isActive ? "text-[#0ea5e9]" : "text-[#5d677a] group-hover:text-[#8b95a8]"
+                            "w-3.5 h-3.5 transition-colors",
+                            isActive ? "text-[#0ea5e9]" : "text-[#525c70] group-hover:text-[#8b95a8]"
                           )}
                         />
-                        <span>{item.label}</span>
+                        <span className="truncate">{item.label}</span>
                       </div>
                       {item.badge && (
                         <span
                           className={cn(
-                            "text-[10px] px-1.5 py-0.2 rounded font-medium",
+                            "text-[9px] font-mono px-1.5 py-0.2 rounded font-medium",
                             item.badge === "Core"
                               ? "bg-[#0ea5e9]/10 text-[#0ea5e9] border border-[#0ea5e9]/20"
-                              : "bg-[#0d0e12] text-[#8b95a8] border border-[#181a22]"
+                              : "bg-[#0a0c10] text-[#8b95a8] border border-[#171b26]"
                           )}
                         >
                           {item.badge}
@@ -216,40 +219,40 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Status / Profile Footer */}
-        <div className="p-3 border-t border-[#181a22] bg-[#050608] text-xs">
-          <div className="p-2 rounded bg-[#0d0e12] border border-[#181a22] flex items-center justify-between">
+        <div className="p-2.5 border-t border-[#171b26] bg-[#040507] text-xs space-y-2">
+          <div className="p-2 rounded bg-[#07080a] border border-[#171b26] flex items-center justify-between text-[11px] font-mono">
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  "w-2 h-2 rounded-full",
+                  "w-1.5 h-1.5 rounded-full",
                   isOnline ? "bg-[#10b981]" : "bg-[#ef4444]"
                 )}
               />
-              <span className="text-[11px] text-[#8b95a8] font-medium">
-                {isOnline ? "Engine Online" : "Engine Standby"}
+              <span className="text-[#8b95a8]">
+                {isOnline ? "USM AST Active" : "Engine Standby"}
               </span>
             </div>
-            <span className="text-[10px] text-[#5d677a]">v0.1.0</span>
+            <span className="text-[10px] text-[#525c70]">v1.2.0</span>
           </div>
 
           {user && (
-            <div className="mt-2 pt-2 border-t border-[#181a22] flex items-center justify-between">
+            <div className="pt-2 border-t border-[#171b26] flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-full bg-[#12141a] border border-[#181a22] text-[#0ea5e9] flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                <div className="w-5 h-5 rounded bg-[#0e1117] border border-[#171b26] text-[#0ea5e9] flex items-center justify-center text-[10px] font-mono font-bold flex-shrink-0">
                   {(user.email?.[0] || "A").toUpperCase()}
                 </div>
                 <div className="min-w-0">
                   <div className="text-[11px] font-medium text-[#f0f3f8] truncate">
                     {user.user_metadata?.full_name || user.email?.split("@")[0] || "Auditor"}
                   </div>
-                  <div className="text-[10px] text-[#5d677a] truncate">{user.email || "Security Operator"}</div>
+                  <div className="text-[10px] text-[#525c70] truncate font-mono">{user.email || "Security Operator"}</div>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={logout}
                 title="Sign out"
-                className="p-1 rounded text-[#5d677a] hover:text-[#ef4444] hover:bg-[#12141a] transition-colors flex-shrink-0"
+                className="p-1 rounded text-[#525c70] hover:text-[#ef4444] hover:bg-[#0e1117] transition-colors flex-shrink-0"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
@@ -261,33 +264,33 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top App Header */}
-        <header className="h-13 bg-[#08090b] border-b border-[#181a22] px-4 md:px-6 flex items-center justify-between z-10 select-none">
+        <header className="h-12 bg-[#07080a] border-b border-[#171b26] px-4 md:px-6 flex items-center justify-between z-10 select-none">
           <div className="flex items-center gap-3">
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-1.5 rounded text-[#8b95a8] hover:text-white hover:bg-[#0d0e12]"
+              className="lg:hidden p-1.5 rounded text-[#8b95a8] hover:text-white hover:bg-[#0a0c10]"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
 
             {/* Breadcrumb Title */}
-            <div className="flex items-center gap-2 text-xs text-[#8b95a8]">
-              <span className="text-[#5d677a]">NetVigil</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#5d677a]" />
-              <span className="font-semibold text-[#f0f3f8]">{getBreadcrumb()}</span>
+            <div className="flex items-center gap-2 text-xs text-[#8b95a8] font-mono">
+              <span className="text-[#525c70]">NETVIGIL</span>
+              <span className="text-[#262d3e]">/</span>
+              <span className="font-semibold text-[#f0f3f8]">{getBreadcrumb().toUpperCase()}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {/* Quick Search Launch Button */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#0d0e12] border border-[#181a22] hover:border-[#222632] text-xs text-[#5d677a] hover:text-[#8b95a8] transition-all"
+              className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] text-xs text-[#525c70] hover:text-[#8b95a8] transition-all"
             >
               <Search className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Search controls, findings...</span>
-              <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[10px] font-mono rounded bg-[#12141a] text-[#8b95a8] border border-[#181a22]">
+              <span className="hidden sm:inline text-[11px]">Search controls, findings...</span>
+              <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[9px] font-mono rounded bg-[#0e1117] text-[#8b95a8] border border-[#171b26]">
                 Ctrl K
               </kbd>
             </button>
@@ -295,23 +298,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Ingest Config Shortcut */}
             <Link
               href="/configurations"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0d0e12] border border-[#181a22] hover:border-[#222632] text-xs text-[#c5cbd8] hover:text-[#f0f3f8] transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0a0c10] border border-[#171b26] hover:border-[#222838] text-xs text-[#c5cbd8] hover:text-[#f0f3f8] transition-colors font-mono text-[11px]"
             >
               <Upload className="w-3.5 h-3.5 text-[#0ea5e9]" />
-              <span className="hidden sm:inline font-medium">Ingest</span>
+              <span className="hidden sm:inline">INGEST</span>
             </Link>
 
-            {/* Status Pill */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#0d0e12] border border-[#181a22] text-[11px] text-[#8b95a8]">
-              <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-[#10b981]" : "bg-[#ef4444]")} />
-              <span className="hidden sm:inline font-medium">{isOnline ? "Production" : "Offline"}</span>
+            {/* Operational State Pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0a0c10] border border-[#171b26] text-[10px] font-mono">
+              <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-[#10b981] tactical-pulse-green" : "bg-[#ef4444]")} />
+              <span className={cn("font-semibold tracking-wider", isOnline ? "text-[#10b981]" : "text-[#ef4444]")}>
+                {isOnline ? "OPERATIONAL" : "OFFLINE"}
+              </span>
             </div>
           </div>
         </header>
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 top-13 z-30 bg-[#050608] border-b border-[#181a22] p-4 overflow-y-auto">
+          <div className="lg:hidden fixed inset-0 top-13 z-30 bg-[#050608] border-b border-[#171b26] p-4 overflow-y-auto">
             <div className="space-y-4">
               {navigationGroups.map((group) => (
                 <div key={group.category} className="space-y-1">
