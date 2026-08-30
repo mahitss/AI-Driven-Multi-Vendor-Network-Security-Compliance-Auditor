@@ -75,12 +75,13 @@ async def get_system_overview_stats(
         )
         f_res = (await db.execute(findings_stmt)).one()
         active_total_findings = f_res.total or 0
-        open_findings = f_res.open or 0
         crit_count = f_res.critical or 0
         high_count = f_res.high or 0
         med_count = f_res.medium or 0
         low_count = f_res.low or 0
         info_count = f_res.info or 0
+        # Canonical identity: open_findings must strictly equal sum of severity buckets
+        open_findings = crit_count + high_count + med_count + low_count + info_count
 
         # Active Risk Score (Fleet average across latest audits)
         avg_risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id.in_(latest_audit_ids))
@@ -121,6 +122,10 @@ async def get_system_overview_stats(
             framework_scores[fw] = round(sum(scores) / len(scores), 1)
         elif compliance_score > 0:
             framework_scores[fw] = compliance_score
+
+    # Harmonize displayed fleet compliance score with individual framework averages (equal-weight average)
+    if all(framework_scores[k] > 0 for k in ["CIS", "NIST", "STIG", "ISO"]):
+        compliance_score = round(sum(framework_scores[k] for k in ["CIS", "NIST", "STIG", "ISO"]) / 4.0, 1)
 
     # Score trend delta compared to previous audit
     score_delta = None

@@ -783,12 +783,12 @@ export default function DashboardPage() {
               </p>
 
               <div className="p-3 rounded bg-[#050608] border border-[#181a22] space-y-2 font-mono text-[11px]">
-                <div className="text-[#0ea5e9] font-semibold">Formula:</div>
+                <div className="text-[#0ea5e9] font-semibold">Deterministic Formula:</div>
                 <div className="text-[#c5cbd8]">
-                  Risk Score = Σ (Severity Multiplier × Category Exposure Factor) / Total Assets
+                  Risk Score = (0.70 × Severity Base) + 1.5 × (Exposure Mod + Impact Mod) + Correlation Bonus
                 </div>
                 <div className="text-[#5d677a] text-[10px] pt-1 border-t border-[#181a22]">
-                  Critical (10.0) • High (7.0) • Medium (4.0) • Low (1.0)
+                  Base: Critical (90) • High (75) • Medium (50) • Low (25) | Exposure: Mgmt Plane (+6), Internet (+10)
                 </div>
               </div>
 

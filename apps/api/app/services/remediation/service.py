@@ -46,7 +46,7 @@ class RemediationService:
 
         # Fetch configuration to determine vendor
         cfg = await db.get(Configuration, audit.configuration_id)
-        vendor = (cfg.detected_vendor if cfg else "cisco") or "cisco"
+        vendor = (cfg.detected_vendor if cfg else "unknown") or "unknown"
         platform = cfg.detected_platform if cfg else None
 
         # Fetch failed/partial findings

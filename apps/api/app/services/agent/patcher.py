@@ -201,11 +201,13 @@ class ConfigurationPatcher:
         normalized_control: str,
         commands: str,
     ) -> Tuple[str, bool, str]:
-        """Dispatches patching based on detected vendor."""
-        v = (vendor or "cisco").lower()
-        if "juniper" in v or "junos" in v:
+        """Dispatches patching based on detected vendor. Rejects unsupported/unknown vendors."""
+        v = (vendor or "").lower().strip()
+        if "cisco" in v or "ios" in v:
+            return cls.patch_cisco_configuration(raw_text, normalized_control, commands)
+        elif "juniper" in v or "junos" in v:
             return cls.patch_juniper_configuration(raw_text, normalized_control, commands)
         elif "fortinet" in v or "fortios" in v:
             return cls.patch_fortinet_configuration(raw_text, normalized_control, commands)
         else:
-            return cls.patch_cisco_configuration(raw_text, normalized_control, commands)
+            return raw_text, False, f"Unsupported vendor '{vendor}': automated patch rejected."

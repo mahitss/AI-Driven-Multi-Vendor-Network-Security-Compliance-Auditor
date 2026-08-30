@@ -209,7 +209,7 @@ class AgentToolLayer:
             raise AgentToolExecutionError(f"Audit {audit_id} not found.")
 
         cfg = await db.get(Configuration, audit.configuration_id)
-        vendor = (cfg.detected_vendor if cfg else "cisco") or "cisco"
+        vendor = (cfg.detected_vendor if cfg else "unknown") or "unknown"
         device_name = cfg.original_filename if cfg else "device"
 
         f_stmt = select(Finding).where(Finding.audit_id == audit_id, Finding.status.in_(["FAIL", "PARTIAL"]))
@@ -252,10 +252,18 @@ class AgentToolLayer:
             processed_controls.add(normalized_prop)
 
             template = find_remediation_template(vendor=vendor, normalized_control=normalized_prop)
-            commands = template["commands"] if template else f"# Manual hardening required for {f.title}"
-            rollback = template.get("rollback_commands") if template else None
-            impact = template.get("potential_impact", "Configuration update applied.") if template else "Manual intervention required."
-            proposal_title = template["title"] if template else f"Remediate {f.title}"
+            if template:
+                commands = template["commands"]
+                rollback = template.get("rollback_commands")
+                impact = template.get("potential_impact", "Configuration update applied.")
+                proposal_title = template["title"]
+                is_supported = True
+            else:
+                commands = f"# Automated remediation template unavailable for vendor '{vendor}' or control '{normalized_prop}'.\n# Consult official vendor security hardening guide."
+                rollback = None
+                impact = "Manual administrator verification and hardening required."
+                proposal_title = f"Manual Hardening: {f.title}"
+                is_supported = False
 
             # Check negative constraints (FAIL-CLOSED)
             is_constrained = False
@@ -386,6 +394,14 @@ class AgentToolLayer:
                 if violates:
                     logger.warning(f"Server-side constraint gate blocked unauthorized patch: {p.title}")
                     continue
+
+            # Strict validation: Reject patch if patch vendor does not match configuration detected vendor
+            if cfg.detected_vendor and p.vendor.lower().strip() != cfg.detected_vendor.lower().strip():
+                logger.warning(
+                    f"Cross-vendor patch rejected: patch vendor '{p.vendor}' does not match "
+                    f"configuration detected vendor '{cfg.detected_vendor}' for config {cfg.id}"
+                )
+                continue
 
             current_text, was_changed, desc = ConfigurationPatcher.apply_patch(
                 vendor=p.vendor,
