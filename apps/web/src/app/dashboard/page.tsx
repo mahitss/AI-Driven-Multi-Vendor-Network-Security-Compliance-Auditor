@@ -59,6 +59,7 @@ interface AffectedAsset {
 }
 
 interface ControlFindingGroup {
+  group_key: string;
   control_id: string;
   title: string;
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
@@ -123,7 +124,7 @@ export default function DashboardPage() {
     const map = new Map<string, ControlFindingGroup>();
 
     rawFindings.forEach((f) => {
-      const key = `${f.control_id}__${f.title}`;
+      const key = `${f.framework || "CIS"}__${f.control_id}__${f.title}__${f.severity}`;
       const asset: AffectedAsset = {
         finding_id: f.id,
         device_name: f.device_name || f.finding_metadata?.rule_id || "Configuration",
@@ -139,6 +140,7 @@ export default function DashboardPage() {
 
       if (!map.has(key)) {
         map.set(key, {
+          group_key: key,
           control_id: f.control_id,
           title: f.title,
           severity: f.severity,
@@ -455,12 +457,12 @@ export default function DashboardPage() {
               </div>
             ) : (
               filteredGroups.map((group) => {
-                const isExpanded = expandedControlId === group.control_id;
+                const isExpanded = expandedControlId === group.group_key;
                 const distinctAssetsCount = group.affected_assets.length;
 
                 return (
                   <div
-                    key={group.control_id}
+                    key={group.group_key}
                     className="rounded bg-[#0d0e12] border border-[#181a22] hover:border-[#222632] transition-colors overflow-hidden"
                   >
                     {/* Control Card Header */}
@@ -501,7 +503,7 @@ export default function DashboardPage() {
                       {/* Header Actions */}
                       <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
                         <button
-                          onClick={() => setExpandedControlId(isExpanded ? null : group.control_id)}
+                          onClick={() => setExpandedControlId(isExpanded ? null : group.group_key)}
                           className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#12141a] hover:bg-[#181a22] border border-[#181a22] text-xs text-[#8b95a8] hover:text-[#f0f3f8] font-medium transition-colors"
                         >
                           <span>{isExpanded ? "Collapse" : "Assets"}</span>
@@ -524,9 +526,9 @@ export default function DashboardPage() {
                     {/* Expandable Affected Assets Sub-rows */}
                     {isExpanded && (
                       <div className="border-t border-[#181a22] bg-[#08090b] divide-y divide-[#181a22]">
-                        {group.affected_assets.map((asset) => (
+                        {group.affected_assets.map((asset, idx) => (
                           <div
-                            key={asset.finding_id}
+                            key={`${group.group_key}_${asset.finding_id}_${idx}`}
                             className="p-2.5 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                           >
                             <div className="space-y-0.5 min-w-0">
@@ -607,8 +609,8 @@ export default function DashboardPage() {
                 <p className="text-[11px]">System events and audit sessions will populate here.</p>
               </div>
             ) : (
-              activityLogs.map((event) => (
-                <div key={event.id} className="flex items-start gap-2.5 pb-2.5 border-b border-[#181a22] last:border-0 last:pb-0">
+              activityLogs.map((event, idx) => (
+                <div key={`${event.id}_${idx}`} className="flex items-start gap-2.5 pb-2.5 border-b border-[#181a22] last:border-0 last:pb-0">
                   <div
                     className={cn(
                       "w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-mono",
