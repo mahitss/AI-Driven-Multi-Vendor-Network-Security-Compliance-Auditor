@@ -1,11 +1,11 @@
 # NetVigil Autonomous Network Security Engineer Backend
-# Google Cloud Run Optimized Multi-Stage Container
+# Render / Cloud Run / Production Docker Container
 FROM python:3.11-slim as base
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PORT=8080
+    PORT=8000
 
 WORKDIR /app
 
@@ -20,21 +20,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY apps/api/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code and canonical demo fixtures
+# Copy source code, configurations, and data
 COPY apps/api/app /app/app
 COPY apps/api/pytest.ini /app/pytest.ini
 COPY data /app/data
+
+# Ensure storage directories exist
+RUN mkdir -p /app/storage/uploads
 
 # Create non-root system user for security
 RUN useradd -m -u 1001 netvigil && \
     chown -R netvigil:netvigil /app
 USER netvigil
 
-EXPOSE 8080
+EXPOSE 8000 8080 10000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Launch production ASGI server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
+# Launch production ASGI server respecting dynamic $PORT assigned by Render / Cloud Run
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
