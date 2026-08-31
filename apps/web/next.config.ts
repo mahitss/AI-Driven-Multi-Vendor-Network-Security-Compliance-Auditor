@@ -3,8 +3,11 @@ import path from "path";
 
 const backendUrl = (
   process.env.API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "http://127.0.0.1:8000"
+  (process.env.NODE_ENV === "production"
+    ? "https://ai-driven-multi-vendor-network-security.onrender.com"
+    : "http://127.0.0.1:8000")
 )
   .replace("localhost", "127.0.0.1")
   .replace(/\/$/, "");

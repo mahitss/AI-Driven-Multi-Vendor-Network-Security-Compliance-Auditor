@@ -379,18 +379,28 @@ export interface OverviewStats {
 }
 
 export function getApiBase(): string {
-  if (typeof window !== "undefined") {
-    // In browser, using window.location.origin routes requests through Next.js proxy rewrites
-    // This prevents ERR_CONNECTION_REFUSED on direct port 8000 and eliminates CORS issues
-    const custom = process.env.NEXT_PUBLIC_API_BASE_URL;
-    if (custom && !custom.includes("127.0.0.1:8000") && !custom.includes("localhost:8000")) {
-      return custom.replace(/\/$/, "");
+  // 1. Check explicit environment variables (NEXT_PUBLIC_API_URL or NEXT_PUBLIC_API_BASE_URL)
+  const custom =
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.API_BASE_URL;
+  if (custom && custom.trim()) {
+    const trimmed = custom.trim().replace(/\/$/, "");
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
     }
-    return window.location.origin;
   }
-  return (process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000")
-    .replace("localhost", "127.0.0.1")
-    .replace(/\/$/, "");
+
+  // 2. In production mode (Vercel deployment), default to the live Render backend
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.NEXT_PUBLIC_APP_ENV === "production"
+  ) {
+    return "https://ai-driven-multi-vendor-network-security.onrender.com";
+  }
+
+  // 3. In local development, connect directly to local FastAPI server
+  return "http://127.0.0.1:8000";
 }
 
 export const API_BASE = getApiBase();
