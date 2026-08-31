@@ -101,6 +101,7 @@ app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,7 +116,7 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 from fastapi import Depends
 from app.core.auth import get_current_user
 
-# Health endpoint (at root level /health and /api/v1/health) - Public
+# Public Health endpoints (root level /health and /api/v1/health) - No auth required
 app.include_router(health.router)
 app.include_router(health.router, prefix=settings.API_PREFIX)
 

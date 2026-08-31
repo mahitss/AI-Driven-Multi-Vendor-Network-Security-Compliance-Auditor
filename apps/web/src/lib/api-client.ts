@@ -490,11 +490,26 @@ export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Pr
 }
 
 export async function fetchHealth(): Promise<SystemHealth> {
-  const res = await fetchWithTimeout(`${API_BASE}/health`, { cache: "no-store" }, 5000);
-  if (!res.ok) {
-    throw new Error(`Health check failed: HTTP ${res.status}`);
+  const base = getApiBase();
+  try {
+    const res = await fetchWithTimeout(`${base}/health`, { cache: "no-store" }, 6000);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch {
+    // Attempt /api/v1/health fallback
   }
-  return res.json();
+
+  try {
+    const res2 = await fetchWithTimeout(`${base}/api/v1/health`, { cache: "no-store" }, 6000);
+    if (res2.ok) {
+      return await res2.json();
+    }
+  } catch {
+    // Fall through to error
+  }
+
+  throw new Error("Health check failed");
 }
 
 export async function fetchOverviewStats(): Promise<OverviewStats> {

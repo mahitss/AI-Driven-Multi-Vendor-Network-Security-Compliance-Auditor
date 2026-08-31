@@ -32,6 +32,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
+        "https://ai-driven-multi-vendor-network-security.vercel.app",
         "https://ai-driven-multi-vendor-network-secu.vercel.app",
     ]
 
@@ -68,6 +69,7 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY", mode="after")
     @classmethod
     def validate_secret_key(cls, v: str, info) -> str:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
         insecure_keys = [
             "dev-insecure-secret-key-replace-in-production-sih26155",
             "secret",
@@ -75,9 +77,12 @@ class Settings(BaseSettings):
             "default",
             "",
         ]
-        if not v or v in insecure_keys:
-            # Fallback to a cryptographically secure 256-bit hex token
-            return secrets.token_hex(32)
+        if env == "production":
+            if not v or v in insecure_keys or len(v) < 32:
+                raise ValueError(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: A strong, unguessable SECRET_KEY (minimum 32 characters) "
+                    "must be explicitly configured via environment variable in production mode. Development default secret keys are strictly prohibited."
+                )
         return v
 
     @field_validator("DEBUG", mode="before")
@@ -101,12 +106,19 @@ class Settings(BaseSettings):
             origins = [
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
+                "https://ai-driven-multi-vendor-network-security.vercel.app",
                 "https://ai-driven-multi-vendor-network-secu.vercel.app",
             ]
-        # Always ensure the deployed Vercel domain is present in CORS origins
-        if "https://ai-driven-multi-vendor-network-secu.vercel.app" not in origins and "*" not in origins:
-            origins.append("https://ai-driven-multi-vendor-network-secu.vercel.app")
         return origins
+
+    @field_validator("CORS_ORIGINS", mode="after")
+    @classmethod
+    def validate_cors_origins_production(cls, v: List[str], info) -> List[str]:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        if env == "production":
+            if "*" in v:
+                raise ValueError("CRITICAL SECURITY ERROR: Wildcard '*' in CORS_ORIGINS is strictly prohibited in production mode.")
+        return v
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
