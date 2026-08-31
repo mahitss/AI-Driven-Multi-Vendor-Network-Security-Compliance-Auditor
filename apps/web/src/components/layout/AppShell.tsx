@@ -100,8 +100,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { connectionState, isOnline, isOffline, isDegraded, isConnecting } = useSystemHealth();
 
-  // If on Landing Page root `/` or Login `/login` or Auth callback `/auth/*`, render clean full-width layout
-  const isPublicPage = pathname === "/" || pathname === "/login" || pathname?.startsWith("/auth");
+  // If on Landing Page root `/` or `/landing` or Login `/login` or Auth callback `/auth/*`, render clean full-width layout
+  const isPublicPage = pathname === "/" || pathname === "/landing" || pathname === "/login" || pathname?.startsWith("/auth");
 
   // Keyboard shortcut for Cmd+K / Ctrl+K
   React.useEffect(() => {
