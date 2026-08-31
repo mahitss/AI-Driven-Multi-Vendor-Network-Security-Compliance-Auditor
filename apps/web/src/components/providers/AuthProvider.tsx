@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-
 import { getAppOrigin } from "@/lib/get-app-origin";
 
 interface AuthContextType {
@@ -33,7 +32,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    async function getInitialSession() {
+    async function handleAuthInit() {
+      // 1. Detect if the browser landed on any page with an OAuth ?code= parameter
+      if (typeof window !== "undefined") {
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const authCode = urlParams.get("code");
+          if (authCode && !window.location.pathname.startsWith("/auth/callback")) {
+            const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+            if (!error && data?.session && mounted) {
+              setSession(data.session);
+              setUser(data.session.user);
+              setLoading(false);
+              const target = sessionStorage.getItem("netvigil_auth_redirect") || "/dashboard";
+              sessionStorage.removeItem("netvigil_auth_redirect");
+              router.replace(target);
+              return;
+            }
+          }
+        } catch {
+          // Fall through to regular session check
+        }
+      }
+
+      // 2. Standard session retrieval
       try {
         const { data, error } = await supabase.auth.getSession();
         if (mounted) {
@@ -50,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    getInitialSession();
+    handleAuthInit();
 
     const {
       data: { subscription },
@@ -66,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, router]);
 
   const logout = async () => {
     try {
@@ -90,7 +112,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async (redirectTo?: string) => {
     try {
-      const origin = getAppOrigin();
+      // Direct window.location.origin is authoritative in the browser
+      const origin =
+        typeof window !== "undefined" && window.location?.origin
+          ? window.location.origin.trim().replace(/\/$/, "")
+          : getAppOrigin();
 
       if (typeof window !== "undefined" && redirectTo) {
         try {
@@ -100,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Canonical redirect URI without dynamic query params so it matches Supabase redirect allowlist
+      // Canonical redirect URI
       const redirectUri = `${origin}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
