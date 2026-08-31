@@ -12,7 +12,7 @@ from fastapi import APIRouter, Body, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import desc, select
 
-from app.api.dependencies import DatabaseDep
+from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.errors import ResourceNotFoundError, ValidationError
 from app.models.audit import Audit
 from app.models.configuration import Configuration
@@ -133,10 +133,11 @@ class ReanalyzeResponse(BaseModel):
 async def ingest_configuration_for_analysis(
     payload: IngestAnalysisRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> IngestAnalysisResponse:
     """
     Step 1: Real Ingestion & Parsing
-    - Ingests raw configuration string
+    - Ingests raw configuration string scoped to current_user
     - Detects vendor deterministically
     - Extracts AST and security facts with exact line numbers
     - Persists configuration and initial audit state
@@ -150,11 +151,12 @@ async def ingest_configuration_for_analysis(
     if not filename or filename.startswith("."):
         filename = "cisco_edge_router.cfg"
 
-    # Persist via Ingestion Service
+    # Persist via Ingestion Service scoped to current user
     config_record = await ConfigurationIngestionService.ingest_file(
         filename=filename,
         content_bytes=content_bytes,
         db=db,
+        user_id=current_user.id,
     )
 
     # Dynamic Parser Selection & Deterministic AST Extraction
@@ -182,11 +184,12 @@ async def ingest_configuration_for_analysis(
     await db.commit()
     await db.refresh(config_record)
 
-    # Auto-execute initial deterministic audit across standard frameworks
+    # Auto-execute initial deterministic audit across standard frameworks scoped to current user
     await ComplianceAuditService.run_audit(
         configuration_id=config_record.id,
         frameworks=["CIS", "NIST", "STIG", "ISO"],
         db=db,
+        user_id=current_user.id,
     )
 
     lines = raw_content.splitlines()
@@ -212,16 +215,18 @@ async def ingest_configuration_for_analysis(
 async def get_analysis_status(
     analysis_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AnalysisStatusResponse:
-    """Fetch complete analysis execution state, compliance metrics, and derived risk."""
-    cfg = await db.get(Configuration, analysis_id)
+    """Fetch complete analysis execution state, compliance metrics, and derived risk for current user."""
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
 
     # Fetch latest audit for this configuration
     audit_stmt = (
         select(Audit)
-        .where(Audit.configuration_id == analysis_id)
+        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
         .order_by(desc(Audit.created_at))
         .limit(1)
     )
@@ -308,16 +313,18 @@ async def get_analysis_status(
 async def get_analysis_findings(
     analysis_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     status_filter: Optional[str] = Query(None, description="Filter by status (FAIL, PASS, UNKNOWN)"),
 ) -> List[FindingItem]:
-    """Retrieves all evaluated control findings, evidence lines, and remediation proposals."""
-    cfg = await db.get(Configuration, analysis_id)
+    """Retrieves all evaluated control findings, evidence lines, and remediation proposals for current user."""
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
 
     audit_stmt = (
         select(Audit)
-        .where(Audit.configuration_id == analysis_id)
+        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
         .order_by(desc(Audit.created_at))
         .limit(1)
     )
@@ -327,7 +334,7 @@ async def get_analysis_findings(
     if not audit:
         return []
 
-    query = select(Finding).where(Finding.audit_id == audit.id)
+    query = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
     if status_filter:
         query = query.where(Finding.status == status_filter.upper())
     query = query.order_by(Finding.severity, Finding.control_id)
@@ -399,9 +406,11 @@ async def get_analysis_findings(
 async def get_analysis_evidence(
     analysis_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> List[EvidenceItem]:
-    """Returns every cited configuration line mapped to its Universal Security property."""
-    cfg = await db.get(Configuration, analysis_id)
+    """Returns every cited configuration line mapped to its Universal Security property for current user."""
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
 
@@ -453,15 +462,17 @@ async def get_analysis_evidence(
 async def get_analysis_risk(
     analysis_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> RiskAnalysisResponse:
-    """Calculates deterministic risk score derived solely from active failed findings."""
-    cfg = await db.get(Configuration, analysis_id)
+    """Calculates deterministic risk score derived solely from active failed findings for current user."""
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
 
     audit_stmt = (
         select(Audit)
-        .where(Audit.configuration_id == analysis_id)
+        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
         .order_by(desc(Audit.created_at))
         .limit(1)
     )
@@ -482,7 +493,7 @@ async def get_analysis_risk(
             contributing_findings=[],
         )
 
-    f_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.status == "FAIL")
+    f_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id, Finding.status == "FAIL")
     f_res = await db.execute(f_stmt)
     fail_findings = f_res.scalars().all()
 
@@ -561,6 +572,7 @@ async def reanalyze_modified_configuration(
     analysis_id: str,
     payload: ReanalyzeRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> ReanalyzeResponse:
     """
     Step 9: Re-Analysis & Deterministic Verification
@@ -569,7 +581,8 @@ async def reanalyze_modified_configuration(
     - Re-evaluates controls
     - Demonstrates before-and-after finding transitions
     """
-    cfg = await db.get(Configuration, analysis_id)
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
 
@@ -580,7 +593,7 @@ async def reanalyze_modified_configuration(
     # 1. Fetch previous audit stats for delta
     prev_audit_stmt = (
         select(Audit)
-        .where(Audit.configuration_id == analysis_id)
+        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
         .order_by(desc(Audit.created_at))
         .limit(1)
     )
@@ -588,7 +601,7 @@ async def reanalyze_modified_configuration(
     prev_audit = prev_res.scalars().first()
 
     prev_score = prev_audit.score if prev_audit else 0.0
-    prev_findings_stmt = select(Finding).where(Finding.audit_id == prev_audit.id if prev_audit else "")
+    prev_findings_stmt = select(Finding).where(Finding.audit_id == (prev_audit.id if prev_audit else ""), Finding.user_id == current_user.id)
     prev_f_res = await db.execute(prev_findings_stmt)
     prev_findings = {f.control_id: f for f in prev_f_res.scalars().all()}
     prev_fail_count = sum(1 for f in prev_findings.values() if f.status == "FAIL")
@@ -621,10 +634,11 @@ async def reanalyze_modified_configuration(
         configuration_id=cfg.id,
         frameworks=["CIS", "NIST", "STIG", "ISO"],
         db=db,
+        user_id=current_user.id,
     )
 
     # 5. Fetch new findings to calculate transitions
-    new_findings_stmt = select(Finding).where(Finding.audit_id == new_audit.id)
+    new_findings_stmt = select(Finding).where(Finding.audit_id == new_audit.id, Finding.user_id == current_user.id)
     new_f_res = await db.execute(new_findings_stmt)
     new_findings = {f.control_id: f for f in new_f_res.scalars().all()}
     new_fail_count = sum(1 for f in new_findings.values() if f.status == "FAIL")
@@ -679,9 +693,11 @@ async def reanalyze_modified_configuration(
 async def get_analysis_configuration(
     analysis_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
-    """Fetches raw configuration content with line numbers for evidence inspection."""
-    cfg = await db.get(Configuration, analysis_id)
+    """Fetches raw configuration content with line numbers for evidence inspection for current user."""
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
 

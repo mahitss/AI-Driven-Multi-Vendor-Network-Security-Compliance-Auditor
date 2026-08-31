@@ -243,26 +243,18 @@ async def get_current_user(
 
     # 3. If no token is provided:
     is_production = settings.ENVIRONMENT.lower() == "production"
+    has_jwt_secret = bool(settings.SUPABASE_JWT_SECRET)
 
-    if is_production:
-        # Strict Production Fail-Closed: Never authenticate missing credentials as dev user
+    if is_production or has_jwt_secret:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required: Missing or invalid Authorization Bearer header.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if bool(settings.SUPABASE_JWT_SECRET):
-        # When JWT secret is explicitly configured even in dev, fail-closed
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required: Missing Authorization Bearer header.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     # 4. Explicitly limited to local development/testing environment when no JWT secret is configured:
     return AuthenticatedUser(
-        id="00000000-0000-0000-0000-000000000001",
+        id="default_tenant",
         email="auditor@netvigil.local",
         role="auditor",
         app_metadata={"provider": "local_dev"},

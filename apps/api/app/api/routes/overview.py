@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Query
 from sqlalchemy import func, select, desc, or_, case
 
-from app.api.dependencies import DatabaseDep
+from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.models.audit import Audit
 from app.models.configuration import Configuration
 from app.models.device import Device
@@ -29,9 +29,9 @@ router = APIRouter(prefix="/overview", tags=["Overview"])
 
 
 @router.get("/telemetry", summary="Get complete security telemetry and visual analytics dataset")
-async def get_system_telemetry(db: DatabaseDep) -> Dict[str, Any]:
+async def get_system_telemetry(db: DatabaseDep, current_user: CurrentUserDep) -> Dict[str, Any]:
     """
-    Returns complete real-time telemetry:
+    Returns complete real-time telemetry scoped strictly to authenticated user:
     - Time-series audit history trends
     - Findings by severity, framework, and vendor
     - Top affected assets
@@ -40,7 +40,7 @@ async def get_system_telemetry(db: DatabaseDep) -> Dict[str, Any]:
     - Remediation lifecycle analytics
     """
     try:
-        return await TelemetryAggregationService.get_complete_telemetry(db)
+        return await TelemetryAggregationService.get_complete_telemetry(db, user_id=current_user.id)
     except Exception as e:
         logger.error(f"Telemetry aggregation service error: {e}", exc_info=True)
         return JSONResponse(
@@ -56,10 +56,10 @@ async def get_system_telemetry(db: DatabaseDep) -> Dict[str, Any]:
 
 
 @router.get("/compliance-trends", summary="Get time-series compliance and risk trends")
-async def get_system_compliance_trends(db: DatabaseDep) -> Dict[str, Any]:
-    """Returns chronological audit history points with exact execution timestamps."""
+async def get_system_compliance_trends(db: DatabaseDep, current_user: CurrentUserDep) -> Dict[str, Any]:
+    """Returns chronological audit history points with exact execution timestamps for current user."""
     try:
-        return await TelemetryAggregationService.get_compliance_trends(db)
+        return await TelemetryAggregationService.get_compliance_trends(db, user_id=current_user.id)
     except Exception as e:
         logger.error(f"Compliance trends service error: {e}", exc_info=True)
         return JSONResponse(
@@ -75,10 +75,10 @@ async def get_system_compliance_trends(db: DatabaseDep) -> Dict[str, Any]:
 
 
 @router.get("/heatmap", summary="Get security posture heat map matrix")
-async def get_system_heatmap(db: DatabaseDep) -> Dict[str, Any]:
-    """Returns Asset x Severity and Asset x Framework matrix for all evaluated assets."""
+async def get_system_heatmap(db: DatabaseDep, current_user: CurrentUserDep) -> Dict[str, Any]:
+    """Returns Asset x Severity and Asset x Framework matrix for current user's assets."""
     try:
-        return await TelemetryAggregationService.get_heatmap_matrix(db)
+        return await TelemetryAggregationService.get_heatmap_matrix(db, user_id=current_user.id)
     except Exception as e:
         logger.error(f"Heat map service error: {e}", exc_info=True)
         return JSONResponse(
@@ -94,10 +94,10 @@ async def get_system_heatmap(db: DatabaseDep) -> Dict[str, Any]:
 
 
 @router.get("/topology", summary="Get fleet asset topology graph")
-async def get_system_fleet_topology(db: DatabaseDep) -> Dict[str, Any]:
-    """Returns real evaluated fleet devices and structural topology links."""
+async def get_system_fleet_topology(db: DatabaseDep, current_user: CurrentUserDep) -> Dict[str, Any]:
+    """Returns evaluated fleet devices and structural topology links for current user."""
     try:
-        return await TelemetryAggregationService.get_fleet_topology(db)
+        return await TelemetryAggregationService.get_fleet_topology(db, user_id=current_user.id)
     except Exception as e:
         logger.error(f"Fleet topology service error: {e}", exc_info=True)
         return JSONResponse(
@@ -115,15 +115,16 @@ async def get_system_fleet_topology(db: DatabaseDep) -> Dict[str, Any]:
 @router.get("/stats", summary="Get comprehensive system overview & posture metrics")
 async def get_system_overview_stats(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
-    """Provides aggregated metrics and posture score for the NetVigil command center."""
-    total_configs = (await db.execute(select(func.count(Configuration.id)))).scalar() or 0
-    total_devices = (await db.execute(select(func.count(Device.id)))).scalar() or 0
-    total_audits = (await db.execute(select(func.count(Audit.id)))).scalar() or 0
-    total_findings_lifetime = (await db.execute(select(func.count(Finding.id)))).scalar() or 0
+    """Provides aggregated metrics and posture score for the NetVigil command center, strictly isolated by user."""
+    total_configs = (await db.execute(select(func.count(Configuration.id)).where(Configuration.user_id == current_user.id))).scalar() or 0
+    total_devices = (await db.execute(select(func.count(Device.id)).where(Device.user_id == current_user.id))).scalar() or 0
+    total_audits = (await db.execute(select(func.count(Audit.id)).where(Audit.user_id == current_user.id))).scalar() or 0
+    total_findings_lifetime = (await db.execute(select(func.count(Finding.id)).where(Finding.user_id == current_user.id))).scalar() or 0
 
-    # Retrieve the latest audit for each unique configuration reliably across all DB engines
-    latest_audits = await get_latest_audits(db)
+    # Retrieve the latest audit for each unique configuration for the current user
+    latest_audits = await get_latest_audits(db, user_id=current_user.id)
     latest_audit_ids = [a.id for a in latest_audits if a.id]
 
     # Active Compliance Score (Fleet average of latest audits)
@@ -143,6 +144,7 @@ async def get_system_overview_stats(
                 func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "INFO"), 1), else_=0)).label("info"),
             )
             .where(Finding.audit_id.in_(latest_audit_ids))
+            .where(Finding.user_id == current_user.id)
         )
         f_res = (await db.execute(findings_stmt)).one()
         active_total_findings = f_res.total or 0
@@ -155,7 +157,7 @@ async def get_system_overview_stats(
         open_findings = crit_count + high_count + med_count + low_count + info_count
 
         # Active Risk Score (Fleet average across latest audits)
-        avg_risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id.in_(latest_audit_ids))
+        avg_risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id.in_(latest_audit_ids), RiskItem.user_id == current_user.id)
         avg_risk = (await db.execute(avg_risk_stmt)).scalar()
         risk_score = round(float(avg_risk), 1) if avg_risk is not None else 0.0
     else:
@@ -169,7 +171,7 @@ async def get_system_overview_stats(
         risk_score = 0.0
 
     # Vendor distribution
-    vendor_dist_stmt = select(Configuration.detected_vendor, func.count(Configuration.id)).group_by(
+    vendor_dist_stmt = select(Configuration.detected_vendor, func.count(Configuration.id)).where(Configuration.user_id == current_user.id).group_by(
         Configuration.detected_vendor
     )
     vendor_dist = (await db.execute(vendor_dist_stmt)).all()
@@ -177,7 +179,7 @@ async def get_system_overview_stats(
 
     # Framework scores aggregated across latest audits
     framework_scores = {"CIS": 0.0, "NIST": 0.0, "STIG": 0.0, "ISO": 0.0}
-    latest_audits_obj_stmt = select(Audit).order_by(desc(Audit.created_at)).limit(10)
+    latest_audits_obj_stmt = select(Audit).where(Audit.user_id == current_user.id).order_by(desc(Audit.created_at)).limit(10)
     audits_res = await db.execute(latest_audits_obj_stmt)
     recent_audits = list(audits_res.scalars().all())
 
@@ -230,13 +232,14 @@ async def get_system_overview_stats(
 @router.get("/activity", summary="Get real system activity log")
 async def get_system_activity(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     limit: int = Query(default=15, le=50),
 ) -> List[Dict[str, Any]]:
-    """Aggregates real recent audits, configuration uploads, training approvals, and remediation reviews."""
+    """Aggregates real recent audits, configuration uploads, training approvals, and remediation reviews for current user."""
     events: List[Dict[str, Any]] = []
 
     # 1. Recent Audits
-    audit_stmt = select(Audit).order_by(desc(Audit.created_at)).limit(limit)
+    audit_stmt = select(Audit).where(Audit.user_id == current_user.id).order_by(desc(Audit.created_at)).limit(limit)
     audit_res = await db.execute(audit_stmt)
     for a in audit_res.scalars().all():
         cfg = await db.get(Configuration, a.configuration_id) if a.configuration_id else None
@@ -253,7 +256,7 @@ async def get_system_activity(
         })
 
     # 2. Recent Configuration Ingestions
-    cfg_stmt = select(Configuration).order_by(desc(Configuration.created_at)).limit(limit)
+    cfg_stmt = select(Configuration).where(Configuration.user_id == current_user.id).order_by(desc(Configuration.created_at)).limit(limit)
     cfg_res = await db.execute(cfg_stmt)
     for c in cfg_res.scalars().all():
         events.append({
@@ -283,7 +286,7 @@ async def get_system_activity(
         })
 
     # 4. Recent Remediation Reviews
-    rem_stmt = select(RemediationProposal).where(RemediationProposal.is_reviewed == True).order_by(desc(RemediationProposal.updated_at)).limit(limit)
+    rem_stmt = select(RemediationProposal).where(RemediationProposal.user_id == current_user.id, RemediationProposal.is_reviewed == True).order_by(desc(RemediationProposal.updated_at)).limit(limit)
     rem_res = await db.execute(rem_stmt)
     for r in rem_res.scalars().all():
         events.append({
@@ -298,7 +301,7 @@ async def get_system_activity(
         })
 
     # 5. Recent Autonomous Agent Sessions
-    agent_sessions = await AgentMemoryManager.list_recent_sessions(limit=5)
+    agent_sessions = await AgentMemoryManager.list_recent_sessions(limit=5, user_id=current_user.id)
     for s in agent_sessions:
         if s.status == "WAITING_APPROVAL":
             actionable_cnt = len([p for p in s.proposals if not p.is_constrained])
@@ -356,7 +359,7 @@ from app.services.remediation.service import RemediationService
 
 
 @router.post("/demo/init", summary="Initialize or ensure canonical golden demo device (CORE-RTR-01)")
-async def init_golden_demo(db: DatabaseDep) -> Dict[str, Any]:
+async def init_golden_demo(db: DatabaseDep, current_user: CurrentUserDep) -> Dict[str, Any]:
     """
     Sets up the canonical golden demo session for live SIH presentations:
     1. Loads data/demo/golden/cisco-core-router.cfg
@@ -364,7 +367,7 @@ async def init_golden_demo(db: DatabaseDep) -> Dict[str, Any]:
     3. Runs compliance engine across CIS, NIST, STIG, ISO
     4. Computes prioritized risk intelligence and relationship graph
     5. Synthesizes allowlisted remediation diffs
-    6. Returns structured golden demo state
+    6. Returns structured golden demo state scoped to current user
     """
     t0 = time.perf_counter()
     current = Path(__file__).resolve()
@@ -386,6 +389,7 @@ async def init_golden_demo(db: DatabaseDep) -> Dict[str, Any]:
         filename="cisco-core-router.cfg",
         content_bytes=content_bytes,
         db=db,
+        user_id=current_user.id,
     )
     t_ingest_ms = round((time.perf_counter() - t_ingest_start) * 1000, 2)
 
@@ -415,17 +419,18 @@ async def init_golden_demo(db: DatabaseDep) -> Dict[str, Any]:
         configuration_id=config.id,
         frameworks=["CIS", "NIST", "STIG", "ISO"],
         db=db,
+        user_id=current_user.id,
     )
     t_audit_ms = round((time.perf_counter() - t_audit_start) * 1000, 2)
 
     # 4. Risk Intelligence
     t_risk_start = time.perf_counter()
-    risks = await RiskIntelligenceService.generate_audit_risks(audit.id, db)
+    risks = await RiskIntelligenceService.generate_audit_risks(audit.id, db, user_id=current_user.id)
     t_risk_ms = round((time.perf_counter() - t_risk_start) * 1000, 2)
 
     # 5. Remediation Proposals
     t_rem_start = time.perf_counter()
-    remediations = await RemediationService.generate_audit_remediations(audit.id, db)
+    remediations = await RemediationService.generate_audit_remediations(audit.id, db, user_id=current_user.id)
     t_rem_ms = round((time.perf_counter() - t_rem_start) * 1000, 2)
 
     total_pipeline_ms = round((time.perf_counter() - t0) * 1000, 2)
@@ -489,7 +494,7 @@ async def get_engine_diagnostics(db: DatabaseDep) -> Dict[str, Any]:
 
 
 @router.post("/demo/multi-vendor/init", summary="Execute and initialize multi-vendor demonstration across Cisco, Juniper, and Fortinet")
-async def init_multivendor_demo(db: DatabaseDep) -> Dict[str, Any]:
+async def init_multivendor_demo(db: DatabaseDep, current_user: CurrentUserDep) -> Dict[str, Any]:
     """
     Executes the real deterministic pipeline across Cisco IOS, Juniper JunOS, and Fortinet FortiOS:
     1. Ingests all 3 synthetic golden configurations
@@ -551,6 +556,7 @@ async def init_multivendor_demo(db: DatabaseDep) -> Dict[str, Any]:
             filename=spec["filename"],
             content_bytes=content_bytes,
             db=db,
+            user_id=current_user.id,
         )
         t_ingest_ms = round((time.perf_counter() - t_ingest_start) * 1000, 2)
 
@@ -580,17 +586,18 @@ async def init_multivendor_demo(db: DatabaseDep) -> Dict[str, Any]:
             configuration_id=config.id,
             frameworks=["CIS", "NIST", "STIG", "ISO"],
             db=db,
+            user_id=current_user.id,
         )
         t_audit_ms = round((time.perf_counter() - t_audit_start) * 1000, 2)
 
         # Risk Intelligence
         t_risk_start = time.perf_counter()
-        risks = await RiskIntelligenceService.generate_audit_risks(audit.id, db)
+        risks = await RiskIntelligenceService.generate_audit_risks(audit.id, db, user_id=current_user.id)
         t_risk_ms = round((time.perf_counter() - t_risk_start) * 1000, 2)
 
         # Remediation Proposals
         t_rem_start = time.perf_counter()
-        remediations = await RemediationService.generate_audit_remediations(audit.id, db)
+        remediations = await RemediationService.generate_audit_remediations(audit.id, db, user_id=current_user.id)
         t_rem_ms = round((time.perf_counter() - t_rem_start) * 1000, 2)
 
         total_ms = round((time.perf_counter() - t0) * 1000, 2)
@@ -820,16 +827,18 @@ async def global_unified_search(
     context_audit_id: Optional[str] = Query(None, description="Optional active audit ID for prioritized context"),
     context_config_id: Optional[str] = Query(None, description="Optional active configuration ID"),
     db: DatabaseDep = None,
+    current_user: CurrentUserDep = None,
 ) -> Dict[str, Any]:
     """
     High-performance, multi-category unified entity search engine:
     - Configurations, Audits, Findings (Line-level evidence), Governance Controls,
       Risks, Allowlisted Remediations, Reports, and Navigation Actions.
-    - Respects tenant isolation and automatically redacts sensitive data.
+    - Strictly scoped to the authenticated tenant user.
     """
     term = q.strip()
     term_pattern = f"%{term}%"
     term_lower = term.lower()
+    uid = current_user.id if current_user else "default_tenant"
 
     # 1. Navigation & System Operations
     static_nav = [
@@ -855,10 +864,11 @@ async def global_unified_search(
         if term_lower in item["title"].lower() or term_lower in item["subtitle"].lower() or term_lower in item["badge"].lower()
     ]
 
-    # 2. Configurations Search
+    # 2. Configurations Search (Tenant-scoped)
     cfg_stmt = (
         select(Configuration)
         .where(
+            Configuration.user_id == uid,
             or_(
                 Configuration.original_filename.ilike(term_pattern),
                 Configuration.detected_vendor.ilike(term_pattern),
@@ -883,10 +893,11 @@ async def global_unified_search(
         for c in configs
     ]
 
-    # 3. Audits Search
+    # 3. Audits Search (Tenant-scoped)
     audit_stmt = (
         select(Audit)
         .where(
+            Audit.user_id == uid,
             or_(
                 Audit.id.ilike(term_pattern),
                 Audit.configuration_id.ilike(term_pattern),
@@ -910,10 +921,11 @@ async def global_unified_search(
         for a in audits
     ]
 
-    # 4. Findings Search
+    # 4. Findings Search (Tenant-scoped)
     finding_stmt = (
         select(Finding)
         .where(
+            Finding.user_id == uid,
             or_(
                 Finding.control_id.ilike(term_pattern),
                 Finding.title.ilike(term_pattern),
@@ -956,7 +968,6 @@ async def global_unified_search(
     all_rules = compliance_catalog.get_all_rules()
     matched_rules = []
     for r in all_rules:
-        # Check rule id, title, description, category, and mapped framework control IDs
         matches = (
             term_lower in r.id.lower()
             or term_lower in r.title.lower()
@@ -980,10 +991,11 @@ async def global_unified_search(
             if len(matched_rules) >= 10:
                 break
 
-    # 6. Risks Search
+    # 6. Risks Search (Tenant-scoped)
     risk_stmt = (
         select(RiskItem)
         .where(
+            RiskItem.user_id == uid,
             or_(
                 RiskItem.title.ilike(term_pattern),
                 RiskItem.description.ilike(term_pattern),
@@ -1030,9 +1042,11 @@ async def global_unified_search(
             if len(matched_remediations) >= 8:
                 break
 
-    # 8. Reports Search
+    # 8. Reports Search (Tenant-scoped)
     matched_reports = []
     for rep in GENERATED_REPORTS:
+        if rep.get("user_id") and rep.get("user_id") != uid:
+            continue
         if (
             term_lower in rep.get("title", "").lower()
             or term_lower in rep.get("target_device", "").lower()

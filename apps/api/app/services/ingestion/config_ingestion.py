@@ -25,15 +25,16 @@ class ConfigurationIngestionService:
         filename: str,
         content_bytes: bytes,
         db: AsyncSession,
+        user_id: str = "default_tenant",
     ) -> Configuration:
         """
         Processes an uploaded raw network configuration file:
         1. Validates file metadata and rejects executable/binary content.
         2. Computes SHA-256 cryptographic hash.
-        3. Checks for duplicate hash (or records new upload).
+        3. Checks for duplicate hash for the specific authenticated user.
         4. Saves sanitized file safely into storage path with traversal protection.
         5. Executes deterministic vendor detection.
-        6. Persists Configuration record in database idempotently.
+        6. Persists Configuration record in database with tenant isolation.
         """
         # Step 1: Validate file name, size, and content safety
         sanitized_filename, ext = validate_file_metadata(filename, len(content_bytes))
@@ -60,9 +61,9 @@ class ConfigurationIngestionService:
         # Step 2: Calculate SHA-256 digest
         content_hash = compute_sha256(content_bytes)
 
-        # Step 3: Determine storage path (named by hash + extension to avoid collision / path traversal)
+        # Step 3: Determine storage path (named by user_id + hash + extension to avoid collision)
         storage_dir = settings.resolved_storage_path
-        storage_file_name = f"{content_hash[:16]}_{sanitized_filename}"
+        storage_file_name = f"{user_id[:8]}_{content_hash[:16]}_{sanitized_filename}"
         target_path = (storage_dir / storage_file_name).resolve()
 
         # Strict Storage Root Containment Check
@@ -86,18 +87,18 @@ class ConfigurationIngestionService:
         # Step 4: Execute Deterministic Vendor Detection
         detection_result = VendorDetector.detect(raw_text, filename=sanitized_filename)
 
-        # Step 5: Check if existing configuration with identical hash exists
-        stmt = select(Configuration).where(Configuration.hash == content_hash)
+        # Step 5: Check if existing configuration for this user with identical hash exists
+        stmt = select(Configuration).where(Configuration.user_id == user_id, Configuration.hash == content_hash)
         result = await db.execute(stmt)
         existing_config = result.scalars().first()
 
         if existing_config:
-            # Update metadata if needed, but return existing config
-            logger.info(f"Configuration with hash {content_hash} already exists (ID: {existing_config.id}).")
+            logger.info(f"User {user_id} configuration with hash {content_hash} already exists (ID: {existing_config.id}).")
             return existing_config
 
-        # Step 6: Create database record with concurrent insertion protection
+        # Step 6: Create database record with user_id tenant isolation
         config_record = Configuration(
+            user_id=user_id,
             filename=storage_file_name,
             original_filename=sanitized_filename,
             storage_path=str(target_path),
@@ -120,9 +121,8 @@ class ConfigurationIngestionService:
             await db.commit()
             await db.refresh(config_record)
         except IntegrityError:
-            # Handle race condition in concurrent identical upload
             await db.rollback()
-            stmt = select(Configuration).where(Configuration.hash == content_hash)
+            stmt = select(Configuration).where(Configuration.user_id == user_id, Configuration.hash == content_hash)
             result = await db.execute(stmt)
             existing_after_race = result.scalars().first()
             if existing_after_race:
@@ -130,6 +130,6 @@ class ConfigurationIngestionService:
             raise
 
         logger.info(
-            f"Ingested configuration {config_record.id} ({sanitized_filename}) -> Vendor: {detection_result.vendor} (Confidence: {detection_result.confidence})"
+            f"Ingested configuration {config_record.id} ({sanitized_filename}) for user {user_id} -> Vendor: {detection_result.vendor} (Confidence: {detection_result.confidence})"
         )
         return config_record

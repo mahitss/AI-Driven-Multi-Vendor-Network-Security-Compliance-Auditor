@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, Query
 from sqlalchemy import select, desc, func
-from app.api.dependencies import DatabaseDep
+from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.models.device import Device
 from app.models.configuration import Configuration
 from app.models.audit import Audit
@@ -20,11 +20,12 @@ router = APIRouter(prefix="/devices", tags=["Devices"])
 @router.get("", summary="List all monitored network devices")
 async def list_devices(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     vendor: Optional[str] = Query(default=None),
 ) -> List[Dict[str, Any]]:
-    """Lists devices with latest compliance score, risk posture, and audit timestamp."""
-    # Fetch configurations
-    cfg_stmt = select(Configuration).order_by(desc(Configuration.created_at))
+    """Lists devices for current user with latest compliance score, risk posture, and audit timestamp."""
+    # Fetch configurations scoped to user
+    cfg_stmt = select(Configuration).where(Configuration.user_id == current_user.id).order_by(desc(Configuration.created_at))
     if vendor and vendor != "ALL":
         cfg_stmt = cfg_stmt.where(Configuration.detected_vendor == vendor.lower())
     cfg_res = await db.execute(cfg_stmt)
@@ -48,13 +49,13 @@ async def list_devices(
         seen_hostnames.add(hostname)
 
         # Get latest audit for this config
-        audit_stmt = select(Audit).where(Audit.configuration_id == c.id).order_by(desc(Audit.created_at))
+        audit_stmt = select(Audit).where(Audit.configuration_id == c.id, Audit.user_id == current_user.id).order_by(desc(Audit.created_at))
         audit = (await db.execute(audit_stmt)).scalars().first()
 
         # Get risk items count
         risk_score = 0.0
         if audit:
-            risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id == audit.id)
+            risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id == audit.id, RiskItem.user_id == current_user.id)
             avg_r = (await db.execute(risk_stmt)).scalar()
             if avg_r is not None:
                 risk_score = round(float(avg_r), 1)
@@ -92,9 +93,11 @@ async def list_devices(
 async def get_device_detail(
     device_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
-    """Retrieves full device metadata, latest configuration profile, open findings, and risk posture."""
-    config = await db.get(Configuration, device_id)
+    """Retrieves full device metadata, latest configuration profile, open findings, and risk posture for current user."""
+    stmt = select(Configuration).where(Configuration.id == device_id, Configuration.user_id == current_user.id)
+    config = (await db.execute(stmt)).scalars().first()
     if not config:
         raise NotFoundError(message=f"Device / Configuration {device_id} not found.")
 
@@ -107,13 +110,13 @@ async def get_device_detail(
     ) or config.original_filename
 
     # Latest Audit
-    audit_stmt = select(Audit).where(Audit.configuration_id == config.id).order_by(desc(Audit.created_at))
+    audit_stmt = select(Audit).where(Audit.configuration_id == config.id, Audit.user_id == current_user.id).order_by(desc(Audit.created_at))
     audit = (await db.execute(audit_stmt)).scalars().first()
 
     # Findings
     findings_list = []
     if audit:
-        findings_stmt = select(Finding).where(Finding.audit_id == audit.id).order_by(Finding.severity)
+        findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id).order_by(Finding.severity)
         f_res = await db.execute(findings_stmt)
         findings_list = list(f_res.scalars().all())
 
@@ -146,9 +149,11 @@ async def get_device_detail(
 async def get_device_timeline(
     device_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> List[Dict[str, Any]]:
-    """Retrieves chronological security event timeline for a device."""
-    config = await db.get(Configuration, device_id)
+    """Retrieves chronological security event timeline for a device owned by current user."""
+    stmt = select(Configuration).where(Configuration.id == device_id, Configuration.user_id == current_user.id)
+    config = (await db.execute(stmt)).scalars().first()
     if not config:
         raise NotFoundError(message=f"Device {device_id} not found.")
 
@@ -164,7 +169,7 @@ async def get_device_timeline(
     })
 
     # Audits
-    audits_stmt = select(Audit).where(Audit.configuration_id == config.id).order_by(desc(Audit.created_at))
+    audits_stmt = select(Audit).where(Audit.configuration_id == config.id, Audit.user_id == current_user.id).order_by(desc(Audit.created_at))
     audits = (await db.execute(audits_stmt)).scalars().all()
     for a in audits:
         timeline.append({

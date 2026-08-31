@@ -12,6 +12,7 @@ from app.models.base import Base, TimestampMixin, UUIDMixin, utc_now
 class Audit(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "audits"
 
+    user_id: Mapped[str] = mapped_column(String(64), default="default_tenant", index=True, nullable=False)
     device_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("devices.id", ondelete="SET NULL"), nullable=True, index=True
     )

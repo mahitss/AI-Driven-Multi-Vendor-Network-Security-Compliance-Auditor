@@ -131,6 +131,7 @@ class FinalExecutiveReport(BaseModel):
 class AgentSessionState(BaseModel):
     """Complete persistent state of an autonomous agent execution session."""
     session_id: str
+    user_id: Optional[str] = None
     objective: str
     status: str  # "INITIALIZING", "RUNNING", "WAITING_APPROVAL", "COMPLETED", "REJECTED", "FAILED", "INVALID_OBJECTIVE", "NEEDS_CLARIFICATION"
     intent: Optional[str] = None  # "AUDIT_AND_REMEDIATION", "AUDIT_ONLY", "REMEDIATION", "INFORMATION", "AMBIGUOUS", "INVALID"

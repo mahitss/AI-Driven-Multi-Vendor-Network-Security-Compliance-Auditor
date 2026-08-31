@@ -4,13 +4,14 @@ Problem Statement: SIH26155 (NTRO)
 
 Generates structured REMOVE, ADD, and UNCHANGED configuration diff previews.
 """
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 def generate_remediation_diff(
-    current_evidence: str,
-    remediation_commands: str,
-    vendor: str,
+    current_evidence: str = "",
+    remediation_commands: str = "",
+    vendor: str = "unknown",
+    original_config: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Constructs a visual configuration diff comparing current non-compliant state with proposed fix.

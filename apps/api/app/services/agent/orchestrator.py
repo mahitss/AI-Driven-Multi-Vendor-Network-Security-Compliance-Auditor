@@ -47,6 +47,7 @@ class AutonomousSecurityEngineer:
         cls,
         request: AgentObjectiveRequest,
         db: AsyncSession,
+        user_id: Optional[str] = None,
     ) -> AgentSessionState:
         """
         Starts an autonomous security engineering workflow.
@@ -61,6 +62,7 @@ class AutonomousSecurityEngineer:
 
         session = AgentSessionState(
             session_id=session_id,
+            user_id=user_id,
             objective=request.objective,
             status="RUNNING",
             intent=classification.intent,
@@ -110,23 +112,25 @@ class AutonomousSecurityEngineer:
                 event_type="INFORMATION_PROVIDED",
                 tool=None,
                 details={
-                    "query": request.objective,
-                    "response": classification.information_response,
+                    "objective": request.objective,
+                    "intent": "INFORMATION",
+                    "reasoning": classification.reasoning,
+                    "suggested_prompts": classification.suggested_prompts,
                 },
-                summary="Provided structured cybersecurity compliance guidance. No network operations required.",
+                summary=classification.information_response or "Regulatory information retrieved successfully.",
             ))
             await AgentMemoryManager.save_session(session)
             return session
 
         # -------------------------------------------------------------
-        # STEP 1: Valid Objective Understanding & Constraint Extraction
+        # STEP 1: Understanding & Objective Parsing
         # -------------------------------------------------------------
         constraint_names = [c.subsystem.upper() for c in constraints]
         c_desc = f"Identified {len(constraints)} operational constraint(s): {', '.join(constraint_names)}" if constraints else "No negative user constraints specified. Full baseline hardening enabled."
         session.timeline.append(TimelineEvent(
             step_id=f"step_{uuid.uuid4().hex[:6]}",
             step_number=1,
-            title="Understanding Objective & Extracting Constraints",
+            title="Understanding Operator Objective & Constraints",
             phase="UNDERSTANDING",
             status="COMPLETED",
             event_type="OBJECTIVE_PARSED",
@@ -147,7 +151,7 @@ class AutonomousSecurityEngineer:
         # -------------------------------------------------------------
         # STEP 2: Multi-Vendor Configuration Discovery
         # -------------------------------------------------------------
-        discovered = await AgentToolLayer.discover_configurations(db, target_filenames=request.target_configurations)
+        discovered = await AgentToolLayer.discover_configurations(db, target_filenames=request.target_configurations, user_id=user_id)
         session.discovered_configs = discovered
 
         session.timeline.append(TimelineEvent(

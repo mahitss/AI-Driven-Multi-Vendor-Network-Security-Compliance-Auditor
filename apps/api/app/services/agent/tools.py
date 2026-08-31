@@ -47,11 +47,15 @@ class AgentToolLayer:
         cls,
         db: AsyncSession,
         target_filenames: Optional[List[str]] = None,
+        user_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Tool 1: Discovers and loads available network device configurations.
+        Tool 1: Discovers and loads available network device configurations for tenant.
         """
-        stmt = select(Configuration).order_by(desc(Configuration.uploaded_at)).limit(10)
+        stmt = select(Configuration)
+        if user_id:
+            stmt = stmt.where(Configuration.user_id == user_id)
+        stmt = stmt.order_by(desc(Configuration.uploaded_at)).limit(10)
         res = await db.execute(stmt)
         configs = list(res.scalars().all())
 

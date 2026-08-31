@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import logger
 from app.models.configuration import Configuration
+from app.core.auth import AuthenticatedUser
 from app.models.device import Device
 from app.models.audit import Audit
 from app.models.finding import Finding
@@ -172,6 +173,7 @@ async def seed_database_if_empty(db: AsyncSession) -> None:
                         notes="Automated executive summary evaluating CIS, NIST, DISA STIG, and ISO controls.",
                     ),
                     db=db,
+                    current_user=AuthenticatedUser(id="default_tenant", email="auditor@netvigil.local"),
                 )
                 logger.info("Successfully generated initial executive compliance report.")
             except Exception as e:

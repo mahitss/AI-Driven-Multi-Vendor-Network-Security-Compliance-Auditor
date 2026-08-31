@@ -12,6 +12,7 @@ from app.models.base import Base, TimestampMixin, UUIDMixin, utc_now
 class Configuration(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "configurations"
 
+    user_id: Mapped[str] = mapped_column(String(64), default="default_tenant", index=True, nullable=False)
     device_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("devices.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -19,8 +20,7 @@ class Configuration(Base, UUIDMixin, TimestampMixin):
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     storage_path: Mapped[str] = mapped_column(String(512), nullable=False)
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
-    hash: Mapped[str] = mapped_column(String(64), index=True, unique=True, nullable=False)  # SHA-256
-
+    hash: Mapped[str] = mapped_column(String(64), index=True, nullable=False)  # SHA-256 (tenant-scoped)
     raw_content: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Vendor Detection Metadata

@@ -37,6 +37,8 @@ class RemediationProposalResponse(BaseModel):
 
 class ReviewRemediationRequest(BaseModel):
     reviewer_email: Optional[str] = "admin@ntro.gov.in"
+    reviewed_by: Optional[str] = None
+    status: Optional[str] = "REVIEWED"
     notes: Optional[str] = "Verified and approved by network security officer"
 
 

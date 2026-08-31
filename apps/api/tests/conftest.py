@@ -16,6 +16,8 @@ from app.models.base import Base
 
 # Ensure fast deterministic test execution by default
 settings.OPENROUTER_API_KEY = ""
+settings.SUPABASE_JWT_SECRET = ""
+settings.ENVIRONMENT = "test"
 
 # Use in-memory SQLite for high-speed test isolation
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"

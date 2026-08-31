@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, Path, status
 from pydantic import BaseModel, Field
 
-from app.api.dependencies import DatabaseDep
+from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.errors import ResourceNotFoundError, ValidationError
 from app.services.agent.models import (
     AgentObjectiveRequest,
@@ -37,11 +37,12 @@ class ApprovalSubmission(BaseModel):
 async def start_agent_workflow(
     payload: AgentObjectiveRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AgentSessionState:
     """
     Step 1-8 of Autonomous Engineering Lifecycle:
     - Parses operator objective & negative constraints (e.g. 'do not modify SSH')
-    - Discovers fleet device configurations (Cisco, Juniper, Fortinet)
+    - Discovers fleet device configurations for current user
     - Runs deterministic AST parsing & multi-framework compliance checks
     - Prioritizes risk (P0/P1) and prepares allowlisted remediation plan
     - Pauses at Human Approval Gate
@@ -52,12 +53,13 @@ async def start_agent_workflow(
     session = await AutonomousSecurityEngineer.start_autonomous_run(
         request=payload,
         db=db,
+        user_id=current_user.id,
     )
     return session
 
 
-async def _get_session_by_id(target_id: str) -> AgentSessionState:
-    session = await AgentMemoryManager.get_session(target_id)
+async def _get_session_by_id(target_id: str, user_id: Optional[str] = None) -> AgentSessionState:
+    session = await AgentMemoryManager.get_session(target_id, user_id=user_id)
     if not session:
         raise ResourceNotFoundError(resource="AgentSession", identifier=target_id)
     return session
@@ -70,9 +72,10 @@ async def _get_session_by_id(target_id: str) -> AgentSessionState:
 )
 async def get_agent_session_state(
     session_id: str = Path(..., description="Unique agent session ID"),
+    current_user: CurrentUserDep = None,
 ) -> AgentSessionState:
-    """Fetches session timeline, discovered devices, and pending approval state."""
-    return await _get_session_by_id(session_id)
+    """Fetches session timeline, discovered devices, and pending approval state for current user."""
+    return await _get_session_by_id(session_id, user_id=current_user.id if current_user else None)
 
 
 @router.get(
@@ -82,9 +85,10 @@ async def get_agent_session_state(
 )
 async def get_agent_execution_state(
     execution_id: str = Path(..., description="Unique agent execution ID"),
+    current_user: CurrentUserDep = None,
 ) -> AgentSessionState:
-    """Fetches execution timeline and state by execution ID alias."""
-    return await _get_session_by_id(execution_id)
+    """Fetches execution timeline and state by execution ID alias for current user."""
+    return await _get_session_by_id(execution_id, user_id=current_user.id if current_user else None)
 
 
 @router.post(
@@ -96,6 +100,7 @@ async def submit_remediation_approval(
     session_id: str,
     submission: ApprovalSubmission,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AgentSessionState:
     """
     Step 9-12 of Autonomous Engineering Lifecycle:
@@ -105,7 +110,7 @@ async def submit_remediation_approval(
     - Proves constraints (e.g. SSH untouched) were preserved
     - Generates final executive report
     """
-    session = await AgentMemoryManager.get_session(session_id)
+    session = await AgentMemoryManager.get_session(session_id, user_id=current_user.id)
     if not session:
         raise ResourceNotFoundError(resource="AgentSession", identifier=session_id)
 
@@ -125,9 +130,10 @@ async def submit_remediation_approval(
 )
 async def get_agent_final_report(
     session_id: str,
+    current_user: CurrentUserDep,
 ) -> FinalExecutiveReport:
-    """Retrieves verified before/after audit delta and executive report."""
-    session = await AgentMemoryManager.get_session(session_id)
+    """Retrieves verified before/after audit delta and executive report for current user."""
+    session = await AgentMemoryManager.get_session(session_id, user_id=current_user.id)
     if not session:
         raise ResourceNotFoundError(resource="AgentSession", identifier=session_id)
     if not session.final_report:
@@ -141,9 +147,10 @@ async def get_agent_final_report(
 )
 async def list_agent_configurations(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> List[Dict[str, Any]]:
-    """Lists device configurations stored in inventory."""
-    return await AgentToolLayer.discover_configurations(db)
+    """Lists device configurations stored in inventory for current user."""
+    return await AgentToolLayer.discover_configurations(db, user_id=current_user.id)
 
 
 @router.get(
@@ -151,9 +158,9 @@ async def list_agent_configurations(
     response_model=List[AgentSessionState],
     summary="List recent autonomous agent sessions",
 )
-async def list_recent_agent_sessions() -> List[AgentSessionState]:
-    """Lists previous agent execution sessions."""
-    return await AgentMemoryManager.list_recent_sessions(limit=10)
+async def list_recent_agent_sessions(current_user: CurrentUserDep) -> List[AgentSessionState]:
+    """Lists previous agent execution sessions for current user."""
+    return await AgentMemoryManager.list_recent_sessions(limit=10, user_id=current_user.id)
 
 
 @router.post(
@@ -163,12 +170,16 @@ async def list_recent_agent_sessions() -> List[AgentSessionState]:
 async def approve_individual_remediation(
     proposal_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
     """Approves an individual remediation proposal and applies patch."""
     match = await AgentMemoryManager.find_proposal(proposal_id)
     if not match:
         raise ResourceNotFoundError(resource="RemediationProposal", identifier=proposal_id)
     session, proposal = match
+
+    if session.user_id and session.user_id != current_user.id:
+        raise ResourceNotFoundError(resource="RemediationProposal", identifier=proposal_id)
 
     if proposal.is_constrained:
         return {
@@ -200,12 +211,16 @@ async def approve_individual_remediation(
 )
 async def reject_individual_remediation(
     proposal_id: str,
+    current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
     """Rejects an individual remediation proposal."""
     match = await AgentMemoryManager.find_proposal(proposal_id)
     if not match:
         raise ResourceNotFoundError(resource="RemediationProposal", identifier=proposal_id)
     session, proposal = match
+
+    if session.user_id and session.user_id != current_user.id:
+        raise ResourceNotFoundError(resource="RemediationProposal", identifier=proposal_id)
 
     proposal.approval_status = "REJECTED"
     await AgentMemoryManager.save_session(session)

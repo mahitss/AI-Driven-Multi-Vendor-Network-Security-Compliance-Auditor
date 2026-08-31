@@ -15,6 +15,7 @@ from app.models.base import Base, TimestampMixin, UUIDMixin, utc_now
 class RemediationProposal(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "remediation_proposals"
 
+    user_id: Mapped[str] = mapped_column(String(64), default="default_tenant", index=True, nullable=False)
     audit_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("audits.id", ondelete="CASCADE"), nullable=False, index=True
     )

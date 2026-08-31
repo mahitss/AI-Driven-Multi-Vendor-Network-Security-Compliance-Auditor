@@ -28,13 +28,16 @@ class RemediationService:
         audit_id: str,
         db: AsyncSession,
         force_regenerate: bool = False,
+        user_id: Optional[str] = None,
     ) -> List[RemediationProposal]:
         """
-        Generates vendor-specific remediation proposals for all failed findings of an audit.
+        Generates vendor-specific remediation proposals for all failed findings of an audit with tenant isolation.
         """
         audit = await db.get(Audit, audit_id)
         if not audit:
             raise NotFoundError(message=f"Audit {audit_id} not found.")
+
+        effective_user_id = user_id or getattr(audit, "user_id", "default_tenant") or "default_tenant"
 
         # Check existing
         if not force_regenerate:
@@ -89,21 +92,11 @@ class RemediationService:
                     normalized_prop = "authentication.aaa_enabled"
                 elif "http" in t_lower:
                     normalized_prop = "remote_access.http_server_enabled"
-                elif "syslog" in t_lower or "logging" in t_lower:
-                    normalized_prop = "logging.remote_logging_enabled"
-                elif "ntp" in t_lower:
-                    normalized_prop = "time_sync.ntp_enabled"
-                elif "finger" in t_lower:
-                    normalized_prop = "services.finger_disabled"
-                elif "proxy-arp" in t_lower or "proxy arp" in t_lower:
-                    normalized_prop = "services.proxy_arp_disabled"
-                elif "bpdu" in t_lower or "spanning" in t_lower:
-                    normalized_prop = "network_security.spanning_tree_bpdu_guard_enabled"
                 else:
-                    normalized_prop = "unknown_control"
+                    normalized_prop = f"generic.{f.control_id}"
 
-            # Avoid duplicate proposals for the same normalized control in an audit
-            if normalized_prop in processed_controls and normalized_prop != "unknown_control":
+            # Deduplicate by normalized control for the same audit
+            if normalized_prop in processed_controls:
                 continue
             processed_controls.add(normalized_prop)
 
@@ -111,12 +104,13 @@ class RemediationService:
 
             if template:
                 diff = generate_remediation_diff(
-                    current_evidence=f.evidence or f.title,
+                    original_config=cfg.raw_content if cfg else "",
                     remediation_commands=template["commands"],
                     vendor=vendor,
                 )
 
                 proposal = RemediationProposal(
+                    user_id=effective_user_id,
                     audit_id=audit_id,
                     finding_id=f.id,
                     vendor=vendor,
@@ -138,6 +132,7 @@ class RemediationService:
             else:
                 # Safe unsupported handling
                 proposal = RemediationProposal(
+                    user_id=effective_user_id,
                     audit_id=audit_id,
                     finding_id=f.id,
                     vendor=vendor,
@@ -173,9 +168,12 @@ class RemediationService:
         db: AsyncSession,
         vendor: Optional[str] = None,
         status: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> List[RemediationProposal]:
-        """Retrieves remediation proposals for an audit."""
+        """Retrieves remediation proposals for an audit with tenant isolation."""
         stmt = select(RemediationProposal).where(RemediationProposal.audit_id == audit_id)
+        if user_id:
+            stmt = stmt.where(RemediationProposal.user_id == user_id)
 
         if vendor and vendor != "ALL":
             stmt = stmt.where(RemediationProposal.vendor == vendor.lower())
@@ -187,7 +185,7 @@ class RemediationService:
         props = list(res.scalars().all())
 
         if not props and not (vendor or status):
-            props = await cls.generate_audit_remediations(audit_id, db)
+            props = await cls.generate_audit_remediations(audit_id, db, user_id=user_id)
 
         return props
 
@@ -202,8 +200,11 @@ class RemediationService:
     async def review_remediation(
         cls,
         remediation_id: str,
-        reviewer_email: str,
         db: AsyncSession,
+        reviewer_email: Optional[str] = None,
+        reviewed_by: Optional[str] = None,
+        status: Optional[str] = "REVIEWED",
+        notes: Optional[str] = None,
     ) -> RemediationProposal:
         """Marks a remediation proposal as reviewed by a security administrator."""
         prop = await db.get(RemediationProposal, remediation_id)
@@ -211,8 +212,8 @@ class RemediationService:
             raise NotFoundError(message=f"Remediation proposal {remediation_id} not found.")
 
         prop.is_reviewed = True
-        prop.status = "REVIEWED"
-        prop.reviewed_by = reviewer_email or "admin@ntro.gov.in"
+        prop.status = status or "REVIEWED"
+        prop.reviewed_by = reviewed_by or reviewer_email or "admin@ntro.gov.in"
         prop.reviewed_at = utc_now()
 
         await db.commit()
@@ -220,18 +221,22 @@ class RemediationService:
         return prop
 
     @classmethod
-    async def get_remediation_summary_stats(cls, db: AsyncSession) -> Dict[str, Any]:
-        """Calculates global remediation KPI statistics."""
+    async def get_remediation_summary_stats(cls, db: AsyncSession, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Calculates global remediation KPI statistics with tenant isolation."""
         total_stmt = select(func.count(RemediationProposal.id))
-        total_count = (await db.execute(total_stmt)).scalar() or 0
-
         available_stmt = select(func.count(RemediationProposal.id)).where(RemediationProposal.status == "AVAILABLE")
-        available_count = (await db.execute(available_stmt)).scalar() or 0
-
         reviewed_stmt = select(func.count(RemediationProposal.id)).where(RemediationProposal.status == "REVIEWED")
-        reviewed_count = (await db.execute(reviewed_stmt)).scalar() or 0
-
         not_avail_stmt = select(func.count(RemediationProposal.id)).where(RemediationProposal.status == "NOT_AVAILABLE")
+
+        if user_id:
+            total_stmt = total_stmt.where(RemediationProposal.user_id == user_id)
+            available_stmt = available_stmt.where(RemediationProposal.user_id == user_id)
+            reviewed_stmt = reviewed_stmt.where(RemediationProposal.user_id == user_id)
+            not_avail_stmt = not_avail_stmt.where(RemediationProposal.user_id == user_id)
+
+        total_count = (await db.execute(total_stmt)).scalar() or 0
+        available_count = (await db.execute(available_stmt)).scalar() or 0
+        reviewed_count = (await db.execute(reviewed_stmt)).scalar() or 0
         not_avail_count = (await db.execute(not_avail_stmt)).scalar() or 0
 
         return {

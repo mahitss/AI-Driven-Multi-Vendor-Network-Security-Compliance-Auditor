@@ -6,7 +6,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.dependencies import DatabaseDep
+from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.errors import ResourceNotFoundError
 from app.models.audit import Audit
 from app.models.configuration import Configuration
@@ -39,19 +39,26 @@ router = APIRouter(prefix="/audits", tags=["Compliance Audits"])
 async def create_audit(
     payload: CreateAuditRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AuditSummaryResponse:
     """
-    Executes a deterministic compliance evaluation:
-    - Loads or extracts normalized security profile
+    Executes a deterministic compliance evaluation scoped to authenticated user:
+    - Verifies configuration ownership
     - Evaluates rules across CIS, NIST, STIG, and ISO frameworks
     - Calculates reproducible compliance scores
-    - Stores structured evidence findings
+    - Stores structured evidence findings under user_id
     - Returns audit executive summary
     """
+    cfg_stmt = select(Configuration).where(Configuration.id == payload.configuration_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(cfg_stmt)).scalars().first()
+    if not cfg:
+        raise ResourceNotFoundError(resource="Configuration", identifier=payload.configuration_id)
+
     audit_rec, summary, _ = await ComplianceAuditService.run_audit(
         configuration_id=payload.configuration_id,
         frameworks=payload.frameworks,
         db=db,
+        user_id=current_user.id,
     )
 
     framework_scores = {fw: score_obj.score for fw, score_obj in summary.framework_scores.items()}
@@ -81,12 +88,19 @@ async def create_audit(
 )
 async def list_audits(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     configuration_id: Optional[str] = Query(None, description="Filter by configuration ID"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ) -> List[AuditResponse]:
-    """Retrieve audit history sessions ordered by creation date."""
-    query = select(Audit).order_by(desc(Audit.created_at)).offset(offset).limit(limit)
+    """Retrieve audit history sessions ordered by creation date for current user."""
+    query = (
+        select(Audit)
+        .where(Audit.user_id == current_user.id)
+        .order_by(desc(Audit.created_at))
+        .offset(offset)
+        .limit(limit)
+    )
 
     if configuration_id:
         query = query.where(Audit.configuration_id == configuration_id)
@@ -103,6 +117,7 @@ async def list_audits(
 )
 async def list_all_findings(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     framework: Optional[str] = Query(None, description="Filter by framework (CIS, NIST, STIG, ISO)"),
     severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL, HIGH, MEDIUM, LOW)"),
     status_filter: Optional[str] = Query(None, alias="status", description="Filter by status (PASS, FAIL, UNKNOWN)"),
@@ -112,7 +127,7 @@ async def list_all_findings(
     limit: int = Query(500, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ) -> List[FindingResponse]:
-    """Retrieve findings across audits with multi-dimensional filtering and active posture scoping."""
+    """Retrieve findings across audits with multi-dimensional filtering and active posture scoping for current user."""
     query = (
         select(
             Finding,
@@ -122,12 +137,13 @@ async def list_all_findings(
         )
         .join(Audit, Finding.audit_id == Audit.id)
         .outerjoin(Configuration, Audit.configuration_id == Configuration.id)
+        .where(Finding.user_id == current_user.id)
     )
 
     if audit_id and audit_id.upper() != "ALL":
         query = query.where(Finding.audit_id == audit_id)
     elif latest_only:
-        latest_audit_ids = await get_latest_audit_ids(db)
+        latest_audit_ids = await get_latest_audit_ids(db, user_id=current_user.id)
         if not latest_audit_ids:
             return []
         query = query.where(Finding.audit_id.in_(latest_audit_ids))
@@ -164,6 +180,7 @@ async def compare_audits(
     before_id: str = Query(..., description="Baseline audit ID (before remediation)"),
     after_id: str = Query(..., description="Remediated audit ID (after remediation)"),
     db: DatabaseDep = None,
+    current_user: CurrentUserDep = None,
 ) -> AuditComparisonResponse:
     """
     Security Time Machine v2.0 Delta Engine:
@@ -171,6 +188,16 @@ async def compare_audits(
     - Produces line-level AST diff with finding annotations
     - Reconstructs security evolution timeline
     """
+    # Verify both audits belong to the current user
+    b_stmt = select(Audit).where(Audit.id == before_id, Audit.user_id == current_user.id)
+    a_stmt = select(Audit).where(Audit.id == after_id, Audit.user_id == current_user.id)
+    b_audit = (await db.execute(b_stmt)).scalars().first()
+    a_audit = (await db.execute(a_stmt)).scalars().first()
+    if not b_audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=before_id)
+    if not a_audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=after_id)
+
     return await SecurityTimeMachineService.compare_audits(
         before_audit_id=before_id,
         after_audit_id=after_id,
@@ -185,6 +212,7 @@ async def compare_audits(
 )
 async def list_comparable_pairs(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> List[ComparableAuditPairItem]:
     """Retrieves configurations with multiple completed audits for instant comparison."""
     return await SecurityTimeMachineService.list_comparable_pairs(db=db)
@@ -198,9 +226,10 @@ async def list_comparable_pairs(
 async def get_audit(
     audit_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AuditDetailResponse:
-    """Fetch complete audit record with framework breakdown and findings list."""
-    stmt = select(Audit).where(Audit.id == audit_id)
+    """Fetch complete audit record with framework breakdown and findings list for current user."""
+    stmt = select(Audit).where(Audit.id == audit_id, Audit.user_id == current_user.id)
     res = await db.execute(stmt)
     audit_rec = res.scalars().first()
 
@@ -208,7 +237,7 @@ async def get_audit(
         raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
 
     # Fetch associated findings
-    findings_stmt = select(Finding).where(Finding.audit_id == audit_id).order_by(Finding.severity, Finding.control_id)
+    findings_stmt = select(Finding).where(Finding.audit_id == audit_id, Finding.user_id == current_user.id).order_by(Finding.severity, Finding.control_id)
     findings_res = await db.execute(findings_stmt)
     findings = findings_res.scalars().all()
 
@@ -243,16 +272,18 @@ import json
 async def export_audit_file(
     audit_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     format: str = Query("json", pattern="^(json|csv)$"),
 ):
     """Returns audit results with Content-Disposition: attachment for native browser download."""
-    audit = await db.get(Audit, audit_id)
+    stmt = select(Audit).where(Audit.id == audit_id, Audit.user_id == current_user.id)
+    audit = (await db.execute(stmt)).scalars().first()
     if not audit:
         raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
 
     cfg = await db.get(Configuration, audit.configuration_id) if audit.configuration_id else None
     findings = list((await db.execute(
-        select(Finding).where(Finding.audit_id == audit.id).order_by(Finding.severity)
+        select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id).order_by(Finding.severity)
     )).scalars().all())
 
     device_name = (cfg.original_filename if cfg else f"audit_{audit_id[:8]}").replace(" ", "_")
@@ -313,12 +344,13 @@ async def export_audit_file(
 async def get_audit_findings(
     audit_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     framework: Optional[str] = Query(None, description="Filter by framework (CIS, NIST, STIG, ISO)"),
     severity: Optional[str] = Query(None, description="Filter by severity (CRITICAL, HIGH, MEDIUM, LOW)"),
     status_filter: Optional[str] = Query(None, alias="status", description="Filter by status (PASS, FAIL, UNKNOWN)"),
     category: Optional[str] = Query(None, description="Filter by category"),
 ) -> List[FindingResponse]:
-    """Retrieve granular findings with multi-dimensional filtering."""
+    """Retrieve granular findings with multi-dimensional filtering for current user."""
     query = (
         select(
             Finding,
@@ -328,7 +360,7 @@ async def get_audit_findings(
         )
         .join(Audit, Finding.audit_id == Audit.id)
         .outerjoin(Configuration, Audit.configuration_id == Configuration.id)
-        .where(Finding.audit_id == audit_id)
+        .where(Finding.audit_id == audit_id, Finding.user_id == current_user.id)
     )
 
     if framework and framework.upper() != "ALL":
@@ -363,9 +395,10 @@ async def get_audit_findings(
 async def get_audit_summary(
     audit_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AuditSummaryResponse:
-    """Retrieve aggregated compliance posture metrics and framework comparisons."""
-    stmt = select(Audit).where(Audit.id == audit_id)
+    """Retrieve aggregated compliance posture metrics and framework comparisons for current user."""
+    stmt = select(Audit).where(Audit.id == audit_id, Audit.user_id == current_user.id)
     res = await db.execute(stmt)
     audit_rec = res.scalars().first()
 

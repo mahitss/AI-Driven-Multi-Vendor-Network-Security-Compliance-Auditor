@@ -32,11 +32,17 @@ class ComplianceAuditService:
     async def run_audit(
         cls,
         configuration_id: str,
-        frameworks: Optional[List[str]],
+        frameworks: List[str],
         db: AsyncSession,
+        user_id: Optional[str] = None,
     ) -> Tuple[Audit, AuditScoreSummary, List[RuleEvaluationResult]]:
         """
-        Executes a deterministic compliance audit against an ingested configuration.
+        Executes a deterministic compliance audit for a given configuration:
+        1. Retrieves parsed NormalizedSecurityProfile.
+        2. Filters rule catalog by frameworks and detected vendor.
+        3. Evaluates AST facts against rules.
+        4. Calculates overall score and framework breakdowns.
+        5. Persists Audit and Finding domain records with tenant isolation.
         """
         # 1. Fetch configuration
         stmt = select(Configuration).where(Configuration.id == configuration_id)
@@ -45,6 +51,8 @@ class ComplianceAuditService:
 
         if not config:
             raise ResourceNotFoundError(resource="Configuration", identifier=configuration_id)
+
+        effective_user_id = user_id or getattr(config, "user_id", "default_tenant") or "default_tenant"
 
         # 2. Obtain NormalizedSecurityProfile
         if config.normalized_profile and config.parser_status == "parsed":
@@ -68,21 +76,30 @@ class ComplianceAuditService:
             config.detected_vendor = profile.vendor
             if profile.platform:
                 config.detected_platform = profile.platform
+            db.add(config)
 
-        # 3. Determine target frameworks
-        target_frameworks = [fw.upper() for fw in (frameworks or ["CIS", "NIST", "STIG", "ISO"])]
+        # 3. Select Benchmark Rules
+        active_rules = compliance_catalog.get_rules_for_audit(
+            frameworks=frameworks,
+            vendor=profile.vendor,
+        )
 
-        # 4. Evaluate rules
+        if not active_rules:
+            logger.warning(f"No compliance rules found for vendor {profile.vendor} and frameworks {frameworks}")
+
+        # 4. Evaluate Rules Deterministically
         all_results: List[RuleEvaluationResult] = []
-        for fw in target_frameworks:
-            rules = compliance_catalog.get_rules_for_framework(fw)
-            for rule in rules:
-                eval_res = RuleEvaluator.evaluate_rule(rule=rule, profile=profile, framework=fw)
-                all_results.append(eval_res)
+        for rule in active_rules:
+            for fw in frameworks:
+                fw_upper = fw.upper()
+                if fw_upper in rule.framework_mappings:
+                    res_eval = RuleEvaluator.evaluate_rule(rule=rule, profile=profile, framework=fw_upper)
+                    all_results.append(res_eval)
 
-        # 5. Create Audit DB Record & Persist Findings with Atomic Rollback Protection
+        # 5. Persist Audit Record (Wrapped in transaction)
         try:
             audit_record = Audit(
+                user_id=effective_user_id,
                 configuration_id=config.id,
                 device_id=config.device_id,
                 status="RUNNING",
@@ -106,6 +123,7 @@ class ComplianceAuditService:
             # 7. Persist Individual Finding Records
             for r in all_results:
                 finding = Finding(
+                    user_id=effective_user_id,
                     audit_id=audit_record.id,
                     framework=r.framework,
                     control_id=r.control_id,
@@ -139,8 +157,8 @@ class ComplianceAuditService:
         try:
             from app.services.risk.service import RiskIntelligenceService
             from app.services.remediation.service import RemediationService
-            await RiskIntelligenceService.generate_audit_risks(audit_record.id, db)
-            await RemediationService.generate_audit_remediations(audit_record.id, db)
+            await RiskIntelligenceService.generate_audit_risks(audit_record.id, db, user_id=effective_user_id)
+            await RemediationService.generate_audit_remediations(audit_record.id, db, user_id=effective_user_id)
         except Exception as e:
             logger.warning(f"Notice during post-audit risk/remediation generation: {e}")
 

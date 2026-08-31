@@ -7,7 +7,7 @@ from fastapi import APIRouter, File, Query, UploadFile, status
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import DatabaseDep
+from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.errors import ResourceNotFoundError
 from app.models.configuration import Configuration
 from app.schemas.analysis import (
@@ -37,10 +37,11 @@ router = APIRouter(prefix="/configurations", tags=["Configurations"])
 )
 async def upload_configuration(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     file: UploadFile = File(...),
 ) -> ConfigurationResponse:
     """
-    Ingests a raw configuration file (.cfg, .conf, .txt, .log):
+    Ingests a raw configuration file (.cfg, .conf, .txt, .log) under authenticated user:
     - Validates file size and extension
     - Computes cryptographic SHA-256 hash
     - Persists file safely in isolated storage
@@ -54,6 +55,7 @@ async def upload_configuration(
         filename=filename,
         content_bytes=content_bytes,
         db=db,
+        user_id=current_user.id,
     )
     return config_record
 
@@ -65,12 +67,19 @@ async def upload_configuration(
 )
 async def list_configurations(
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     vendor: Optional[str] = Query(None, description="Filter by detected vendor"),
     limit: int = Query(50, ge=1, le=200, description="Max items to return"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
 ) -> List[ConfigurationResponse]:
-    """Retrieve list of ingested configurations with optional vendor filtering."""
-    query = select(Configuration).order_by(desc(Configuration.created_at)).offset(offset).limit(limit)
+    """Retrieve list of ingested configurations for authenticated user with optional vendor filtering."""
+    query = (
+        select(Configuration)
+        .where(Configuration.user_id == current_user.id)
+        .order_by(desc(Configuration.created_at))
+        .offset(offset)
+        .limit(limit)
+    )
 
     if vendor:
         query = query.where(Configuration.detected_vendor == vendor.lower())
@@ -88,9 +97,10 @@ async def list_configurations(
 async def get_configuration(
     config_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> ConfigurationDetailResponse:
-    """Fetch complete configuration record including full text content and detection details."""
-    stmt = select(Configuration).where(Configuration.id == config_id)
+    """Fetch complete configuration record for current user including full text content."""
+    stmt = select(Configuration).where(Configuration.id == config_id, Configuration.user_id == current_user.id)
     result = await db.execute(stmt)
     config = result.scalars().first()
 
@@ -109,9 +119,11 @@ from fastapi import Response
 async def export_configuration_file(
     config_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ):
     """Returns raw configuration file with Content-Disposition: attachment for native browser download."""
-    cfg = await db.get(Configuration, config_id)
+    stmt = select(Configuration).where(Configuration.id == config_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Configuration", identifier=config_id)
 
@@ -136,6 +148,7 @@ async def export_configuration_file(
 async def analyze_configuration(
     config_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> ConfigurationAnalysisDetailResponse:
     """
     Executes the Configuration Intelligence Pipeline:
@@ -146,7 +159,7 @@ async def analyze_configuration(
     5. Normalizes facts into the Universal Security Model
     6. Persists normalized security profile and analysis metrics to database
     """
-    stmt = select(Configuration).where(Configuration.id == config_id)
+    stmt = select(Configuration).where(Configuration.id == config_id, Configuration.user_id == current_user.id)
     result = await db.execute(stmt)
     config = result.scalars().first()
 
@@ -204,9 +217,10 @@ async def analyze_configuration(
 async def get_configuration_analysis(
     config_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> ConfigurationAnalysisDetailResponse:
     """Fetch cached or compute on-the-fly Universal Security Normalization profile."""
-    stmt = select(Configuration).where(Configuration.id == config_id)
+    stmt = select(Configuration).where(Configuration.id == config_id, Configuration.user_id == current_user.id)
     result = await db.execute(stmt)
     config = result.scalars().first()
 
@@ -237,7 +251,7 @@ async def get_configuration_analysis(
         )
 
     # Otherwise compute analysis
-    return await analyze_configuration(config_id=config_id, db=db)
+    return await analyze_configuration(config_id=config_id, db=db, current_user=current_user)
 
 
 @router.post(

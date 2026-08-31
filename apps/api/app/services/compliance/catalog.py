@@ -117,6 +117,21 @@ class ComplianceCatalog:
         fw_upper = framework.upper()
         return [r for r in self._rules if fw_upper in r.framework_mappings]
 
+    def get_rules_for_audit(self, frameworks: List[str], vendor: Optional[str] = None) -> List[ComplianceRule]:
+        """Filters rules by targeted frameworks and vendor applicability."""
+        fw_set = {f.upper() for f in frameworks}
+        matched: List[ComplianceRule] = []
+        for r in self._rules:
+            # Check framework match
+            if not any(fw in r.framework_mappings for fw in fw_set):
+                continue
+            # Check vendor applicability
+            if vendor and r.applicability and r.applicability != "all":
+                if vendor.lower() not in r.applicability.lower():
+                    continue
+            matched.append(r)
+        return matched
+
     def list_supported_frameworks(self) -> List[Dict]:
         """Returns list of supported framework metadata."""
         return list(self._framework_metadata.values())

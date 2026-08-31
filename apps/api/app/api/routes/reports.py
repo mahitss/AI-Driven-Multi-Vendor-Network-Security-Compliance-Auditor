@@ -7,14 +7,15 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select, desc
-from app.api.dependencies import DatabaseDep
+from sqlalchemy import select, desc, or_
+from app.api.dependencies import CurrentUserDep, DatabaseDep
+from app.core.auth import AuthenticatedUser
 from app.models.audit import Audit
 from app.models.configuration import Configuration
 from app.models.finding import Finding
 from app.models.risk import RiskItem
 from app.models.remediation import RemediationProposal
-from app.core.errors import NotFoundError
+from app.core.errors import NotFoundError, ResourceNotFoundError
 from app.core.security import redact_sensitive_data
 from app.services.comparison.service import SecurityTimeMachineService
 
@@ -39,32 +40,43 @@ class CompareAuditsRequest(BaseModel):
 
 
 @router.get("", summary="List all generated security audit reports")
-async def list_reports() -> List[Dict[str, Any]]:
-    """Returns list of generated compliance and remediation reports."""
-    return GENERATED_REPORTS
+async def list_reports(current_user: CurrentUserDep) -> List[Dict[str, Any]]:
+    """Returns list of generated compliance and remediation reports for current user."""
+    return [r for r in GENERATED_REPORTS if not r.get("user_id") or r.get("user_id") == current_user.id]
 
 
 @router.post("/generate", summary="Generate a new compliance audit report", status_code=status.HTTP_201_CREATED)
 async def generate_report(
     payload: GenerateReportRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep = AuthenticatedUser(id="default_tenant", role="auditor"),
 ) -> Dict[str, Any]:
-    """Generates structured report document for executive review or technical remediation."""
+    """Generates structured report document for executive review or technical remediation for current user."""
+    effective_user = current_user or AuthenticatedUser(id="default_tenant", role="auditor")
     report_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
 
     # Target Audit
     audit = None
     if payload.audit_id:
-        audit = await db.get(Audit, payload.audit_id)
+        audit_stmt = select(Audit).where(Audit.id == payload.audit_id)
+        if effective_user.id != "default_tenant":
+            audit_stmt = audit_stmt.where(or_(Audit.user_id == effective_user.id, Audit.user_id.is_(None)))
+        audit = (await db.execute(audit_stmt)).scalars().first()
     if not audit:
-        # Get latest audit
-        audit = (await db.execute(select(Audit).order_by(desc(Audit.created_at)))).scalars().first()
+        # Get latest audit for current user
+        audit_stmt = select(Audit).order_by(desc(Audit.created_at))
+        if effective_user.id != "default_tenant":
+            audit_stmt = audit_stmt.where(or_(Audit.user_id == effective_user.id, Audit.user_id.is_(None)))
+        audit = (await db.execute(audit_stmt)).scalars().first()
 
     if not audit:
         raise NotFoundError(message="No audit session available to generate report.")
 
-    cfg = await db.get(Configuration, audit.configuration_id) if audit.configuration_id else None
+    cfg_stmt = select(Configuration).where(Configuration.id == audit.configuration_id)
+    if effective_user.id != "default_tenant":
+        cfg_stmt = cfg_stmt.where(or_(Configuration.user_id == effective_user.id, Configuration.user_id.is_(None)))
+    cfg = (await db.execute(cfg_stmt)).scalars().first() if audit.configuration_id else None
     target_device = cfg.original_filename if cfg else "Network Gateway Asset"
 
     # Findings
@@ -199,6 +211,7 @@ async def generate_report(
 
     report_record = {
         "id": report_id,
+        "user_id": effective_user.id,
         "report_type": payload.report_type,
         "title": payload.title or f"Executive Compliance Audit Report: {target_device}",
         "target_device": target_device,
@@ -269,10 +282,11 @@ def _format_report_markdown(report: Dict[str, Any]) -> str:
 @router.get("/{report_id}/export", summary="Export compliance report as a downloadable file attachment")
 async def export_report_file(
     report_id: str,
+    current_user: CurrentUserDep,
     format: str = Query("json", description="File format: json, markdown, md, or txt", pattern="^(json|markdown|md|txt)$"),
 ):
     """Returns report document with Content-Disposition: attachment header for native browser download."""
-    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id), None)
+    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id and (not r.get("user_id") or r.get("user_id") == current_user.id)), None)
     if not report:
         raise NotFoundError(message=f"Report {report_id} not found.")
 
@@ -303,9 +317,9 @@ async def export_report_file(
 
 
 @router.get("/{report_id}", summary="Get full report document details")
-async def get_report_detail(report_id: str) -> Dict[str, Any]:
-    """Retrieves full report content and sections."""
-    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id), None)
+async def get_report_detail(report_id: str, current_user: CurrentUserDep) -> Dict[str, Any]:
+    """Retrieves full report content and sections for current user."""
+    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id and (not r.get("user_id") or r.get("user_id") == current_user.id)), None)
     if not report:
         raise NotFoundError(message=f"Report {report_id} not found.")
     return report
@@ -315,16 +329,19 @@ async def get_report_detail(report_id: str) -> Dict[str, Any]:
 async def compare_audits(
     payload: CompareAuditsRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
-    """Compares baseline audit vs remediated audit of the same configuration."""
-    baseline = await db.get(Audit, payload.baseline_audit_id)
-    remediated = await db.get(Audit, payload.remediated_audit_id)
+    """Compares baseline audit vs remediated audit of the same configuration owned by current user."""
+    b_stmt = select(Audit).where(Audit.id == payload.baseline_audit_id, Audit.user_id == current_user.id)
+    r_stmt = select(Audit).where(Audit.id == payload.remediated_audit_id, Audit.user_id == current_user.id)
+    baseline = (await db.execute(b_stmt)).scalars().first()
+    remediated = (await db.execute(r_stmt)).scalars().first()
 
     if not baseline or not remediated:
         raise NotFoundError(message="One or both audit sessions were not found.")
 
-    b_findings = list((await db.execute(select(Finding).where(Finding.audit_id == baseline.id))).scalars().all())
-    r_findings = list((await db.execute(select(Finding).where(Finding.audit_id == remediated.id))).scalars().all())
+    b_findings = list((await db.execute(select(Finding).where(Finding.audit_id == baseline.id, Finding.user_id == current_user.id))).scalars().all())
+    r_findings = list((await db.execute(select(Finding).where(Finding.audit_id == remediated.id, Finding.user_id == current_user.id))).scalars().all())
 
     b_fails = {f.control_id for f in b_findings if f.status in ["FAIL", "PARTIAL"]}
     r_fails = {f.control_id for f in r_findings if f.status in ["FAIL", "PARTIAL"]}

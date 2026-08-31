@@ -49,6 +49,12 @@ async def lifespan(app: FastAPI):
     try:
         async with async_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            if settings.DATABASE_URL.startswith("sqlite"):
+                for tbl in ["configurations", "devices", "audits", "findings", "risk_items", "remediation_proposals"]:
+                    try:
+                        await conn.exec_driver_sql(f"ALTER TABLE {tbl} ADD COLUMN user_id VARCHAR")
+                    except Exception:
+                        pass
         logger.info("Database schema initialized successfully.")
     except Exception as e:
         logger.warning(f"Database schema initialization notice: {e}")

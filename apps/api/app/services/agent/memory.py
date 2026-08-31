@@ -59,12 +59,12 @@ class AgentMemoryManager:
                 logger.warning(f"Failed to persist session to Firestore: {e}")
 
     @classmethod
-    async def get_session(cls, session_id: str) -> Optional[AgentSessionState]:
-        """Retrieves an agent session by ID."""
+    async def get_session(cls, session_id: str, user_id: Optional[str] = None) -> Optional[AgentSessionState]:
+        """Retrieves an agent session by ID with tenant validation."""
+        session = None
         if session_id in cls._in_memory_store:
-            return cls._in_memory_store[session_id]
-
-        if cls._firestore_client:
+            session = cls._in_memory_store[session_id]
+        elif cls._firestore_client:
             try:
                 doc_ref = cls._firestore_client.collection("netvigil_agent_sessions").document(session_id)
                 doc = await doc_ref.get()
@@ -72,16 +72,19 @@ class AgentMemoryManager:
                     data = doc.to_dict()
                     session = AgentSessionState.model_validate(data)
                     cls._in_memory_store[session_id] = session
-                    return session
             except Exception as e:
                 logger.warning(f"Failed to read session from Firestore: {e}")
 
-        return None
+        if session and user_id and session.user_id and session.user_id != user_id:
+            return None
+        return session
 
     @classmethod
-    async def list_recent_sessions(cls, limit: int = 10) -> List[AgentSessionState]:
-        """Lists recent agent execution sessions."""
+    async def list_recent_sessions(cls, limit: int = 10, user_id: Optional[str] = None) -> List[AgentSessionState]:
+        """Lists recent agent execution sessions with tenant isolation."""
         sessions = list(cls._in_memory_store.values())
+        if user_id:
+            sessions = [s for s in sessions if not s.user_id or s.user_id == user_id]
         sessions.sort(key=lambda s: s.created_at, reverse=True)
         return sessions[:limit]
 

@@ -25,14 +25,17 @@ class RiskIntelligenceService:
         audit_id: str,
         db: AsyncSession,
         force_regenerate: bool = False,
+        user_id: Optional[str] = None,
     ) -> List[RiskItem]:
         """
-        Analyzes findings for an audit, correlates into logical risks, and persists them.
+        Analyzes findings for an audit, correlates into logical risks, and persists them with tenant isolation.
         """
         # Check if audit exists
         audit = await db.get(Audit, audit_id)
         if not audit:
             raise NotFoundError(message=f"Audit {audit_id} not found.")
+
+        effective_user_id = user_id or getattr(audit, "user_id", "default_tenant") or "default_tenant"
 
         # Check for existing risks if not forcing regeneration
         if not force_regenerate:
@@ -63,10 +66,10 @@ class RiskIntelligenceService:
             await db.delete(r)
         await db.flush()
 
-        # Create new RiskItem records
+        # Create new RiskItem records with user_id
         created_risks: List[RiskItem] = []
         for rd in risk_dicts:
-            item = RiskItem(**rd)
+            item = RiskItem(user_id=effective_user_id, **rd)
             db.add(item)
             created_risks.append(item)
 
@@ -85,9 +88,12 @@ class RiskIntelligenceService:
         priority: Optional[str] = None,
         category: Optional[str] = None,
         status: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> List[RiskItem]:
-        """Retrieves risks for an audit with optional filtering."""
+        """Retrieves risks for an audit with optional filtering and tenant isolation."""
         stmt = select(RiskItem).where(RiskItem.audit_id == audit_id)
+        if user_id:
+            stmt = stmt.where(RiskItem.user_id == user_id)
 
         if severity and severity != "ALL":
             stmt = stmt.where(RiskItem.severity == severity.upper())
@@ -104,7 +110,7 @@ class RiskIntelligenceService:
 
         # If no risks exist yet, generate them dynamically
         if not risks and not (severity or priority or category or status):
-            risks = await cls.generate_audit_risks(audit_id, db)
+            risks = await cls.generate_audit_risks(audit_id, db, user_id=user_id)
 
         return risks
 
@@ -117,17 +123,32 @@ class RiskIntelligenceService:
         return item
 
     @classmethod
-    async def get_risk_graph(cls, audit_id: str, db: AsyncSession) -> Dict[str, Any]:
-        """Builds and returns the interactive risk relationship graph for an audit."""
-        risks = await cls.get_audit_risks(audit_id, db)
+    async def get_risk_graph(
+        cls,
+        audit_id: Optional[str],
+        db: AsyncSession,
+        user_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Builds topological node-link graph payload for active security risks."""
+        if not audit_id or audit_id.upper() == "ALL":
+            latest_ids = await get_latest_audit_ids(db, user_id=user_id)
+            if not latest_ids:
+                return {"nodes": [], "edges": [], "summary": {"total_nodes": 0, "total_edges": 0, "critical_chains": 0}}
+            audit_id = latest_ids[0]
 
+        audit = await db.get(Audit, audit_id)
+        if not audit or (user_id and audit.user_id != user_id):
+            return {"nodes": [], "edges": [], "summary": {"total_nodes": 0, "total_edges": 0, "critical_chains": 0}}
+
+        risks = await cls.get_audit_risks(audit_id, db, user_id=user_id)
         findings_stmt = select(Finding).where(Finding.audit_id == audit_id)
+        if user_id:
+            findings_stmt = findings_stmt.where(Finding.user_id == user_id)
         f_res = await db.execute(findings_stmt)
         findings = list(f_res.scalars().all())
 
-        audit = await db.get(Audit, audit_id)
-        device_label = "Gateway Router Asset"
-        if audit:
+        device_label = audit.device_id or f"Audit #{audit_id[:8]}"
+        if audit.configuration_id:
             cfg = await db.get(Configuration, audit.configuration_id)
             if cfg:
                 device_label = f"{cfg.original_filename} ({cfg.detected_vendor.upper()})"
@@ -135,9 +156,9 @@ class RiskIntelligenceService:
         return build_risk_graph(risks, findings, device_label=device_label)
 
     @classmethod
-    async def get_risk_summary_stats(cls, db: AsyncSession) -> Dict[str, Any]:
-        """Calculates global risk intelligence KPI statistics across active fleet posture."""
-        latest_ids = await get_latest_audit_ids(db)
+    async def get_risk_summary_stats(cls, db: AsyncSession, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Calculates global risk intelligence KPI statistics across active fleet posture with tenant isolation."""
+        latest_ids = await get_latest_audit_ids(db, user_id=user_id)
 
         if not latest_ids:
             return {
@@ -151,22 +172,24 @@ class RiskIntelligenceService:
 
         risk_stmt = (
             select(
-                func.count(RiskItem.id).label("total_risks"),
+                func.count(RiskItem.id).label("total"),
                 func.sum(case((RiskItem.priority == "P0", 1), else_=0)).label("p0"),
                 func.sum(case((RiskItem.priority == "P1", 1), else_=0)).label("p1"),
                 func.sum(case((RiskItem.priority == "P2", 1), else_=0)).label("p2"),
                 func.sum(case((RiskItem.priority == "P3", 1), else_=0)).label("p3"),
-                func.avg(RiskItem.risk_score).label("avg_risk"),
+                func.avg(RiskItem.risk_score).label("avg_score"),
             )
             .where(RiskItem.audit_id.in_(latest_ids))
         )
-        r_res = (await db.execute(risk_stmt)).one()
+        if user_id:
+            risk_stmt = risk_stmt.where(RiskItem.user_id == user_id)
+        res = (await db.execute(risk_stmt)).one()
 
         return {
-            "total_risks": r_res.total_risks or 0,
-            "p0_count": r_res.p0 or 0,
-            "p1_count": r_res.p1 or 0,
-            "p2_count": r_res.p2 or 0,
-            "p3_count": r_res.p3 or 0,
-            "average_risk_score": round(float(r_res.avg_risk), 1) if r_res.avg_risk is not None else 0.0,
+            "total_risks": int(res.total or 0),
+            "p0_count": int(res.p0 or 0),
+            "p1_count": int(res.p1 or 0),
+            "p2_count": int(res.p2 or 0),
+            "p3_count": int(res.p3 or 0),
+            "average_risk_score": round(float(res.avg_score or 0.0), 1),
         }

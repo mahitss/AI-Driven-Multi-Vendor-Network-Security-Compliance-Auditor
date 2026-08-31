@@ -26,27 +26,37 @@ class TelemetryAggregationService:
     """Aggregates and formats real security telemetry and posture analytics."""
 
     @staticmethod
-    async def get_complete_telemetry(db: AsyncSession) -> Dict[str, Any]:
+    async def get_complete_telemetry(db: AsyncSession, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Gathers complete unified telemetry across audits, findings, assets, risks, and remediations.
+        Gathers complete unified telemetry across audits, findings, assets, risks, and remediations
+        with strict tenant user isolation.
         Guarantees 100% data reconciliation across all visual components and robust null-safety.
         """
         try:
             # 1. Retrieve latest audit per unique configuration (Active Posture)
-            latest_audits = await get_latest_audits(db)
+            latest_audits = await get_latest_audits(db, user_id=user_id)
             latest_audit_ids = [a.id for a in latest_audits if a.id]
 
             # 2. Time-Series Audit History Trends (Chronological ASC)
-            all_audits_stmt = select(Audit).order_by(Audit.created_at.asc())
+            all_audits_stmt = select(Audit)
+            if user_id:
+                all_audits_stmt = all_audits_stmt.where(Audit.user_id == user_id)
+            all_audits_stmt = all_audits_stmt.order_by(Audit.created_at.asc())
             all_audits_res = await db.execute(all_audits_stmt)
             all_audits = list(all_audits_res.scalars().all())
 
             # Load configurations lookup
-            all_configs_res = await db.execute(select(Configuration))
+            all_configs_stmt = select(Configuration)
+            if user_id:
+                all_configs_stmt = all_configs_stmt.where(Configuration.user_id == user_id)
+            all_configs_res = await db.execute(all_configs_stmt)
             all_configs = {c.id: c for c in all_configs_res.scalars().all()}
 
             # Load risk items lookup by audit_id
-            all_risks_res = await db.execute(select(RiskItem))
+            all_risks_stmt = select(RiskItem)
+            if user_id:
+                all_risks_stmt = all_risks_stmt.where(RiskItem.user_id == user_id)
+            all_risks_res = await db.execute(all_risks_stmt)
             all_risks = list(all_risks_res.scalars().all())
             risks_by_audit: Dict[str, List[RiskItem]] = {}
             for r in all_risks:
@@ -354,6 +364,8 @@ class TelemetryAggregationService:
                 func.sum(case((RemediationProposal.status == "AVAILABLE", 1), else_=0)).label("available"),
                 func.sum(case((RemediationProposal.is_reviewed == True, 1), else_=0)).label("reviewed"),
             )
+            if user_id:
+                rem_stmt = rem_stmt.where(RemediationProposal.user_id == user_id)
             rem_res = (await db.execute(rem_stmt)).one()
             total_rem = int(rem_res.total or 0)
             avail_rem = int(rem_res.available or 0)
@@ -363,7 +375,7 @@ class TelemetryAggregationService:
             applied_rem = 0
             verified_rem = 0
             try:
-                agent_sessions = await AgentMemoryManager.list_recent_sessions(limit=20)
+                agent_sessions = await AgentMemoryManager.list_recent_sessions(limit=20, user_id=user_id)
                 for s in agent_sessions:
                     rep = getattr(s, "final_report", None)
                     if rep:
@@ -410,9 +422,9 @@ class TelemetryAggregationService:
             raise e
 
     @staticmethod
-    async def get_compliance_trends(db: AsyncSession) -> Dict[str, Any]:
-        """Retrieves only the time-series audit trends."""
-        telemetry = await TelemetryAggregationService.get_complete_telemetry(db)
+    async def get_compliance_trends(db: AsyncSession, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Retrieves only the time-series audit trends with tenant isolation."""
+        telemetry = await TelemetryAggregationService.get_complete_telemetry(db, user_id=user_id)
         return {
             "has_sufficient_history": telemetry["has_sufficient_history"],
             "audit_trends": telemetry["audit_trends"],
@@ -420,16 +432,16 @@ class TelemetryAggregationService:
         }
 
     @staticmethod
-    async def get_heatmap_matrix(db: AsyncSession) -> Dict[str, Any]:
-        """Retrieves only the asset x severity and asset x framework heat map matrix."""
-        telemetry = await TelemetryAggregationService.get_complete_telemetry(db)
+    async def get_heatmap_matrix(db: AsyncSession, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Retrieves only the asset x severity and asset x framework heat map matrix with tenant isolation."""
+        telemetry = await TelemetryAggregationService.get_complete_telemetry(db, user_id=user_id)
         return {
             "heatmap_matrix": telemetry["heatmap_matrix"],
             "total_assets": len(telemetry["heatmap_matrix"]),
         }
 
     @staticmethod
-    async def get_fleet_topology(db: AsyncSession) -> Dict[str, Any]:
-        """Retrieves only the fleet topology graph."""
-        telemetry = await TelemetryAggregationService.get_complete_telemetry(db)
+    async def get_fleet_topology(db: AsyncSession, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Retrieves only the fleet topology graph with tenant isolation."""
+        telemetry = await TelemetryAggregationService.get_complete_telemetry(db, user_id=user_id)
         return telemetry["topology"]
