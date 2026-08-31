@@ -46,6 +46,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setLoading(false);
               const target = sessionStorage.getItem("netvigil_auth_redirect") || "/dashboard";
               sessionStorage.removeItem("netvigil_auth_redirect");
+              try {
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete("code");
+                window.history.replaceState({}, "", cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
+              } catch {
+                // ignore
+              }
               router.replace(target);
               return;
             }
@@ -126,8 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Canonical redirect URI
-      const redirectUri = `${origin}/auth/callback`;
+      // Canonical root redirect URI (matches Supabase Site URL in production and localhost in dev)
+      const redirectUri = origin;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
