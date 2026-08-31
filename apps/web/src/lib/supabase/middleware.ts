@@ -60,6 +60,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // If Supabase OAuth redirects to root or any non-callback path with ?code=, route to /auth/callback
+  if (request.nextUrl.searchParams.has("code") && pathname !== "/auth/callback") {
+    const callbackUrl = request.nextUrl.clone();
+    callbackUrl.pathname = "/auth/callback";
+    return NextResponse.redirect(callbackUrl);
+  }
+
   const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   const isLoginPage = pathname === "/login";
 

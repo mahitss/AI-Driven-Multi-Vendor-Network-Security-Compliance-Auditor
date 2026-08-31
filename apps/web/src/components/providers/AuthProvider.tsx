@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
+import { getAppOrigin } from "@/lib/get-app-origin";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -88,9 +90,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async (redirectTo?: string) => {
     try {
-      const redirectUri = typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ""}`
-        : "/auth/callback";
+      const origin = getAppOrigin();
+      const callbackPath = "/auth/callback";
+      const nextQuery = redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : "";
+      const redirectUri = `${origin}${callbackPath}${nextQuery}`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

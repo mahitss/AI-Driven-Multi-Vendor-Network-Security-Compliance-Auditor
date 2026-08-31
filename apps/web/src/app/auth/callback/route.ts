@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getAppOrigin } from "@/lib/get-app-origin";
 
 function getSafeRedirect(nextParam: string | null | undefined): string {
   if (!nextParam) return "/dashboard";
@@ -17,7 +18,8 @@ function getSafeRedirect(nextParam: string | null | undefined): string {
 }
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const origin = getAppOrigin(request);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const nextParam = searchParams.get("next") || searchParams.get("redirectTo") || "/dashboard";
   const safeNext = getSafeRedirect(nextParam);
