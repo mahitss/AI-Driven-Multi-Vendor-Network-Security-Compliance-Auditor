@@ -91,9 +91,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async (redirectTo?: string) => {
     try {
       const origin = getAppOrigin();
-      const callbackPath = "/auth/callback";
-      const nextQuery = redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : "";
-      const redirectUri = `${origin}${callbackPath}${nextQuery}`;
+
+      if (typeof window !== "undefined" && redirectTo) {
+        try {
+          sessionStorage.setItem("netvigil_auth_redirect", redirectTo);
+        } catch {
+          // ignore
+        }
+      }
+
+      // Canonical redirect URI without dynamic query params so it matches Supabase redirect allowlist
+      const redirectUri = `${origin}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

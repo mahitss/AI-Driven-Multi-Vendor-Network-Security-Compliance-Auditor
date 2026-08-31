@@ -154,6 +154,14 @@ export async function GET(request: Request) {
   </div>
   <script>
     setTimeout(function() {
+      try {
+        var saved = sessionStorage.getItem('netvigil_auth_redirect');
+        if (saved && saved.startsWith('/') && !saved.startsWith('//') && !saved.startsWith('/login')) {
+          sessionStorage.removeItem('netvigil_auth_redirect');
+          window.location.replace(saved);
+          return;
+        }
+      } catch (e) {}
       window.location.replace('${safeNext}');
     }, 600);
   </script>
