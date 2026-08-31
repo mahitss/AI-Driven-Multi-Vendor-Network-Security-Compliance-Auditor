@@ -31,6 +31,7 @@ import {
   ExternalLink,
   ShieldCheck,
   Terminal,
+  AlertCircle,
 } from "lucide-react";
 import {
   fetchOverviewStats,
@@ -42,6 +43,7 @@ import {
   OverviewStats,
   ActivityEvent,
 } from "@/lib/api-client";
+import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
 import SecurityTelemetrySection from "@/components/telemetry/SecurityTelemetrySection";
 
@@ -54,7 +56,7 @@ interface AffectedAsset {
   source_lines?: number[];
   actual_value?: string;
   expected_value?: string;
-  configuration_id?: string;
+  configuration_id: string;
   remediation?: string;
   audit_id: string;
 }
@@ -63,7 +65,7 @@ interface ControlFindingGroup {
   group_key: string;
   control_id: string;
   title: string;
-  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  severity: string;
   category: string;
   framework: string;
   description?: string;
@@ -72,9 +74,9 @@ interface ControlFindingGroup {
   affected_assets: AffectedAsset[];
 }
 
-export default function DashboardPage() {
+export default function SecurityPostureDashboard() {
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
-  const [expandedControlId, setExpandedControlId] = useState<string | null>(null);
+  const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
   const [inspectedFinding, setInspectedFinding] = useState<{
     asset: AffectedAsset;
     control_id: string;
@@ -88,11 +90,24 @@ export default function DashboardPage() {
   } | null>(null);
   const [showRiskExplanation, setShowRiskExplanation] = useState<boolean>(false);
 
+  // Authoritative Backend Health & Connection State
+  const {
+    connectionState,
+    isOnline,
+    isOffline,
+    isDegraded,
+    isConnecting,
+    refetch: refetchHealth,
+  } = useSystemHealth();
+
   // 1. Authoritative Backend Posture Metrics
   const {
     data: stats,
     isLoading: isStatsLoading,
+    isError: isStatsError,
+    error: statsError,
     refetch: refetchStats,
+    isRefetching: isStatsRefetching,
   } = useQuery({
     queryKey: ["dashboard-overview-stats"],
     queryFn: () => fetchOverviewStats(),
@@ -103,6 +118,7 @@ export default function DashboardPage() {
   const {
     data: rawFindings = [],
     isLoading: isFindingsLoading,
+    isError: isFindingsError,
     refetch: refetchFindings,
   } = useQuery({
     queryKey: ["dashboard-active-findings"],
@@ -114,11 +130,51 @@ export default function DashboardPage() {
   const {
     data: activityLogs = [],
     isLoading: isActivityLoading,
+    isError: isActivityError,
+    refetch: refetchActivity,
   } = useQuery({
     queryKey: ["dashboard-overview-activity"],
     queryFn: () => fetchOverviewActivity(10),
     staleTime: 15000,
   });
+
+  // Compute Authoritative Page Operational Status Badge
+  const badgeConfig = useMemo(() => {
+    if (isOffline || isStatsError) {
+      return {
+        label: "[ OFFLINE ]",
+        bg: "bg-[#EF4444]/10",
+        text: "text-[#EF4444]",
+        border: "border-[#EF4444]/25",
+        pulse: "bg-[#EF4444]",
+      };
+    }
+    if (isDegraded || isFindingsError || isActivityError) {
+      return {
+        label: "[ TELEMETRY DEGRADED ]",
+        bg: "bg-[#F59E0B]/10",
+        text: "text-[#F59E0B]",
+        border: "border-[#F59E0B]/25",
+        pulse: "bg-[#F59E0B]",
+      };
+    }
+    if (isConnecting || (isStatsLoading && !stats)) {
+      return {
+        label: "[ CONNECTING ]",
+        bg: "bg-[#3B82F6]/10",
+        text: "text-[#3B82F6]",
+        border: "border-[#3B82F6]/25",
+        pulse: "bg-[#3B82F6] animate-pulse",
+      };
+    }
+    return {
+      label: "[ OPERATIONAL ]",
+      bg: "bg-[#10B981]/10",
+      text: "text-[#10B981]",
+      border: "border-[#10B981]/25",
+      pulse: "bg-[#10B981] tactical-pulse-green",
+    };
+  }, [isOffline, isStatsError, isDegraded, isFindingsError, isActivityError, isConnecting, isStatsLoading, stats]);
 
   // Deduplicate & Group Findings by Control ID / Title across Fleet
   const groupedFindings = useMemo(() => {
@@ -134,7 +190,7 @@ export default function DashboardPage() {
         source_lines: f.finding_metadata?.source_lines,
         actual_value: f.actual_value,
         expected_value: f.expected_value,
-        configuration_id: f.configuration_id,
+        configuration_id: f.configuration_id || "",
         remediation: f.remediation,
         audit_id: f.audit_id,
       };
@@ -164,39 +220,33 @@ export default function DashboardPage() {
     // Sort by severity (CRITICAL > HIGH > MEDIUM > LOW) and affected assets count
     const severityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 };
     return Array.from(map.values()).sort((a, b) => {
-      const orderA = severityOrder[a.severity] ?? 5;
-      const orderB = severityOrder[b.severity] ?? 5;
+      const orderA = (severityOrder[a.severity as keyof typeof severityOrder] ?? 5);
+      const orderB = (severityOrder[b.severity as keyof typeof severityOrder] ?? 5);
       if (orderA !== orderB) return orderA - orderB;
       return b.affected_assets.length - a.affected_assets.length;
     });
   }, [rawFindings]);
 
-  // Filtered Attention Groups
+  // Filter Grouped Findings by Selected Severity
   const filteredGroups = useMemo(() => {
     if (severityFilter === "ALL") return groupedFindings;
-    return groupedFindings.filter((g) => g.severity === severityFilter);
+    return groupedFindings.filter((g) => g.severity.toUpperCase() === severityFilter);
   }, [groupedFindings, severityFilter]);
 
-  // Format Timestamps Operationally
-  const formatTimestamp = (tsString?: string) => {
-    if (!tsString) return "Recorded";
-    try {
-      const date = new Date(tsString.includes("Z") || tsString.includes("+") ? tsString : `${tsString}Z`);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMins / 60);
+  const toggleGroupExpand = (key: string) => {
+    setExpandedGroupKey((prev) => (prev === key ? null : key));
+  };
 
-      if (diffMins < 1) return "Just now";
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      return date.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const formatTimestamp = (ts?: string) => {
+    if (!ts) return "Just now";
+    try {
+      const date = new Date(ts);
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     } catch {
-      return tsString;
+      return "Recent";
     }
   };
 
-  // Vendor Breakdown Text
   const vendorBreakdownSummary = useMemo(() => {
     if (!stats?.vendor_breakdown || Object.keys(stats.vendor_breakdown).length === 0) {
       return stats?.total_configurations ? `${stats.total_configurations} configured` : "0 assets registered";
@@ -215,8 +265,9 @@ export default function DashboardPage() {
             <h1 className="text-base font-semibold text-[#F3F4F6] tracking-tight font-mono">
               SECURITY POSTURE & TELEMETRY
             </h1>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 font-semibold">
-              [ OPERATIONAL ]
+            <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded border font-semibold flex items-center gap-1.5", badgeConfig.bg, badgeConfig.text, badgeConfig.border)}>
+              <span className={cn("w-1.5 h-1.5 rounded-full", badgeConfig.pulse)} />
+              <span>{badgeConfig.label}</span>
             </span>
           </div>
           <p className="text-xs text-[#A7B0C0] mt-1 font-sans">
@@ -226,14 +277,17 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
+              refetchHealth();
               refetchStats();
               refetchFindings();
+              refetchActivity();
             }}
+            disabled={isStatsRefetching}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-[#F3F4F6] text-xs font-mono font-medium transition-colors"
             title="Refresh system state"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-[#3B82F6]" />
-            <span>SYNC STATE</span>
+            <RefreshCw className={cn("w-3.5 h-3.5 text-[#3B82F6]", isStatsRefetching && "animate-spin")} />
+            <span>{isStatsRefetching ? "SYNCING..." : "SYNC STATE"}</span>
           </button>
           <Link
             href="/agent"
@@ -263,9 +317,9 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
-                {stats?.compliance_score !== undefined ? `${stats.compliance_score.toFixed(1)}%` : "—"}
+                {isStatsError ? "—" : stats?.compliance_score !== undefined ? `${stats.compliance_score.toFixed(1)}%` : isStatsLoading ? "..." : "—"}
               </span>
-              {stats?.score_delta !== null && stats?.score_delta !== undefined ? (
+              {!isStatsError && stats?.score_delta !== null && stats?.score_delta !== undefined ? (
                 <span
                   className={cn(
                     "text-[10px] font-mono font-medium flex items-center gap-0.5",
@@ -279,20 +333,20 @@ export default function DashboardPage() {
                   )}
                   {Math.abs(stats.score_delta).toFixed(1)}% vs prior
                 </span>
-              ) : (
+              ) : !isStatsError && stats ? (
                 <span className="text-[10px] text-[#667085] font-mono">Baseline audit</span>
-              )}
+              ) : null}
             </div>
             <p className="text-[10px] text-[#667085] mt-1 font-mono">
-              Evaluated on {stats?.total_configurations || 0} config(s)
+              {isStatsError ? "Evaluations unavailable" : isStatsLoading ? "Loading fleet..." : `Evaluated on ${stats?.total_configurations || 0} config(s)`}
             </p>
           </div>
           {/* Framework Breakdown Strip */}
           <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[9px] font-mono text-[#A7B0C0]">
-            <span>CIS {stats?.framework_scores?.CIS !== undefined ? `${Math.round(stats.framework_scores.CIS)}%` : "—"}</span>
-            <span>NIST {stats?.framework_scores?.NIST !== undefined ? `${Math.round(stats.framework_scores.NIST)}%` : "—"}</span>
-            <span>STIG {stats?.framework_scores?.STIG !== undefined ? `${Math.round(stats.framework_scores.STIG)}%` : "—"}</span>
-            <span>ISO {stats?.framework_scores?.ISO !== undefined ? `${Math.round(stats.framework_scores.ISO)}%` : "—"}</span>
+            <span>CIS {isStatsError ? "—" : stats?.framework_scores?.CIS !== undefined ? `${Math.round(stats.framework_scores.CIS)}%` : isStatsLoading ? "..." : "—"}</span>
+            <span>NIST {isStatsError ? "—" : stats?.framework_scores?.NIST !== undefined ? `${Math.round(stats.framework_scores.NIST)}%` : isStatsLoading ? "..." : "—"}</span>
+            <span>STIG {isStatsError ? "—" : stats?.framework_scores?.STIG !== undefined ? `${Math.round(stats.framework_scores.STIG)}%` : isStatsLoading ? "..." : "—"}</span>
+            <span>ISO {isStatsError ? "—" : stats?.framework_scores?.ISO !== undefined ? `${Math.round(stats.framework_scores.ISO)}%` : isStatsLoading ? "..." : "—"}</span>
           </div>
         </div>
 
@@ -311,18 +365,18 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
-                {stats?.risk_score !== undefined ? Math.round(stats.risk_score) : "—"}
+                {isStatsError ? "—" : stats?.risk_score !== undefined ? Math.round(stats.risk_score) : isStatsLoading ? "..." : "—"}
               </span>
               <span className="text-xs text-[#667085] font-mono">/ 100</span>
             </div>
             <p className="text-[10px] text-[#667085] mt-1 font-mono">
-              Attack-surface weighted from {stats?.open_findings || 0} finding(s)
+              {isStatsError ? "Risk model unavailable" : isStatsLoading ? "Calculating risks..." : `Attack-surface weighted from ${stats?.open_findings || 0} finding(s)`}
             </p>
           </div>
           <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[9px] font-mono text-[#A7B0C0]">
-            <span className="text-[#EF4444]">Crit: {stats?.severity_breakdown?.critical || 0}</span>
-            <span className="text-[#F59E0B]">High: {stats?.severity_breakdown?.high || 0}</span>
-            <span className="text-[#60A5FA]">Med: {stats?.severity_breakdown?.medium || 0}</span>
+            <span className="text-[#EF4444]">Crit: {isStatsError ? "—" : stats?.severity_breakdown?.critical !== undefined ? stats.severity_breakdown.critical : isStatsLoading ? "..." : "—"}</span>
+            <span className="text-[#F59E0B]">High: {isStatsError ? "—" : stats?.severity_breakdown?.high !== undefined ? stats.severity_breakdown.high : isStatsLoading ? "..." : "—"}</span>
+            <span className="text-[#60A5FA]">Med: {isStatsError ? "—" : stats?.severity_breakdown?.medium !== undefined ? stats.severity_breakdown.medium : isStatsLoading ? "..." : "—"}</span>
           </div>
         </div>
 
@@ -336,14 +390,14 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-semibold text-[#EF4444] font-mono tracking-tight">
-              {stats?.severity_breakdown?.critical || 0}
+              {isStatsError ? "—" : stats?.severity_breakdown?.critical !== undefined ? stats.severity_breakdown.critical : isStatsLoading ? "..." : "—"}
             </div>
             <p className="text-[10px] text-[#667085] mt-1 font-mono">
               Cleartext protocols & auth bypass
             </p>
           </div>
           <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#A7B0C0] flex items-center justify-between">
-            <span>High: {stats?.severity_breakdown?.high || 0}</span>
+            <span>High: {isStatsError ? "—" : stats?.severity_breakdown?.high !== undefined ? stats.severity_breakdown.high : isStatsLoading ? "..." : "—"}</span>
             <Link href="/findings?severity=CRITICAL" className="text-[#3B82F6] hover:underline text-[10px]">
               Inspect →
             </Link>
@@ -358,14 +412,14 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
-              {stats?.open_findings || 0}
+              {isStatsError ? "—" : stats?.open_findings !== undefined ? stats.open_findings : isStatsLoading ? "..." : "—"}
             </div>
             <p className="text-[10px] text-[#667085] mt-1 font-mono">
               Deterministic non-compliant checks
             </p>
           </div>
           <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#A7B0C0] flex items-center justify-between">
-            <span>Audits: {stats?.total_audits || 0}</span>
+            <span>Audits: {isStatsError ? "—" : stats?.total_audits !== undefined ? stats.total_audits : isStatsLoading ? "..." : "—"}</span>
             <Link href="/findings" className="text-[#3B82F6] hover:underline text-[10px]">
               View all →
             </Link>
@@ -380,10 +434,10 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
-              {stats?.total_configurations || 0}
+              {isStatsError ? "—" : stats?.total_configurations !== undefined ? stats.total_configurations : isStatsLoading ? "..." : "—"}
             </div>
             <p className="text-[10px] text-[#667085] mt-1 font-mono truncate" title={vendorBreakdownSummary}>
-              {vendorBreakdownSummary}
+              {isStatsError ? "Inventory unavailable" : isStatsLoading ? "Scanning assets..." : vendorBreakdownSummary}
             </p>
           </div>
           <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#A7B0C0] flex items-center justify-between">
@@ -438,6 +492,14 @@ export default function DashboardPage() {
                 <RefreshCw className="w-4 h-4 animate-spin mx-auto text-[#3B82F6]" />
                 <div>Loading live compliance posture findings...</div>
               </div>
+            ) : isFindingsError ? (
+              <div className="p-8 text-center rounded bg-[#0D121C] border border-[#EF4444]/30 text-xs text-[#EF4444] space-y-2 font-mono">
+                <AlertCircle className="w-5 h-5 mx-auto text-[#EF4444]" />
+                <div className="text-sm font-semibold text-[#F3F4F6]">FAILED CONTROLS UNAVAILABLE</div>
+                <p className="text-[#A7B0C0] max-w-sm mx-auto text-[11px] font-sans">
+                  Unable to query active exposures and failed controls from the backend API.
+                </p>
+              </div>
             ) : filteredGroups.length === 0 ? (
               <div className="p-8 text-center rounded bg-[#0D121C] border border-[#1D2939] text-xs text-[#A7B0C0] space-y-1.5">
                 <CheckCircle2 className="w-5 h-5 mx-auto text-[#10B981]" />
@@ -465,7 +527,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               filteredGroups.map((group, groupIdx) => {
-                const isExpanded = expandedControlId === group.group_key;
+                const isExpanded = expandedGroupKey === group.group_key;
                 const distinctAssetsCount = group.affected_assets.length;
 
                 return (
@@ -511,7 +573,7 @@ export default function DashboardPage() {
                       {/* Header Actions */}
                       <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0">
                         <button
-                          onClick={() => setExpandedControlId(isExpanded ? null : group.group_key)}
+                          onClick={() => setExpandedGroupKey(isExpanded ? null : group.group_key)}
                           className="flex items-center gap-1 px-2 py-1 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-[11px] font-mono text-[#A7B0C0] hover:text-[#F3F4F6] transition-colors"
                         >
                           <span>{isExpanded ? "COLLAPSE" : "ASSETS"}</span>
@@ -611,6 +673,12 @@ export default function DashboardPage() {
               <div className="py-6 text-center text-[#A7B0C0] text-xs font-mono">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin mx-auto mb-1 text-[#3B82F6]" />
                 <span>Loading activity stream...</span>
+              </div>
+            ) : isActivityError ? (
+              <div className="py-6 text-center text-[#EF4444] text-xs space-y-1 font-mono">
+                <AlertCircle className="w-4 h-4 mx-auto text-[#EF4444]" />
+                <div className="font-semibold uppercase tracking-wider text-[11px]">SYSTEM ACTIVITY UNAVAILABLE</div>
+                <p className="text-[#A7B0C0] text-[10px]">Unable to load real-time system events from backend.</p>
               </div>
             ) : activityLogs.length === 0 ? (
               <div className="py-6 text-center text-[#667085] text-xs space-y-1 font-mono">

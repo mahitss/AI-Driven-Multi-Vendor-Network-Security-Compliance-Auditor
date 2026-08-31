@@ -98,7 +98,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { user, logout } = useAuth();
-  const { isOnline } = useSystemHealth();
+  const { connectionState, isOnline, isOffline, isDegraded, isConnecting } = useSystemHealth();
 
   // If on Landing Page root `/` or Login `/login` or Auth callback `/auth/*`, render clean full-width layout
   const isPublicPage = pathname === "/" || pathname === "/login" || pathname?.startsWith("/auth");
@@ -225,11 +225,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <span
                 className={cn(
                   "w-1.5 h-1.5 rounded-full",
-                  isOnline ? "bg-[#10B981]" : "bg-[#EF4444]"
+                  isOnline && "bg-[#10B981] tactical-pulse-green",
+                  isDegraded && "bg-[#F59E0B]",
+                  isConnecting && "bg-[#3B82F6] animate-pulse",
+                  isOffline && "bg-[#EF4444]"
                 )}
               />
               <span className="text-[#A7B0C0]">
-                {isOnline ? "USM AST Active" : "Engine Standby"}
+                {isOnline ? "USM AST Active" : isDegraded ? "Telemetry Degraded" : isConnecting ? "Connecting Engine..." : "Backend Disconnected"}
               </span>
             </div>
             <span className="text-[10px] text-[#667085]">v1.2.0</span>
@@ -306,9 +309,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Operational State Pill */}
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0D121C] border border-[#1D2939] text-[10px] font-mono">
-              <span className={cn("w-1.5 h-1.5 rounded-full", isOnline ? "bg-[#10B981] tactical-pulse-green" : "bg-[#EF4444]")} />
-              <span className={cn("font-semibold tracking-wider", isOnline ? "text-[#10B981]" : "text-[#EF4444]")}>
-                {isOnline ? "OPERATIONAL" : "OFFLINE"}
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  isOnline && "bg-[#10B981] tactical-pulse-green",
+                  isDegraded && "bg-[#F59E0B]",
+                  isConnecting && "bg-[#3B82F6] animate-pulse",
+                  isOffline && "bg-[#EF4444]"
+                )}
+              />
+              <span
+                className={cn(
+                  "font-semibold tracking-wider",
+                  isOnline && "text-[#10B981]",
+                  isDegraded && "text-[#F59E0B]",
+                  isConnecting && "text-[#3B82F6]",
+                  isOffline && "text-[#EF4444]"
+                )}
+              >
+                {isOnline ? "OPERATIONAL" : isDegraded ? "DEGRADED" : isConnecting ? "CONNECTING" : "OFFLINE"}
               </span>
             </div>
           </div>

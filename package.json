@@ -4,7 +4,8 @@
   "private": true,
   "description": "NetVigil — AI-Driven Multi-Vendor Network Security Compliance Auditor",
   "scripts": {
-    "dev": "npm run dev --prefix apps/web",
+    "dev": "npx -y concurrently -n web,api -c cyan,yellow \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:all": "npx -y concurrently -n web,api -c cyan,yellow \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev --prefix apps/web",
     "dev:api": "uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 --reload",
     "build": "npm run build --prefix apps/web",

@@ -38,19 +38,33 @@ export default function SecurityTelemetrySection() {
     staleTime: 10000,
   });
 
+  if (isLoading && !telemetry) {
+    return (
+      <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center font-mono space-y-2">
+        <RefreshCw className="w-5 h-5 animate-spin text-[#3B82F6] mx-auto" />
+        <div className="text-xs font-semibold text-[#F3F4F6]">INITIALIZING SECURITY TELEMETRY PIPELINE...</div>
+        <p className="text-[11px] text-[#667085] font-sans">
+          Evaluating deterministic compliance benchmarks, heat maps, and fleet topology graph.
+        </p>
+      </div>
+    );
+  }
+
   if (isError) {
     return (
       <div className="p-6 rounded-xl bg-[#0D121C] border border-[#EF4444]/30 text-center font-mono space-y-3">
         <AlertCircle className="w-6 h-6 text-[#EF4444] mx-auto" />
         <div className="text-xs font-bold text-[#F3F4F6]">TELEMETRY UNAVAILABLE</div>
-        <p className="text-[11px] text-[#A7B0C0] font-sans">
-          {error instanceof Error ? error.message : "Unable to retrieve real-time security telemetry."}
+        <p className="text-[11px] text-[#A7B0C0] font-sans max-w-lg mx-auto">
+          {error instanceof Error ? error.message : "Unable to retrieve real-time security telemetry from the backend pipeline."}
         </p>
         <button
           onClick={() => refetch()}
-          className="px-3 py-1.5 rounded-md bg-[#EF4444]/20 hover:bg-[#EF4444]/30 text-[#EF4444] border border-[#EF4444]/40 text-xs font-semibold"
+          disabled={isRefetching}
+          className="px-3.5 py-1.5 rounded-md bg-[#EF4444]/20 hover:bg-[#EF4444]/30 text-[#EF4444] border border-[#EF4444]/40 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
         >
-          Retry Telemetry Sync
+          <RefreshCw className={cn("w-3.5 h-3.5", isRefetching && "animate-spin")} />
+          <span>{isRefetching ? "Connecting..." : "Retry Telemetry Sync"}</span>
         </button>
       </div>
     );

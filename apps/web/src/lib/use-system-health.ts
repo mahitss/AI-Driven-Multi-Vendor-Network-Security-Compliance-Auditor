@@ -3,6 +3,8 @@ import { fetchHealth, type SystemHealth } from "@/lib/api-client";
 
 export const SYSTEM_HEALTH_QUERY_KEY = ["system-health"] as const;
 
+export type SystemConnectionState = "connecting" | "online" | "degraded" | "offline";
+
 export function useSystemHealth() {
   const query = useQuery<SystemHealth>({
     queryKey: SYSTEM_HEALTH_QUERY_KEY,
@@ -12,15 +14,33 @@ export function useSystemHealth() {
     staleTime: 8000,
   });
 
-  const isOnline = Boolean(!query.isError && query.data?.status === "healthy");
-  const isOffline = Boolean(query.isError || (query.data && query.data.status !== "healthy"));
+  let connectionState: SystemConnectionState = "connecting";
+  if (query.isLoading && !query.data) {
+    connectionState = "connecting";
+  } else if (query.isError) {
+    connectionState = "offline";
+  } else if (query.data?.status === "healthy") {
+    connectionState = "online";
+  } else if (query.data?.status === "degraded") {
+    connectionState = "degraded";
+  } else {
+    connectionState = "offline";
+  }
+
+  const isOnline = connectionState === "online";
+  const isOffline = connectionState === "offline";
+  const isDegraded = connectionState === "degraded";
+  const isConnecting = connectionState === "connecting";
   const isChecking = query.isLoading;
 
   return {
     ...query,
     health: query.data,
+    connectionState,
     isOnline,
     isOffline,
+    isDegraded,
+    isConnecting,
     isChecking,
   };
 }

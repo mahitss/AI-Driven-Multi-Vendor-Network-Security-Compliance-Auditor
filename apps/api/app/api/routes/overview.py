@@ -21,6 +21,9 @@ from app.services.agent.memory import AgentMemoryManager
 from app.services.telemetry.service import TelemetryAggregationService
 from app.api.routes.reports import GENERATED_REPORTS
 
+from fastapi.responses import JSONResponse
+from app.core.logging import logger
+
 router = APIRouter(prefix="/overview", tags=["Overview"])
 
 
@@ -35,25 +38,77 @@ async def get_system_telemetry(db: DatabaseDep) -> Dict[str, Any]:
     - Fleet topology nodes & links
     - Remediation lifecycle analytics
     """
-    return await TelemetryAggregationService.get_complete_telemetry(db)
+    try:
+        return await TelemetryAggregationService.get_complete_telemetry(db)
+    except Exception as e:
+        logger.error(f"Telemetry aggregation service error: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "TELEMETRY_UNAVAILABLE",
+                    "message": "Telemetry service temporarily unavailable",
+                    "details": str(e),
+                }
+            },
+        )
 
 
 @router.get("/compliance-trends", summary="Get time-series compliance and risk trends")
 async def get_system_compliance_trends(db: DatabaseDep) -> Dict[str, Any]:
     """Returns chronological audit history points with exact execution timestamps."""
-    return await TelemetryAggregationService.get_compliance_trends(db)
+    try:
+        return await TelemetryAggregationService.get_compliance_trends(db)
+    except Exception as e:
+        logger.error(f"Compliance trends service error: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "TELEMETRY_UNAVAILABLE",
+                    "message": "Compliance trends service temporarily unavailable",
+                    "details": str(e),
+                }
+            },
+        )
 
 
 @router.get("/heatmap", summary="Get security posture heat map matrix")
 async def get_system_heatmap(db: DatabaseDep) -> Dict[str, Any]:
     """Returns Asset x Severity and Asset x Framework matrix for all evaluated assets."""
-    return await TelemetryAggregationService.get_heatmap_matrix(db)
+    try:
+        return await TelemetryAggregationService.get_heatmap_matrix(db)
+    except Exception as e:
+        logger.error(f"Heat map service error: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "TELEMETRY_UNAVAILABLE",
+                    "message": "Security heat map service temporarily unavailable",
+                    "details": str(e),
+                }
+            },
+        )
 
 
 @router.get("/topology", summary="Get fleet asset topology graph")
 async def get_system_fleet_topology(db: DatabaseDep) -> Dict[str, Any]:
     """Returns real evaluated fleet devices and structural topology links."""
-    return await TelemetryAggregationService.get_fleet_topology(db)
+    try:
+        return await TelemetryAggregationService.get_fleet_topology(db)
+    except Exception as e:
+        logger.error(f"Fleet topology service error: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "TELEMETRY_UNAVAILABLE",
+                    "message": "Fleet topology service temporarily unavailable",
+                    "details": str(e),
+                }
+            },
+        )
 
 
 @router.get("/stats", summary="Get comprehensive system overview & posture metrics")
