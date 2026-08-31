@@ -80,7 +80,7 @@ export default function SecurityTelemetrySection() {
             VISUAL SECURITY TELEMETRY & ANALYTICS
           </h2>
           <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#3B82F6]/10 text-[#3B82F6] font-bold border border-[#3B82F6]/25">
-            REAL DATA
+            LIVE TELEMETRY
           </span>
         </div>
 

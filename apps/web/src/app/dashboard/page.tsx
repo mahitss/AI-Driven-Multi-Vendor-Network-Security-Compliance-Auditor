@@ -317,9 +317,9 @@ export default function SecurityPostureDashboard() {
           <div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
-                {isStatsError ? "—" : stats?.compliance_score !== undefined ? `${stats.compliance_score.toFixed(1)}%` : isStatsLoading ? "..." : "—"}
+                {isStatsError || !stats || stats.total_configurations === 0 ? "—" : `${stats.compliance_score.toFixed(1)}%`}
               </span>
-              {!isStatsError && stats?.score_delta !== null && stats?.score_delta !== undefined ? (
+              {!isStatsError && stats && stats.total_configurations > 0 && stats.score_delta !== null && stats.score_delta !== undefined ? (
                 <span
                   className={cn(
                     "text-[10px] font-mono font-medium flex items-center gap-0.5",
@@ -333,20 +333,20 @@ export default function SecurityPostureDashboard() {
                   )}
                   {Math.abs(stats.score_delta).toFixed(1)}% vs prior
                 </span>
-              ) : !isStatsError && stats ? (
+              ) : !isStatsError && stats && stats.total_configurations > 0 ? (
                 <span className="text-[10px] text-[#667085] font-mono">Baseline audit</span>
               ) : null}
             </div>
             <p className="text-[10px] text-[#667085] mt-1 font-mono">
-              {isStatsError ? "Evaluations unavailable" : isStatsLoading ? "Loading fleet..." : `Evaluated on ${stats?.total_configurations || 0} config(s)`}
+              {isStatsError ? "Evaluations unavailable" : isStatsLoading ? "Loading fleet..." : stats?.total_configurations ? `Evaluated on ${stats.total_configurations} config(s)` : "No configurations evaluated"}
             </p>
           </div>
           {/* Framework Breakdown Strip */}
           <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[9px] font-mono text-[#A7B0C0]">
-            <span>CIS {isStatsError ? "—" : stats?.framework_scores?.CIS !== undefined ? `${Math.round(stats.framework_scores.CIS)}%` : isStatsLoading ? "..." : "—"}</span>
-            <span>NIST {isStatsError ? "—" : stats?.framework_scores?.NIST !== undefined ? `${Math.round(stats.framework_scores.NIST)}%` : isStatsLoading ? "..." : "—"}</span>
-            <span>STIG {isStatsError ? "—" : stats?.framework_scores?.STIG !== undefined ? `${Math.round(stats.framework_scores.STIG)}%` : isStatsLoading ? "..." : "—"}</span>
-            <span>ISO {isStatsError ? "—" : stats?.framework_scores?.ISO !== undefined ? `${Math.round(stats.framework_scores.ISO)}%` : isStatsLoading ? "..." : "—"}</span>
+            <span>CIS {isStatsError || !stats?.total_configurations ? "—" : stats?.framework_scores?.CIS !== undefined ? `${Math.round(stats.framework_scores.CIS)}%` : "—"}</span>
+            <span>NIST {isStatsError || !stats?.total_configurations ? "—" : stats?.framework_scores?.NIST !== undefined ? `${Math.round(stats.framework_scores.NIST)}%` : "—"}</span>
+            <span>STIG {isStatsError || !stats?.total_configurations ? "—" : stats?.framework_scores?.STIG !== undefined ? `${Math.round(stats.framework_scores.STIG)}%` : "—"}</span>
+            <span>ISO {isStatsError || !stats?.total_configurations ? "—" : stats?.framework_scores?.ISO !== undefined ? `${Math.round(stats.framework_scores.ISO)}%` : "—"}</span>
           </div>
         </div>
 
@@ -365,18 +365,18 @@ export default function SecurityPostureDashboard() {
           <div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-semibold text-[#F3F4F6] font-mono tracking-tight">
-                {isStatsError ? "—" : stats?.risk_score !== undefined ? Math.round(stats.risk_score) : isStatsLoading ? "..." : "—"}
+                {isStatsError || !stats || stats.total_configurations === 0 || stats.open_findings === 0 ? "—" : Math.round(stats.risk_score)}
               </span>
               <span className="text-xs text-[#667085] font-mono">/ 100</span>
             </div>
             <p className="text-[10px] text-[#667085] mt-1 font-mono">
-              {isStatsError ? "Risk model unavailable" : isStatsLoading ? "Calculating risks..." : `Attack-surface weighted from ${stats?.open_findings || 0} finding(s)`}
+              {isStatsError ? "Risk model unavailable" : isStatsLoading ? "Calculating risks..." : stats?.open_findings ? `Attack-surface weighted from ${stats.open_findings} finding(s)` : "0 active findings"}
             </p>
           </div>
           <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[9px] font-mono text-[#A7B0C0]">
-            <span className="text-[#EF4444]">Crit: {isStatsError ? "—" : stats?.severity_breakdown?.critical !== undefined ? stats.severity_breakdown.critical : isStatsLoading ? "..." : "—"}</span>
-            <span className="text-[#F59E0B]">High: {isStatsError ? "—" : stats?.severity_breakdown?.high !== undefined ? stats.severity_breakdown.high : isStatsLoading ? "..." : "—"}</span>
-            <span className="text-[#60A5FA]">Med: {isStatsError ? "—" : stats?.severity_breakdown?.medium !== undefined ? stats.severity_breakdown.medium : isStatsLoading ? "..." : "—"}</span>
+            <span className="text-[#EF4444]">Crit: {isStatsError ? "—" : stats?.severity_breakdown?.critical !== undefined ? stats.severity_breakdown.critical : 0}</span>
+            <span className="text-[#F59E0B]">High: {isStatsError ? "—" : stats?.severity_breakdown?.high !== undefined ? stats.severity_breakdown.high : 0}</span>
+            <span className="text-[#60A5FA]">Med: {isStatsError ? "—" : stats?.severity_breakdown?.medium !== undefined ? stats.severity_breakdown.medium : 0}</span>
           </div>
         </div>
 

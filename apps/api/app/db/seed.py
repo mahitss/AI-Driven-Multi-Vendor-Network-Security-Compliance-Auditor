@@ -6,12 +6,17 @@ Findings, Risks, Remediations, Training Mappings, and Reports on first launch.
 """
 from pathlib import Path
 from datetime import datetime, timezone
-from sqlalchemy import select, func
+import json
+from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import logger
 from app.models.configuration import Configuration
+from app.models.device import Device
 from app.models.audit import Audit
+from app.models.finding import Finding
+from app.models.risk import RiskItem
+from app.models.remediation import RemediationProposal
 from app.models.training import TrainingMapping
 from app.api.routes.reports import GENERATED_REPORTS, generate_report, GenerateReportRequest
 from app.services.ingestion.config_ingestion import ConfigurationIngestionService
@@ -21,11 +26,60 @@ from app.services.risk.service import RiskIntelligenceService
 from app.services.remediation.service import RemediationService
 import app.services.parser.vendors  # Register parsers
 
+DEMO_FILENAMES = [
+    "cisco-core-router.cfg",
+    "juniper-edge-srx.conf",
+    "fortinet-perimeter-fgt.conf",
+]
+
+
+async def clean_demo_records(db: AsyncSession) -> int:
+    """
+    Safely purges legacy automatic seed/demo fixtures from the database
+    without touching any genuine user-uploaded configurations or audit records.
+    """
+    demo_configs_res = await db.execute(
+        select(Configuration).where(Configuration.original_filename.in_(DEMO_FILENAMES))
+    )
+    demo_configs = list(demo_configs_res.scalars().all())
+    if not demo_configs:
+        return 0
+
+    demo_config_ids = [c.id for c in demo_configs]
+    logger.info(f"Cleaning up {len(demo_config_ids)} legacy demo seed configurations: {[c.original_filename for c in demo_configs]}")
+
+    # Find all audit IDs associated with these demo configurations
+    audits_res = await db.execute(
+        select(Audit).where(Audit.configuration_id.in_(demo_config_ids))
+    )
+    demo_audits = list(audits_res.scalars().all())
+    demo_audit_ids = [a.id for a in demo_audits]
+
+    if demo_audit_ids:
+        await db.execute(delete(RemediationProposal).where(RemediationProposal.audit_id.in_(demo_audit_ids)))
+        await db.execute(delete(RiskItem).where(RiskItem.audit_id.in_(demo_audit_ids)))
+        await db.execute(delete(Finding).where(Finding.audit_id.in_(demo_audit_ids)))
+        await db.execute(delete(Audit).where(Audit.id.in_(demo_audit_ids)))
+
+    await db.execute(delete(Configuration).where(Configuration.id.in_(demo_config_ids)))
+
+    # Clean associated devices if no other configs belong to them
+    demo_device_ids = [c.device_id for c in demo_configs if c.device_id]
+    if demo_device_ids:
+        for dev_id in set(demo_device_ids):
+            other_cfgs = (await db.execute(
+                select(func.count(Configuration.id)).where(Configuration.device_id == dev_id)
+            )).scalar() or 0
+            if other_cfgs == 0:
+                await db.execute(delete(Device).where(Device.id == dev_id))
+
+    await db.commit()
+    logger.info("Legacy demo seed data removed successfully.")
+    return len(demo_config_ids)
+
 
 async def seed_database_if_empty(db: AsyncSession) -> None:
-    """Idempotently seeds canonical multi-vendor demo fixtures and records if empty."""
-    config_count = (await db.execute(select(func.count(Configuration.id)))).scalar() or 0
-
+    """Idempotently seeds canonical multi-vendor demo fixtures and records if called."""
     current = Path(__file__).resolve()
     root_dir = current.parents[min(4, len(current.parents) - 1)]
     for p in current.parents:
@@ -39,75 +93,71 @@ async def seed_database_if_empty(db: AsyncSession) -> None:
         ("fortinet-perimeter-fgt.conf", root_dir / "data" / "demo" / "fortinet" / "insecure-firewall.conf"),
     ]
 
-    # 1-5. Seed configurations if fewer than standard demo fixtures
-    if config_count < len(fixture_files):
-        logger.info("Initializing NetVigil database with canonical multi-vendor demo records...")
+    for filename, filepath in fixture_files:
+        if not filepath.exists():
+            logger.warning(f"Seed fixture not found at {filepath}, skipping...")
+            continue
 
-        for filename, filepath in fixture_files:
-            if not filepath.exists():
-                logger.warning(f"Seed fixture not found at {filepath}, skipping...")
-                continue
+        existing = (await db.execute(
+            select(Configuration).where(Configuration.original_filename == filename)
+        )).scalars().first()
 
-            # Check if this filename is already ingested
-            existing = (await db.execute(
-                select(Configuration).where(Configuration.original_filename == filename)
+        if existing:
+            audit_exists = (await db.execute(
+                select(Audit).where(Audit.configuration_id == existing.id)
             )).scalars().first()
-
-            if existing:
+            if audit_exists:
                 continue
-
+            config = existing
+        else:
             with open(filepath, "rb") as f:
                 content_bytes = f.read()
 
             try:
-                # 1. Ingest Configuration
                 config = await ConfigurationIngestionService.ingest_file(
                     filename=filename,
                     content_bytes=content_bytes,
                     db=db,
                 )
-
-                # 2. Parse & Extract Facts
-                parser = parser_registry.get_parser(
-                    content=config.raw_content,
-                    vendor_hint=config.detected_vendor,
-                    filename=config.original_filename,
-                )
-                profile = parser.parse(config.raw_content, filename=config.original_filename)
-                config.parser_status = "parsed"
-                config.parser_name = profile.parser_name
-                config.parser_version = profile.parser_version
-                config.facts_extracted_count = profile.facts_extracted_count
-                config.unknown_items_count = profile.unknown_items_count
-                config.normalized_profile = profile.model_dump(mode="json")
-                config.unknown_items = [u.model_dump(mode="json") for u in profile.unknown_items]
-                config.processed_at = datetime.now(timezone.utc)
-                await db.commit()
-                await db.refresh(config)
-
-                # 3. Execute Compliance Audit
-                audit_rec, summary, findings = await ComplianceAuditService.run_audit(
-                    configuration_id=config.id,
-                    frameworks=["CIS", "NIST", "STIG", "ISO"],
-                    db=db,
-                )
-
-                # 4. Generate Prioritized Risks
-                await RiskIntelligenceService.generate_audit_risks(
-                    audit_id=audit_rec.id,
-                    db=db,
-                )
-
-                # 5. Generate Remediation Proposals & Diffs
-                await RemediationService.generate_audit_remediations(
-                    audit_id=audit_rec.id,
-                    db=db,
-                )
-
-                logger.info(f"Successfully seeded and audited {filename} (Vendor: {config.detected_vendor.upper()})")
-
             except Exception as e:
-                logger.error(f"Error seeding fixture {filename}: {e}", exc_info=True)
+                logger.error(f"Error ingesting seed fixture {filename}: {e}")
+                continue
+
+        try:
+            # 2. Parse & Extract Facts
+            parser = parser_registry.get_parser(
+                content=config.raw_content,
+                vendor_hint=config.detected_vendor,
+                filename=config.original_filename,
+            )
+            profile = parser.parse(config.raw_content, filename=config.original_filename)
+            config.parser_status = "parsed"
+            config.parser_name = profile.parser_name
+            config.parser_version = profile.parser_version
+            config.facts_extracted_count = profile.facts_extracted_count
+            config.unknown_items_count = profile.unknown_items_count
+            config.normalized_profile = profile.model_dump(mode="json")
+            config.unknown_items = [u.model_dump(mode="json") for u in profile.unknown_items]
+            config.processed_at = datetime.now(timezone.utc)
+            await db.commit()
+            await db.refresh(config)
+
+            # 3. Execute Compliance Audit
+            audit, summary, results = await ComplianceAuditService.run_audit(
+                configuration_id=config.id,
+                frameworks=["CIS", "NIST", "STIG", "ISO"],
+                db=db,
+            )
+
+            # 4. Generate Risk Intelligence & Graph
+            await RiskIntelligenceService.generate_audit_risks(audit.id, db)
+
+            # 5. Generate Remediation Proposals
+            await RemediationService.generate_audit_remediations(audit.id, db)
+
+            logger.info(f"Successfully seeded and audited {filename} (Vendor: {config.detected_vendor.upper()})")
+        except Exception as e:
+            logger.error(f"Error seeding fixture {filename}: {e}", exc_info=True)
 
     # 6. Seed Initial Report if empty
     if len(GENERATED_REPORTS) == 0:

@@ -53,14 +53,20 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Database schema initialization notice: {e}")
 
-    # Idempotently seed canonical multi-vendor demo dataset if empty
+    # Clean up legacy demo seed records on startup so production displays only genuine user data
     try:
+        import os
         from app.db.session import AsyncSessionLocal
-        from app.db.seed import seed_database_if_empty
+        from app.db.seed import clean_demo_records
         async with AsyncSessionLocal() as session:
-            await seed_database_if_empty(session)
+            await clean_demo_records(session)
+
+            # Only seed if explicitly requested via SEED_DEMO_DATA=true (e.g., local offline test harness)
+            if os.environ.get("SEED_DEMO_DATA", "").lower() in ["true", "1", "yes"]:
+                from app.db.seed import seed_database_if_empty
+                await seed_database_if_empty(session)
     except Exception as e:
-        logger.warning(f"Database seed notice: {e}")
+        logger.warning(f"Database clean/seed lifecycle notice: {e}")
 
     yield
 

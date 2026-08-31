@@ -387,7 +387,7 @@ export default function SecurityTrendLineChart({
             </div>
             <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 font-semibold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] tactical-pulse-green" />
-              <span>LIVE DATABASE</span>
+              <span>LIVE TELEMETRY</span>
             </span>
           </div>
           <p className="text-[11px] text-[#A7B0C0] font-sans mt-1">
@@ -439,6 +439,17 @@ export default function SecurityTrendLineChart({
           </button>
         </div>
       </div>
+
+      {/* Zero Audit Points Notice */}
+      {trends.length === 0 && (
+        <div className="p-6 rounded-lg bg-[#080B12] border border-[#1D2939] text-center font-mono space-y-2">
+          <Info className="w-5 h-5 text-[#667085] mx-auto" />
+          <div className="text-xs font-bold text-[#F3F4F6]">NO AUDIT TELEMETRY RECORDED</div>
+          <p className="text-[11px] text-[#A7B0C0] font-sans max-w-md mx-auto">
+            Security telemetry streamgraph will populate automatically as configurations are ingested and evaluated against compliance frameworks.
+          </p>
+        </div>
+      )}
 
       {/* Single Audit Point Notice */}
       {!hasSufficientHistory && trends.length === 1 && (
