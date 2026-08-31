@@ -100,6 +100,34 @@ async def get_configuration(
     return config
 
 
+from fastapi import Response
+
+@router.get(
+    "/{config_id}/export",
+    summary="Export raw configuration file as a downloadable file attachment",
+)
+async def export_configuration_file(
+    config_id: str,
+    db: DatabaseDep,
+):
+    """Returns raw configuration file with Content-Disposition: attachment for native browser download."""
+    cfg = await db.get(Configuration, config_id)
+    if not cfg:
+        raise ResourceNotFoundError(resource="Configuration", identifier=config_id)
+
+    filename = cfg.original_filename or f"config_{config_id[:8]}.cfg"
+    content = cfg.raw_content or ""
+
+    return Response(
+        content=content,
+        media_type="text/plain; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+
+
 @router.post(
     "/{config_id}/analyze",
     response_model=ConfigurationAnalysisDetailResponse,

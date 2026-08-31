@@ -38,6 +38,8 @@ import {
   fetchRemediationExplanation,
   fetchFindings,
   fetchConfigurations,
+  downloadFileFromApi,
+  downloadBlobAsFile,
   RemediationProposal,
   RemediationExplanation,
   RemediationStats,
@@ -198,18 +200,23 @@ function RemediationContent() {
     setTimeout(() => setCopiedRollback(false), 2000);
   };
 
-  const handleDownloadScript = () => {
+  const handleDownloadScript = async () => {
     if (!selectedRemediation) return;
-    const ext = selectedRemediation.vendor === "juniper" ? "set" : "cfg";
-    const filename = `remediation_${selectedRemediation.vendor}_${selectedRemediation.template_id}.${ext}`;
+    const vendor = selectedRemediation.vendor?.toLowerCase() || "cisco";
+    const ext = vendor === "juniper" ? "set" : (vendor === "fortinet" ? "conf" : "cfg");
+    const filename = `remediation_${vendor}_${selectedRemediation.template_id || "script"}.${ext}`;
+
+    try {
+      if (selectedRemediation.id) {
+        await downloadFileFromApi(`/api/v1/remediations/${selectedRemediation.id}/export`, filename);
+        return;
+      }
+    } catch (e) {
+      console.warn("Direct API download fallback to client attachment stream:", e);
+    }
+
     const header = `! NetVigil Remediation Catalog Export\n! Vendor: ${selectedRemediation.vendor.toUpperCase()}\n! Template: ${selectedRemediation.template_id}\n! Execution: READ-ONLY ADVISORY (MANUAL DEPLOYMENT ONLY)\n\n`;
-    const element = document.createElement("a");
-    const file = new Blob([header + selectedRemediation.remediation_commands], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = filename;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    downloadBlobAsFile(header + (selectedRemediation.remediation_commands || ""), filename, "text/plain;charset=utf-8");
   };
 
   // Re-Analysis Execution

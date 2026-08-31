@@ -44,6 +44,41 @@ async def get_remediation_stats(db: DatabaseDep):
     return RemediationSummaryStatsResponse(**stats)
 
 
+from fastapi import APIRouter, Query, Response
+
+@router.get("/remediations/{remediation_id}/export", summary="Export remediation script as a downloadable file attachment")
+async def export_remediation_script(
+    remediation_id: str,
+    db: DatabaseDep,
+):
+    """Returns remediation commands script with Content-Disposition: attachment header for native browser download."""
+    prop = await db.get(RemediationProposal, remediation_id)
+    if not prop:
+        raise NotFoundError(message=f"Remediation proposal {remediation_id} not found.")
+
+    vendor = str(prop.vendor or "cisco").lower()
+    template_id = str(prop.template_id or "patch")
+    ext = "set" if vendor == "juniper" else ("conf" if vendor == "fortinet" else "cfg")
+    filename = f"remediation_{vendor}_{template_id}.{ext}"
+
+    header = (
+        f"! NetVigil Remediation Catalog Export\n"
+        f"! Vendor: {vendor.upper()}\n"
+        f"! Template: {template_id}\n"
+        f"! Execution: READ-ONLY ADVISORY (MANUAL DEPLOYMENT ONLY)\n\n"
+    )
+    content = header + (prop.remediation_commands or "")
+
+    return Response(
+        content=content,
+        media_type="text/plain; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+
+
 @router.get("/remediations/{remediation_id}", response_model=RemediationProposalResponse)
 async def get_remediation(remediation_id: str, db: DatabaseDep):
     """Retrieves a specific remediation proposal by ID."""

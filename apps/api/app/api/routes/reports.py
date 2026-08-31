@@ -214,6 +214,94 @@ async def generate_report(
     return report_record
 
 
+from fastapi import APIRouter, Query, Response, status
+import json
+
+def _format_report_markdown(report: Dict[str, Any]) -> str:
+    title = report.get("title", "NetVigil Executive Compliance Audit Report")
+    report_id = report.get("id", "rpt_unknown")
+    created_at = report.get("created_at", "")
+    compliance_score = float(report.get("compliance_score") or 0.0)
+    sections = report.get("sections", {})
+    identity = sections.get("identity", {})
+    exec_summary = sections.get("executive_summary", {})
+    top_risks = sections.get("top_risks", [])
+
+    md = f"""# {title}
+
+**Report ID:** `{report_id}`  
+**Classification:** RESTRICTED / ADVISORY  
+**Generated At:** {created_at}  
+**Target Asset:** {identity.get('filename', 'Network Device')} (Vendor: {str(identity.get('vendor', 'cisco')).upper()})  
+**SHA-256 Digest:** `{identity.get('sha256', 'N/A')}`  
+
+---
+
+## 1. Executive Summary & Compliance Verdict
+
+- **Overall Compliance Score:** {compliance_score:.1f}%
+- **Evaluated Rules:** {exec_summary.get('evaluated_rules', 0)}
+- **Passed Controls:** {exec_summary.get('passed_rules', 0)}
+- **Failed / Partial Controls:** {exec_summary.get('failed_rules', 0)}
+- **Risk Severity Tier:** {exec_summary.get('severity_tier', 'P0')} (Risk Score: {exec_summary.get('risk_score', 0.0)})
+
+---
+
+## 2. Top Prioritized Risks
+
+"""
+    for idx, r in enumerate(top_risks, 1):
+        md += f"""### {idx}. [{r.get('priority', 'HIGH')}] {r.get('title', 'Risk Item')} (Score: {r.get('score', 0)})
+- **Category:** {r.get('category', 'General')}
+- **Description:** {r.get('description', '')}
+
+"""
+
+    md += """---
+
+## 3. Remediation Action Plan & Verification
+
+*Generated deterministically by NetVigil Enterprise Security Intelligence Engine (NTRO - SIH26155).*
+"""
+    return md
+
+
+@router.get("/{report_id}/export", summary="Export compliance report as a downloadable file attachment")
+async def export_report_file(
+    report_id: str,
+    format: str = Query("json", description="File format: json, markdown, md, or txt", pattern="^(json|markdown|md|txt)$"),
+):
+    """Returns report document with Content-Disposition: attachment header for native browser download."""
+    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id), None)
+    if not report:
+        raise NotFoundError(message=f"Report {report_id} not found.")
+
+    target_device = str(report.get("target_device", "asset")).replace(" ", "_").replace("/", "_")
+    clean_id = report_id[:8]
+
+    if format in ["markdown", "md"]:
+        filename = f"netvigil_report_{target_device}_{clean_id}.md"
+        content = _format_report_markdown(report)
+        media_type = "text/markdown; charset=utf-8"
+    elif format == "txt":
+        filename = f"netvigil_report_{target_device}_{clean_id}.txt"
+        content = _format_report_markdown(report)
+        media_type = "text/plain; charset=utf-8"
+    else:
+        filename = f"netvigil_report_{target_device}_{clean_id}.json"
+        content = json.dumps(report, indent=2, default=str)
+        media_type = "application/json; charset=utf-8"
+
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+
+
 @router.get("/{report_id}", summary="Get full report document details")
 async def get_report_detail(report_id: str) -> Dict[str, Any]:
     """Retrieves full report content and sections."""

@@ -2584,6 +2584,82 @@ export async function fetchFleetTopology(): Promise<{
   return res.json();
 }
 
+/**
+ * Initiates an authentic browser file download.
+ * Fetches the backend endpoint with auth headers, handles Content-Disposition header,
+ * and triggers native browser download toolbar/shelf indicator and saving to Downloads.
+ */
+export async function downloadFileFromApi(
+  endpointPath: string,
+  fallbackFilename: string = "download.txt"
+): Promise<void> {
+  const url = endpointPath.startsWith("http")
+    ? endpointPath
+    : `${getApiBase()}${endpointPath.startsWith("/") ? endpointPath : `/${endpointPath}`}`;
+  const authHeaders = await getAuthHeaders();
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      ...authHeaders,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Download failed: HTTP ${response.status} ${response.statusText}`);
+  }
+
+  // Extract filename from Content-Disposition header if present
+  let filename = fallbackFilename;
+  const disposition = response.headers.get("Content-Disposition");
+  if (disposition && disposition.includes("filename=")) {
+    const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+    if (match && match[1]) {
+      filename = match[1].replace(/['"]/g, "").trim();
+    }
+  }
+
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.style.display = "none";
+  link.href = blobUrl;
+  link.download = filename;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+
+  setTimeout(() => {
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  }, 1000);
+}
+
+/**
+ * Triggers native browser download for in-memory text/blob data.
+ */
+export function downloadBlobAsFile(
+  content: string | Blob,
+  filename: string,
+  mimeType: string = "text/plain;charset=utf-8"
+): void {
+  const blob = typeof content === "string" ? new Blob([content], { type: mimeType }) : content;
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.style.display = "none";
+  link.href = blobUrl;
+  link.download = filename;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+
+  setTimeout(() => {
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  }, 1000);
+}
+
+
 
 
 

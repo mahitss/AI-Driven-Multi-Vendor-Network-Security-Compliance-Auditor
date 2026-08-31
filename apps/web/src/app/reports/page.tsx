@@ -40,6 +40,8 @@ import {
   fetchAudits,
   fetchAuditDetail,
   fetchConfigurations,
+  downloadFileFromApi,
+  downloadBlobAsFile,
   ReportDocument,
   AuditItem,
   AuditComparisonResult,
@@ -177,6 +179,43 @@ function ReportsContent() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadReportJson = async () => {
+    if (!activeReport) return;
+    const cleanId = activeReport.id ? activeReport.id.slice(0, 8) : "report";
+    const filename = `netvigil_report_${cleanId}.json`;
+
+    try {
+      if (activeReport.id) {
+        await downloadFileFromApi(`/api/v1/reports/${activeReport.id}/export?format=json`, filename);
+        return;
+      }
+    } catch (e) {
+      console.warn("Falling back to browser memory download:", e);
+    }
+
+    const jsonStr = JSON.stringify(activeReport, null, 2);
+    downloadBlobAsFile(jsonStr, filename, "application/json;charset=utf-8");
+  };
+
+  const handleDownloadReportMarkdown = async () => {
+    if (!activeReport) return;
+    const cleanId = activeReport.id ? activeReport.id.slice(0, 8) : "report";
+    const filename = `netvigil_report_${cleanId}.md`;
+
+    try {
+      if (activeReport.id) {
+        await downloadFileFromApi(`/api/v1/reports/${activeReport.id}/export?format=markdown`, filename);
+        return;
+      }
+    } catch (e) {
+      console.warn("Falling back to browser memory download:", e);
+    }
+
+    const title = activeReport.title || "NetVigil Executive Compliance Audit Report";
+    const md = `# ${title}\n\n**Report ID:** \`${activeReport.id}\`\n**Compliance Score:** ${activeReport.compliance_score}%\n\n## Summary\n\n${activeReport.notes || ""}\n`;
+    downloadBlobAsFile(md, filename, "text/markdown;charset=utf-8");
   };
 
   const handleCopyReport = () => {
@@ -334,11 +373,30 @@ function ReportsContent() {
               </button>
 
               <button
-                onClick={handleCopyReport}
+                onClick={handleDownloadReportJson}
                 className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
+                title="Download full executive report as a .json file"
               >
-                {copiedReport ? <Check className="w-3.5 h-3.5 text-[#10B981]" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedReport ? "COPIED JSON" : "EXPORT JSON"}</span>
+                <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
+                <span>EXPORT JSON</span>
+              </button>
+
+              <button
+                onClick={handleDownloadReportMarkdown}
+                className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
+                title="Download report as a formatted markdown document"
+              >
+                <FileCode2 className="w-3.5 h-3.5 text-[#10B981]" />
+                <span>EXPORT .MD</span>
+              </button>
+
+              <button
+                onClick={handleCopyReport}
+                className="px-2.5 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#667085] hover:text-[#A7B0C0] flex items-center gap-1 text-[11px] transition-all"
+                title="Copy JSON to clipboard"
+              >
+                {copiedReport ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedReport ? "COPIED" : "COPY"}</span>
               </button>
             </div>
           </div>

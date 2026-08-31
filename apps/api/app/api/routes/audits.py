@@ -245,6 +245,78 @@ async def get_audit(
     )
 
 
+from fastapi import Response
+import json
+
+@router.get(
+    "/{audit_id}/export",
+    summary="Export audit evaluation and findings as a downloadable file attachment",
+)
+async def export_audit_file(
+    audit_id: str,
+    db: DatabaseDep,
+    format: str = Query("json", pattern="^(json|csv)$"),
+):
+    """Returns audit results with Content-Disposition: attachment for native browser download."""
+    audit = await db.get(Audit, audit_id)
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
+
+    cfg = await db.get(Configuration, audit.configuration_id) if audit.configuration_id else None
+    findings = list((await db.execute(
+        select(Finding).where(Finding.audit_id == audit.id).order_by(Finding.severity)
+    )).scalars().all())
+
+    device_name = (cfg.original_filename if cfg else f"audit_{audit_id[:8]}").replace(" ", "_")
+
+    if format == "csv":
+        filename = f"netvigil_audit_{device_name}.csv"
+        import csv, io
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["control_id", "title", "framework", "severity", "status", "description", "evidence", "remediation"])
+        for f in findings:
+            writer.writerow([f.control_id, f.title, f.framework, f.severity, f.status, f.description or "", f.evidence or "", f.remediation or ""])
+        content = output.getvalue()
+        media_type = "text/csv; charset=utf-8"
+    else:
+        filename = f"netvigil_audit_{device_name}.json"
+        data = {
+            "audit_id": audit.id,
+            "configuration_id": audit.configuration_id,
+            "score": audit.score,
+            "status": audit.status,
+            "created_at": str(audit.created_at),
+            "device": cfg.original_filename if cfg else "unknown",
+            "vendor": cfg.detected_vendor if cfg else "unknown",
+            "summary_stats": audit.summary_stats,
+            "findings": [
+                {
+                    "control_id": f.control_id,
+                    "title": f.title,
+                    "framework": f.framework,
+                    "severity": f.severity,
+                    "status": f.status,
+                    "description": f.description,
+                    "evidence": f.evidence,
+                    "remediation": f.remediation,
+                }
+                for f in findings
+            ],
+        }
+        content = json.dumps(data, indent=2, default=str)
+        media_type = "application/json; charset=utf-8"
+
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+
+
 @router.get(
     "/{audit_id}/findings",
     response_model=List[FindingResponse],
