@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
 
     # Security
-    SECRET_KEY: str = "netvigil-soc-mission-control-secure-prod-key-9f8a7b6c5d4e3f2a1b0c"
+    SECRET_KEY: str = "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3"
     ALLOWED_HOSTS: Union[List[str], str] = ["*"]
     CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
