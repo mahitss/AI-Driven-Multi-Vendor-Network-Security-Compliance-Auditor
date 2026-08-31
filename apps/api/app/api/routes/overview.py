@@ -384,8 +384,12 @@ async def init_golden_demo(db: DatabaseDep) -> Dict[str, Any]:
     6. Returns structured golden demo state
     """
     t0 = time.perf_counter()
-    # Path: overview.py -> routes -> api -> app -> api -> apps -> SIH2026 (parents[5])
-    root_dir = Path(__file__).resolve().parents[5]
+    current = Path(__file__).resolve()
+    root_dir = current.parents[min(5, len(current.parents) - 1)]
+    for p in current.parents:
+        if (p / "data" / "demo").is_dir():
+            root_dir = p
+            break
     golden_path = root_dir / "data" / "demo" / "golden" / "cisco-core-router.cfg"
     if not golden_path.exists():
         golden_path = root_dir / "data" / "demo" / "cisco" / "insecure-router.cfg"
@@ -512,7 +516,12 @@ async def init_multivendor_demo(db: DatabaseDep) -> Dict[str, Any]:
     5. Synthesizes allowlisted remediation diffs
     6. Constructs the cross-vendor normalization matrix
     """
-    root_dir = Path(__file__).resolve().parents[5]
+    current = Path(__file__).resolve()
+    root_dir = current.parents[min(5, len(current.parents) - 1)]
+    for p in current.parents:
+        if (p / "data" / "demo").is_dir():
+            root_dir = p
+            break
     
     vendor_configs_spec = [
         {

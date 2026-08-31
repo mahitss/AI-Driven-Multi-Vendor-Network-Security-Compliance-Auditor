@@ -11,15 +11,32 @@ from typing import Dict, List, Optional
 from app.services.compliance.models import ComplianceRule, FrameworkSourceMeta
 
 
+def resolve_data_dir() -> Path:
+    """
+    Resolves the 'data' directory across local development and container deployments.
+    Searches parent directory hierarchy for an existing 'data/compliance' structure.
+    """
+    current = Path(__file__).resolve()
+    for p in current.parents:
+        candidate = p / "data"
+        if (candidate / "compliance" / "mappings" / "unified_catalog.json").exists():
+            return candidate
+
+    for candidate in [Path("/app/data"), Path.cwd() / "data", Path("/workspace/data")]:
+        if (candidate / "compliance" / "mappings" / "unified_catalog.json").exists():
+            return candidate
+
+    return current.parents[min(3, len(current.parents) - 1)] / "data"
+
+
 class ComplianceCatalog:
     """In-memory indexed compliance catalog with fast lookups by framework and category."""
 
     def __init__(self, catalog_path: Optional[str] = None):
         if not catalog_path:
-            # Default to data/compliance/mappings/unified_catalog.json relative to repository root
-            base_dir = Path(__file__).resolve().parents[5]  # c:\Users\pc\OneDrive\Desktop\SIH2026
-            self.catalog_path = base_dir / "data" / "compliance" / "mappings" / "unified_catalog.json"
-            self.frameworks_dir = base_dir / "data" / "compliance" / "controls"
+            data_dir = resolve_data_dir()
+            self.catalog_path = data_dir / "compliance" / "mappings" / "unified_catalog.json"
+            self.frameworks_dir = data_dir / "compliance" / "controls"
         else:
             self.catalog_path = Path(catalog_path)
             self.frameworks_dir = self.catalog_path.parent.parent / "controls"

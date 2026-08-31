@@ -26,7 +26,12 @@ async def seed_database_if_empty(db: AsyncSession) -> None:
     """Idempotently seeds canonical multi-vendor demo fixtures and records if empty."""
     config_count = (await db.execute(select(func.count(Configuration.id)))).scalar() or 0
 
-    root_dir = Path(__file__).resolve().parents[4]  # seed.py -> db -> app -> api -> apps -> SIH2026
+    current = Path(__file__).resolve()
+    root_dir = current.parents[min(4, len(current.parents) - 1)]
+    for p in current.parents:
+        if (p / "data" / "demo").is_dir():
+            root_dir = p
+            break
 
     fixture_files = [
         ("cisco-core-router.cfg", root_dir / "data" / "demo" / "golden" / "cisco-core-router.cfg"),
