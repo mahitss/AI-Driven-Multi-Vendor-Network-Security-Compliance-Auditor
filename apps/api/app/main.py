@@ -53,13 +53,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Database schema initialization notice: {e}")
 
-    # Clean up legacy demo seed records on startup so production displays only genuine user data
+    # Lifecycle hooks (controlled via explicit env flags)
     try:
         import os
         from app.db.session import AsyncSessionLocal
-        from app.db.seed import clean_demo_records
         async with AsyncSessionLocal() as session:
-            await clean_demo_records(session)
+            if os.environ.get("CLEAN_DEMO_DATA", "").lower() in ["true", "1", "yes"]:
+                from app.db.seed import clean_demo_records
+                await clean_demo_records(session)
 
             # Only seed if explicitly requested via SEED_DEMO_DATA=true (e.g., local offline test harness)
             if os.environ.get("SEED_DEMO_DATA", "").lower() in ["true", "1", "yes"]:

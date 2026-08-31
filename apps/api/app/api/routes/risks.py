@@ -10,6 +10,7 @@ from app.models.risk import RiskItem
 from app.models.audit import Audit
 from app.schemas.risk import RiskItemResponse, RiskGraphResponse, RiskSummaryStatsResponse
 from app.services.risk.service import RiskIntelligenceService
+from app.db.helpers import get_latest_audit_ids
 
 router = APIRouter(tags=["Risk Intelligence"])
 
@@ -31,23 +32,10 @@ async def list_risks(
     if audit_id and audit_id.upper() != "ALL":
         stmt = stmt.where(RiskItem.audit_id == audit_id)
     elif latest_only:
-        latest_created_sq = (
-            select(
-                Audit.configuration_id,
-                func.max(Audit.created_at).label("max_created")
-            )
-            .group_by(Audit.configuration_id)
-            .subquery()
-        )
-        latest_audits_stmt = (
-            select(Audit.id)
-            .join(
-                latest_created_sq,
-                (Audit.configuration_id == latest_created_sq.c.configuration_id)
-                & (Audit.created_at == latest_created_sq.c.max_created)
-            )
-        )
-        stmt = stmt.where(RiskItem.audit_id.in_(latest_audits_stmt))
+        latest_audit_ids = await get_latest_audit_ids(db)
+        if not latest_audit_ids:
+            return []
+        stmt = stmt.where(RiskItem.audit_id.in_(latest_audit_ids))
 
     if severity and severity != "ALL":
         stmt = stmt.where(RiskItem.severity == severity.upper())

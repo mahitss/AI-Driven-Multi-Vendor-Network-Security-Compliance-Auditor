@@ -19,6 +19,7 @@ from app.services.compliance.catalog import compliance_catalog
 from app.services.remediation.catalog import REMEDIATION_CATALOG
 from app.services.agent.memory import AgentMemoryManager
 from app.services.telemetry.service import TelemetryAggregationService
+from app.db.helpers import get_latest_audits, get_latest_audit_ids
 from app.api.routes.reports import GENERATED_REPORTS
 
 from fastapi.responses import JSONResponse
@@ -121,30 +122,12 @@ async def get_system_overview_stats(
     total_audits = (await db.execute(select(func.count(Audit.id)))).scalar() or 0
     total_findings_lifetime = (await db.execute(select(func.count(Finding.id)))).scalar() or 0
 
-    # Subquery to retrieve the latest audit ID for each unique configuration
-    latest_created_sq = (
-        select(
-            Audit.configuration_id,
-            func.max(Audit.created_at).label("max_created")
-        )
-        .group_by(Audit.configuration_id)
-        .subquery()
-    )
-
-    latest_audits_stmt = (
-        select(Audit.id, Audit.score)
-        .join(
-            latest_created_sq,
-            (Audit.configuration_id == latest_created_sq.c.configuration_id)
-            & (Audit.created_at == latest_created_sq.c.max_created)
-        )
-    )
-    latest_audits_res = await db.execute(latest_audits_stmt)
-    latest_audit_rows = latest_audits_res.all()
-    latest_audit_ids = [r[0] for r in latest_audit_rows]
+    # Retrieve the latest audit for each unique configuration reliably across all DB engines
+    latest_audits = await get_latest_audits(db)
+    latest_audit_ids = [a.id for a in latest_audits if a.id]
 
     # Active Compliance Score (Fleet average of latest audits)
-    valid_scores = [r[1] for r in latest_audit_rows if r[1] is not None]
+    valid_scores = [a.score for a in latest_audits if a.score is not None]
     compliance_score = round(sum(valid_scores) / len(valid_scores), 1) if valid_scores else 0.0
 
     # Active Findings & Severity breakdown

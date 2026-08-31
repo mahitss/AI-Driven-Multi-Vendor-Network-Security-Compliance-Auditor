@@ -25,6 +25,7 @@ from app.schemas.comparison import (
 )
 from app.services.compliance.service import ComplianceAuditService
 from app.services.comparison.service import SecurityTimeMachineService
+from app.db.helpers import get_latest_audit_ids
 
 router = APIRouter(prefix="/audits", tags=["Compliance Audits"])
 
@@ -126,23 +127,10 @@ async def list_all_findings(
     if audit_id and audit_id.upper() != "ALL":
         query = query.where(Finding.audit_id == audit_id)
     elif latest_only:
-        latest_created_sq = (
-            select(
-                Audit.configuration_id,
-                func.max(Audit.created_at).label("max_created")
-            )
-            .group_by(Audit.configuration_id)
-            .subquery()
-        )
-        latest_audits_stmt = (
-            select(Audit.id)
-            .join(
-                latest_created_sq,
-                (Audit.configuration_id == latest_created_sq.c.configuration_id)
-                & (Audit.created_at == latest_created_sq.c.max_created)
-            )
-        )
-        query = query.where(Finding.audit_id.in_(latest_audits_stmt))
+        latest_audit_ids = await get_latest_audit_ids(db)
+        if not latest_audit_ids:
+            return []
+        query = query.where(Finding.audit_id.in_(latest_audit_ids))
 
     if framework and framework.upper() != "ALL":
         query = query.where(Finding.framework == framework.upper())

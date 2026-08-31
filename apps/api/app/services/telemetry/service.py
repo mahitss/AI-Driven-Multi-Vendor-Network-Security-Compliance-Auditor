@@ -19,6 +19,7 @@ from app.models.finding import Finding
 from app.models.risk import RiskItem
 from app.models.remediation import RemediationProposal
 from app.services.agent.memory import AgentMemoryManager
+from app.db.helpers import get_latest_audits
 
 
 class TelemetryAggregationService:
@@ -31,38 +32,8 @@ class TelemetryAggregationService:
         Guarantees 100% data reconciliation across all visual components and robust null-safety.
         """
         try:
-            # 1. Subquery for latest audit ID per unique configuration (Active Posture)
-            latest_created_sq = (
-                select(
-                    Audit.configuration_id,
-                    func.max(Audit.created_at).label("max_created")
-                )
-                .where(Audit.configuration_id.isnot(None))
-                .group_by(Audit.configuration_id)
-                .subquery()
-            )
-
-            latest_audits_stmt = (
-                select(Audit)
-                .join(
-                    latest_created_sq,
-                    (Audit.configuration_id == latest_created_sq.c.configuration_id)
-                    & (Audit.created_at == latest_created_sq.c.max_created)
-                )
-            )
-            latest_audits_res = await db.execute(latest_audits_stmt)
-            raw_latest_audits = list(latest_audits_res.scalars().all())
-
-            # Deduplicate by configuration_id to safeguard against identical timestamp collisions
-            seen_cfg_ids: Set[str] = set()
-            latest_audits: List[Audit] = []
-            for a in raw_latest_audits:
-                if a.configuration_id and a.configuration_id not in seen_cfg_ids:
-                    seen_cfg_ids.add(a.configuration_id)
-                    latest_audits.append(a)
-                elif not a.configuration_id:
-                    latest_audits.append(a)
-
+            # 1. Retrieve latest audit per unique configuration (Active Posture)
+            latest_audits = await get_latest_audits(db)
             latest_audit_ids = [a.id for a in latest_audits if a.id]
 
             # 2. Time-Series Audit History Trends (Chronological ASC)

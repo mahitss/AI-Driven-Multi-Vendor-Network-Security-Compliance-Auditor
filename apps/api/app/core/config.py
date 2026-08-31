@@ -85,6 +85,36 @@ class Settings(BaseSettings):
                 )
         return v
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_async_database_url(cls, v: str) -> str:
+        if not v:
+            return "sqlite+aiosqlite:///./netvigil.db"
+        val = str(v).strip()
+        if val.startswith("postgres://"):
+            return val.replace("postgres://", "postgresql+asyncpg://", 1)
+        if val.startswith("postgresql://") and not val.startswith("postgresql+asyncpg://"):
+            return val.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return val
+
+    @field_validator("SYNC_DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_sync_database_url(cls, v: str, info) -> str:
+        async_url = info.data.get("DATABASE_URL", "") if info.data else ""
+        if not v and async_url:
+            if "postgresql" in async_url:
+                return async_url.replace("postgresql+asyncpg://", "postgresql://")
+            if "sqlite" in async_url:
+                return async_url.replace("sqlite+aiosqlite:///", "sqlite:///")
+        if not v:
+            return "sqlite:///./netvigil.db"
+        val = str(v).strip()
+        if val.startswith("postgres://"):
+            return val.replace("postgres://", "postgresql://", 1)
+        if val.startswith("postgresql+asyncpg://"):
+            return val.replace("postgresql+asyncpg://", "postgresql://", 1)
+        return val
+
     @field_validator("DEBUG", mode="before")
     @classmethod
     def validate_debug(cls, v: Any, info) -> bool:

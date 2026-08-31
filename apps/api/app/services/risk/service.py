@@ -14,6 +14,7 @@ from app.models.configuration import Configuration
 from app.services.risk.grouper import group_findings_into_risks
 from app.services.risk.graph import build_risk_graph
 from app.core.errors import NotFoundError
+from app.db.helpers import get_latest_audit_ids
 
 
 class RiskIntelligenceService:
@@ -136,25 +137,7 @@ class RiskIntelligenceService:
     @classmethod
     async def get_risk_summary_stats(cls, db: AsyncSession) -> Dict[str, Any]:
         """Calculates global risk intelligence KPI statistics across active fleet posture."""
-        latest_created_sq = (
-            select(
-                Audit.configuration_id,
-                func.max(Audit.created_at).label("max_created")
-            )
-            .group_by(Audit.configuration_id)
-            .subquery()
-        )
-
-        latest_audits_stmt = (
-            select(Audit.id)
-            .join(
-                latest_created_sq,
-                (Audit.configuration_id == latest_created_sq.c.configuration_id)
-                & (Audit.created_at == latest_created_sq.c.max_created)
-            )
-        )
-        res = await db.execute(latest_audits_stmt)
-        latest_ids = [r[0] for r in res.all()]
+        latest_ids = await get_latest_audit_ids(db)
 
         if not latest_ids:
             return {
