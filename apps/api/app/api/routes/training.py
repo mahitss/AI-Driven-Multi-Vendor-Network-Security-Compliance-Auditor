@@ -5,7 +5,10 @@ Problem Statement: SIH26155 (NTRO)
 import json
 from typing import List, Optional
 from fastapi import APIRouter, Query, status
-from app.api.dependencies import DatabaseDep
+from sqlalchemy import select
+from app.api.dependencies import CurrentUserDep, DatabaseDep
+from app.core.errors import ResourceNotFoundError
+from app.models.configuration import Configuration
 from app.schemas.training import (
     AllowlistPropertyResponse,
     ApproveMappingRequest,
@@ -193,17 +196,26 @@ async def re_enable_knowledge_mapping(
     return _to_mapping_response(m)
 
 
+from app.api.dependencies import CurrentUserDep, DatabaseDep
+
 @router.post("/reanalyze/{configuration_id}", response_model=TrainingImpactResponse)
 async def reanalyze_configuration(
     configuration_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
     frameworks: Optional[List[str]] = Query(default=None),
 ):
-    """Re-evaluates a configuration with approved training mappings and returns Before/After impact."""
+    """Re-evaluates a configuration with approved training mappings and returns Before/After impact for current user."""
+    stmt = select(Configuration).where(Configuration.id == configuration_id, Configuration.user_id == current_user.id)
+    config = (await db.execute(stmt)).scalars().first()
+    if not config:
+        raise ResourceNotFoundError(resource="Configuration", identifier=configuration_id)
+
     impact = await ReanalysisService.reanalyze_configuration(
         configuration_id=configuration_id,
         db=db,
         frameworks=frameworks,
+        user_id=current_user.id,
     )
     return TrainingImpactResponse(**impact)
 

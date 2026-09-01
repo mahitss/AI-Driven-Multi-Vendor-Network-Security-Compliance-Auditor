@@ -163,10 +163,9 @@ async def test_cross_tenant_direct_object_authorization_p0(db_session: AsyncSess
         export_audit_b = await client.get(f"/api/v1/audits/{audit_a_id}/export", headers=headers_b)
         assert export_audit_b.status_code == 404
 
-        # Attack 7: User B tries to read User A audit findings
+        # Attack 7: User B tries to read User A audit findings (Returns 404 Not Found)
         get_findings_b = await client.get(f"/api/v1/audits/{audit_a_id}/findings", headers=headers_b)
-        assert get_findings_b.status_code == 200
-        assert len(get_findings_b.json()) == 0, "User B received findings belonging to User A!"
+        assert get_findings_b.status_code == 404
 
         # Attack 8: User B tries to inspect User A device detail
         get_dev_b = await client.get(f"/api/v1/devices/{cfg_a_id}", headers=headers_b)

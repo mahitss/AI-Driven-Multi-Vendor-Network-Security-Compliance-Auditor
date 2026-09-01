@@ -241,7 +241,7 @@ async def get_analysis_status(
 
     if audit:
         comp_score = audit.score or 0.0
-        findings_stmt = select(Finding).where(Finding.audit_id == audit.id)
+        findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
         f_res = await db.execute(findings_stmt)
         findings = f_res.scalars().all()
 
@@ -257,7 +257,7 @@ async def get_analysis_status(
     low_count = 0
 
     if audit:
-        findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.status == "FAIL")
+        findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id, Finding.status == "FAIL")
         f_res = await db.execute(findings_stmt)
         fail_findings = f_res.scalars().all()
         for f in fail_findings:

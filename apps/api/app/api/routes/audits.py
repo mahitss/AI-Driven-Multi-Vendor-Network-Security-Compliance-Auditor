@@ -420,6 +420,11 @@ async def get_audit_findings(
     category: Optional[str] = Query(None, description="Filter by category"),
 ) -> List[FindingResponse]:
     """Retrieve granular findings with multi-dimensional filtering for current user."""
+    audit_stmt = select(Audit).where(Audit.id == audit_id, Audit.user_id == current_user.id)
+    audit = (await db.execute(audit_stmt)).scalars().first()
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
+
     query = (
         select(
             Finding,

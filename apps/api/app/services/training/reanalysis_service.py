@@ -29,6 +29,7 @@ class ReanalysisService:
         configuration_id: str,
         db: AsyncSession,
         frameworks: Optional[List[str]] = None,
+        user_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         1. Fetches configuration and its latest audit results.
@@ -37,8 +38,10 @@ class ReanalysisService:
         4. Re-executes multi-framework compliance audit.
         5. Computes before/after impact analytics.
         """
-        # 1. Fetch configuration
+        # 1. Fetch configuration scoped to user if provided
         stmt = select(Configuration).where(Configuration.id == configuration_id)
+        if user_id:
+            stmt = stmt.where(Configuration.user_id == user_id)
         res = await db.execute(stmt)
         config = res.scalars().first()
         if not config:
@@ -48,9 +51,10 @@ class ReanalysisService:
         audit_stmt = (
             select(Audit)
             .where(Audit.configuration_id == configuration_id)
-            .order_by(desc(Audit.created_at))
-            .limit(1)
         )
+        if user_id:
+            audit_stmt = audit_stmt.where(Audit.user_id == user_id)
+        audit_stmt = audit_stmt.order_by(desc(Audit.created_at)).limit(1)
         audit_res = await db.execute(audit_stmt)
         prior_audit = audit_res.scalars().first()
 
@@ -60,6 +64,8 @@ class ReanalysisService:
 
         if prior_audit:
             f_stmt = select(Finding).where(Finding.audit_id == prior_audit.id)
+            if user_id:
+                f_stmt = f_stmt.where(Finding.user_id == user_id)
             f_res = await db.execute(f_stmt)
             for f in f_res.scalars().all():
                 prior_findings[f"{f.framework}:{f.control_id}"] = f.status
@@ -97,6 +103,7 @@ class ReanalysisService:
             configuration_id=configuration_id,
             frameworks=target_frameworks,
             db=db,
+            user_id=user_id or config.user_id,
         )
 
         # 7. Compute Before/After Impact Delta
