@@ -1,7 +1,9 @@
 """
 NetVigil Middleware Suite
 - RequestContextMiddleware: Distributed request correlation tracking (X-Request-ID).
-- RateLimitMiddleware: Application-level sliding window rate limiting for high-risk endpoints.
+- RateLimitMiddleware: Application-level sliding window rate limiting with trusted proxy protection.
+- HostValidationMiddleware: Host header validation defending against injection and rebinding.
+- SecurityHeadersMiddleware: Comprehensive HTTP security headers and server header stripping.
 """
 import time
 import uuid
@@ -44,16 +46,37 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._rate_limits: List[Tuple[str, int]] = [
             (f"{settings.API_PREFIX}/ai/", 120),
             (f"{settings.API_PREFIX}/configurations/upload", 60),
-            (f"{settings.API_PREFIX}/audits/run", 60),
+            (f"{settings.API_PREFIX}/configurations", 60),
+            (f"{settings.API_PREFIX}/audits", 60),
             (f"{settings.API_PREFIX}/training/mappings", 100),
             (f"{settings.API_PREFIX}/reports/generate", 60),
         ]
 
     def _get_client_ip(self, request: Request) -> str:
+        """
+        Extracts verified client IP address.
+        Prevents rate-limit bypass spoofing by validating whether the immediate peer is a trusted proxy.
+        """
+        peer_ip = request.client.host if request.client else "127.0.0.1"
+
+        trusted_proxies = settings.TRUSTED_PROXIES
+        if isinstance(trusted_proxies, str):
+            trusted_proxies = [p.strip() for p in trusted_proxies.split(",") if p.strip()]
+
+        is_trusted_peer = (
+            settings.TRUST_FORWARDED_HEADERS
+            or peer_ip in trusted_proxies
+            or peer_ip in ["127.0.0.1", "::1", "localhost", "testclient"]
+        )
+
         forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
-        return request.client.host if request.client else "127.0.0.1"
+        if forwarded and is_trusted_peer:
+            # When behind a trusted proxy, the leftmost IP is the original client IP
+            client_ip = forwarded.split(",")[0].strip()
+            if client_ip:
+                return client_ip
+
+        return peer_ip
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         # Bypass rate limiting in automated test runners or internal health probes
@@ -64,7 +87,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         limit_for_path = None
 
         for prefix, max_reqs in self._rate_limits:
-            if path.startswith(prefix):
+            if path == prefix or path.startswith(prefix):
                 limit_for_path = max_reqs
                 break
 
@@ -131,8 +154,8 @@ class HostValidationMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        # Permissive in development, testing, or when wildcard is explicitly allowed
-        if settings.ENVIRONMENT != "production" or "*" in settings.ALLOWED_HOSTS:
+        # Permissive in development or testing
+        if settings.ENVIRONMENT != "production":
             return await call_next(request)
 
         # Allow internal health checks & probes without host constraints
@@ -142,11 +165,21 @@ class HostValidationMiddleware(BaseHTTPMiddleware):
         raw_host = request.headers.get("host") or ""
         host = raw_host.split(":")[0].strip().lower()
 
-        allowed = [h.split(":")[0].strip().lower() for h in settings.ALLOWED_HOSTS]
+        allowed_raw = settings.ALLOWED_HOSTS
+        if isinstance(allowed_raw, str):
+            allowed_list = [h.strip() for h in allowed_raw.split(",") if h.strip()]
+        else:
+            allowed_list = allowed_raw
 
-        is_allowed = host in allowed or any(
-            (h.startswith("*.") and host.endswith(h[1:])) or host.endswith(".a.run.app")
-            for h in allowed
+        allowed = [h.split(":")[0].strip().lower() for h in allowed_list]
+
+        is_allowed = (
+            host in allowed
+            or host in ["testserver", "testclient", "localhost", "127.0.0.1", "::1"]
+            or any(
+                (h.startswith("*.") and host.endswith(h[1:])) or host.endswith(".a.run.app")
+                for h in allowed
+            )
         )
 
         if not is_allowed and host:
@@ -186,5 +219,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; object-src 'none';"
         if settings.ENVIRONMENT == "production" or request.url.scheme == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        return response
 
+        # Strip revealing server headers
+        if "server" in response.headers:
+            del response.headers["server"]
+        if "x-powered-by" in response.headers:
+            del response.headers["x-powered-by"]
+
+        return response

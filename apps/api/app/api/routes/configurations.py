@@ -3,12 +3,13 @@ Configuration Management, Upload & Analysis Routes
 """
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, File, Query, UploadFile, status
+from fastapi import APIRouter, File, Query, Response, UploadFile, status
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import CurrentUserDep, DatabaseDep
-from app.core.errors import ResourceNotFoundError
+from app.core.config import settings
+from app.core.errors import FileSizeExceededError, ResourceNotFoundError
 from app.models.configuration import Configuration
 from app.schemas.analysis import (
     ConfigurationAnalysisDetailResponse,
@@ -42,13 +43,31 @@ async def upload_configuration(
 ) -> ConfigurationResponse:
     """
     Ingests a raw configuration file (.cfg, .conf, .txt, .log) under authenticated user:
-    - Validates file size and extension
+    - Enforces streaming max file size bounds before in-memory buffering
+    - Validates file extension and content safety (rejects binaries/nulls/scripts)
     - Computes cryptographic SHA-256 hash
     - Persists file safely in isolated storage
     - Executes deterministic vendor detection
     - Returns configuration entity with detected vendor and confidence
     """
-    content_bytes = await file.read()
+    chunk_size = 64 * 1024  # 64 KB chunks
+    max_bytes = settings.max_file_size_bytes
+    total_bytes = 0
+    chunks: List[bytes] = []
+
+    while True:
+        chunk = await file.read(chunk_size)
+        if not chunk:
+            break
+        total_bytes += len(chunk)
+        if total_bytes > max_bytes:
+            raise FileSizeExceededError(
+                message=f"File size exceeds maximum limit of {settings.MAX_FILE_SIZE_MB}MB.",
+                details={"max_bytes": max_bytes, "max_mb": settings.MAX_FILE_SIZE_MB},
+            )
+        chunks.append(chunk)
+
+    content_bytes = b"".join(chunks)
     filename = file.filename or "unknown_config.cfg"
 
     config_record = await ConfigurationIngestionService.ingest_file(
@@ -109,8 +128,6 @@ async def get_configuration(
 
     return config
 
-
-from fastapi import Response
 
 @router.get(
     "/{config_id}/export",

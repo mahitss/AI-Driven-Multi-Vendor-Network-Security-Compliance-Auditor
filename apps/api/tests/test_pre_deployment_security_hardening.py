@@ -96,6 +96,7 @@ def test_4_production_cors_valid_origins():
         DEBUG=False,
         OPENROUTER_API_KEY="sk-or-v1-valid-test-key",
         CORS_ORIGINS="https://netvigil.app, https://admin.netvigil.app",
+        ALLOWED_HOSTS=["api.netvigil.app"],
     )
     assert s.CORS_ORIGINS == ["https://netvigil.app", "https://admin.netvigil.app"]
 

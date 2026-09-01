@@ -50,6 +50,7 @@ def test_production_strong_secret_key_accepted():
     s = Settings(
         ENVIRONMENT="production",
         SECRET_KEY="production-super-strong-secret-key-entropy-64-bits-min",
+        ALLOWED_HOSTS=["api.netvigil.app"],
     )
     assert s.SECRET_KEY == "production-super-strong-secret-key-entropy-64-bits-min"
     assert s.ENVIRONMENT == "production"

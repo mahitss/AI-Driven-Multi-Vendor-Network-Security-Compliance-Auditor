@@ -2,6 +2,7 @@
 NetVigil Configuration & Environment Settings
 Problem Statement: SIH26155 (NTRO)
 """
+import os
 import secrets
 from pathlib import Path
 from typing import Any, List, Union
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
 
     # Security
-    SECRET_KEY: str = "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3"
+    SECRET_KEY: str = ""
     ALLOWED_HOSTS: Union[List[str], str] = ["*"]
     CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
@@ -35,6 +36,10 @@ class Settings(BaseSettings):
         "https://ai-driven-multi-vendor-network-security.vercel.app",
         "https://ai-driven-multi-vendor-network-secu.vercel.app",
     ]
+
+    # Proxy & Network Rate Limiting Trust
+    TRUSTED_PROXIES: Union[List[str], str] = ["127.0.0.1", "::1", "localhost"]
+    TRUST_FORWARDED_HEADERS: bool = False
 
     # Database
     # Default: SQLite async database for development/testing if PostgreSQL is not active
@@ -60,8 +65,8 @@ class Settings(BaseSettings):
     CONFIDENCE_REVIEW_THRESHOLD: float = 0.70
 
     # Supabase Authentication & Identity Gateway Settings
-    SUPABASE_URL: str = "https://cveymgeivgnjnwnxfveu.supabase.co"
-    SUPABASE_ANON_KEY: str = "sb_publishable_-OjNhAi0G1ARbRjZEuZ3zQ_TM5pS0hN"
+    SUPABASE_URL: str = ""
+    SUPABASE_ANON_KEY: str = ""
     SUPABASE_JWT_SECRET: str = ""
     AUTH_ENABLED: bool = True
     AUTH_AUDIENCE: str = "authenticated"
@@ -75,6 +80,7 @@ class Settings(BaseSettings):
             "secret",
             "changeme",
             "default",
+            "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3",
             "",
         ]
         if env == "production":
@@ -83,6 +89,23 @@ class Settings(BaseSettings):
                     "CRITICAL SECURITY CONFIGURATION ERROR: A strong, unguessable SECRET_KEY (minimum 32 characters) "
                     "must be explicitly configured via environment variable in production mode. Development default secret keys are strictly prohibited."
                 )
+            return v
+        # In development/test mode, fallback to standard key if not provided
+        if not v:
+            return "netvigil-dev-secret-key-ntro-sih26155-isolated-testing-token"
+        return v
+
+    @field_validator("SUPABASE_URL", mode="after")
+    @classmethod
+    def validate_supabase_url(cls, v: str, info) -> str:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        auth_enabled = info.data.get("AUTH_ENABLED", True) if info.data else True
+        if env == "production" and auth_enabled and not v:
+            raise ValueError(
+                "CRITICAL SECURITY CONFIGURATION ERROR: SUPABASE_URL must be explicitly configured via environment variable in production mode."
+            )
+        if not v:
+            return "https://cveymgeivgnjnwnxfveu.supabase.co"
         return v
 
     @field_validator("DATABASE_URL", mode="before")
@@ -146,8 +169,8 @@ class Settings(BaseSettings):
     def validate_cors_origins_production(cls, v: List[str], info) -> List[str]:
         env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
         if env == "production":
-            if "*" in v:
-                raise ValueError("CRITICAL SECURITY ERROR: Wildcard '*' in CORS_ORIGINS is strictly prohibited in production mode.")
+            if not v or "*" in v:
+                raise ValueError("CRITICAL SECURITY ERROR: Wildcard '*' in CORS_ORIGINS is strictly prohibited in production mode. Explicit allowed origins must be configured.")
         return v
 
     @field_validator("ALLOWED_HOSTS", mode="before")
@@ -158,6 +181,24 @@ class Settings(BaseSettings):
         elif isinstance(v, list):
             return v
         return ["*"]
+
+    @field_validator("ALLOWED_HOSTS", mode="after")
+    @classmethod
+    def validate_allowed_hosts_production(cls, v: List[str], info) -> List[str]:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        if env == "production":
+            if not v or "*" in v or ["*"] == v:
+                raise ValueError("CRITICAL SECURITY ERROR: Wildcard '*' in ALLOWED_HOSTS is strictly prohibited in production mode. Explicit domain hostnames must be configured.")
+        return v
+
+    @field_validator("TRUSTED_PROXIES", mode="before")
+    @classmethod
+    def assemble_trusted_proxies(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",") if i.strip()]
+        elif isinstance(v, list):
+            return v
+        return ["127.0.0.1", "::1", "localhost"]
 
     @field_validator("ALLOWED_EXTENSIONS", mode="before")
     @classmethod

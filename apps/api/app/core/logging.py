@@ -1,6 +1,6 @@
 """
 NetVigil Structured Logging Configuration
-Ensures sensitive tokens, passwords, and secrets are sanitized from logs.
+Ensures sensitive tokens, passwords, authorization headers, and secrets are sanitized from logs.
 """
 import logging
 import re
@@ -11,7 +11,14 @@ SECRET_PATTERNS = [
     re.compile(r"(secret\s+)(\S+)", re.IGNORECASE),
     re.compile(r"(api[_-]?key\s*[:=]\s*)['\"]?(\w+)['\"]?", re.IGNORECASE),
     re.compile(r"(bearer\s+)([\w\-\.]+)", re.IGNORECASE),
+    re.compile(r"(authorization:\s*bearer\s+)([\w\-\.]+)", re.IGNORECASE),
     re.compile(r"(enable\s+secret\s+\d\s+)(\S+)", re.IGNORECASE),
+    re.compile(r"(snmp-server\s+community\s+)(\S+)", re.IGNORECASE),
+    re.compile(r"(set\s+password\s+)(\S+)", re.IGNORECASE),
+    re.compile(r"(set\s+passphrase\s+)(\S+)", re.IGNORECASE),
+    re.compile(r"(encrypted-password\s+)(\S+)", re.IGNORECASE),
+    re.compile(r"(token[:=]\s*)['\"]?([\w\-\.]+)['\"]?", re.IGNORECASE),
+    re.compile(r"-----BEGIN[ A-Z0-9_-]+PRIVATE KEY-----[\s\S]+?-----END[ A-Z0-9_-]+PRIVATE KEY-----", re.IGNORECASE),
 ]
 
 
@@ -20,7 +27,10 @@ class SensitiveFilter(logging.Filter):
         if isinstance(record.msg, str):
             msg = record.msg
             for pattern in SECRET_PATTERNS:
-                msg = pattern.sub(r"\1[REDACTED]", msg)
+                if pattern.pattern.startswith("-----BEGIN"):
+                    msg = pattern.sub("[REDACTED_PRIVATE_KEY_BLOCK]", msg)
+                else:
+                    msg = pattern.sub(r"\1[REDACTED]", msg)
             record.msg = msg
         return True
 

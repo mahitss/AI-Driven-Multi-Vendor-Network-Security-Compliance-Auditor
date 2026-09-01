@@ -2,6 +2,7 @@
 NetVigil Supabase JWT Authentication & Identity Verification Module
 SIH26155 — NTRO Network Security Compliance Auditor
 """
+import hashlib
 import json
 import time
 import urllib.error
@@ -17,8 +18,27 @@ from app.core.logging import logger
 
 security_bearer = HTTPBearer(auto_error=False)
 
-# In-memory verified token cache: token_hash -> (AuthenticatedUser, expires_at_timestamp)
+# In-memory verified token cache: token_sha256_digest -> (AuthenticatedUser, expires_at_timestamp)
 _verified_token_cache: Dict[str, Tuple["AuthenticatedUser", float]] = {}
+
+
+def _get_token_digest(token: str) -> str:
+    """Compute a cryptographic SHA-256 digest of the token to avoid storing raw tokens in memory."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def revoke_token(token: str) -> bool:
+    """Explicitly evicts a token from the in-memory verification cache upon logout or revocation."""
+    digest = _get_token_digest(token)
+    if digest in _verified_token_cache:
+        del _verified_token_cache[digest]
+        return True
+    return False
+
+
+def clear_token_cache() -> None:
+    """Clears the entire token cache (for testing and security sweeps)."""
+    _verified_token_cache.clear()
 
 
 class AuthenticatedUser(BaseModel):
@@ -43,7 +63,7 @@ def _verify_with_supabase_api(token: str, supabase_url: str, apikey: str) -> Opt
     req = urllib.request.Request(
         f"{clean_url}/auth/v1/user",
         headers={
-            "apikey": apikey or "sb_publishable_-OjNhAi0G1ARbRjZEuZ3zQ_TM5pS0hN",
+            "apikey": apikey or getattr(settings, "SUPABASE_ANON_KEY", ""),
             "Authorization": f"Bearer {token}",
             "User-Agent": "NetVigil-Security-Auditor/1.0",
         },
@@ -77,14 +97,15 @@ def verify_supabase_jwt(token: str) -> AuthenticatedUser:
         )
 
     now = time.time()
+    token_digest = _get_token_digest(token)
 
-    # 1. Fast path: Check in-memory verified cache
-    if token in _verified_token_cache:
-        cached_user, expires_at = _verified_token_cache[token]
+    # 1. Fast path: Check in-memory verified cache using cryptographic digest
+    if token_digest in _verified_token_cache:
+        cached_user, expires_at = _verified_token_cache[token_digest]
         if now < expires_at:
             return cached_user
         else:
-            del _verified_token_cache[token]
+            del _verified_token_cache[token_digest]
 
     # 2. Inspect unverified header and payload for structural validation and expiration
     try:
@@ -148,9 +169,9 @@ def verify_supabase_jwt(token: str) -> AuthenticatedUser:
                 app_metadata=app_meta,
                 user_metadata=user_meta,
             )
-            # Cache for min(300s, remaining token lifetime)
-            cache_ttl = min(300.0, max(10.0, (exp - now) if exp else 300.0))
-            _verified_token_cache[token] = (user, now + cache_ttl)
+            # Cache for min(300s, remaining token lifetime) using cryptographic digest
+            cache_ttl = min(300.0, max(5.0, (exp - now) if exp else 300.0))
+            _verified_token_cache[token_digest] = (user, now + cache_ttl)
             return user
 
     # 5. Strategy C: Try SECRET_KEY verification (for local/testing tokens)
@@ -162,6 +183,12 @@ def verify_supabase_jwt(token: str) -> AuthenticatedUser:
                 algorithms=[alg, "HS256", "HS384", "HS512"],
                 options={"verify_signature": True, "verify_exp": True, "verify_aud": False},
             )
+        except jwt.ExpiredSignatureError as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication token has expired. Please re-authenticate.",
+                headers={"WWW-Authenticate": 'Bearer error="invalid_token", error_description="token expired"'},
+            ) from e
         except Exception:
             verified_payload = None
 
@@ -211,8 +238,8 @@ def verify_supabase_jwt(token: str) -> AuthenticatedUser:
         user_metadata=user_meta,
     )
 
-    cache_ttl = min(300.0, max(10.0, (exp - now) if exp else 300.0))
-    _verified_token_cache[token] = (user, now + cache_ttl)
+    cache_ttl = min(300.0, max(5.0, (exp - now) if exp else 300.0))
+    _verified_token_cache[token_digest] = (user, now + cache_ttl)
     return user
 
 

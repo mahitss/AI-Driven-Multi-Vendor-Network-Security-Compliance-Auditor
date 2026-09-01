@@ -1,10 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cveymgeivgnjnwnxfveu.supabase.co";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  "";
 
 // Explicit Protected Application / SOC route prefixes requiring active operator identity
 const PROTECTED_PREFIXES = [
@@ -100,7 +101,7 @@ export async function updateSession(request: NextRequest) {
           !rawRedirect.startsWith("/signup") &&
           !rawRedirect.includes("://")
             ? rawRedirect
-            : "/console";
+            : "/dashboard";
         const url = request.nextUrl.clone();
         url.pathname = safeRedirect;
         url.search = "";

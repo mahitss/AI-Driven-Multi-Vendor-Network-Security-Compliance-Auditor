@@ -36,6 +36,7 @@ from app.core.middleware import (
     RequestContextMiddleware,
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
+    HostValidationMiddleware,
 )
 from app.db.session import async_engine
 import app.models
@@ -83,44 +84,45 @@ async def lifespan(app: FastAPI):
     await async_engine.dispose()
 
 
+# In production, disable interactive docs and raw openapi schema endpoints unless DEBUG is enabled
+is_prod = settings.ENVIRONMENT.lower() == "production"
+docs_path = "/docs" if (settings.DEBUG or not is_prod) else None
+redoc_path = "/redoc" if (settings.DEBUG or not is_prod) else None
+openapi_path = f"{settings.API_PREFIX}/openapi.json" if (settings.DEBUG or not is_prod) else None
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description=settings.PROJECT_DESCRIPTION,
     version=settings.VERSION,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url=f"{settings.API_PREFIX}/openapi.json",
+    docs_url=docs_path,
+    redoc_url=redoc_path,
+    openapi_url=openapi_path,
     lifespan=lifespan,
 )
 
-from app.core.middleware import (
-    RequestContextMiddleware,
-    RateLimitMiddleware,
-    SecurityHeadersMiddleware,
-    HostValidationMiddleware,
-)
-
-# Standard Security Headers Middleware
+# 1. Standard Security Headers Middleware
 app.add_middleware(SecurityHeadersMiddleware)
 
-# Host Header Validation Middleware
+# 2. Host Header Validation Middleware
 app.add_middleware(HostValidationMiddleware)
 
-# Correlation & Request ID Middleware
+# 3. Correlation & Request ID Middleware
 app.add_middleware(RequestContextMiddleware)
 
-# Application-Level Rate Limiting Middleware
+# 4. Application-Level Rate Limiting Middleware
 app.add_middleware(RateLimitMiddleware)
 
-# CORS Middleware
+# 5. CORS Middleware
+cors_regex = None if is_prod else r"https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+",
+    allow_origins=settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else [settings.CORS_ORIGINS],
+    allow_origin_regex=cors_regex,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["X-Request-ID", "Content-Disposition"],
+    expose_headers=["X-Request-ID", "Content-Disposition", "X-RateLimit-Limit", "X-RateLimit-Remaining"],
 )
 
 # Custom Exception Handlers
@@ -157,6 +159,6 @@ async def root():
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "health_check": "/health",
-        "documentation": "/docs",
+        "documentation": "/docs" if docs_path else "Disabled in production",
         "api_prefix": settings.API_PREFIX,
     }
