@@ -46,9 +46,11 @@ import {
   SystemHealth,
 } from "@/lib/api-client";
 import { useSystemHealth } from "@/lib/use-system-health";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { cn } from "@/lib/utils";
 
 export default function SecurityOperationsPage() {
+  const { user, loading: authLoading } = useAuth();
   const [selectedSeverity, setSelectedSeverity] = useState<string>("ALL");
   const [selectedType, setSelectedType] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -67,8 +69,9 @@ export default function SecurityOperationsPage() {
     isLoading: isStatsLoading,
     refetch: refetchStats,
   } = useQuery({
-    queryKey: ["overview-stats"],
+    queryKey: ["overview-stats", user?.id],
     queryFn: fetchOverviewStats,
+    enabled: !authLoading && !!user,
     staleTime: 30000,
   });
 
@@ -79,42 +82,48 @@ export default function SecurityOperationsPage() {
     isError: isActivitiesError,
     refetch: refetchActivities,
   } = useQuery({
-    queryKey: ["system-activity"],
+    queryKey: ["system-activity", user?.id],
     queryFn: () => fetchSystemActivity(25),
+    enabled: !authLoading && !!user,
     staleTime: 15000,
   });
 
   // 4. Fetch findings
   const { data: findings = [] } = useQuery({
-    queryKey: ["all-findings-for-ops"],
+    queryKey: ["all-findings-for-ops", user?.id],
     queryFn: () => fetchFindings(),
+    enabled: !authLoading && !!user,
     staleTime: 30000,
   });
 
   // 5. Fetch risk stats & items
   const { data: riskStats } = useQuery({
-    queryKey: ["risk-stats"],
+    queryKey: ["risk-stats", user?.id],
     queryFn: fetchRiskStats,
+    enabled: !authLoading && !!user,
     staleTime: 30000,
   });
 
   const { data: risks = [] } = useQuery({
-    queryKey: ["risks-for-ops"],
+    queryKey: ["risks-for-ops", user?.id],
     queryFn: () => fetchRisks({ priority: "ALL" }),
+    enabled: !authLoading && !!user,
     staleTime: 30000,
   });
 
   // 6. Fetch devices
   const { data: devices = [] } = useQuery({
-    queryKey: ["devices-for-ops"],
+    queryKey: ["devices-for-ops", user?.id],
     queryFn: () => fetchDevices(),
+    enabled: !authLoading && !!user,
     staleTime: 60000,
   });
 
   // 7. Fetch remediations
   const { data: remediations = [] } = useQuery({
-    queryKey: ["remediations-for-ops"],
+    queryKey: ["remediations-for-ops", user?.id],
     queryFn: () => fetchRemediations(),
+    enabled: !authLoading && !!user,
     staleTime: 60000,
   });
 

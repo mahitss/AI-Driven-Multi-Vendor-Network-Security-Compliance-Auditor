@@ -28,6 +28,8 @@ async def test_report_export_json_and_markdown(client: AsyncClient, db_session: 
     first_audit = (await db_session.execute(select(Audit))).scalars().first()
     assert first_audit is not None
 
+    from app.core.auth import AuthenticatedUser
+
     rep = await generate_report(
         payload=GenerateReportRequest(
             report_type="EXECUTIVE_AUDIT_SUMMARY",
@@ -36,6 +38,7 @@ async def test_report_export_json_and_markdown(client: AsyncClient, db_session: 
             notes="Automated evaluation report.",
         ),
         db=db_session,
+        current_user=AuthenticatedUser(id="default_tenant", role="auditor"),
     )
     report_id = rep["id"]
 

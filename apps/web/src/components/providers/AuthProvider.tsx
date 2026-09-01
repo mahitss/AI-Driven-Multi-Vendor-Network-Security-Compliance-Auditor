@@ -127,18 +127,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
       setUser(null);
       setSession(null);
       queryClient.clear();
       if (typeof window !== "undefined") {
-        window.location.replace("/");
-      } else {
-        router.replace("/");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      queryClient.clear();
-      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.clear();
+        } catch {
+          // ignore
+        }
         window.location.replace("/");
       } else {
         router.replace("/");

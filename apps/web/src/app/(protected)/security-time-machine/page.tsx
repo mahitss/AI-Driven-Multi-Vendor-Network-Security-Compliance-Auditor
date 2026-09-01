@@ -37,11 +37,13 @@ import {
   AuditItem,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 type ActiveTab = "diff" | "transitions" | "risk" | "timeline" | "traceability";
 type TransitionFilter = "ALL" | "RESOLVED" | "REGRESSED" | "UNCHANGED_FAIL" | "UNCHANGED_PASS";
 
 export default function SecurityTimeMachinePage() {
+  const { user, loading: authLoading } = useAuth();
   const [selectedPairKey, setSelectedPairKey] = useState<string>("");
   const [beforeAuditId, setBeforeAuditId] = useState<string>("");
   const [afterAuditId, setAfterAuditId] = useState<string>("");
@@ -53,14 +55,16 @@ export default function SecurityTimeMachinePage() {
 
   // 1. Fetch available completed audits
   const { data: audits = [], isLoading: auditsLoading } = useQuery<AuditItem[]>({
-    queryKey: ["audits", "all"],
+    queryKey: ["audits", "all", user?.id],
     queryFn: () => fetchAudits(),
+    enabled: !authLoading && !!user,
   });
 
   // 2. Fetch comparable pairs
   const { data: pairs = [], isLoading: pairsLoading } = useQuery<ComparableAuditPairItem[]>({
-    queryKey: ["audits", "comparable-pairs"],
+    queryKey: ["audits", "comparable-pairs", user?.id],
     queryFn: fetchComparableAuditPairs,
+    enabled: !authLoading && !!user,
   });
 
   // Automatically select the best pair on initial load

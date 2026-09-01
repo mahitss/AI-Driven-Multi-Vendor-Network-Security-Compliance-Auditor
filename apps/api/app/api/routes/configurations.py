@@ -271,6 +271,27 @@ async def get_configuration_analysis(
     return await analyze_configuration(config_id=config_id, db=db, current_user=current_user)
 
 
+@router.delete(
+    "/{config_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a configuration and its associated audits",
+)
+async def delete_configuration(
+    config_id: str,
+    db: DatabaseDep,
+    current_user: CurrentUserDep,
+):
+    """Deletes a configuration strictly owned by the authenticated user."""
+    stmt = select(Configuration).where(Configuration.id == config_id, Configuration.user_id == current_user.id)
+    config = (await db.execute(stmt)).scalars().first()
+    if not config:
+        raise ResourceNotFoundError(resource="Configuration", identifier=config_id)
+
+    await db.delete(config)
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.post(
     "/detect-vendor",
     response_model=VendorDetectionResult,

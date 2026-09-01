@@ -50,10 +50,10 @@ async def list_reports(current_user: CurrentUserDep) -> List[Dict[str, Any]]:
 async def generate_report(
     payload: GenerateReportRequest,
     db: DatabaseDep,
-    current_user: CurrentUserDep = AuthenticatedUser(id="default_tenant", role="auditor"),
+    current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
     """Generates structured report document for executive review or technical remediation for current user."""
-    effective_user = current_user or AuthenticatedUser(id="default_tenant", role="auditor")
+    effective_user = current_user
     report_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
 

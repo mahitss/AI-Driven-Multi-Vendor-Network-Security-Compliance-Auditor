@@ -49,6 +49,7 @@ import {
   ConfigurationItem,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -60,6 +61,7 @@ interface ChatMessage {
 
 export default function AuditsPage() {
   const queryClient = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
 
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [activeFrameworkFilter, setActiveFrameworkFilter] = useState<string>("ALL");
@@ -96,14 +98,16 @@ export default function AuditsPage() {
     error: auditsError,
     refetch: refetchAudits,
   } = useQuery({
-    queryKey: ["audits"],
+    queryKey: ["audits", user?.id],
     queryFn: () => fetchAudits(),
+    enabled: !authLoading && !!user,
   });
 
   // Fetch configurations for audit launcher
   const { data: configurations = [] } = useQuery({
-    queryKey: ["configurations"],
+    queryKey: ["configurations", user?.id],
     queryFn: () => fetchConfigurations(),
+    enabled: !authLoading && !!user,
   });
 
   // Set default selected audit when loaded
@@ -115,9 +119,9 @@ export default function AuditsPage() {
 
   // Fetch selected audit detail
   const { data: auditDetail, isLoading: isDetailLoading } = useQuery({
-    queryKey: ["audit-detail", selectedAuditId],
+    queryKey: ["audit-detail", selectedAuditId, user?.id],
     queryFn: () => (selectedAuditId ? fetchAuditDetail(selectedAuditId) : null),
-    enabled: !!selectedAuditId,
+    enabled: !authLoading && !!user && !!selectedAuditId,
   });
 
   // Create audit mutation
