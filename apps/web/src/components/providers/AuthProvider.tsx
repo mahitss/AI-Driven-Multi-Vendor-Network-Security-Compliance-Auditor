@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setUser(data.session.user);
               setLoading(false);
               queryClient.invalidateQueries();
-              const target = sessionStorage.getItem("netvigil_auth_redirect") || "/dashboard";
+              const target = sessionStorage.getItem("netvigil_auth_redirect") || "/console";
               sessionStorage.removeItem("netvigil_auth_redirect");
               try {
                 const cleanUrl = new URL(window.location.href);
@@ -212,6 +212,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         queryClient.invalidateQueries();
         if (redirectTo) {
           router.replace(redirectTo);
+        } else {
+          router.replace("/console");
         }
       }
 

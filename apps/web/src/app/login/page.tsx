@@ -16,8 +16,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-function getSafeRedirectPath(rawPath: string | null | undefined): string {
-  if (!rawPath) return "/dashboard";
+function getSafeRedirectPath(rawPath: string | null | undefined, mode?: string | null): string {
+  if (mode === "ingest" && (!rawPath || rawPath === "/dashboard" || rawPath === "/console")) {
+    return "/configurations?mode=ingest";
+  }
+  if (!rawPath) return "/console";
   const trimmed = rawPath.trim();
   if (
     trimmed.startsWith("/") &&
@@ -29,7 +32,7 @@ function getSafeRedirectPath(rawPath: string | null | undefined): string {
   ) {
     return trimmed;
   }
-  return "/dashboard";
+  return "/console";
 }
 
 function LoginContent() {
@@ -45,7 +48,8 @@ function LoginContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const rawRedirect = searchParams.get("redirectTo") || searchParams.get("next");
-  const redirectTo = getSafeRedirectPath(rawRedirect);
+  const modeParam = searchParams.get("mode");
+  const redirectTo = getSafeRedirectPath(rawRedirect, modeParam);
   const errorParam = searchParams.get("error");
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAppOrigin } from "@/lib/get-app-origin";
 
 function getSafeRedirect(nextParam: string | null | undefined): string {
-  if (!nextParam) return "/dashboard";
+  if (!nextParam) return "/console";
   const trimmed = nextParam.trim();
   if (
     trimmed.startsWith("/") &&
@@ -14,7 +14,7 @@ function getSafeRedirect(nextParam: string | null | undefined): string {
   ) {
     return trimmed;
   }
-  return "/dashboard";
+  return "/console";
 }
 
 export async function GET(request: Request) {
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const authType = searchParams.get("type");
-  const nextParam = authType === "recovery" ? "/reset-password" : (searchParams.get("next") || searchParams.get("redirectTo") || "/dashboard");
+  const nextParam = authType === "recovery" ? "/reset-password" : (searchParams.get("next") || searchParams.get("redirectTo") || "/console");
   const safeNext = authType === "recovery" ? "/reset-password" : getSafeRedirect(nextParam);
 
   const errorParam = searchParams.get("error");

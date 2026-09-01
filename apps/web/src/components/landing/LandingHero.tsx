@@ -9,7 +9,7 @@ import TelemetryBackground from "./TelemetryBackground";
 
 export default function LandingHero() {
   const { user, loading: authLoading } = useAuth();
-  const consoleLink = !authLoading && user ? "/dashboard" : "/login?redirectTo=/dashboard";
+  const consoleLink = !authLoading && user ? "/console" : "/login?redirectTo=/console";
   return (
     <section className="relative min-h-[780px] lg:h-[calc(100vh-56px)] xl:min-h-[840px] flex items-center pl-6 sm:pl-10 lg:pl-16 pr-4 sm:pr-8 lg:pr-8 pt-14 pb-8 overflow-hidden bg-[#080B12] text-[#F3F4F6]">
       {/* 1. Atmospheric Ambient Peripheral Telemetry */}

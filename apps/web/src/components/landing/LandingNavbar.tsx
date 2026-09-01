@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Shield, Activity, Compass, User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { Shield, Activity, Compass, User, LogOut, Settings, ChevronDown, Upload } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function LandingNavbar() {
@@ -57,10 +57,10 @@ export default function LandingNavbar() {
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           <Link
             href="/demo/multi-vendor"
-            className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-[#F3F4F6] transition-all duration-150"
+            className="hidden lg:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-[#F3F4F6] transition-all duration-150"
           >
             <Compass className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>Explore Platform</span>
@@ -68,9 +68,19 @@ export default function LandingNavbar() {
 
           {!authLoading && user ? (
             <>
+              {/* Ingest Config Direct Link */}
+              <Link
+                href="/configurations?mode=ingest"
+                id="landing-ingest-cta"
+                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#3B82F6] text-[#F3F4F6] font-semibold text-xs transition-colors"
+              >
+                <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
+                <span className="hidden sm:inline">INGEST</span>
+              </Link>
+
               {/* Primary Console CTA for Authenticated User */}
               <Link
-                href="/dashboard"
+                href="/console"
                 id="landing-console-cta"
                 className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-md bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
               >
@@ -97,12 +107,20 @@ export default function LandingNavbar() {
                       Signed in as <span className="text-[#F3F4F6] font-semibold">{user.email || displayName}</span>
                     </div>
                     <Link
-                      href="/dashboard"
+                      href="/console"
                       onClick={() => setIsAccountOpen(false)}
                       className="flex items-center gap-2 px-3 py-2 text-[#A7B0C0] hover:text-[#F3F4F6] hover:bg-[#111827] transition-colors"
                     >
                       <Activity className="w-3.5 h-3.5 text-[#3B82F6]" />
                       <span>Security Console</span>
+                    </Link>
+                    <Link
+                      href="/configurations?mode=ingest"
+                      onClick={() => setIsAccountOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-[#A7B0C0] hover:text-[#F3F4F6] hover:bg-[#111827] transition-colors"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
+                      <span>Ingest Configuration</span>
                     </Link>
                     <Link
                       href="/settings"
@@ -131,6 +149,16 @@ export default function LandingNavbar() {
             </>
           ) : (
             <>
+              {/* Ingest Config Link for Unauthenticated User */}
+              <Link
+                href="/login?mode=ingest&redirectTo=/configurations"
+                id="landing-ingest-cta"
+                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#3B82F6] text-[#F3F4F6] font-semibold text-xs transition-colors"
+              >
+                <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
+                <span className="hidden sm:inline">INGEST</span>
+              </Link>
+
               <Link
                 href="/login"
                 className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-[#F3F4F6] transition-all duration-150"
@@ -138,7 +166,7 @@ export default function LandingNavbar() {
                 <span>Sign In</span>
               </Link>
               <Link
-                href="/login?redirectTo=/dashboard"
+                href="/login?redirectTo=/console"
                 id="landing-console-cta"
                 className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-md bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
               >
@@ -152,4 +180,3 @@ export default function LandingNavbar() {
     </header>
   );
 }
-
