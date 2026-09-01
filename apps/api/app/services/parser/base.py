@@ -84,7 +84,7 @@ class ParseTracker:
 
             unknowns.append(
                 UnknownItem(
-                    raw_text=stripped,
+                    raw_text=stripped[:500],
                     line_number=idx + 1,
                     vendor=vendor,
                     category="unrecognized_syntax",
@@ -92,5 +92,8 @@ class ParseTracker:
                     status="unrecognized",
                 )
             )
+            # Bound detailed unmatched items to prevent JSON serialization bloat
+            if len(unknowns) >= 1000:
+                break
 
         return unknowns

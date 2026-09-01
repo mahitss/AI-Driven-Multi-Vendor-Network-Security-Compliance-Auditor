@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 from typing import Tuple
 from app.core.config import settings
-from app.core.errors import FileSizeExceededError, InvalidFileTypeError
+from app.core.errors import ConfigurationUploadError, FileSizeExceededError, InvalidFileTypeError
 
 
 def compute_sha256(content: bytes) -> str:
@@ -20,16 +20,30 @@ def compute_sha256(content: bytes) -> str:
 
 def sanitize_filename(filename: str) -> str:
     """
-    Sanitize an uploaded filename to prevent directory traversal or malicious injection.
-    Strips directory paths and special characters.
+    Sanitize an uploaded filename to prevent directory traversal, null-byte injection,
+    or filesystem path manipulation. Strips directory paths, nulls, and control characters.
     """
-    # Extract only the base name
-    clean_name = os.path.basename(filename.strip().replace("\\", "/"))
-    # Remove any dangerous characters, keep only alphanumeric, dots, underscores, dashes
+    if not filename:
+        return "network_config.cfg"
+
+    # Reject or strip null bytes and control chars
+    clean = filename.replace("\x00", "").strip()
+    # Extract only the base name (strip Windows/Unix directory separators)
+    clean_name = os.path.basename(clean.replace("\\", "/"))
+    # Remove dangerous characters, keep only alphanumeric, dots, underscores, dashes
     clean_name = re.sub(r"[^a-zA-Z0-9_\-\.]", "_", clean_name)
     # Avoid hidden files or empty filenames
     if not clean_name or clean_name.startswith("."):
         clean_name = f"config_{clean_name.lstrip('.')}"
+    if not clean_name:
+        clean_name = "network_config"
+
+    # Enforce maximum filename length
+    max_len = getattr(settings, "MAX_UPLOAD_FILENAME_LENGTH", 255)
+    if len(clean_name) > max_len:
+        base, ext = os.path.splitext(clean_name)
+        clean_name = f"{base[:max_len - len(ext)]}{ext}"
+
     return clean_name
 
 
@@ -62,19 +76,23 @@ def validate_file_metadata(filename: str, size: int) -> Tuple[str, str]:
 
 def validate_configuration_content(content_bytes: bytes, filename: str = "") -> None:
     """
-    Inspect raw content bytes for hostile executable/binary headers and dangerous shell payloads.
-    Ensures network configurations are readable text and not compiled binaries or scripts.
+    Inspect raw content bytes for hostile executable/binary headers, archive formats,
+    dangerous shell scripts, null bytes, and pathological line-length payloads.
     """
-    # 1. Check for binary executable magic signatures
+    # 1. Check for binary executable & archive magic signatures
     executable_magic = [
-        b"\x7fELF",       # ELF (Linux/Unix executable)
-        b"MZ",            # PE/COFF (Windows .exe / .dll)
-        b"\xfe\xed\xfa",  # Mach-O 32-bit
-        b"\xfeedfacf",    # Mach-O 64-bit
-        b"\xcafebabe",    # Mach-O universal binary / Java class
-        b"\x1f\x8b",      # Gzip / tarball
-        b"PK\x03\x04",    # Zip archive / Jar
-        b"%PDF",          # PDF document
+        b"\x7fELF",               # ELF (Linux/Unix executable)
+        b"MZ",                    # PE/COFF (Windows .exe / .dll)
+        b"\xfe\xed\xfa",          # Mach-O 32-bit
+        b"\xfeedfacf",            # Mach-O 64-bit
+        b"\xcafebabe",            # Mach-O universal binary / Java class
+        b"\x1f\x8b",              # Gzip / tarball
+        b"PK\x03\x04",            # Zip archive / Jar
+        b"%PDF",                  # PDF document
+        b"BZh",                   # Bzip2 archive
+        b"7z\xbc\xaf\x27\x1c",    # 7-Zip archive
+        b"Rar!\x1a\x07",          # RAR archive
+        b"\xfd7zXZ\x00",          # XZ archive
     ]
     for magic in executable_magic:
         if content_bytes.startswith(magic):
@@ -83,8 +101,8 @@ def validate_configuration_content(content_bytes: bytes, filename: str = "") -> 
                 details={"filename": filename, "magic": magic.hex()},
             )
 
-    # 2. Reject binary null bytes in initial sample
-    if b"\x00" in content_bytes[:4096]:
+    # 2. Reject binary null bytes across the configuration
+    if b"\x00" in content_bytes:
         raise InvalidFileTypeError(
             message="Uploaded file contains binary null bytes and is not valid plain-text configuration.",
             details={"filename": filename},
@@ -97,6 +115,24 @@ def validate_configuration_content(content_bytes: bytes, filename: str = "") -> 
             raise InvalidFileTypeError(
                 message="Uploaded file appears to be an executable script (shebang detected), not a network device configuration.",
                 details={"filename": filename, "header": first_line.decode("utf-8", errors="ignore")},
+            )
+
+    # 4. Check for bounded line count and line lengths to prevent ReDoS / CPU exhaustion
+    lines = content_bytes.split(b"\n")
+    max_lines = getattr(settings, "MAX_CONFIG_LINES", 50000)
+    max_line_len = getattr(settings, "MAX_LINE_LENGTH_BYTES", 32768)
+
+    if len(lines) > max_lines:
+        raise ConfigurationUploadError(
+            message=f"Configuration exceeds maximum permissible line count ({len(lines)} > {max_lines} lines).",
+            details={"total_lines": len(lines), "max_lines": max_lines},
+        )
+
+    for i, line in enumerate(lines):
+        if len(line) > max_line_len:
+            raise ConfigurationUploadError(
+                message=f"Configuration line {i + 1} exceeds maximum permissible line length ({len(line)} > {max_line_len} bytes).",
+                details={"line_number": i + 1, "line_length": len(line), "max_bytes": max_line_len},
             )
 
 

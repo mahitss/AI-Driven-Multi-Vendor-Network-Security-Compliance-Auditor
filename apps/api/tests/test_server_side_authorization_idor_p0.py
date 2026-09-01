@@ -375,6 +375,11 @@ async def test_idor_unauthenticated_request_rejected(monkeypatch):
     """
     monkeypatch.setattr(settings, "ENVIRONMENT", "production")
     monkeypatch.setattr(settings, "SUPABASE_JWT_SECRET", "mock-secret-key-for-test-32chars!!")
+    monkeypatch.setattr(settings, "TRUST_FORWARDED_HEADERS", True)
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    fresh_ip = f"198.51.100.{uuid.uuid4().int % 250}"
+    test_headers = {"X-Forwarded-For": fresh_ip}
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         protected_endpoints = [
@@ -391,9 +396,9 @@ async def test_idor_unauthenticated_request_rejected(monkeypatch):
 
         for method, endpoint in protected_endpoints:
             if method == "GET":
-                res = await client.get(endpoint)
+                res = await client.get(endpoint, headers=test_headers)
             else:
-                res = await client.post(endpoint, json={"objective": "harden devices"})
+                res = await client.post(endpoint, json={"objective": "harden devices"}, headers=test_headers)
             assert res.status_code == 401, f"Unauthenticated request to {endpoint} expected 401, got {res.status_code}"
 
 

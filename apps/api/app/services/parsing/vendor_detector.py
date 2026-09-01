@@ -268,48 +268,61 @@ class VendorDetector:
                 details={"reason": "Empty configuration content"},
             )
 
-        cisco_conf, cisco_pats, cisco_details = cls.evaluate_vendor(content, CISCO_SIGNATURES)
-        juniper_conf, juniper_pats, juniper_details = cls.evaluate_vendor(content, JUNIPER_SIGNATURES)
-        fortinet_conf, fortinet_pats, fortinet_details = cls.evaluate_vendor(content, FORTINET_SIGNATURES)
+        try:
+            # Bound input size to 256KB prefix to protect against ReDoS / quadratic scans on massive inputs
+            bounded_content = content[:262144]
 
-        scores = [
-            ("cisco", cisco_conf, cisco_pats, cisco_details),
-            ("juniper", juniper_conf, juniper_pats, juniper_details),
-            ("fortinet", fortinet_conf, fortinet_pats, fortinet_details),
-        ]
+            cisco_conf, cisco_pats, cisco_details = cls.evaluate_vendor(bounded_content, CISCO_SIGNATURES)
+            juniper_conf, juniper_pats, juniper_details = cls.evaluate_vendor(bounded_content, JUNIPER_SIGNATURES)
+            fortinet_conf, fortinet_pats, fortinet_details = cls.evaluate_vendor(bounded_content, FORTINET_SIGNATURES)
 
-        scores.sort(key=lambda x: x[1], reverse=True)
-        top_vendor, top_conf, top_pats, top_details = scores[0]
+            scores = [
+                ("cisco", cisco_conf, cisco_pats, cisco_details),
+                ("juniper", juniper_conf, juniper_pats, juniper_details),
+                ("fortinet", fortinet_conf, fortinet_pats, fortinet_details),
+            ]
 
-        if top_conf < 0.40:
+            scores.sort(key=lambda x: x[1], reverse=True)
+            top_vendor, top_conf, top_pats, top_details = scores[0]
+
+            if top_conf < 0.40:
+                return VendorDetectionResult(
+                    vendor="unknown",
+                    platform=None,
+                    confidence=0.0,
+                    method="signature",
+                    detected_patterns=[],
+                    details={
+                        "evaluated_scores": {
+                            "cisco": cisco_conf,
+                            "juniper": juniper_conf,
+                            "fortinet": fortinet_conf,
+                        }
+                    },
+                )
+
+            platform = None
+            if top_vendor == "cisco":
+                platform = cls.detect_cisco_platform(bounded_content)
+            elif top_vendor == "juniper":
+                platform = cls.detect_juniper_platform(bounded_content)
+            elif top_vendor == "fortinet":
+                platform = cls.detect_fortinet_platform(bounded_content)
+
+            return VendorDetectionResult(
+                vendor=top_vendor,
+                platform=platform,
+                confidence=top_conf,
+                method="signature",
+                detected_patterns=top_pats,
+                details=top_details,
+            )
+        except Exception as e:
             return VendorDetectionResult(
                 vendor="unknown",
                 platform=None,
                 confidence=0.0,
                 method="signature",
                 detected_patterns=[],
-                details={
-                    "evaluated_scores": {
-                        "cisco": cisco_conf,
-                        "juniper": juniper_conf,
-                        "fortinet": fortinet_conf,
-                    }
-                },
+                details={"error": f"Safe vendor detection fallback: {str(e)}"},
             )
-
-        platform = None
-        if top_vendor == "cisco":
-            platform = cls.detect_cisco_platform(content)
-        elif top_vendor == "juniper":
-            platform = cls.detect_juniper_platform(content)
-        elif top_vendor == "fortinet":
-            platform = cls.detect_fortinet_platform(content)
-
-        return VendorDetectionResult(
-            vendor=top_vendor,
-            platform=platform,
-            confidence=top_conf,
-            method="signature",
-            detected_patterns=top_pats,
-            details=top_details,
-        )

@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     STORAGE_PATH: str = "./storage/uploads"
     MAX_FILE_SIZE_MB: int = 10
     ALLOWED_EXTENSIONS: Union[List[str], str] = [".cfg", ".conf", ".txt", ".log", ".set"]
+    MAX_CONFIG_LINES: int = 50000
+    MAX_LINE_LENGTH_BYTES: int = 32768
+    MAX_UNKNOWN_ITEMS_DETAILED: int = 1000
+    MAX_UPLOAD_FILENAME_LENGTH: int = 255
 
     # AI Provider Settings (OpenRouter / Gemini abstraction)
     AI_PROVIDER: str = "openrouter"  # "openrouter", "gemini", "mock", "local"
