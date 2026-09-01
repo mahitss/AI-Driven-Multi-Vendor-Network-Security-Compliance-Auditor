@@ -44,7 +44,7 @@ export default function NetworkTopologyGraph({
           Network relationships have not been ingested for the current fleet. Ingest device configurations with interface/routing telemetry to generate live topology maps.
         </p>
         <Link
-          href="/configurations"
+          href="/configurations?mode=ingest"
           className="inline-block px-3 py-1.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold transition-colors shadow-sm"
         >
           Ingest Configurations →

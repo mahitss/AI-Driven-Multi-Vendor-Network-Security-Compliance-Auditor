@@ -543,7 +543,7 @@ export default function RiskIntelligencePage() {
                 Risk intelligence will appear after configurations are evaluated.
               </p>
               <Link
-                href="/configurations"
+                href="/configurations?mode=ingest"
                 className="inline-block px-3 py-1.5 rounded-md bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold shadow-sm"
               >
                 Ingest Configuration →

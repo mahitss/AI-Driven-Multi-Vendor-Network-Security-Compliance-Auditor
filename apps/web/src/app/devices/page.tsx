@@ -175,7 +175,7 @@ export default function DevicesPage() {
               Upload a configuration file or ingest devices to audit your network infrastructure.
             </p>
             <Link
-              href="/configurations"
+              href="/configurations?mode=ingest"
               className="inline-block px-3.5 py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] text-[#3B82F6] border border-[#3B82F6]/40 font-semibold text-xs mt-2"
             >
               Ingest Configuration →

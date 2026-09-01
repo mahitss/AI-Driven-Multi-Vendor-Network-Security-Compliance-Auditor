@@ -300,7 +300,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Ingest Config Shortcut */}
             <Link
-              href="/configurations"
+              href="/configurations?mode=ingest"
               className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-xs text-[#F3F4F6] hover:text-white transition-colors font-mono text-[11px]"
             >
               <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />

@@ -6,6 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   UploadCloud,
+  Upload,
+  Trash2,
+  FileCheck2,
   FileCode2,
   CheckCircle2,
   AlertCircle,
@@ -279,11 +282,17 @@ function ConfigurationsPageContent() {
   const evidenceContainerRef = useRef<HTMLDivElement>(null);
   const ingestionRef = useRef<HTMLDivElement>(null);
 
-  // Ingestion Workspace State
-  const [inputMode, setInputMode] = useState<"samples" | "paste" | "upload">("samples");
-  const [selectedFixtureId, setSelectedFixtureId] = useState<string>("cisco-insecure");
-  const [rawText, setRawText] = useState<string>(CANONICAL_FIXTURES[0].content);
-  const [configFilename, setConfigFilename] = useState<string>(CANONICAL_FIXTURES[0].name);
+  // Ingestion Workspace State - Default to 'upload' as the active tab
+  const [inputMode, setInputMode] = useState<"upload" | "samples" | "paste">("upload");
+  const [selectedFixtureId, setSelectedFixtureId] = useState<string | null>(null);
+  const [rawText, setRawText] = useState<string>("");
+  const [configFilename, setConfigFilename] = useState<string>("");
+  const [selectedFileMeta, setSelectedFileMeta] = useState<{
+    name: string;
+    size: number;
+    lines: number;
+  } | null>(null);
+  const [uploadValidationError, setUploadValidationError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [clientHash, setClientHash] = useState<string>("");
   const [detectedVendorState, setDetectedVendorState] = useState<{
@@ -355,8 +364,71 @@ function ConfigurationsPageContent() {
     setSelectedFixtureId(fixtureId);
     setRawText(fixture.content);
     setConfigFilename(fixture.name);
+    setSelectedFileMeta(null);
+    setUploadValidationError(null);
     setReanalyzeResult(null);
     setReanalyzeBannerVisible(false);
+  };
+
+  // Accepted configuration file extensions
+  const ACCEPTED_EXTENSIONS = [".cfg", ".conf", ".txt", ".json", ".log", ".set"];
+
+  // Real File Validation and Ingestion Reader
+  const processSelectedFile = (file: File) => {
+    setUploadValidationError(null);
+    if (!file) return;
+
+    // 1. Extension Validation
+    const name = file.name || "network_config.cfg";
+    const extMatch = name.match(/\.[0-9a-z]+$/i);
+    const ext = extMatch ? extMatch[0].toLowerCase() : "";
+
+    if (!ACCEPTED_EXTENSIONS.includes(ext)) {
+      setUploadValidationError(
+        `Unsupported file format '${ext || "unknown"}'. Accepted formats are .cfg, .conf, .txt, .json for network configuration audits.`
+      );
+      return;
+    }
+
+    // 2. Size Validation
+    if (file.size === 0) {
+      setUploadValidationError("The selected configuration file is empty. Please select a valid network configuration file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadValidationError("Configuration file exceeds the maximum allowed limit of 10 MB.");
+      return;
+    }
+
+    // 3. Read plain text content with UTF-8
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text || !text.trim()) {
+        setUploadValidationError("The selected configuration file contains no readable text.");
+        return;
+      }
+      if (text.includes("\0")) {
+        setUploadValidationError(
+          "Selected file contains binary data. NetVigil accepts plain text network configuration files (.cfg, .conf, .txt, .json)."
+        );
+        return;
+      }
+
+      setUploadValidationError(null);
+      setRawText(text);
+      setConfigFilename(file.name);
+      setSelectedFixtureId(null);
+      setSelectedFileMeta({
+        name: file.name,
+        size: file.size,
+        lines: text.split("\n").length,
+      });
+    };
+    reader.onerror = () => {
+      setUploadValidationError("Failed to read the selected file. Please verify file permissions and try again.");
+    };
+    reader.readAsText(file);
   };
 
   // Drag & drop file handler
@@ -364,33 +436,24 @@ function ConfigurationsPageContent() {
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        if (text) {
-          setRawText(text);
-          setConfigFilename(file.name);
-          setInputMode("paste");
-        }
-      };
-      reader.readAsText(file);
+      processSelectedFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        if (text) {
-          setRawText(text);
-          setConfigFilename(file.name);
-          setInputMode("paste");
-        }
-      };
-      reader.readAsText(file);
+      processSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleRemoveSelectedFile = () => {
+    setRawText("");
+    setConfigFilename("");
+    setSelectedFileMeta(null);
+    setUploadValidationError(null);
+    setClientHash("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -650,6 +713,16 @@ function ConfigurationsPageContent() {
           {/* Mode Selector Tabs */}
           <div className="flex items-center p-1 rounded-lg bg-[#080B12] border border-[#1D2939] text-xs font-mono">
             <button
+              onClick={() => setInputMode("upload")}
+              className={cn(
+                "px-3 py-1 rounded transition-all flex items-center gap-1.5",
+                inputMode === "upload" ? "bg-[#3B82F6] text-white font-bold" : "text-[#A7B0C0] hover:text-white"
+              )}
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>UPLOAD FILE</span>
+            </button>
+            <button
               onClick={() => setInputMode("samples")}
               className={cn(
                 "px-3 py-1 rounded transition-all",
@@ -667,22 +740,150 @@ function ConfigurationsPageContent() {
             >
               CUSTOM TEXT / PASTE
             </button>
-            <button
-              onClick={() => {
-                setInputMode("upload");
-                fileInputRef.current?.click();
-              }}
-              className={cn(
-                "px-3 py-1 rounded transition-all",
-                inputMode === "upload" ? "bg-[#3B82F6] text-white font-bold" : "text-[#A7B0C0] hover:text-white"
-              )}
-            >
-              UPLOAD FILE
-            </button>
           </div>
         </div>
 
-        {/* Input Mode 1: Canonical Preset Fixtures */}
+        {/* Input Mode 1: Drag & Drop / File Upload (DEFAULT) */}
+        {inputMode === "upload" && (
+          <div className="space-y-3">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".cfg,.conf,.txt,.json,.log,.set"
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
+
+            {selectedFileMeta && rawText.trim() ? (
+              /* Selected Configuration File Card */
+              <div className="p-5 rounded-xl bg-[#080B12] border border-[#263B55] space-y-3.5 shadow-lg animate-fadeIn">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1D2939] pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#3B82F6]/15 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6]">
+                      <FileCode2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-[#F3F4F6] font-mono flex items-center gap-2">
+                        <span>{selectedFileMeta.name}</span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                          READY TO AUDIT
+                        </span>
+                      </div>
+                      <div className="text-xs text-[#A7B0C0] font-mono mt-0.5">
+                        {formatBytes(selectedFileMeta.size)} • {selectedFileMeta.lines} Lines • Plain Text UTF-8
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-lg bg-[#111827] border border-[#1D2939] hover:border-[#3B82F6] text-xs font-mono text-[#F3F4F6] hover:text-white transition-colors flex items-center gap-1.5"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
+                      <span>Replace File</span>
+                    </button>
+                    <button
+                      onClick={handleRemoveSelectedFile}
+                      className="px-3 py-1.5 rounded-lg bg-[#111827] border border-[#1D2939] hover:border-[#EF4444] text-xs font-mono text-[#EF4444] transition-colors flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Configuration Code Preview */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[#667085]">
+                    <span>CONFIGURATION PREVIEW (FIRST 10 LINES)</span>
+                    <span className="uppercase text-[#3B82F6] font-bold">
+                      {detectedVendorState.vendor} ({detectedVendorState.platform || "generic"})
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-[#04060A] border border-[#1D2939] font-mono text-xs text-[#A7B0C0] max-h-40 overflow-y-auto leading-relaxed">
+                    {rawText.split("\n").slice(0, 10).map((line, idx) => (
+                      <div key={idx} className="flex gap-3">
+                        <span className="text-[#667085] select-none w-6 text-right shrink-0">{idx + 1}</span>
+                        <span className="text-[#F3F4F6] font-mono whitespace-pre-wrap">{line || " "}</span>
+                      </div>
+                    ))}
+                    {rawText.split("\n").length > 10 && (
+                      <div className="text-[11px] text-[#667085] pt-1 italic">
+                        ... +{rawText.split("\n").length - 10} more lines
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Drag & Drop Upload Zone */
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleFileDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                  "p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-[#080B12]",
+                  dragOver
+                    ? "border-[#3B82F6] bg-[#3B82F6]/5 shadow-inner"
+                    : "border-[#1D2939] hover:border-[#3B82F6]/60 hover:bg-[#0A0F1A]"
+                )}
+              >
+                <div className="w-12 h-12 rounded-2xl bg-[#3B82F6]/10 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] mb-3">
+                  <UploadCloud className="w-6 h-6 animate-pulse" />
+                </div>
+                <div className="text-sm font-bold text-[#F3F4F6] font-mono">
+                  Click to browse or drag & drop configuration file
+                </div>
+                <div className="text-xs text-[#A7B0C0] mt-1.5 max-w-md font-sans">
+                  Upload real network configurations for automated SHA-256 integrity, vendor AST normalization, and multi-framework compliance audit.
+                </div>
+
+                {/* Accepted file formats badges */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+                  <span className="px-2 py-0.5 rounded bg-[#111827] border border-[#1D2939] text-[10px] font-mono text-[#A7B0C0]">
+                    <strong className="text-[#3B82F6]">.cfg</strong> Cisco IOS / IOS-XE
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-[#111827] border border-[#1D2939] text-[10px] font-mono text-[#A7B0C0]">
+                    <strong className="text-[#3B82F6]">.conf</strong> Juniper JunOS
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-[#111827] border border-[#1D2939] text-[10px] font-mono text-[#A7B0C0]">
+                    <strong className="text-[#3B82F6]">.txt</strong> Fortinet FortiOS / Raw
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-[#111827] border border-[#1D2939] text-[10px] font-mono text-[#A7B0C0]">
+                    <strong className="text-[#3B82F6]">.json</strong> Universal Schema
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Validation Error Alert Banner */}
+            {uploadValidationError && (
+              <div className="p-3.5 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] text-xs font-mono flex items-center justify-between gap-3 animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{uploadValidationError}</span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setUploadValidationError(null);
+                  }}
+                  className="text-[#EF4444] hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Input Mode 2: Canonical Preset Fixtures */}
         {inputMode === "samples" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {CANONICAL_FIXTURES.map((fixture) => (
@@ -721,7 +922,7 @@ function ConfigurationsPageContent() {
           </div>
         )}
 
-        {/* Input Mode 2: Paste / Custom Text */}
+        {/* Input Mode 3: Paste / Custom Text */}
         {inputMode === "paste" && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-mono">
@@ -733,7 +934,7 @@ function ConfigurationsPageContent() {
                 className="px-2.5 py-1 rounded bg-[#080B12] border border-[#1D2939] text-[#F3F4F6] text-xs font-mono focus:border-[#3B82F6] focus:outline-none w-64"
               />
               <span className="text-[11px] text-[#667085]">
-                {rawText.split("\n").length} Lines • {formatBytes(rawText.length)}
+                {rawText ? rawText.split("\n").length : 0} Lines • {formatBytes(rawText.length)}
               </span>
             </div>
             <textarea
@@ -743,38 +944,6 @@ function ConfigurationsPageContent() {
               rows={8}
               className="w-full p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] font-mono text-xs text-[#A7B0C0] focus:border-[#3B82F6] focus:outline-none resize-y leading-relaxed"
             />
-          </div>
-        )}
-
-        {/* Input Mode 3: Drag & Drop Zone */}
-        {inputMode === "upload" && (
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleFileDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={cn(
-              "p-8 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-[#080B12]",
-              dragOver ? "border-[#3B82F6] bg-[#3B82F6]/5" : "border-[#1D2939] hover:border-[#3B82F6]/50"
-            )}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".cfg,.conf,.txt,.log"
-              onChange={handleFileInputChange}
-              className="hidden"
-            />
-            <UploadCloud className="w-8 h-8 text-[#3B82F6] mb-2 animate-bounce" />
-            <div className="text-xs font-bold text-[#F3F4F6]">
-              Click to browse or drag & drop configuration file
-            </div>
-            <div className="text-[11px] text-[#667085] mt-1">
-              Supports Cisco IOS (.cfg), Juniper JunOS (.conf), and Fortinet FortiOS (.conf, .txt)
-            </div>
           </div>
         )}
 

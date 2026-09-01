@@ -516,7 +516,7 @@ export default function SecurityPostureDashboard() {
                 {stats?.total_configurations === 0 && (
                   <div className="pt-2">
                     <Link
-                      href="/configurations"
+                      href="/configurations?mode=ingest"
                       className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-mono font-medium"
                     >
                       <span>Upload Configuration</span>
