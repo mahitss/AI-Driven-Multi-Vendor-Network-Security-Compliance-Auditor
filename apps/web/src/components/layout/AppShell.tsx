@@ -100,18 +100,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { connectionState, isOnline, isOffline, isDegraded, isConnecting } = useSystemHealth();
 
-  // If on Landing Page root `/` or `/landing` or Auth pages, render clean full-width layout
-  const isPublicPage =
-    pathname === "/" ||
-    pathname === "/landing" ||
-    pathname === "/login" ||
-    pathname === "/signup" ||
-    pathname === "/forgot-password" ||
-    pathname === "/reset-password" ||
-    pathname?.startsWith("/auth") ||
-    pathname === "/demo/multi-vendor" ||
-    pathname === "/demo/judge";
-
   // Keyboard shortcut for Cmd+K / Ctrl+K
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -123,16 +111,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  if (isPublicPage) {
-    return (
-      <div className="min-h-screen bg-[#080B12] text-[#A7B0C0] selection:bg-[#3B82F6]/20 selection:text-[#3B82F6]">
-        {children}
-      </div>
-    );
-  }
-
-  // Derive readable breadcrumb from pathname
   const getBreadcrumb = () => {
     if (pathname === "/dashboard") return "Security Posture";
     if (pathname === "/agent") return "Autonomous Security Engineer";

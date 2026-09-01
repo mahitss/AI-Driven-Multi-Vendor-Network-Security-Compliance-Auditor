@@ -4,7 +4,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { SettingsProvider } from "@/components/providers/SettingsProvider";
-import AppShell from "@/components/layout/AppShell";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,7 +33,7 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <SettingsProvider>
-              <AppShell>{children}</AppShell>
+              {children}
             </SettingsProvider>
           </AuthProvider>
         </QueryProvider>
