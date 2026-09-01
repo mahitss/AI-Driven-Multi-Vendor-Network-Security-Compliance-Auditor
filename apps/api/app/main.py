@@ -48,6 +48,30 @@ async def lifespan(app: FastAPI):
     """Application startup and shutdown event lifecycle."""
     logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION} [{settings.ENVIRONMENT}]")
 
+    # Production Startup Invariant Validation
+    if settings.ENVIRONMENT.lower() == "production":
+        insecure_keys = [
+            "dev-insecure-secret-key-replace-in-production-sih26155",
+            "secret",
+            "changeme",
+            "default",
+            "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3",
+            "",
+        ]
+        if not settings.SECRET_KEY or settings.SECRET_KEY in insecure_keys or len(settings.SECRET_KEY) < 32:
+            raise RuntimeError(
+                "CRITICAL SECURITY CONFIGURATION ERROR: A strong, unguessable SECRET_KEY (minimum 32 characters) "
+                "must be configured via environment variable in production mode."
+            )
+        if settings.DEBUG:
+            raise RuntimeError("CRITICAL SECURITY CONFIGURATION ERROR: DEBUG=True is strictly prohibited in production mode.")
+        if "*" in settings.ALLOWED_HOSTS or ["*"] == settings.ALLOWED_HOSTS:
+            raise RuntimeError("CRITICAL SECURITY CONFIGURATION ERROR: Wildcard '*' in ALLOWED_HOSTS is strictly prohibited in production mode.")
+        if "*" in settings.CORS_ORIGINS:
+            raise RuntimeError("CRITICAL SECURITY CONFIGURATION ERROR: Wildcard '*' in CORS_ORIGINS is strictly prohibited in production mode.")
+        if settings.AUTH_ENABLED and not settings.SUPABASE_URL:
+            raise RuntimeError("CRITICAL SECURITY CONFIGURATION ERROR: SUPABASE_URL must be configured in production mode when AUTH_ENABLED=True.")
+
     # Create tables if not present (supports SQLite and initial Postgres setup)
     try:
         async with async_engine.begin() as conn:

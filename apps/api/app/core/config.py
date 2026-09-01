@@ -23,12 +23,12 @@ class Settings(BaseSettings):
     PROJECT_DESCRIPTION: str = "AI-Driven Multi-Vendor Network Security Compliance Auditor"
     VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
-    DEBUG: bool = True
+    DEBUG: bool = False
     API_PREFIX: str = "/api/v1"
 
     # Security
     SECRET_KEY: str = ""
-    ALLOWED_HOSTS: Union[List[str], str] = ["*"]
+    ALLOWED_HOSTS: Union[List[str], str] = ["localhost", "127.0.0.1", "::1", "testserver", "testclient"]
     CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",

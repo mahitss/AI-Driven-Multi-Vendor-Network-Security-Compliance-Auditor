@@ -32,7 +32,10 @@ spec:
         - name: AI_MODEL
           value: gemini-3.5
         - name: SECRET_KEY
-          value: production-secret-key-netvigil-ntro-sih26155-enterprise-hardened
+          valueFrom:
+            secretKeyRef:
+              name: netvigil-secrets
+              key: secret-key
         startupProbe:
           httpGet:
             path: /health

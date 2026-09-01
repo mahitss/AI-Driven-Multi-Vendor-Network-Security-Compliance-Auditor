@@ -7,31 +7,57 @@ import re
 import sys
 
 SECRET_PATTERNS = [
+    re.compile(r"-----BEGIN[ A-Z0-9_-]+PRIVATE KEY-----[\s\S]+?-----END[ A-Z0-9_-]+PRIVATE KEY-----", re.IGNORECASE),
+    re.compile(r"(postgres(?:ql)?(?:\+[a-z0-9]+)?://[^:]+:)([^@]+)(@)", re.IGNORECASE),
+    re.compile(r"(mysql(?:\+[a-z0-9]+)?://[^:]+:)([^@]+)(@)", re.IGNORECASE),
+    re.compile(r"(redis(?:s)?://[^:]+:)([^@]+)(@)", re.IGNORECASE),
+    re.compile(r"\b(ey[a-zA-Z0-9_-]{15,}\.ey[a-zA-Z0-9_-]{15,}\.[a-zA-Z0-9_-]{10,})\b"),
+    re.compile(r"(authorization:\s*bearer\s+)([\w\-\.]+)", re.IGNORECASE),
+    re.compile(r"(bearer\s+)([\w\-\.]+)", re.IGNORECASE),
+    re.compile(r"(password\s*[:=]\s*)['\"]?(\S+)['\"]?", re.IGNORECASE),
     re.compile(r"(password\s+)(\S+)", re.IGNORECASE),
+    re.compile(r"(secret\s*[:=]\s*)['\"]?(\S+)['\"]?", re.IGNORECASE),
     re.compile(r"(secret\s+)(\S+)", re.IGNORECASE),
     re.compile(r"(api[_-]?key\s*[:=]\s*)['\"]?(\w+)['\"]?", re.IGNORECASE),
-    re.compile(r"(bearer\s+)([\w\-\.]+)", re.IGNORECASE),
-    re.compile(r"(authorization:\s*bearer\s+)([\w\-\.]+)", re.IGNORECASE),
+    re.compile(r"(token\s*[:=]\s*)['\"]?([\w\-\.]+)['\"]?", re.IGNORECASE),
+    re.compile(r"(service_role(?:_key)?\s*[:=]\s*)['\"]?(\S+)['\"]?", re.IGNORECASE),
     re.compile(r"(enable\s+secret\s+\d\s+)(\S+)", re.IGNORECASE),
     re.compile(r"(snmp-server\s+community\s+)(\S+)", re.IGNORECASE),
     re.compile(r"(set\s+password\s+)(\S+)", re.IGNORECASE),
     re.compile(r"(set\s+passphrase\s+)(\S+)", re.IGNORECASE),
     re.compile(r"(encrypted-password\s+)(\S+)", re.IGNORECASE),
-    re.compile(r"(token[:=]\s*)['\"]?([\w\-\.]+)['\"]?", re.IGNORECASE),
-    re.compile(r"-----BEGIN[ A-Z0-9_-]+PRIVATE KEY-----[\s\S]+?-----END[ A-Z0-9_-]+PRIVATE KEY-----", re.IGNORECASE),
 ]
+
+
+def redact_string(text: str) -> str:
+    """Sanitizes sensitive patterns from any string."""
+    if not isinstance(text, str):
+        return text
+    msg = text
+    for pattern in SECRET_PATTERNS:
+        if pattern.pattern.startswith("-----BEGIN"):
+            msg = pattern.sub("[REDACTED_PRIVATE_KEY_BLOCK]", msg)
+        elif "postgres" in pattern.pattern or "mysql" in pattern.pattern or "redis" in pattern.pattern:
+            msg = pattern.sub(r"\1[REDACTED]\3", msg)
+        elif "ey[a-zA-Z0-9" in pattern.pattern:
+            msg = pattern.sub("[REDACTED_JWT]", msg)
+        else:
+            msg = pattern.sub(r"\1[REDACTED]", msg)
+    return msg
 
 
 class SensitiveFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
-        if isinstance(record.msg, str):
-            msg = record.msg
-            for pattern in SECRET_PATTERNS:
-                if pattern.pattern.startswith("-----BEGIN"):
-                    msg = pattern.sub("[REDACTED_PRIVATE_KEY_BLOCK]", msg)
-                else:
-                    msg = pattern.sub(r"\1[REDACTED]", msg)
-            record.msg = msg
+        try:
+            if record.args:
+                # Format message before redacting so arguments are also sanitized
+                formatted = record.getMessage()
+                record.msg = redact_string(formatted)
+                record.args = None
+            elif isinstance(record.msg, str):
+                record.msg = redact_string(record.msg)
+        except Exception:
+            pass
         return True
 
 

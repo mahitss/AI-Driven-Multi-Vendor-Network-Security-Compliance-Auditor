@@ -32,7 +32,7 @@ services:
         condition: service_healthy
     environment:
       ENVIRONMENT: ${ENVIRONMENT:-development}
-      SECRET_KEY: ${SECRET_KEY:-dev-insecure-secret-key-replace-in-production-sih26155}
+      SECRET_KEY: ${SECRET_KEY:-}
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres_dev_password}@postgres:5432/netvigil}
       SYNC_DATABASE_URL: ${SYNC_DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD:-postgres_dev_password}@postgres:5432/netvigil}
       STORAGE_PATH: /app/storage/uploads
