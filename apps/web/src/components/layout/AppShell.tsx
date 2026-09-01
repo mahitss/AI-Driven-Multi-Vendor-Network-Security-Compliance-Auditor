@@ -6,28 +6,18 @@ import { usePathname } from "next/navigation";
 import {
   Shield,
   Activity,
-  FileCode2,
   Server,
   Layers,
   AlertTriangle,
-  Flame,
-  Bot,
-  Sparkles,
   Wrench,
-  FileText,
   Settings as SettingsIcon,
-  ChevronRight,
   Upload,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
   Menu,
   X,
   Search,
-  Lock,
   LogOut,
-  User as UserIcon,
   History,
+  Bot,
 } from "lucide-react";
 import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
@@ -49,7 +39,6 @@ const navigationGroups: NavGroup[] = [
     category: "Overview",
     items: [
       { label: "Security Posture", href: "/dashboard", icon: Activity },
-      { label: "Autonomous Agent", href: "/agent", icon: Bot, badge: "Core" },
     ],
   },
   {
@@ -58,7 +47,6 @@ const navigationGroups: NavGroup[] = [
       { label: "Security Audits", href: "/audits", icon: Shield },
       { label: "Findings", href: "/findings", icon: AlertTriangle },
       { label: "Assets & Inventory", href: "/devices", icon: Server },
-      { label: "Audit Configurations", href: "/configurations", icon: FileCode2 },
     ],
   },
   {
@@ -75,20 +63,10 @@ const navigationGroups: NavGroup[] = [
     ],
   },
   {
-    category: "Intelligence & Governance",
+    category: "Intelligence",
     items: [
       { label: "Multi-Vendor Engine", href: "/multi-vendor", icon: Layers },
       { label: "Security Briefing", href: "/ai-security-briefing", icon: Bot },
-      { label: "AI Safety Boundary", href: "/ai-boundary", icon: Lock },
-      { label: "Adaptive Training", href: "/adaptive-training", icon: Sparkles },
-      { label: "CIS Benchmarks", href: "/compliance/cis", icon: Shield },
-      { label: "Executive Reports", href: "/reports", icon: FileText },
-    ],
-  },
-  {
-    category: "Platform",
-    items: [
-      { label: "Settings", href: "/settings", icon: SettingsIcon },
     ],
   },
 ];
@@ -98,7 +76,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { user, logout } = useAuth();
-  const { connectionState, isOnline, isOffline, isDegraded, isConnecting } = useSystemHealth();
+  const { isOnline, isOffline, isDegraded, isConnecting } = useSystemHealth();
 
   // Keyboard shortcut for Cmd+K / Ctrl+K
   React.useEffect(() => {
@@ -111,16 +89,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
   const getBreadcrumb = () => {
     if (pathname === "/dashboard") return "Security Posture";
-    if (pathname === "/agent") return "Autonomous Security Engineer";
     if (pathname === "/remediation") return "Remediation Center";
     if (pathname === "/findings") return "Investigate / Findings";
     if (pathname === "/audits") return "Investigate / Security Audits";
-    if (pathname === "/devices" || pathname === "/configurations") return "Investigate / Assets";
+    if (pathname === "/devices" || pathname === "/configurations") return "Investigate / Assets & Inventory";
     if (pathname === "/security-time-machine") return "Observability / Security Time Machine";
+    if (pathname === "/operations") return "Observability / Audit Operations";
     if (pathname === "/reports") return "Governance / Executive Reports";
     if (pathname === "/multi-vendor" || pathname === "/demo/multi-vendor") return "Intelligence / Multi-Vendor Engine";
+    if (pathname === "/ai-security-briefing") return "Intelligence / Security Briefing";
     if (pathname === "/settings") return "Platform / Settings";
     const segment = pathname.split("/")[1] || "Overview";
     return segment.charAt(0).toUpperCase() + segment.slice(1);
@@ -132,7 +112,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#0A0F18] border-r border-[#1D2939] z-20 select-none">
+      <aside className="hidden lg:flex flex-col w-60 bg-[#0A0F18] border-r border-[#1D2939] z-20 select-none">
         {/* Brand Header */}
         <div className="p-3.5 border-b border-[#1D2939] flex items-center justify-between bg-[#080B12]">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
@@ -146,11 +126,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   SOC
                 </span>
               </div>
-              <div className="text-[10px] text-[#667085] font-mono tracking-tight">Mission Control Engine</div>
+              <div className="text-[10px] text-[#667085] font-mono tracking-tight">Security Console</div>
             </div>
           </Link>
           <div className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] tactical-pulse-green" />
+            <span
+              className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                isOnline && "bg-[#10B981] tactical-pulse-green",
+                isDegraded && "bg-[#F59E0B]",
+                isConnecting && "bg-[#3B82F6] animate-pulse",
+                isOffline && "bg-[#EF4444]"
+              )}
+            />
           </div>
         </div>
 
@@ -186,14 +174,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         <span className="truncate">{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span
-                          className={cn(
-                            "text-[9px] font-mono px-1.5 py-0.2 rounded font-medium",
-                            item.badge === "Core"
-                              ? "bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20"
-                              : "bg-[#0D121C] text-[#A7B0C0] border border-[#1D2939]"
-                          )}
-                        >
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded font-medium bg-[#111827] text-[#667085] border border-[#1D2939]">
                           {item.badge}
                         </span>
                       )}
@@ -205,25 +186,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </div>
 
-        {/* Status / Profile Footer */}
+        {/* Bottom Sidebar: User Identity & Settings */}
         <div className="p-2.5 border-t border-[#1D2939] bg-[#080B12] text-xs space-y-2">
-          <div className="p-2 rounded bg-[#0A0F18] border border-[#1D2939] flex items-center justify-between text-[11px] font-mono">
-            <div className="flex items-center gap-2">
-              <span
+          <Link
+            href="/settings"
+            className={cn(
+              "flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-medium transition-all group",
+              pathname.startsWith("/settings")
+                ? "bg-[#111827] text-[#F3F4F6] font-semibold border-l-2 border-[#3B82F6] pl-2 shadow-sm"
+                : "text-[#A7B0C0] hover:text-[#F3F4F6] hover:bg-[#0D121C]"
+            )}
+          >
+            <div className="flex items-center gap-2.5">
+              <SettingsIcon
                 className={cn(
-                  "w-1.5 h-1.5 rounded-full",
-                  isOnline && "bg-[#10B981] tactical-pulse-green",
-                  isDegraded && "bg-[#F59E0B]",
-                  isConnecting && "bg-[#3B82F6] animate-pulse",
-                  isOffline && "bg-[#EF4444]"
+                  "w-3.5 h-3.5 transition-colors",
+                  pathname.startsWith("/settings") ? "text-[#3B82F6]" : "text-[#667085] group-hover:text-[#A7B0C0]"
                 )}
               />
-              <span className="text-[#A7B0C0]">
-                {isOnline ? "USM AST Active" : isDegraded ? "Telemetry Degraded" : isConnecting ? "Connecting Engine..." : "Backend Disconnected"}
-              </span>
+              <span>Settings</span>
             </div>
-            <span className="text-[10px] text-[#667085]">v1.2.0</span>
-          </div>
+          </Link>
 
           {user && (
             <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between">
@@ -273,7 +256,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Quick Search Launch Button */}
+            {/* Global Search Launch Button */}
             <button
               onClick={() => setSearchOpen(true)}
               className="flex items-center gap-2 px-2.5 py-1 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-xs text-[#667085] hover:text-[#A7B0C0] transition-all"
@@ -285,17 +268,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </kbd>
             </button>
 
-            {/* Ingest Config Shortcut */}
+            {/* Ingest Primary Action Button */}
             <Link
               href="/configurations?mode=ingest"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-xs text-[#F3F4F6] hover:text-white transition-colors font-mono text-[11px]"
+              className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#141A24] hover:bg-[#1A2230] border border-[#28354A] text-xs text-[#F3F4F6] hover:text-white transition-colors font-mono text-[11px] font-semibold shadow-sm"
             >
-              <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
-              <span className="hidden sm:inline">INGEST</span>
+              <Upload className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>INGEST</span>
             </Link>
 
             {/* Operational State Pill */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0D121C] border border-[#1D2939] text-[10px] font-mono">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#0D121C] border border-[#1D2939] text-[10px] font-mono">
               <span
                 className={cn(
                   "w-1.5 h-1.5 rounded-full",
@@ -320,43 +303,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 top-13 z-30 bg-[#080B12] border-b border-[#1D2939] p-4 overflow-y-auto">
-            <div className="space-y-4">
-              {navigationGroups.map((group) => (
-                <div key={group.category} className="space-y-1">
-                  <div className="text-[10px] font-medium uppercase text-[#667085]">{group.category}</div>
-                  <div className="space-y-1">
-                    {group.items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={cn(
-                          "flex items-center justify-between p-2 rounded-md text-xs font-medium",
-                          pathname === item.href ? "bg-[#111827] text-[#3B82F6]" : "text-[#A7B0C0]"
-                        )}
-                      >
-                        <div className="flex items-center gap-2">
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.label}</span>
-                        </div>
-                        {item.badge && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#111827] text-[#3B82F6]">
-                            {item.badge}
-                          </span>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Main Viewport */}
+        {/* Dynamic Page Children Container */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#080B12]">
           {children}
         </main>
