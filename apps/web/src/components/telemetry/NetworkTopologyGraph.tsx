@@ -24,7 +24,7 @@ export default function NetworkTopologyGraph({
 
   if (isLoading) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center font-mono text-xs text-[#A7B0C0] space-y-2">
+      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
         <div className="animate-pulse flex items-center justify-center gap-2">
           <div className="w-2 h-2 rounded-full bg-[#3B82F6] animate-ping" />
           <span>INITIALIZING FLEET TOPOLOGY GRAPH...</span>
@@ -37,15 +37,15 @@ export default function NetworkTopologyGraph({
 
   if (!has_topology_data || nodes.length === 0) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center font-mono text-xs text-[#A7B0C0] space-y-3">
-        <Network className="w-8 h-8 text-[#667085] mx-auto" />
+      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-3">
+        <Network className="w-8 h-8 text-[#64748B] mx-auto" />
         <div className="text-sm font-bold text-[#F3F4F6]">Topology data unavailable</div>
-        <p className="text-[11px] text-[#667085] max-w-md mx-auto font-sans">
+        <p className="text-[11px] text-[#64748B] max-w-md mx-auto font-sans">
           Network relationships have not been ingested for the current fleet. Ingest device configurations with interface/routing telemetry to generate live topology maps.
         </p>
         <Link
           href="/configurations?mode=ingest"
-          className="inline-block px-3 py-1.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold transition-colors shadow-sm"
+          className="inline-block px-3 py-1.5 rounded-lg bg-[#141A24] hover:bg-[#1A2230] text-[#F3F4F6] border border-[#1E2638] hover:border-[#28354A] text-xs font-semibold transition-colors"
         >
           Ingest Configurations →
         </Link>
@@ -54,7 +54,6 @@ export default function NetworkTopologyGraph({
   }
 
   // Calculate layout positions for nodes
-  // Central hub layout: Hub in center, fleet nodes arranged in an arc / star around it
   const svgWidth = 720;
   const svgHeight = 360;
   const centerX = svgWidth / 2;
@@ -82,218 +81,129 @@ export default function NetworkTopologyGraph({
   };
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors space-y-4 font-mono">
+    <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors space-y-4 font-mono">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1D2939] pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2638] pb-3.5">
         <div>
           <div className="flex items-center gap-2">
-            <Network className="w-4 h-4 text-[#3B82F6]" />
+            <Network className="w-4 h-4 text-[#94A3B8]" />
             <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
-              FLEET ASSET TOPOLOGY & ADJACENCY
+              FLEET TOPOLOGY &amp; RELATIONSHIP GRAPH
             </span>
           </div>
-          <p className="text-[11px] text-[#A7B0C0] font-sans mt-0.5">
-            Deterministic network topology generated from {nodes.length} evaluated fleet node(s) and active configuration bindings.
+          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+            Inter-device interfaces, BGP peering, and deterministic attack path connectivity.
           </p>
         </div>
 
-        {/* Zoom Controls */}
-        <div className="flex items-center gap-1.5 bg-[#080B12] p-1 rounded-lg border border-[#1D2939]">
+        <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setZoomLevel((z) => Math.min(z + 0.2, 1.8))}
-            className="p-1 rounded text-[#A7B0C0] hover:text-white hover:bg-[#111827]"
-            title="Zoom in"
+            onClick={() => setZoomLevel((z) => Math.min(z + 0.2, 2))}
+            className="p-1 rounded bg-[#090B0F] border border-[#1E2638] text-[#94A3B8] hover:text-white"
+            title="Zoom In"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setZoomLevel((z) => Math.max(z - 0.2, 0.6))}
-            className="p-1 rounded text-[#A7B0C0] hover:text-white hover:bg-[#111827]"
-            title="Zoom out"
+            className="p-1 rounded bg-[#090B0F] border border-[#1E2638] text-[#94A3B8] hover:text-white"
+            title="Zoom Out"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setZoomLevel(1)}
-            className="p-1 rounded text-[#A7B0C0] hover:text-white hover:bg-[#111827]"
-            title="Reset view"
+            className="p-1 rounded bg-[#090B0F] border border-[#1E2638] text-[#94A3B8] hover:text-white"
+            title="Reset Zoom"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Split: Topology SVG + Node Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Topology Viewport (8 Cols) */}
-        <div className="lg:col-span-8 relative rounded-xl bg-[#080B12] border border-[#1D2939] overflow-hidden min-h-[360px] flex items-center justify-center">
-          {/* Subtle Grid Background */}
-          <div
-            className="absolute inset-0 opacity-15 pointer-events-none"
-            style={{
-              backgroundImage: "radial-gradient(#3B82F6 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-            }}
-          />
+      {/* SVG Interactive Canvas */}
+      <div className="relative w-full overflow-hidden rounded-lg bg-[#090B0F]/90 border border-[#1E2638] p-2 min-h-[360px] flex items-center justify-center">
+        <svg
+          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          className="w-full h-auto max-h-[380px] cursor-grab select-none"
+          style={{ transform: `scale(${zoomLevel})`, transformOrigin: "center center", transition: "transform 0.2s ease" }}
+        >
+          {/* Edge Connectors */}
+          {edges.map((edge, idx) => {
+            const src = nodePositions[edge.source];
+            const tgt = nodePositions[edge.target];
+            if (!src || !tgt) return null;
 
-          <svg
-            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-            className="w-full h-full cursor-grab active:cursor-grabbing transition-transform duration-200"
-            style={{ transform: `scale(${zoomLevel})` }}
-          >
-            {/* Edges */}
-            {edges.map((edge) => {
-              const srcPos = nodePositions[edge.source];
-              const tgtPos = nodePositions[edge.target];
-              if (!srcPos || !tgtPos) return null;
+            return (
+              <g key={`edge-${idx}`}>
+                <line
+                  x1={src.x}
+                  y1={src.y}
+                  x2={tgt.x}
+                  y2={tgt.y}
+                  stroke="#1E2638"
+                  strokeWidth="2"
+                  strokeDasharray={edge.relationship === "vpn" ? "4 4" : "none"}
+                />
+              </g>
+            );
+          })}
 
-              return (
-                <g key={`edge-${edge.id}`}>
-                  <line
-                    x1={srcPos.x}
-                    y1={srcPos.y}
-                    x2={tgtPos.x}
-                    y2={tgtPos.y}
-                    stroke="#1D2939"
-                    strokeWidth="2"
-                    strokeDasharray="4 2"
-                  />
-                </g>
-              );
-            })}
+          {/* Node Elements */}
+          {nodes.map((node) => {
+            const pos = nodePositions[node.id];
+            if (!pos) return null;
+            const nodeColor = getNodeColor(node.status, node.compliance_score);
+            const isSelected = selectedNode?.id === node.id;
 
-            {/* Nodes */}
-            {nodes.map((node) => {
-              const pos = nodePositions[node.id] || { x: centerX, y: centerY };
-              const isSelected = selectedNode?.id === node.id;
-              const nodeColor = getNodeColor(node.status, node.compliance_score);
-
-              return (
-                <g
-                  key={`node-${node.id}`}
-                  className="cursor-pointer group"
-                  onClick={() => setSelectedNode(node)}
+            return (
+              <g
+                key={`node-${node.id}`}
+                onClick={() => setSelectedNode(node)}
+                className="cursor-pointer group"
+              >
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={isSelected ? 22 : 18}
+                  fill="#0D1117"
+                  stroke={isSelected ? "#93C5FD" : nodeColor}
+                  strokeWidth={isSelected ? "3" : "2"}
+                  className="transition-all duration-200"
+                />
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={isSelected ? 14 : 11}
+                  fill={nodeColor}
+                  opacity="0.25"
+                />
+                <text
+                  x={pos.x}
+                  y={pos.y + 32}
+                  textAnchor="middle"
+                  fill="#F3F4F6"
+                  fontSize="10"
+                  fontFamily="monospace"
+                  fontWeight="bold"
                 >
-                  {/* Outer Ring */}
-                  <circle
-                    cx={pos.x}
-                    cy={pos.y}
-                    r={isSelected ? 26 : 20}
-                    fill="#0D121C"
-                    stroke={isSelected ? "#3B82F6" : nodeColor}
-                    strokeWidth={isSelected ? "3" : "2"}
-                    className="transition-all"
-                  />
-
-                  {/* Inner Status Indicator */}
-                  <circle
-                    cx={pos.x}
-                    cy={pos.y}
-                    r={isSelected ? 10 : 8}
-                    fill={nodeColor}
-                    opacity="0.8"
-                  />
-
-                  {/* Node Label Text */}
-                  <text
-                    x={pos.x}
-                    y={pos.y + 34}
-                    textAnchor="middle"
-                    fill={isSelected ? "#FFFFFF" : "#F3F4F6"}
-                    fontSize="11"
-                    fontWeight="bold"
-                    fontFamily="monospace"
-                  >
-                    {node.hostname}
-                  </text>
-
-                  {/* Vendor & Score Subtext */}
-                  <text
-                    x={pos.x}
-                    y={pos.y + 47}
-                    textAnchor="middle"
-                    fill="#667085"
-                    fontSize="9"
-                    fontFamily="monospace"
-                  >
-                    {node.vendor.toUpperCase()} • {node.compliance_score}%
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        {/* Selected Node Inspector Sidebar (4 Cols) */}
-        <div className="lg:col-span-4 p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-3 text-xs">
-          <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
-            <span className="font-bold text-[#F3F4F6] uppercase tracking-wider text-[11px]">
-              NODE TELEMETRY INSPECTOR
-            </span>
-            {selectedNode && (
-              <span
-                className="px-2 py-0.5 rounded text-[10px] font-bold border"
-                style={{
-                  color: getNodeColor(selectedNode.status, selectedNode.compliance_score),
-                  borderColor: `${getNodeColor(selectedNode.status, selectedNode.compliance_score)}40`,
-                  backgroundColor: `${getNodeColor(selectedNode.status, selectedNode.compliance_score)}15`,
-                }}
-              >
-                {selectedNode.status}
-              </span>
-            )}
-          </div>
-
-          {selectedNode ? (
-            <div className="space-y-3">
-              <div>
-                <div className="text-sm font-bold text-[#F3F4F6]">{selectedNode.hostname}</div>
-                <div className="text-[11px] text-[#A7B0C0]">{selectedNode.platform}</div>
-              </div>
-
-              <div className="space-y-2 text-[11px] bg-[#0D121C] p-3 rounded-lg border border-[#1D2939]">
-                <div className="flex justify-between">
-                  <span className="text-[#667085]">Vendor:</span>
-                  <span className="text-[#22D3EE] font-bold uppercase">{selectedNode.vendor}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#667085]">Device Class:</span>
-                  <span className="text-[#F3F4F6]">{selectedNode.device_type}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#667085]">Compliance Score:</span>
-                  <span
-                    className="font-bold"
-                    style={{ color: getNodeColor(selectedNode.status, selectedNode.compliance_score) }}
-                  >
-                    {selectedNode.compliance_score}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#667085]">Risk Score:</span>
-                  <span className="text-[#F59E0B] font-bold">{selectedNode.risk_score} / 100</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#667085]">Open Violations:</span>
-                  <span className="text-[#EF4444] font-bold">{selectedNode.open_findings} items</span>
-                </div>
-              </div>
-
-              <Link
-                href={`/configurations?id=${selectedNode.id}`}
-                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold transition-colors shadow-sm"
-              >
-                <span>Inspect Device Configuration</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          ) : (
-            <div className="py-8 text-center text-[#667085] space-y-1">
-              <Server className="w-6 h-6 mx-auto mb-1.5 opacity-50" />
-              <div>Click any topology node to inspect live device telemetry and configuration state.</div>
-            </div>
-          )}
-        </div>
+                  {node.hostname}
+                </text>
+                <text
+                  x={pos.x}
+                  y={pos.y + 44}
+                  textAnchor="middle"
+                  fill="#64748B"
+                  fontSize="8"
+                  fontFamily="monospace"
+                  style={{ textTransform: "uppercase" }}
+                >
+                  {node.vendor.toUpperCase()} • {node.compliance_score}%
+                </text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
     </div>
   );

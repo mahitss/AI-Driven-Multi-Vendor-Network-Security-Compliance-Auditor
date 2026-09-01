@@ -102,7 +102,7 @@ export default function SecurityPostureDashboard() {
   } = useQuery({
     queryKey: ["dashboard-overview-stats", user?.id],
     queryFn: () => fetchOverviewStats(),
-    enabled: !authLoading,
+    enabled: !authLoading && !!user,
     staleTime: 15000,
   });
 
@@ -114,7 +114,7 @@ export default function SecurityPostureDashboard() {
   } = useQuery({
     queryKey: ["dashboard-latest-audit", user?.id],
     queryFn: () => fetchLatestAudit(),
-    enabled: !authLoading,
+    enabled: !authLoading && !!user,
     staleTime: 15000,
   });
 
@@ -127,7 +127,7 @@ export default function SecurityPostureDashboard() {
   } = useQuery({
     queryKey: ["dashboard-active-findings", user?.id],
     queryFn: () => fetchFindings({ status: "FAIL" }),
-    enabled: !authLoading,
+    enabled: !authLoading && !!user,
     staleTime: 15000,
   });
 
@@ -140,7 +140,7 @@ export default function SecurityPostureDashboard() {
   } = useQuery({
     queryKey: ["dashboard-overview-activity", user?.id],
     queryFn: () => fetchOverviewActivity(10),
-    enabled: !authLoading,
+    enabled: !authLoading && !!user,
     staleTime: 15000,
   });
 
@@ -168,7 +168,7 @@ export default function SecurityPostureDashboard() {
       return {
         label: "CONNECTING",
         bg: "bg-[#3B82F6]/10",
-        text: "text-[#3B82F6]",
+        text: "text-[#93C5FD]",
         border: "border-[#3B82F6]/25",
         dot: "bg-[#3B82F6] animate-pulse",
       };
@@ -257,13 +257,13 @@ export default function SecurityPostureDashboard() {
   }, [stats]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4">
+    <div className="max-w-7xl mx-auto space-y-3.5 select-none font-sans">
       {/* 1. Tactical Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1D2939] pb-3 bg-[#080B12]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2638] pb-3 bg-[#090B0F]">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-sm sm:text-base font-bold text-[#F3F4F6] tracking-tight font-mono">
-              SECURITY POSTURE & TELEMETRY
+              SECURITY POSTURE &amp; TELEMETRY
             </h1>
             <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded border font-semibold flex items-center gap-1.5", badgeConfig.bg, badgeConfig.text, badgeConfig.border)}>
               <span className={cn("w-1.5 h-1.5 rounded-full", badgeConfig.dot)} />
@@ -276,7 +276,7 @@ export default function SecurityPostureDashboard() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 font-mono text-xs">
           <button
             onClick={() => {
               refetchHealth();
@@ -285,7 +285,7 @@ export default function SecurityPostureDashboard() {
               refetchActivity();
             }}
             disabled={isStatsRefetching}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[#0D121C] hover:bg-[#111827] border border-[#1D2939] hover:border-[#263B55] text-[#94A3B8] hover:text-[#F3F4F6] text-xs font-mono font-medium transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[#0D1117] hover:bg-[#141A24] border border-[#1E2638] hover:border-[#28354A] text-[#94A3B8] hover:text-[#F3F4F6] transition-colors"
             title="Refresh system state"
           >
             <RefreshCw className={cn("w-3.5 h-3.5 text-[#94A3B8]", isStatsRefetching && "animate-spin")} />
@@ -293,14 +293,14 @@ export default function SecurityPostureDashboard() {
           </button>
           <Link
             href="/agent"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] hover:border-[#263B55] text-[#F3F4F6] text-xs font-mono font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#111620] hover:bg-[#161D2A] border border-[#1E2638] hover:border-[#28354A] text-[#F3F4F6] transition-colors"
           >
             <Bot className="w-3.5 h-3.5 text-[#94A3B8]" />
             <span>AGENT CONSOLE</span>
           </Link>
           <Link
             href="/remediation"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] hover:border-[#263B55] text-[#F3F4F6] text-xs font-mono font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#111620] hover:bg-[#161D2A] border border-[#1E2638] hover:border-[#28354A] text-[#F3F4F6] transition-colors"
           >
             <Wrench className="w-3.5 h-3.5 text-[#94A3B8]" />
             <span>REMEDIATION</span>
@@ -311,7 +311,7 @@ export default function SecurityPostureDashboard() {
       {/* 2. Key Posture Metrics Grid (5 KPI Cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Metric 1: Fleet Compliance */}
-        <div className="p-3.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Fleet Compliance</span>
             <ShieldCheck className="w-4 h-4 text-[#10B981]" />
@@ -344,7 +344,7 @@ export default function SecurityPostureDashboard() {
             </p>
           </div>
           {/* Framework Breakdown Strip */}
-          <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[10px] font-mono text-[#94A3B8]">
+          <div className="pt-2 border-t border-[#1E2638] flex items-center justify-between text-[10px] font-mono text-[#94A3B8]">
             <span>CIS {isStatsError || !stats?.total_configurations ? "—" : stats?.framework_scores?.CIS !== undefined ? `${Math.round(stats.framework_scores.CIS)}%` : "—"}</span>
             <span>NIST {isStatsError || !stats?.total_configurations ? "—" : stats?.framework_scores?.NIST !== undefined ? `${Math.round(stats.framework_scores.NIST)}%` : "—"}</span>
             <span>STIG {isStatsError || !stats?.total_configurations ? "—" : stats?.framework_scores?.STIG !== undefined ? `${Math.round(stats.framework_scores.STIG)}%` : "—"}</span>
@@ -353,14 +353,14 @@ export default function SecurityPostureDashboard() {
         </div>
 
         {/* Metric 2: Risk Score */}
-        <div className="p-3.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Risk Score</span>
             <button
               onClick={() => setShowRiskExplanation(true)}
-              className="text-[10px] text-[#3B82F6] hover:underline flex items-center gap-0.5 font-mono"
+              className="text-[10px] text-[#93C5FD] hover:underline flex items-center gap-0.5 font-mono"
             >
-              <HelpCircle className="w-3 h-3" />
+              <HelpCircle className="w-3 h-3 text-[#64748B]" />
               <span>Formula</span>
             </button>
           </div>
@@ -375,7 +375,7 @@ export default function SecurityPostureDashboard() {
               {isStatsError ? "Risk model unavailable" : isStatsLoading ? "Calculating risks..." : stats?.open_findings ? `Weighted from ${stats.open_findings} finding(s)` : "0 active findings"}
             </p>
           </div>
-          <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[10px] font-mono text-[#94A3B8]">
+          <div className="pt-2 border-t border-[#1E2638] flex items-center justify-between text-[10px] font-mono text-[#94A3B8]">
             <span className="text-[#EF4444]">Crit: {isStatsError ? "—" : stats?.severity_breakdown?.critical ?? 0}</span>
             <span className="text-[#F59E0B]">High: {isStatsError ? "—" : stats?.severity_breakdown?.high ?? 0}</span>
             <span className="text-[#94A3B8]">Med: {isStatsError ? "—" : stats?.severity_breakdown?.medium ?? 0}</span>
@@ -383,7 +383,7 @@ export default function SecurityPostureDashboard() {
         </div>
 
         {/* Metric 3: Critical Findings (P0) */}
-        <div className="p-3.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px] text-[#EF4444]">Critical (P0)</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#EF4444]/10 text-[#EF4444] font-semibold border border-[#EF4444]/20 font-mono">
@@ -398,16 +398,16 @@ export default function SecurityPostureDashboard() {
               Cleartext protocols &amp; auth bypass
             </p>
           </div>
-          <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#94A3B8] flex items-center justify-between">
+          <div className="pt-2 border-t border-[#1E2638] text-[10px] font-mono text-[#94A3B8] flex items-center justify-between">
             <span>High: {isStatsError ? "—" : stats?.severity_breakdown?.high ?? 0}</span>
-            <Link href="/findings?severity=CRITICAL" className="text-[#3B82F6] hover:underline text-[10px]">
+            <Link href="/findings?severity=CRITICAL" className="text-[#93C5FD] hover:underline text-[10px]">
               Inspect →
             </Link>
           </div>
         </div>
 
         {/* Metric 4: Total Open Findings */}
-        <div className="p-3.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Open Findings</span>
             <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
@@ -420,16 +420,16 @@ export default function SecurityPostureDashboard() {
               Deterministic rule violations
             </p>
           </div>
-          <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#94A3B8] flex items-center justify-between">
+          <div className="pt-2 border-t border-[#1E2638] text-[10px] font-mono text-[#94A3B8] flex items-center justify-between">
             <span>Audits: {isStatsError ? "—" : stats?.total_audits ?? 0}</span>
-            <Link href="/findings" className="text-[#3B82F6] hover:underline text-[10px]">
+            <Link href="/findings" className="text-[#93C5FD] hover:underline text-[10px]">
               View all →
             </Link>
           </div>
         </div>
 
         {/* Metric 5: Managed Assets */}
-        <div className="p-3.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors flex flex-col justify-between space-y-2">
+        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Managed Assets</span>
             <Server className="w-4 h-4 text-[#94A3B8]" />
@@ -442,9 +442,9 @@ export default function SecurityPostureDashboard() {
               {isStatsError ? "Inventory unavailable" : isStatsLoading ? "Scanning assets..." : vendorBreakdownSummary}
             </p>
           </div>
-          <div className="pt-2 border-t border-[#1D2939] text-[10px] font-mono text-[#94A3B8] flex items-center justify-between">
+          <div className="pt-2 border-t border-[#1E2638] text-[10px] font-mono text-[#94A3B8] flex items-center justify-between">
             <span>Universal AST</span>
-            <Link href="/configurations" className="text-[#3B82F6] hover:underline text-[10px]">
+            <Link href="/configurations" className="text-[#93C5FD] hover:underline text-[10px]">
               Inventory →
             </Link>
           </div>
@@ -455,10 +455,10 @@ export default function SecurityPostureDashboard() {
       <SecurityTelemetrySection />
 
       {/* 3. Main Operational Sections (Attention Queue + Activity Stream) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
         {/* Left Column: Attention Queue (Grouped Deduplicated Controls) */}
         <div className="lg:col-span-8 space-y-2.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1D2939] pb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1E2638] pb-2">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-mono font-semibold text-[#F3F4F6] uppercase tracking-wider">
                 ACTIVE EXPOSURES &amp; FAILED CONTROLS
@@ -469,7 +469,7 @@ export default function SecurityPostureDashboard() {
             </div>
 
             {/* Severity Filter Tabs */}
-            <div className="flex items-center gap-1 bg-[#0D121C] border border-[#1D2939] p-0.5 rounded-lg text-xs">
+            <div className="flex items-center gap-1 bg-[#0D1117] border border-[#1E2638] p-0.5 rounded-lg text-xs">
               {(["ALL", "CRITICAL", "HIGH", "MEDIUM"] as const).map((sev) => (
                 <button
                   key={`sev_tab_${sev}`}
@@ -477,7 +477,7 @@ export default function SecurityPostureDashboard() {
                   className={cn(
                     "px-2.5 py-0.5 rounded text-[10px] font-mono font-medium transition-colors",
                     severityFilter === sev
-                      ? "bg-[#111827] text-[#F3F4F6] border border-[#263B55]"
+                      ? "bg-[#141A24] text-[#F3F4F6] border border-[#28354A]"
                       : "text-[#94A3B8] hover:text-[#F3F4F6]"
                   )}
                 >
@@ -490,12 +490,12 @@ export default function SecurityPostureDashboard() {
           {/* Attention Findings List */}
           <div className="space-y-2">
             {isFindingsLoading ? (
-              <div className="p-8 text-center rounded-lg bg-[#0D121C] border border-[#1D2939] text-xs text-[#94A3B8] space-y-2 font-mono">
-                <RefreshCw className="w-4 h-4 animate-spin mx-auto text-[#3B82F6]" />
+              <div className="p-8 text-center rounded-lg bg-[#0D1117] border border-[#1E2638] text-xs text-[#94A3B8] space-y-2 font-mono">
+                <RefreshCw className="w-4 h-4 animate-spin mx-auto text-[#94A3B8]" />
                 <div>Loading compliance posture findings...</div>
               </div>
             ) : isFindingsError ? (
-              <div className="p-8 text-center rounded-lg bg-[#0D121C] border border-[#EF4444]/30 text-xs text-[#EF4444] space-y-2 font-mono">
+              <div className="p-8 text-center rounded-lg bg-[#0D1117] border border-[#EF4444]/30 text-xs text-[#EF4444] space-y-2 font-mono">
                 <AlertCircle className="w-5 h-5 mx-auto text-[#EF4444]" />
                 <div className="text-sm font-semibold text-[#F3F4F6]">FAILED CONTROLS UNAVAILABLE</div>
                 <p className="text-[#94A3B8] max-w-sm mx-auto text-[11px] font-sans">
@@ -503,7 +503,7 @@ export default function SecurityPostureDashboard() {
                 </p>
               </div>
             ) : filteredGroups.length === 0 ? (
-              <div className="p-8 text-center rounded-lg bg-[#0D121C] border border-[#1D2939] text-xs text-[#94A3B8] space-y-1.5">
+              <div className="p-8 text-center rounded-lg bg-[#0D1117] border border-[#1E2638] text-xs text-[#94A3B8] space-y-1.5">
                 <CheckCircle2 className="w-5 h-5 mx-auto text-[#10B981]" />
                 <div className="text-sm font-medium text-[#F3F4F6] font-mono">
                   {stats?.total_configurations === 0
@@ -519,10 +519,10 @@ export default function SecurityPostureDashboard() {
                   <div className="pt-2">
                     <Link
                       href="/configurations?mode=ingest"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-mono font-medium transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#141A24] hover:bg-[#1A2230] text-[#F3F4F6] border border-[#1E2638] hover:border-[#28354A] text-xs font-mono font-medium transition-colors"
                     >
                       <span>Upload Configuration</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8]" />
                     </Link>
                   </div>
                 )}
@@ -535,7 +535,7 @@ export default function SecurityPostureDashboard() {
                 return (
                   <div
                     key={`ctrl_grp_${group.group_key}_${groupIdx}`}
-                    className="rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors overflow-hidden"
+                    className="rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors overflow-hidden"
                   >
                     {/* Control Card Header */}
                     <div className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -548,7 +548,7 @@ export default function SecurityPostureDashboard() {
                                 ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25"
                                 : group.severity === "HIGH"
                                 ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25"
-                                : "bg-[#3B82F6]/10 text-[#93C5FD] border-[#3B82F6]/25"
+                                : "bg-[#141A24] text-[#93C5FD] border-[#28354A]"
                             )}
                           >
                             {group.severity}
@@ -576,10 +576,10 @@ export default function SecurityPostureDashboard() {
                       <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0">
                         <button
                           onClick={() => setExpandedGroupKey(isExpanded ? null : group.group_key)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-[11px] font-mono text-[#94A3B8] hover:text-[#F3F4F6] transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#111620] hover:bg-[#161D2A] border border-[#1E2638] text-[11px] font-mono text-[#94A3B8] hover:text-[#F3F4F6] transition-colors"
                         >
                           <span>{isExpanded ? "COLLAPSE" : "ASSETS"}</span>
-                          <span className="text-[#3B82F6]">({distinctAssetsCount})</span>
+                          <span className="text-[#93C5FD]">({distinctAssetsCount})</span>
                           {isExpanded ? (
                             <ChevronDown className="w-3 h-3" />
                           ) : (
@@ -588,7 +588,7 @@ export default function SecurityPostureDashboard() {
                         </button>
                         <Link
                           href={`/remediation?control=${group.control_id}`}
-                          className="px-2.5 py-1 rounded-md bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] hover:border-[#3B82F6]/40 text-[11px] font-mono text-[#3B82F6] font-semibold transition-colors"
+                          className="px-2.5 py-1 rounded-md bg-[#111620] hover:bg-[#161D2A] border border-[#1E2638] hover:border-[#28354A] text-[11px] font-mono text-[#93C5FD] font-semibold transition-colors"
                         >
                           PLAN FIX
                         </Link>
@@ -597,7 +597,7 @@ export default function SecurityPostureDashboard() {
 
                     {/* Expandable Affected Assets Sub-rows */}
                     {isExpanded && (
-                      <div className="border-t border-[#1D2939] bg-[#080B12] divide-y divide-[#1D2939]">
+                      <div className="border-t border-[#1E2638] bg-[#090B0F] divide-y divide-[#1E2638]">
                         {group.affected_assets.map((asset, idx) => (
                           <div
                             key={`${group.group_key}_${asset.finding_id}_${idx}`}
@@ -609,7 +609,7 @@ export default function SecurityPostureDashboard() {
                                 <span className="font-mono text-xs font-semibold text-[#F3F4F6]">
                                   {asset.device_name}
                                 </span>
-                                <span className="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded bg-[#0D121C] text-[#94A3B8] border border-[#1D2939]">
+                                <span className="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded bg-[#0D1117] text-[#94A3B8] border border-[#1E2638]">
                                   {asset.vendor}
                                 </span>
                               </div>
@@ -637,13 +637,13 @@ export default function SecurityPostureDashboard() {
                                     remediation: group.remediation,
                                   })
                                 }
-                                className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#111827] border border-[#1D2939] text-[#94A3B8] hover:text-[#F3F4F6] transition-colors"
+                                className="px-2.5 py-1 rounded bg-[#0D1117] hover:bg-[#141A24] border border-[#1E2638] text-[#94A3B8] hover:text-[#F3F4F6] transition-colors"
                               >
                                 EVIDENCE
                               </button>
                               <Link
                                 href={`/remediation?finding=${asset.finding_id}`}
-                                className="px-2.5 py-1 rounded bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20 border border-[#3B82F6]/30 text-[#3B82F6] font-semibold transition-colors"
+                                className="px-2.5 py-1 rounded bg-[#141A24] hover:bg-[#1A2230] border border-[#1E2638] hover:border-[#28354A] text-[#93C5FD] font-semibold transition-colors"
                               >
                                 REMEDIATE
                               </Link>
@@ -661,7 +661,7 @@ export default function SecurityPostureDashboard() {
 
         {/* Right Column: Real Activity Stream */}
         <div className="lg:col-span-4 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+          <div className="flex items-center justify-between border-b border-[#1E2638] pb-2">
             <h2 className="text-xs font-mono font-semibold text-[#F3F4F6] uppercase tracking-wider">
               SYSTEM AUDIT TIMELINE
             </h2>
@@ -670,10 +670,10 @@ export default function SecurityPostureDashboard() {
             </span>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-[#0D121C] border border-[#1D2939] space-y-2.5 text-xs">
+          <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] space-y-2.5 text-xs">
             {isActivityLoading ? (
               <div className="py-6 text-center text-[#94A3B8] text-xs font-mono">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin mx-auto mb-1 text-[#3B82F6]" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin mx-auto mb-1 text-[#94A3B8]" />
                 <span>Loading activity stream...</span>
               </div>
             ) : isActivityError ? (
@@ -690,7 +690,7 @@ export default function SecurityPostureDashboard() {
               </div>
             ) : (
               activityLogs.map((event, idx) => (
-                <div key={`${event.id}_${idx}`} className="flex items-start gap-2.5 pb-2.5 border-b border-[#1D2939] last:border-0 last:pb-0">
+                <div key={`${event.id}_${idx}`} className="flex items-start gap-2.5 pb-2.5 border-b border-[#1E2638] last:border-0 last:pb-0">
                   <div
                     className={cn(
                       "w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-mono border",
@@ -700,7 +700,7 @@ export default function SecurityPostureDashboard() {
                         ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20"
                         : event.severity === "HIGH" || (event.severity as string) === "CRITICAL"
                         ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20"
-                        : "bg-[#111827] text-[#94A3B8] border-[#1D2939]"
+                        : "bg-[#111620] text-[#94A3B8] border-[#1E2638]"
                     )}
                   >
                     {event.type.includes("AUDIT") ? (
@@ -723,7 +723,7 @@ export default function SecurityPostureDashboard() {
                     <div className="text-[#64748B] text-[9px] font-mono flex items-center justify-between pt-0.5">
                       <span>{formatTimestamp(event.timestamp)}</span>
                       {event.target_url && (
-                        <Link href={event.target_url} className="text-[#3B82F6] hover:underline flex items-center gap-0.5">
+                        <Link href={event.target_url} className="text-[#93C5FD] hover:underline flex items-center gap-0.5">
                           <span>View</span>
                           <ChevronRight className="w-2.5 h-2.5" />
                         </Link>
@@ -734,10 +734,10 @@ export default function SecurityPostureDashboard() {
               ))
             )}
 
-            <div className="pt-2 border-t border-[#1D2939]">
+            <div className="pt-2 border-t border-[#1E2638]">
               <Link
                 href="/agent"
-                className="w-full py-1.5 rounded-md bg-[#111827] hover:bg-[#151E2D] text-[#94A3B8] hover:text-[#F3F4F6] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-colors border border-[#1D2939]"
+                className="w-full py-1.5 rounded-md bg-[#111620] hover:bg-[#161D2A] text-[#94A3B8] hover:text-[#F3F4F6] text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-colors border border-[#1E2638]"
               >
                 <span>LAUNCH AUTONOMOUS ENGINEER</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -750,8 +750,8 @@ export default function SecurityPostureDashboard() {
       {/* Modal 1: Inspect Finding Evidence (Deterministic Traceability) */}
       {inspectedFinding && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-xl rounded-xl bg-[#0D121C] border border-[#1D2939] p-5 space-y-3.5 shadow-2xl font-mono">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#1D2939]">
+          <div className="w-full max-w-xl rounded-xl bg-[#0D1117] border border-[#1E2638] p-5 space-y-3.5 shadow-2xl font-mono">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#1E2638]">
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
@@ -770,7 +770,7 @@ export default function SecurityPostureDashboard() {
               </div>
               <button
                 onClick={() => setInspectedFinding(null)}
-                className="text-[#64748B] hover:text-[#F3F4F6] text-xs p-1 rounded bg-[#080B12]"
+                className="text-[#64748B] hover:text-[#F3F4F6] text-xs p-1 rounded bg-[#090B0F]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -782,7 +782,7 @@ export default function SecurityPostureDashboard() {
                 <div className="text-[#F3F4F6] font-semibold mt-0.5 text-xs">{inspectedFinding.title}</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 p-2 rounded bg-[#080B12] border border-[#1D2939]">
+              <div className="grid grid-cols-2 gap-2 p-2 rounded bg-[#090B0F] border border-[#1E2638]">
                 <div>
                   <div className="text-[#64748B] text-[9px] uppercase font-mono">Target Asset</div>
                   <div className="text-[#F3F4F6] font-mono text-xs mt-0.5">{inspectedFinding.asset.device_name}</div>
@@ -798,39 +798,39 @@ export default function SecurityPostureDashboard() {
                 <div className="text-[#64748B] text-[10px] font-mono uppercase flex items-center justify-between">
                   <span>Observed Configuration Evidence</span>
                   {inspectedFinding.asset.source_lines && inspectedFinding.asset.source_lines.length > 0 && (
-                    <span className="text-[#3B82F6]">
+                    <span className="text-[#93C5FD]">
                       Line {inspectedFinding.asset.source_lines.join(", ")}
                     </span>
                   )}
                 </div>
-                <pre className="mt-1 p-2.5 rounded bg-[#080B12] border border-[#1D2939] font-mono text-[11px] text-[#EF4444] overflow-x-auto whitespace-pre-wrap">
+                <pre className="mt-1 p-2.5 rounded bg-[#090B0F] border border-[#1E2638] font-mono text-[11px] text-[#EF4444] overflow-x-auto whitespace-pre-wrap">
                   {inspectedFinding.asset.evidence || "Non-compliant parameter value observed in device configuration baseline."}
                 </pre>
               </div>
 
               {/* Expected Value & Remediation */}
               <div className="grid grid-cols-2 gap-2 font-mono">
-                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939]">
+                <div className="p-2 rounded bg-[#090B0F] border border-[#1E2638]">
                   <div className="text-[#64748B] text-[9px] uppercase">Observed Fact</div>
                   <div className="text-[#EF4444] text-[11px] mt-0.5 truncate">{inspectedFinding.asset.actual_value || "FAIL (Non-compliant)"}</div>
                 </div>
-                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939]">
+                <div className="p-2 rounded bg-[#090B0F] border border-[#1E2638]">
                   <div className="text-[#64748B] text-[9px] uppercase">Expected Requirement</div>
                   <div className="text-[#10B981] text-[11px] mt-0.5 truncate">{inspectedFinding.expected_value || "Enforced in accordance with baseline"}</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-[#1D2939] font-mono">
+            <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-[#1E2638] font-mono">
               <button
                 onClick={() => setInspectedFinding(null)}
-                className="px-3 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#94A3B8] text-xs font-medium"
+                className="px-3 py-1 rounded bg-[#090B0F] hover:bg-[#141A24] border border-[#1E2638] text-[#94A3B8] text-xs font-medium"
               >
                 CLOSE
               </button>
               <Link
                 href={`/remediation?finding=${inspectedFinding.asset.finding_id}`}
-                className="px-3 py-1 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold transition-colors flex items-center gap-1"
+                className="px-3 py-1 rounded bg-[#141A24] hover:bg-[#1A2230] border border-[#1E2638] hover:border-[#28354A] text-[#93C5FD] text-xs font-semibold transition-colors flex items-center gap-1"
               >
                 <span>REMEDIATE</span>
                 <ChevronRight className="w-3 h-3" />
@@ -843,15 +843,15 @@ export default function SecurityPostureDashboard() {
       {/* Modal 2: Explainable Risk Score Calculation */}
       {showRiskExplanation && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-xl bg-[#0D121C] border border-[#1D2939] p-5 space-y-3.5 shadow-2xl font-mono">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#1D2939]">
+          <div className="w-full max-w-lg rounded-xl bg-[#0D1117] border border-[#1E2638] p-5 space-y-3.5 shadow-2xl font-mono">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#1E2638]">
               <div className="flex items-center gap-2">
                 <Flame className="w-4 h-4 text-[#F59E0B]" />
                 <h3 className="font-semibold text-xs text-[#F3F4F6] uppercase">DETERMINISTIC RISK SCORE CALCULATION</h3>
               </div>
               <button
                 onClick={() => setShowRiskExplanation(false)}
-                className="text-[#64748B] hover:text-[#F3F4F6] text-xs p-1 rounded bg-[#080B12]"
+                className="text-[#64748B] hover:text-[#F3F4F6] text-xs p-1 rounded bg-[#090B0F]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -862,12 +862,12 @@ export default function SecurityPostureDashboard() {
                 NetVigil calculates risk deterministically using attack-surface weighting and severity multipliers across active configurations:
               </p>
 
-              <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939] space-y-1.5 font-mono text-[10px]">
+              <div className="p-2.5 rounded bg-[#090B0F] border border-[#1E2638] space-y-1.5 font-mono text-[10px]">
                 <div className="text-[#F3F4F6] font-bold">Deterministic Formula:</div>
                 <div className="text-[#94A3B8]">
                   Risk Score = (0.70 × Severity Base) + 1.5 × (Exposure Mod + Impact Mod) + Correlation Bonus
                 </div>
-                <div className="text-[#64748B] text-[9px] pt-1 border-t border-[#1D2939]">
+                <div className="text-[#64748B] text-[9px] pt-1 border-t border-[#1E2638]">
                   Base: Critical (90) • High (75) • Medium (50) • Low (25) | Exposure: Mgmt Plane (+6), Internet (+10)
                 </div>
               </div>
@@ -875,19 +875,19 @@ export default function SecurityPostureDashboard() {
               <div className="space-y-1 font-mono">
                 <div className="text-[#64748B] text-[10px] uppercase">Current Evaluation Baseline</div>
                 <div className="grid grid-cols-4 gap-1.5 text-center">
-                  <div className="p-2 rounded bg-[#111827] border border-[#EF4444]/20">
+                  <div className="p-2 rounded bg-[#111620] border border-[#EF4444]/20">
                     <div className="text-[9px] text-[#EF4444] uppercase">Critical (P0)</div>
                     <div className="font-mono text-xs font-bold text-[#EF4444] mt-0.5">{stats?.severity_breakdown?.critical || 0}</div>
                   </div>
-                  <div className="p-2 rounded bg-[#111827] border border-[#F59E0B]/20">
+                  <div className="p-2 rounded bg-[#111620] border border-[#F59E0B]/20">
                     <div className="text-[9px] text-[#F59E0B] uppercase">High (P1)</div>
                     <div className="font-mono text-xs font-bold text-[#F59E0B] mt-0.5">{stats?.severity_breakdown?.high || 0}</div>
                   </div>
-                  <div className="p-2 rounded bg-[#111827] border border-[#3B82F6]/20">
+                  <div className="p-2 rounded bg-[#111620] border border-[#28354A]">
                     <div className="text-[9px] text-[#93C5FD] uppercase">Medium (P2)</div>
                     <div className="font-mono text-xs font-bold text-[#93C5FD] mt-0.5">{stats?.severity_breakdown?.medium || 0}</div>
                   </div>
-                  <div className="p-2 rounded bg-[#111827] border border-[#1D2939]">
+                  <div className="p-2 rounded bg-[#111620] border border-[#1E2638]">
                     <div className="text-[9px] text-[#94A3B8] uppercase">Low (P3)</div>
                     <div className="font-mono text-xs font-bold text-[#94A3B8] mt-0.5">{stats?.severity_breakdown?.low || 0}</div>
                   </div>
@@ -895,10 +895,10 @@ export default function SecurityPostureDashboard() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2.5 border-t border-[#1D2939] font-mono">
+            <div className="flex justify-end pt-2.5 border-t border-[#1E2638] font-mono">
               <button
                 onClick={() => setShowRiskExplanation(false)}
-                className="px-3 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-xs text-[#F3F4F6] font-medium"
+                className="px-3 py-1 rounded bg-[#090B0F] hover:bg-[#141A24] border border-[#1E2638] text-xs text-[#F3F4F6] font-medium"
               >
                 DONE
               </button>

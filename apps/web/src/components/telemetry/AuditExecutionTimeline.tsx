@@ -17,7 +17,7 @@ export default function AuditExecutionTimeline({
 }: AuditExecutionTimelineProps) {
   if (isLoading) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center font-mono text-xs text-[#A7B0C0] space-y-2">
+      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
         <div className="animate-pulse flex items-center justify-center gap-2">
           <div className="w-2 h-2 rounded-full bg-[#3B82F6] animate-ping" />
           <span>LOADING AUDIT TIMELINE...</span>
@@ -28,10 +28,10 @@ export default function AuditExecutionTimeline({
 
   if (!trends || trends.length === 0) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center font-mono text-xs text-[#A7B0C0] space-y-2">
-        <Info className="w-6 h-6 text-[#667085] mx-auto" />
+      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
+        <Info className="w-6 h-6 text-[#64748B] mx-auto" />
         <div className="text-sm font-bold text-[#F3F4F6]">No audit executions recorded</div>
-        <p className="text-[11px] text-[#667085] max-w-sm mx-auto font-sans">
+        <p className="text-[11px] text-[#64748B] max-w-sm mx-auto font-sans">
           Audit sessions will be chronologically logged here as configurations are evaluated against compliance baselines.
         </p>
       </div>
@@ -42,28 +42,28 @@ export default function AuditExecutionTimeline({
   const timelineEvents = [...trends].reverse();
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors space-y-4 font-mono">
+    <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors space-y-4 font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#1D2939] pb-3.5">
+      <div className="flex items-center justify-between border-b border-[#1E2638] pb-3.5">
         <div>
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#3B82F6]" />
+            <Clock className="w-4 h-4 text-[#94A3B8]" />
             <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
               REAL-TIME AUDIT EXECUTION TIMELINE
             </span>
           </div>
-          <p className="text-[11px] text-[#A7B0C0] font-sans mt-0.5">
+          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
             Chronological audit execution record with line-level deterministic proof verification.
           </p>
         </div>
 
-        <span className="text-[10px] text-[#667085]">
+        <span className="text-[10px] text-[#64748B]">
           {trends.length} total run(s)
         </span>
       </div>
 
       {/* Timeline List */}
-      <div className="relative pl-6 space-y-4 border-l border-[#1D2939] ml-2">
+      <div className="relative pl-6 space-y-3.5 border-l border-[#1E2638] ml-2">
         {timelineEvents.map((evt, idx) => {
           const dateStr = new Date(evt.timestamp).toLocaleString("en-US", {
             year: "numeric",
@@ -82,7 +82,7 @@ export default function AuditExecutionTimeline({
               {/* Timeline Dot */}
               <span
                 className={cn(
-                  "absolute -left-[31px] top-1.5 w-3 h-3 rounded-full border-2 border-[#0D121C]",
+                  "absolute -left-[31px] top-1.5 w-3 h-3 rounded-full border-2 border-[#0D1117]",
                   isHardened
                     ? "bg-[#10B981]"
                     : isWarning
@@ -94,22 +94,22 @@ export default function AuditExecutionTimeline({
               {/* Event Card */}
               <Link
                 href={`/audits?audit_id=${evt.audit_id}`}
-                className="block p-3.5 rounded-xl bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] hover:border-[#263B55] transition-all space-y-2"
+                className="block p-3 rounded-lg bg-[#090B0F] hover:bg-[#141A24] border border-[#1E2638] hover:border-[#28354A] transition-all space-y-2"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[#F3F4F6] text-xs group-hover:text-white">
                       Audit #{evt.audit_id.slice(0, 8)} — {evt.device_name}
                     </span>
-                    <span className="px-2 py-0.5 rounded bg-[#111827] text-[#22D3EE] border border-[#22D3EE]/25 font-bold text-[10px] uppercase">
+                    <span className="px-2 py-0.5 rounded bg-[#111620] text-[#38BDF8] border border-[#38BDF8]/25 font-bold text-[10px] uppercase">
                       {evt.vendor}
                     </span>
                   </div>
 
-                  <span className="text-[10px] text-[#667085]">{dateStr}</span>
+                  <span className="text-[10px] text-[#64748B]">{dateStr}</span>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1 border-t border-[#1D2939]/60">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1 border-t border-[#1E2638]/60">
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1 text-[#F3F4F6]">
                       <strong
@@ -126,7 +126,7 @@ export default function AuditExecutionTimeline({
                       Compliance
                     </span>
 
-                    <span className="text-[#A7B0C0]">
+                    <span className="text-[#94A3B8]">
                       <strong className="text-white">{evt.open_findings}</strong> Open Violations
                     </span>
 
@@ -137,7 +137,7 @@ export default function AuditExecutionTimeline({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1 text-[11px] text-[#3B82F6] font-semibold">
+                  <div className="flex items-center gap-1 text-[11px] text-[#93C5FD] font-semibold">
                     <span>Inspect Results</span>
                     <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </div>
