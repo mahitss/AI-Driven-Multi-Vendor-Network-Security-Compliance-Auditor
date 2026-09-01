@@ -375,23 +375,17 @@ export default function SecurityTrendLineChart({
 
   return (
     <div className="p-4 sm:p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-all space-y-4 font-mono select-none">
-      {/* 1. Header Row & Live Badge */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1D2939] pb-3.5">
+      {/* 1. Header Row */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1D2939] pb-3">
         <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="flex items-center gap-1.5 text-[#3B82F6]">
-              <Layers className="w-4 h-4 text-[#3B82F6]" />
-              <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
-                TIME-SERIES SECURITY STREAMGRAPH
-              </span>
-            </div>
-            <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] tactical-pulse-green" />
-              <span>LIVE TELEMETRY</span>
+          <div className="flex items-center gap-2">
+            <Layers className="w-3.5 h-3.5 text-[#94A3B8]" />
+            <span className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+              TIME-SERIES SECURITY STREAMGRAPH
             </span>
           </div>
-          <p className="text-[11px] text-[#A7B0C0] font-sans mt-1">
-            Layered area progression across <strong className="text-[#F3F4F6]">{trends.length}</strong> execution points • Exact database timestamps.
+          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+            Layered area progression across <span className="text-[#F3F4F6] font-mono">{trends.length}</span> execution point(s) from database.
           </p>
         </div>
 

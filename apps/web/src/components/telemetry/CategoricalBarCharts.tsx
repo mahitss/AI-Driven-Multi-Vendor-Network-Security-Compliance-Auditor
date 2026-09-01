@@ -32,16 +32,16 @@ export default function CategoricalBarCharts({
   return (
     <div className="p-4 sm:p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors space-y-4 font-mono">
       {/* Header & Category Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1D2939] pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1D2939] pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-[#3B82F6]" />
-            <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
+            <BarChart3 className="w-3.5 h-3.5 text-[#94A3B8]" />
+            <span className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
               CATEGORICAL SECURITY COMPARISONS
             </span>
           </div>
-          <p className="text-[11px] text-[#A7B0C0] font-sans mt-0.5">
-            Real aggregated finding distribution across severities, governance frameworks, vendor dialects, and fleet assets.
+          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+            Aggregated finding distribution across severities, governance frameworks, vendor dialects, and fleet assets.
           </p>
         </div>
 

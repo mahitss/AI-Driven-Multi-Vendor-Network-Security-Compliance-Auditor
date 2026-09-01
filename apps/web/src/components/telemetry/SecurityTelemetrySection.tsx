@@ -43,10 +43,10 @@ export default function SecurityTelemetrySection() {
 
   if (isLoading && !telemetry) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center font-mono space-y-2">
-        <RefreshCw className="w-5 h-5 animate-spin text-[#3B82F6] mx-auto" />
-        <div className="text-xs font-semibold text-[#F3F4F6]">INITIALIZING SECURITY TELEMETRY PIPELINE...</div>
-        <p className="text-[11px] text-[#667085] font-sans">
+      <div className="p-8 rounded-lg bg-[#0D121C] border border-[#1D2939] text-center font-mono space-y-2">
+        <RefreshCw className="w-5 h-5 animate-spin text-[#94A3B8] mx-auto" />
+        <div className="text-xs font-semibold text-[#F3F4F6]">INITIALIZING SECURITY TELEMETRY...</div>
+        <p className="text-[11px] text-[#64748B] font-sans">
           Evaluating deterministic compliance benchmarks, heat maps, and fleet topology graph.
         </p>
       </div>
@@ -55,16 +55,16 @@ export default function SecurityTelemetrySection() {
 
   if (isError) {
     return (
-      <div className="p-6 rounded-xl bg-[#0D121C] border border-[#EF4444]/30 text-center font-mono space-y-3">
+      <div className="p-6 rounded-lg bg-[#0D121C] border border-[#EF4444]/30 text-center font-mono space-y-3">
         <AlertCircle className="w-6 h-6 text-[#EF4444] mx-auto" />
         <div className="text-xs font-bold text-[#F3F4F6]">TELEMETRY UNAVAILABLE</div>
-        <p className="text-[11px] text-[#A7B0C0] font-sans max-w-lg mx-auto">
+        <p className="text-[11px] text-[#94A3B8] font-sans max-w-lg mx-auto">
           {error instanceof Error ? error.message : "Unable to retrieve real-time security telemetry from the backend pipeline."}
         </p>
         <button
           onClick={() => refetch()}
           disabled={isRefetching}
-          className="px-3.5 py-1.5 rounded-md bg-[#EF4444]/20 hover:bg-[#EF4444]/30 text-[#EF4444] border border-[#EF4444]/40 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 rounded bg-[#EF4444]/10 hover:bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 font-mono"
         >
           <RefreshCw className={cn("w-3.5 h-3.5", isRefetching && "animate-spin")} />
           <span>{isRefetching ? "Connecting..." : "Retry Telemetry Sync"}</span>
@@ -74,68 +74,65 @@ export default function SecurityTelemetrySection() {
   }
 
   return (
-    <div className="space-y-4 font-mono">
+    <div className="space-y-3 font-mono">
       {/* Visual Analytics Navigation Subheader */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1D2939] pb-3 bg-[#080B12]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1D2939] pb-2.5 bg-[#080B12]">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-[#3B82F6]" />
-          <h2 className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
-            VISUAL SECURITY TELEMETRY & ANALYTICS
+          <Activity className="w-4 h-4 text-[#94A3B8]" />
+          <h2 className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+            VISUAL SECURITY TELEMETRY
           </h2>
-          <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#3B82F6]/10 text-[#3B82F6] font-bold border border-[#3B82F6]/25">
-            LIVE TELEMETRY
-          </span>
         </div>
 
         {/* View Mode Tabs */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex items-center gap-1 bg-[#0D121C] p-1 rounded-lg border border-[#1D2939]">
+          <div className="flex items-center gap-1 bg-[#0D121C] p-0.5 rounded-lg border border-[#1D2939]">
             <button
               onClick={() => setActiveTab("analytics")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded text-[11px] font-semibold transition-all",
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "analytics"
-                  ? "bg-[#111827] text-white border border-[#263B55] shadow-sm"
-                  : "text-[#A7B0C0] hover:text-white"
+                  ? "bg-[#111827] text-white border border-[#263B55]"
+                  : "text-[#94A3B8] hover:text-white"
               )}
             >
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Trends & Distributions</span>
+              <span>Trends &amp; Distributions</span>
             </button>
 
             <button
               onClick={() => setActiveTab("heatmap")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded text-[11px] font-semibold transition-all",
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "heatmap"
-                  ? "bg-[#111827] text-white border border-[#263B55] shadow-sm"
-                  : "text-[#A7B0C0] hover:text-white"
+                  ? "bg-[#111827] text-white border border-[#263B55]"
+                  : "text-[#94A3B8] hover:text-white"
               )}
             >
               <Grid className="w-3.5 h-3.5" />
-              <span>Security Heat Map</span>
+              <span>Heat Map</span>
             </button>
 
             <button
               onClick={() => setActiveTab("topology")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded text-[11px] font-semibold transition-all",
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "topology"
-                  ? "bg-[#111827] text-white border border-[#263B55] shadow-sm"
-                  : "text-[#A7B0C0] hover:text-white"
+                  ? "bg-[#111827] text-white border border-[#263B55]"
+                  : "text-[#94A3B8] hover:text-white"
               )}
             >
               <Network className="w-3.5 h-3.5" />
-              <span>Fleet Topology</span>
+              <span>Topology</span>
             </button>
 
             <button
               onClick={() => setActiveTab("timeline")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded text-[11px] font-semibold transition-all",
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "timeline"
-                  ? "bg-[#111827] text-white border border-[#263B55] shadow-sm"
-                  : "text-[#A7B0C0] hover:text-white"
+                  ? "bg-[#111827] text-white border border-[#263B55]"
+                  : "text-[#94A3B8] hover:text-white"
               )}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -146,17 +143,17 @@ export default function SecurityTelemetrySection() {
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="p-1.5 rounded-lg bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-[#0D121C] hover:bg-[#111827] border border-[#1D2939] text-[#94A3B8] hover:text-white transition-colors"
             title="Refresh Telemetry Data"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5 text-[#3B82F6]", isRefetching && "animate-spin")} />
+            <RefreshCw className={cn("w-3.5 h-3.5 text-[#94A3B8]", isRefetching && "animate-spin")} />
           </button>
         </div>
       </div>
 
       {/* TAB 1: TRENDS & DISTRIBUTIONS */}
       {activeTab === "analytics" && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Time-Series Line Chart */}
           <SecurityTrendLineChart
             trends={telemetry?.audit_trends || []}
@@ -165,7 +162,7 @@ export default function SecurityTelemetrySection() {
           />
 
           {/* Dual Column: Categorical Bar Charts (8 Cols) + Remediation Lifecycle (4 Cols) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
             <div className="lg:col-span-8">
               <CategoricalBarCharts
                 severities={telemetry?.findings_by_severity || []}

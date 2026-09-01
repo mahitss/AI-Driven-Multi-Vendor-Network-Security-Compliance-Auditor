@@ -36,10 +36,10 @@ export default function RemediationStatusDonut({
   if (total === 0 && applied === 0) {
     return (
       <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center font-mono text-xs text-[#A7B0C0] space-y-2">
-        <Info className="w-6 h-6 text-[#667085] mx-auto" />
-        <div className="text-sm font-bold text-[#F3F4F6]">No remediation activity recorded</div>
-        <p className="text-[11px] text-[#667085] max-w-xs mx-auto font-sans">
-          Remediation proposals and autonomous agent patch workflows will be tracked here once generated.
+        <Info className="w-5 h-5 text-[#64748B] mx-auto" />
+        <div className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">NO REMEDIATION ACTIVITY</div>
+        <p className="text-[11px] text-[#64748B] max-w-xs mx-auto font-sans">
+          No remediation workflows have been generated.
         </p>
       </div>
     );
@@ -57,16 +57,16 @@ export default function RemediationStatusDonut({
   return (
     <div className="p-4 sm:p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors space-y-4 font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#1D2939] pb-3.5">
+      <div className="flex items-center justify-between border-b border-[#1D2939] pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <Wrench className="w-4 h-4 text-[#3B82F6]" />
-            <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
-              REMEDIATION & PATCH LIFECYCLE
+            <Wrench className="w-3.5 h-3.5 text-[#94A3B8]" />
+            <span className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+              REMEDIATION &amp; PATCH LIFECYCLE
             </span>
           </div>
-          <p className="text-[11px] text-[#A7B0C0] font-sans mt-0.5">
-            Allowlisted CLI hardening proposals and human-in-the-loop agent verification status.
+          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+            Allowlisted CLI hardening proposals and verification status.
           </p>
         </div>
 
