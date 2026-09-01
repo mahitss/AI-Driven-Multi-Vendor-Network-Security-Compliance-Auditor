@@ -376,7 +376,7 @@ function SignupContent() {
 
           {/* Signin Switcher */}
           <div className="text-center text-xs font-mono text-[#A7B0C0] pt-1">
-            Already have an account?{" "}
+            Already have an operator account?{" "}
             <Link
               href={`/login${rawRedirect ? `?redirectTo=${encodeURIComponent(rawRedirect)}` : ""}`}
               className="text-[#3B82F6] hover:text-[#60A5FA] font-semibold hover:underline"

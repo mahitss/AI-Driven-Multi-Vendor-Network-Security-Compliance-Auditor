@@ -2,12 +2,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Shield, Activity, Compass, User, LogOut, Settings, ChevronDown, Upload } from "lucide-react";
+import { Shield, Activity, Compass, User, LogOut, Settings, ChevronDown, Menu, X } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function LandingNavbar() {
   const { user, loading: authLoading, logout } = useAuth();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function LandingNavbar() {
           </div>
         </Link>
 
-        {/* Navigation Anchors */}
+        {/* Desktop Navigation Anchors */}
         <nav className="hidden md:flex items-center gap-6 text-[#A7B0C0]">
           <Link href="#architecture" className="hover:text-[#F3F4F6] transition-colors duration-150">
             Architecture
@@ -56,11 +57,11 @@ export default function LandingNavbar() {
           </Link>
         </nav>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Action Controls (Desktop) */}
+        <div className="hidden sm:flex items-center gap-2.5">
           <Link
             href="/demo/multi-vendor"
-            className="hidden lg:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-[#F3F4F6] transition-all duration-150"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-[#F3F4F6] transition-all duration-150"
           >
             <Compass className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>Explore Platform</span>
@@ -68,16 +69,6 @@ export default function LandingNavbar() {
 
           {!authLoading && user ? (
             <>
-              {/* Ingest Config Direct Link */}
-              <Link
-                href="/configurations?mode=ingest"
-                id="landing-ingest-cta"
-                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#3B82F6] text-[#F3F4F6] font-semibold text-xs transition-colors"
-              >
-                <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
-                <span className="hidden sm:inline">INGEST</span>
-              </Link>
-
               {/* Primary Console CTA for Authenticated User */}
               <Link
                 href="/console"
@@ -115,14 +106,6 @@ export default function LandingNavbar() {
                       <span>Security Console</span>
                     </Link>
                     <Link
-                      href="/configurations?mode=ingest"
-                      onClick={() => setIsAccountOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-[#A7B0C0] hover:text-[#F3F4F6] hover:bg-[#111827] transition-colors"
-                    >
-                      <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
-                      <span>Ingest Configuration</span>
-                    </Link>
-                    <Link
                       href="/settings"
                       onClick={() => setIsAccountOpen(false)}
                       className="flex items-center gap-2 px-3 py-2 text-[#A7B0C0] hover:text-[#F3F4F6] hover:bg-[#111827] transition-colors"
@@ -149,18 +132,9 @@ export default function LandingNavbar() {
             </>
           ) : (
             <>
-              {/* Ingest Config Link for Unauthenticated User */}
-              <Link
-                href="/login?mode=ingest&redirectTo=/configurations"
-                id="landing-ingest-cta"
-                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#3B82F6] text-[#F3F4F6] font-semibold text-xs transition-colors"
-              >
-                <Upload className="w-3.5 h-3.5 text-[#3B82F6]" />
-                <span className="hidden sm:inline">INGEST</span>
-              </Link>
-
               <Link
                 href="/login"
+                id="landing-signin-btn"
                 className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-[#F3F4F6] transition-all duration-150"
               >
                 <span>Sign In</span>
@@ -171,12 +145,128 @@ export default function LandingNavbar() {
                 className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-md bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
               >
                 <Activity className="w-3.5 h-3.5" />
-                <span>Open Security Console →</span>
+                <span>Open Security Console</span>
               </Link>
             </>
           )}
         </div>
+
+        {/* Mobile Hamburger Toggle */}
+        <div className="flex sm:hidden items-center gap-2">
+          {!authLoading && user ? (
+            <Link
+              href="/console"
+              className="inline-flex items-center gap-1 h-7 px-2.5 rounded bg-[#3B82F6] text-white font-bold text-[11px]"
+            >
+              <Activity className="w-3 h-3" />
+              <span>Console</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex items-center h-7 px-2.5 rounded bg-[#0D121C] border border-[#1D2939] text-[#F3F4F6] font-medium text-[11px]"
+            >
+              Sign In
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Navigation Menu"
+            className="w-8 h-8 rounded-md bg-[#0D121C] border border-[#1D2939] flex items-center justify-center text-[#A7B0C0] hover:text-[#F3F4F6]"
+          >
+            {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Drawer Menu */}
+      {isMobileMenuOpen && (
+        <div className="sm:hidden border-b border-[#1D2939] bg-[#080B12]/95 backdrop-blur-lg px-4 py-3 space-y-2.5 animate-in slide-in-from-top duration-150">
+          <nav className="flex flex-col space-y-2 text-[#A7B0C0] text-xs">
+            <Link
+              href="#architecture"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-2 py-1.5 rounded hover:bg-[#111827] hover:text-[#F3F4F6]"
+            >
+              Architecture
+            </Link>
+            <Link
+              href="#security-intelligence"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-2 py-1.5 rounded hover:bg-[#111827] hover:text-[#F3F4F6]"
+            >
+              Security Intelligence
+            </Link>
+            <Link
+              href="#multi-vendor"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-2 py-1.5 rounded hover:bg-[#111827] hover:text-[#F3F4F6]"
+            >
+              Multi-Vendor
+            </Link>
+            <Link
+              href="#ai-boundary"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-2 py-1.5 rounded hover:bg-[#111827] hover:text-[#F3F4F6]"
+            >
+              AI Boundary
+            </Link>
+            <Link
+              href="/demo/multi-vendor"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[#111827] hover:text-[#F3F4F6]"
+            >
+              <Compass className="w-3.5 h-3.5 text-[#3B82F6]" />
+              <span>Explore Platform</span>
+            </Link>
+          </nav>
+
+          <div className="border-t border-[#1D2939] pt-2.5 flex flex-col gap-2">
+            {!authLoading && user ? (
+              <>
+                <Link
+                  href="/console"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 h-9 rounded-md bg-[#3B82F6] text-white font-bold"
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Open Security Console</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    logout();
+                  }}
+                  className="flex items-center justify-center gap-2 h-8 rounded-md bg-[#0D121C] border border-[#1D2939] text-[#EF4444]"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center h-8 rounded-md bg-[#0D121C] border border-[#1D2939] text-[#F3F4F6]"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/login?redirectTo=/console"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 h-9 rounded-md bg-[#3B82F6] text-white font-bold"
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Open Security Console</span>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
