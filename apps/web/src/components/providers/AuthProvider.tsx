@@ -7,12 +7,26 @@ import type { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { getAppOrigin } from "@/lib/get-app-origin";
 
+import { resolveUsernameToEmail, upsertUserProfile } from "@/lib/api-client";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   logout: () => Promise<void>;
   signInWithGoogle: (redirectTo?: string) => Promise<{ error: Error | null }>;
+  signInWithEmailOrUsername: (
+    identifier: string,
+    password: string,
+    redirectTo?: string
+  ) => Promise<{ error: Error | null }>;
+  signUpWithEmail: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<{ error: Error | null; data?: any }>;
+  resetPasswordForEmail: (email: string) => Promise<{ error: Error | null }>;
+  updatePassword: (password: string) => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -21,6 +35,10 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   logout: async () => {},
   signInWithGoogle: async () => ({ error: null }),
+  signInWithEmailOrUsername: async () => ({ error: null }),
+  signUpWithEmail: async () => ({ error: null }),
+  resetPasswordForEmail: async () => ({ error: null }),
+  updatePassword: async () => ({ error: null }),
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -113,24 +131,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       queryClient.clear();
       if (typeof window !== "undefined") {
-        window.location.replace("/login");
+        window.location.replace("/");
       } else {
-        router.replace("/login");
+        router.replace("/");
       }
     } catch (error) {
       console.error("Logout error:", error);
       queryClient.clear();
       if (typeof window !== "undefined") {
-        window.location.replace("/login");
+        window.location.replace("/");
       } else {
-        router.replace("/login");
+        router.replace("/");
       }
     }
   };
 
   const signInWithGoogle = async (redirectTo?: string) => {
     try {
-      // Direct window.location.origin is authoritative in the browser
       const origin =
         typeof window !== "undefined" && window.location?.origin
           ? window.location.origin.trim().replace(/\/$/, "")
@@ -144,7 +161,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Canonical root redirect URI (matches Supabase Site URL in production and localhost in dev)
       const redirectUri = origin;
 
       const { error } = await supabase.auth.signInWithOAuth({
@@ -158,17 +174,145 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (error) {
-        return { error };
+      return { error: error ? new Error(error.message) : null };
+    } catch (err: any) {
+      return { error: err instanceof Error ? err : new Error(String(err)) };
+    }
+  };
+
+  const signInWithEmailOrUsername = async (
+    identifier: string,
+    password: string,
+    redirectTo?: string
+  ): Promise<{ error: Error | null }> => {
+    try {
+      let targetEmail = identifier.trim();
+
+      // If not an email, resolve username to email via secure backend lookup
+      if (!targetEmail.includes("@")) {
+        const resolved = await resolveUsernameToEmail(targetEmail);
+        if (!resolved.found || !resolved.email) {
+          return { error: new Error("No account found with that username. Please check your username or email.") };
+        }
+        targetEmail = resolved.email;
       }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: targetEmail,
+        password,
+      });
+
+      if (error) {
+        return { error: new Error(error.message) };
+      }
+
+      if (data?.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+        queryClient.invalidateQueries();
+        if (redirectTo) {
+          router.replace(redirectTo);
+        }
+      }
+
       return { error: null };
     } catch (err: any) {
-      return { error: err };
+      return { error: err instanceof Error ? err : new Error(String(err)) };
+    }
+  };
+
+  const signUpWithEmail = async (
+    username: string,
+    email: string,
+    password: string
+  ): Promise<{ error: Error | null; data?: any }> => {
+    try {
+      const cleanUsername = username.trim().toLowerCase();
+      const cleanEmail = email.trim().toLowerCase();
+
+      // Sign up user via Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: {
+            username: cleanUsername,
+            full_name: cleanUsername,
+          },
+        },
+      });
+
+      if (error) {
+        return { error: new Error(error.message) };
+      }
+
+      // Record profile in backend
+      if (data?.user) {
+        try {
+          await upsertUserProfile({
+            username: cleanUsername,
+            email: cleanEmail,
+            full_name: cleanUsername,
+          });
+        } catch {
+          // Profile fallback
+        }
+      }
+
+      if (data?.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+        queryClient.invalidateQueries();
+      }
+
+      return { error: null, data };
+    } catch (err: any) {
+      return { error: err instanceof Error ? err : new Error(String(err)) };
+    }
+  };
+
+  const resetPasswordForEmail = async (email: string): Promise<{ error: Error | null }> => {
+    try {
+      const origin =
+        typeof window !== "undefined" && window.location?.origin
+          ? window.location.origin.trim().replace(/\/$/, "")
+          : getAppOrigin();
+
+      const redirectTo = `${origin}/auth/callback?type=recovery`;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo,
+      });
+
+      return { error: error ? new Error(error.message) : null };
+    } catch (err: any) {
+      return { error: err instanceof Error ? err : new Error(String(err)) };
+    }
+  };
+
+  const updatePassword = async (password: string): Promise<{ error: Error | null }> => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      return { error: error ? new Error(error.message) : null };
+    } catch (err: any) {
+      return { error: err instanceof Error ? err : new Error(String(err)) };
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, logout, signInWithGoogle }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        logout,
+        signInWithGoogle,
+        signInWithEmailOrUsername,
+        signUpWithEmail,
+        resetPasswordForEmail,
+        updatePassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

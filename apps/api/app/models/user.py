@@ -14,3 +14,13 @@ class User(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), default="auditor", nullable=False)
     hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+
+class Profile(Base, TimestampMixin):
+    __tablename__ = "profiles"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)  # Supabase auth.users UUID
+    username: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
+    email: Mapped[Optional[str]] = mapped_column(String(255), index=True, nullable=True)
+    full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    avatar_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)

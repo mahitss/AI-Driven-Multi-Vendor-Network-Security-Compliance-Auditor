@@ -2,7 +2,7 @@
 NetVigil Domain Models Package
 """
 from app.models.base import Base, TimestampMixin, UUIDMixin
-from app.models.user import User
+from app.models.user import User, Profile
 from app.models.device import Device
 from app.models.configuration import Configuration
 from app.models.audit import Audit
@@ -17,6 +17,7 @@ __all__ = [
     "TimestampMixin",
     "UUIDMixin",
     "User",
+    "Profile",
     "Device",
     "Configuration",
     "Audit",

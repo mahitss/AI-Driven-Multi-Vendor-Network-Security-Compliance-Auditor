@@ -13,6 +13,7 @@ from app.api.routes import (
     ai,
     analysis,
     audits,
+    auth,
     configurations,
     devices,
     frameworks,
@@ -37,6 +38,7 @@ from app.core.middleware import (
     SecurityHeadersMiddleware,
 )
 from app.db.session import async_engine
+import app.models
 from app.models.base import Base
 
 
@@ -129,9 +131,10 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 from fastapi import Depends
 from app.core.auth import get_current_user
 
-# Public Health endpoints (root level /health and /api/v1/health) - No auth required
+# Public Health & Auth Helper endpoints
 app.include_router(health.router)
 app.include_router(health.router, prefix=settings.API_PREFIX)
+app.include_router(auth.router, prefix=settings.API_PREFIX)
 
 # API v1 Protected Domain Routes
 app.include_router(analysis.router, prefix=settings.API_PREFIX, dependencies=[Depends(get_current_user)])

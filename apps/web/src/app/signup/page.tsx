@@ -5,14 +5,15 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Shield,
-  Lock,
   User,
+  Mail,
+  Lock,
   AlertTriangle,
   RefreshCw,
   ArrowRight,
   Eye,
   EyeOff,
-  KeyRound,
+  CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -32,27 +33,23 @@ function getSafeRedirectPath(rawPath: string | null | undefined): string {
   return "/dashboard";
 }
 
-function LoginContent() {
-  const { user, loading: authLoading, signInWithGoogle, signInWithEmailOrUsername } = useAuth();
+function SignupContent() {
+  const { user, loading: authLoading, signUpWithEmail, signInWithGoogle } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [identifier, setIdentifier] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const rawRedirect = searchParams.get("redirectTo") || searchParams.get("next");
   const redirectTo = getSafeRedirectPath(rawRedirect);
-  const errorParam = searchParams.get("error");
-
-  useEffect(() => {
-    if (errorParam) {
-      setErrorMessage("Authentication was cancelled or failed. Please check your credentials and try again.");
-    }
-  }, [errorParam]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -64,24 +61,49 @@ function LoginContent() {
     e.preventDefault();
     if (isSubmitting || isGoogleSubmitting) return;
 
-    const cleanIdentifier = identifier.trim();
-    if (!cleanIdentifier) {
-      setErrorMessage("Please enter your username or email address.");
+    const cleanUsername = username.trim().toLowerCase();
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Validation
+    if (!cleanUsername || cleanUsername.length < 3) {
+      setErrorMessage("Username must be at least 3 characters long.");
       return;
     }
-    if (!password) {
-      setErrorMessage("Please enter your account password.");
+    if (!/^[a-zA-Z0-9_-]+$/.test(cleanUsername)) {
+      setErrorMessage("Username may only contain alphanumeric characters, underscores, and dashes.");
+      return;
+    }
+    if (!cleanEmail || !cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters long.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match. Please verify both password fields.");
       return;
     }
 
     setIsSubmitting(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
-    const { error } = await signInWithEmailOrUsername(cleanIdentifier, password, redirectTo);
+    const { error, data } = await signUpWithEmail(cleanUsername, cleanEmail, password);
 
     if (error) {
-      setErrorMessage(error.message || "Failed to sign in. Please verify your credentials.");
+      setErrorMessage(error.message || "Failed to create account. Please try again.");
       setIsSubmitting(false);
+      return;
+    }
+
+    // Check if email confirmation is required by Supabase project settings
+    if (data?.user && !data?.session) {
+      setSuccessMessage("Account created successfully! If confirmation is required, please check your email inbox to verify your account.");
+      setIsSubmitting(false);
+    } else {
+      router.replace(redirectTo);
     }
   };
 
@@ -93,7 +115,7 @@ function LoginContent() {
     try {
       const { error } = await signInWithGoogle(redirectTo);
       if (error) {
-        setErrorMessage(error.message || "Google authentication could not be completed.");
+        setErrorMessage(error.message || "Google registration could not be completed.");
         setIsGoogleSubmitting(false);
       }
     } catch {
@@ -107,7 +129,7 @@ function LoginContent() {
       <div className="min-h-screen bg-[#080B12] text-[#A7B0C0] flex flex-col justify-center items-center px-4 font-mono">
         <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0D121C] border border-[#1D2939] text-xs text-[#3B82F6]">
           <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
-          <span>INITIALIZING SOC SESSION BOUNDARY...</span>
+          <span>VERIFYING SOC SESSION BOUNDARY...</span>
         </div>
       </div>
     );
@@ -125,7 +147,7 @@ function LoginContent() {
       />
 
       <div className="relative w-full max-w-md">
-        {/* Main Identity Gateway Card */}
+        {/* Main Card */}
         <div className="bg-[#0D121C] border border-[#1D2939] rounded-xl p-8 shadow-2xl space-y-6">
           {/* Header & SOC Branding */}
           <div className="text-center space-y-3">
@@ -137,24 +159,42 @@ function LoginContent() {
               <div className="flex items-center justify-center gap-2">
                 <h1 className="font-mono text-xl font-bold tracking-wider text-[#F3F4F6]">NETVIGIL</h1>
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#111827] text-[#3B82F6] font-mono font-semibold border border-[#3B82F6]/20">
-                  MISSION CONTROL
+                  OPERATOR REGISTRATION
                 </span>
               </div>
               <p className="text-xs text-[#A7B0C0] font-sans">
-                Sign in to access Network Security & Compliance Console
+                Create an authorized account to access deterministic compliance auditing
               </p>
-              <div className="text-[10px] text-[#667085] font-mono">
-                NTRO • Problem Statement SIH26155
-              </div>
             </div>
           </div>
+
+          {/* Success Banner */}
+          {successMessage && (
+            <div className="p-3.5 rounded-lg bg-[#10B981]/10 border border-[#10B981]/40 text-xs font-mono space-y-2 animate-in fade-in">
+              <div className="flex items-center gap-2 text-[#10B981] font-semibold text-[11px] uppercase tracking-wider">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>ACCOUNT CREATED</span>
+              </div>
+              <p className="text-[#A7F3D0] text-[11px] leading-relaxed">
+                {successMessage}
+              </p>
+              <div className="pt-1">
+                <Link
+                  href="/login"
+                  className="text-[#10B981] hover:underline font-bold text-xs flex items-center gap-1"
+                >
+                  Proceed to Sign In →
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Error Banner */}
           {errorMessage && (
             <div className="p-3.5 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/40 text-xs font-mono space-y-2 animate-in fade-in">
               <div className="flex items-center gap-2 text-[#EF4444] font-semibold text-[11px] uppercase tracking-wider">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                <span>AUTHENTICATION ERROR</span>
+                <span>REGISTRATION ERROR</span>
               </div>
               <p className="text-[#FCA5A5] text-[11px] leading-relaxed">
                 {errorMessage}
@@ -162,11 +202,12 @@ function LoginContent() {
             </div>
           )}
 
-          {/* Email / Username + Password Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
+          {/* Signup Form */}
+          <form onSubmit={handleSubmit} className="space-y-3.5 font-mono text-xs">
+            {/* Username Input */}
             <div className="space-y-1.5">
               <label className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold">
-                Username or Email
+                Username (Callsign)
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
@@ -174,37 +215,52 @@ function LoginContent() {
                 </div>
                 <input
                   type="text"
-                  id="login-identifier-input"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="operator@enterprise.mil or callsign"
+                  id="signup-username-input"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="operator_alpha"
                   required
                   autoFocus
+                  disabled={isSubmitting || isGoogleSubmitting}
+                  className="w-full h-10 pl-9 pr-3 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Email Input */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  type="email"
+                  id="signup-email-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="operator@enterprise.mil"
+                  required
                   disabled={isSubmitting || isGoogleSubmitting}
                   className="w-full h-10 pl-9 pr-3 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-sans"
                 />
               </div>
             </div>
 
+            {/* Password Input */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-[11px] text-[#3B82F6] hover:text-[#60A5FA] hover:underline transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <label className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold">
+                Password (min. 6 characters)
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
-                  <KeyRound className="w-4 h-4" />
+                  <Lock className="w-4 h-4" />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="login-password-input"
+                  id="signup-password-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
@@ -223,21 +279,43 @@ function LoginContent() {
               </div>
             </div>
 
+            {/* Confirm Password Input */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="signup-confirm-password-input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  required
+                  disabled={isSubmitting || isGoogleSubmitting}
+                  className="w-full h-10 pl-9 pr-10 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
-              id="login-submit-btn"
+              id="signup-submit-btn"
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-10 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] uppercase tracking-wider mt-2"
+              className="w-full h-10 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] uppercase tracking-wider mt-3"
             >
               {isSubmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>SIGNING IN...</span>
+                  <span>CREATING OPERATOR IDENTITY...</span>
                 </>
               ) : (
                 <>
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>SIGN IN</span>
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>CREATE ACCOUNT</span>
                 </>
               )}
             </button>
@@ -255,7 +333,7 @@ function LoginContent() {
           <div>
             <button
               type="button"
-              id="google-login-btn"
+              id="google-signup-btn"
               onClick={handleGoogleLogin}
               disabled={isSubmitting || isGoogleSubmitting || authLoading}
               className="w-full h-10 px-4 rounded-lg bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] hover:border-[#3B82F6]/50 text-[#F3F4F6] text-xs font-mono font-semibold transition-all flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group shadow-sm active:scale-[0.99]"
@@ -267,7 +345,6 @@ function LoginContent() {
                 </>
               ) : (
                 <>
-                  {/* Google G Logo */}
                   <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                     <path
                       fill="#EA4335"
@@ -293,14 +370,14 @@ function LoginContent() {
             </button>
           </div>
 
-          {/* Signup Switcher */}
+          {/* Signin Switcher */}
           <div className="text-center text-xs font-mono text-[#A7B0C0] pt-1">
-            Don&apos;t have an operator account?{" "}
+            Already have an account?{" "}
             <Link
-              href={`/signup${rawRedirect ? `?redirectTo=${encodeURIComponent(rawRedirect)}` : ""}`}
+              href={`/login${rawRedirect ? `?redirectTo=${encodeURIComponent(rawRedirect)}` : ""}`}
               className="text-[#3B82F6] hover:text-[#60A5FA] font-semibold hover:underline"
             >
-              Create account →
+              Sign in →
             </Link>
           </div>
 
@@ -320,7 +397,7 @@ function LoginContent() {
   );
 }
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <Suspense
       fallback={
@@ -329,7 +406,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginContent />
+      <SignupContent />
     </Suspense>
   );
 }

@@ -21,8 +21,9 @@ export async function GET(request: Request) {
   const origin = getAppOrigin(request);
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const nextParam = searchParams.get("next") || searchParams.get("redirectTo") || "/dashboard";
-  const safeNext = getSafeRedirect(nextParam);
+  const authType = searchParams.get("type");
+  const nextParam = authType === "recovery" ? "/reset-password" : (searchParams.get("next") || searchParams.get("redirectTo") || "/dashboard");
+  const safeNext = authType === "recovery" ? "/reset-password" : getSafeRedirect(nextParam);
 
   const errorParam = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");

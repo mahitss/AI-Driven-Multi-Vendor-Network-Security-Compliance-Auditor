@@ -6,8 +6,9 @@ const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-// Protected route prefixes
+// Protected route prefixes requiring active operator identity
 const PROTECTED_PREFIXES = [
+  "/console",
   "/dashboard",
   "/configurations",
   "/findings",
@@ -23,7 +24,6 @@ const PROTECTED_PREFIXES = [
   "/ai-assistant",
   "/compliance",
   "/settings",
-  "/demo",
 ];
 
 export async function updateSession(request: NextRequest) {
@@ -68,7 +68,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-  const isLoginPage = pathname === "/login";
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
 
   if (!user && isProtectedRoute) {
     // Unauthenticated user attempting to access protected route -> redirect to /login
@@ -78,14 +78,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isLoginPage) {
-    // Authenticated user on login page -> redirect to target or /dashboard
+  if (user && isAuthPage) {
+    // Authenticated user on login/signup page -> redirect to target or /dashboard
     const rawRedirect = request.nextUrl.searchParams.get("redirectTo");
     const safeRedirect =
       rawRedirect &&
       rawRedirect.startsWith("/") &&
       !rawRedirect.startsWith("//") &&
       !rawRedirect.startsWith("/login") &&
+      !rawRedirect.startsWith("/signup") &&
       !rawRedirect.includes("://")
         ? rawRedirect
         : "/dashboard";

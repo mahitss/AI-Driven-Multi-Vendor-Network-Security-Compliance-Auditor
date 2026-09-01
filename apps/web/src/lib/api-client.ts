@@ -2713,6 +2713,59 @@ export function downloadBlobAsFile(
   }, 1000);
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  email?: string;
+  full_name?: string;
+  avatar_url?: string;
+}
+
+export async function resolveUsernameToEmail(identifier: string): Promise<{ email: string | null; username: string | null; found: boolean }> {
+  try {
+    const res = await apiFetch(`${API_BASE}/api/v1/auth/resolve-username`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier }),
+    });
+    if (!res.ok) {
+      return { email: identifier.includes("@") ? identifier : null, username: null, found: identifier.includes("@") };
+    }
+    return res.json();
+  } catch {
+    return { email: identifier.includes("@") ? identifier : null, username: null, found: identifier.includes("@") };
+  }
+}
+
+export async function fetchUserProfile(): Promise<UserProfile | null> {
+  try {
+    const res = await apiFetch(`${API_BASE}/api/v1/auth/profile`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function upsertUserProfile(payload: {
+  username: string;
+  email?: string;
+  full_name?: string;
+  avatar_url?: string;
+}): Promise<UserProfile> {
+  const res = await apiFetch(`${API_BASE}/api/v1/auth/profile`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.detail || "Failed to save user profile.");
+  }
+  return res.json();
+}
+
+
 
 
 
