@@ -48,8 +48,10 @@ import {
   ConfigurationItem,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 function ReportsContent() {
+  const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const queryParamAuditId = searchParams.get("auditId") || searchParams.get("audit");
   const queryParamReportId = searchParams.get("reportId") || searchParams.get("report");
@@ -77,8 +79,9 @@ function ReportsContent() {
     isLoading: isReportsLoading,
     refetch: refetchReports,
   } = useQuery({
-    queryKey: ["reports"],
+    queryKey: ["reports", user?.id],
     queryFn: fetchReports,
+    enabled: !authLoading,
     staleTime: 30000,
   });
 
@@ -88,15 +91,17 @@ function ReportsContent() {
     isLoading: isAuditsLoading,
     refetch: refetchAudits,
   } = useQuery({
-    queryKey: ["audits"],
+    queryKey: ["audits", user?.id],
     queryFn: () => fetchAudits(),
+    enabled: !authLoading,
     staleTime: 30000,
   });
 
   // 3. Fetch configurations
   const { data: configurations = [] } = useQuery({
-    queryKey: ["configurations"],
+    queryKey: ["configurations", user?.id],
     queryFn: () => fetchConfigurations(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 
@@ -123,9 +128,9 @@ function ReportsContent() {
     data: activeReport,
     isLoading: isReportDetailLoading,
   } = useQuery({
-    queryKey: ["report-detail", selectedReportId],
+    queryKey: ["report-detail", selectedReportId, user?.id],
     queryFn: () => (selectedReportId ? fetchReportDetail(selectedReportId) : null),
-    enabled: !!selectedReportId,
+    enabled: !!selectedReportId && !authLoading,
     staleTime: 60000,
   });
 

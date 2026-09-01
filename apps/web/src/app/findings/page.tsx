@@ -53,8 +53,10 @@ import {
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/components/providers/SettingsProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 function FindingsContent() {
+  const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const queryParamFindingId = searchParams.get("findingId") || searchParams.get("finding");
   const queryParamAnalysisId = searchParams.get("analysisId") || searchParams.get("analysis");
@@ -84,7 +86,7 @@ function FindingsContent() {
     isError: isFindingsError,
     refetch: refetchFindings,
   } = useQuery({
-    queryKey: ["all-findings", selectedFramework, selectedSeverity, selectedStatus, queryParamAnalysisId],
+    queryKey: ["all-findings", selectedFramework, selectedSeverity, selectedStatus, queryParamAnalysisId, user?.id],
     queryFn: () =>
       fetchFindings({
         framework: selectedFramework === "ALL" ? undefined : selectedFramework,
@@ -92,26 +94,30 @@ function FindingsContent() {
         status: selectedStatus === "ALL" ? undefined : selectedStatus,
         audit_id: queryParamAnalysisId || undefined,
       }),
+    enabled: !authLoading,
   });
 
   // 2. Fetch configurations
   const { data: configurations = [] } = useQuery({
-    queryKey: ["configurations"],
+    queryKey: ["configurations", user?.id],
     queryFn: () => fetchConfigurations(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 
   // 3. Fetch audits
   const { data: audits = [] } = useQuery({
-    queryKey: ["audits"],
+    queryKey: ["audits", user?.id],
     queryFn: () => fetchAudits(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 
   // 4. Fetch risks
   const { data: risks = [] } = useQuery({
-    queryKey: ["all-risks"],
+    queryKey: ["all-risks", user?.id],
     queryFn: () => fetchRisks({ priority: "ALL" }),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 

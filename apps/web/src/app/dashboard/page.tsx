@@ -39,10 +39,12 @@ import {
   fetchFindings,
   fetchAudits,
   fetchConfigurations,
+  fetchLatestAudit,
   Finding,
   OverviewStats,
   ActivityEvent,
 } from "@/lib/api-client";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useSystemHealth } from "@/lib/use-system-health";
 import { cn } from "@/lib/utils";
 import SecurityTelemetrySection from "@/components/telemetry/SecurityTelemetrySection";
@@ -75,6 +77,7 @@ interface ControlFindingGroup {
 }
 
 export default function SecurityPostureDashboard() {
+  const { user, loading: authLoading } = useAuth();
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
   const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
   const [inspectedFinding, setInspectedFinding] = useState<{
@@ -100,7 +103,7 @@ export default function SecurityPostureDashboard() {
     refetch: refetchHealth,
   } = useSystemHealth();
 
-  // 1. Authoritative Backend Posture Metrics
+  // 1. Authoritative Backend Posture Metrics (Scoped to authenticated user)
   const {
     data: stats,
     isLoading: isStatsLoading,
@@ -109,32 +112,47 @@ export default function SecurityPostureDashboard() {
     refetch: refetchStats,
     isRefetching: isStatsRefetching,
   } = useQuery({
-    queryKey: ["dashboard-overview-stats"],
+    queryKey: ["dashboard-overview-stats", user?.id],
     queryFn: () => fetchOverviewStats(),
+    enabled: !authLoading,
     staleTime: 15000,
   });
 
-  // 2. Active Findings across Fleet (Status: FAIL)
+  // 2. Latest Completed User Audit (for instant restoration)
+  const {
+    data: latestAudit,
+    isLoading: isLatestAuditLoading,
+    refetch: refetchLatestAudit,
+  } = useQuery({
+    queryKey: ["dashboard-latest-audit", user?.id],
+    queryFn: () => fetchLatestAudit(),
+    enabled: !authLoading,
+    staleTime: 15000,
+  });
+
+  // 3. Active Findings across Fleet (Status: FAIL, Scoped to user)
   const {
     data: rawFindings = [],
     isLoading: isFindingsLoading,
     isError: isFindingsError,
     refetch: refetchFindings,
   } = useQuery({
-    queryKey: ["dashboard-active-findings"],
+    queryKey: ["dashboard-active-findings", user?.id],
     queryFn: () => fetchFindings({ status: "FAIL" }),
+    enabled: !authLoading,
     staleTime: 15000,
   });
 
-  // 3. Real System Activity Log
+  // 4. Real System Activity Log (Scoped to user)
   const {
     data: activityLogs = [],
     isLoading: isActivityLoading,
     isError: isActivityError,
     refetch: refetchActivity,
   } = useQuery({
-    queryKey: ["dashboard-overview-activity"],
+    queryKey: ["dashboard-overview-activity", user?.id],
     queryFn: () => fetchOverviewActivity(10),
+    enabled: !authLoading,
     staleTime: 15000,
   });
 

@@ -4,19 +4,22 @@ Problem Statement: SIH26155 (NTRO)
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy import desc, select, func
+from sqlalchemy import desc, select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.errors import ResourceNotFoundError
 from app.models.audit import Audit
 from app.models.configuration import Configuration
+from app.models.device import Device
 from app.models.finding import Finding
+from app.models.risk import RiskItem
 from app.schemas.audit import (
     AuditDetailResponse,
     AuditResponse,
     AuditSummaryResponse,
     CreateAuditRequest,
     FindingResponse,
+    LatestAuditResponse,
     SeverityStatsResponse,
 )
 from app.schemas.comparison import (
@@ -108,6 +111,72 @@ async def list_audits(
     res = await db.execute(query)
     audits = res.scalars().all()
     return audits
+
+
+@router.get(
+    "/latest",
+    response_model=Optional[LatestAuditResponse],
+    summary="Get latest audit summary for current authenticated user",
+)
+async def get_latest_user_audit(
+    db: DatabaseDep,
+    current_user: CurrentUserDep,
+) -> Optional[LatestAuditResponse]:
+    """Retrieve the single most recent completed audit execution and its findings summary for current user."""
+    stmt = (
+        select(Audit, Configuration)
+        .outerjoin(Configuration, Audit.configuration_id == Configuration.id)
+        .where(Audit.user_id == current_user.id)
+        .order_by(desc(Audit.created_at), desc(Audit.id))
+        .limit(1)
+    )
+    res = await db.execute(stmt)
+    row = res.first()
+    if not row:
+        return None
+
+    audit, cfg = row
+    findings_stmt = (
+        select(
+            func.count(Finding.id).label("total"),
+            func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]), 1), else_=0)).label("open"),
+            func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "CRITICAL"), 1), else_=0)).label("critical"),
+            func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "HIGH"), 1), else_=0)).label("high"),
+            func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "MEDIUM"), 1), else_=0)).label("medium"),
+            func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "LOW"), 1), else_=0)).label("low"),
+            func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "INFO"), 1), else_=0)).label("info"),
+        )
+        .where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
+    )
+    f_res = (await db.execute(findings_stmt)).one()
+
+    avg_risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id == audit.id, RiskItem.user_id == current_user.id)
+    risk_score = (await db.execute(avg_risk_stmt)).scalar()
+
+    total_configs = (await db.execute(select(func.count(Configuration.id)).where(Configuration.user_id == current_user.id))).scalar() or 0
+    total_devices = (await db.execute(select(func.count(Device.id)).where(Device.user_id == current_user.id))).scalar() or 0
+
+    return LatestAuditResponse(
+        audit_id=audit.id,
+        configuration_id=audit.configuration_id,
+        filename=cfg.original_filename if cfg else "configuration.cfg",
+        sha256=cfg.hash if cfg else "",
+        vendor=cfg.detected_vendor if cfg else "cisco",
+        vendor_confidence=cfg.detection_confidence if cfg else 0.98,
+        compliance_score=audit.score or 0.0,
+        risk_score=round(float(risk_score), 1) if risk_score is not None else 0.0,
+        critical_count=f_res.critical or 0,
+        high_count=f_res.high or 0,
+        medium_count=f_res.medium or 0,
+        low_count=f_res.low or 0,
+        info_count=f_res.info or 0,
+        findings_count=f_res.total or 0,
+        open_findings=f_res.open or 0,
+        total_configurations=total_configs,
+        total_devices=max(total_devices, total_configs),
+        created_at=audit.created_at,
+        completed_at=audit.completed_at,
+    )
 
 
 @router.get(

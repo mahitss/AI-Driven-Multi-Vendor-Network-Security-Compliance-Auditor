@@ -29,9 +29,11 @@ import {
   DeviceDetail,
   DeviceTimelineEvent,
 } from "@/lib/api-client";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { cn } from "@/lib/utils";
 
 export default function DevicesPage() {
+  const { user, loading: authLoading } = useAuth();
   const [selectedVendor, setSelectedVendor] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
@@ -44,8 +46,9 @@ export default function DevicesPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["devices", selectedVendor],
+    queryKey: ["devices", selectedVendor, user?.id],
     queryFn: () => fetchDevices(selectedVendor === "ALL" ? undefined : selectedVendor),
+    enabled: !authLoading,
   });
 
   const {
@@ -55,9 +58,9 @@ export default function DevicesPage() {
     error: detailError,
     refetch: refetchDetail,
   } = useQuery({
-    queryKey: ["device-detail", selectedDeviceId],
+    queryKey: ["device-detail", selectedDeviceId, user?.id],
     queryFn: () => (selectedDeviceId ? fetchDeviceDetail(selectedDeviceId) : null),
-    enabled: !!selectedDeviceId,
+    enabled: !!selectedDeviceId && !authLoading,
   });
 
   const {
@@ -65,9 +68,9 @@ export default function DevicesPage() {
     isLoading: isTimelineLoading,
     isError: isTimelineError,
   } = useQuery({
-    queryKey: ["device-timeline", selectedDeviceId],
+    queryKey: ["device-timeline", selectedDeviceId, user?.id],
     queryFn: () => (selectedDeviceId ? fetchDeviceTimeline(selectedDeviceId) : []),
-    enabled: !!selectedDeviceId,
+    enabled: !!selectedDeviceId && !authLoading,
   });
 
   const filteredDevices = devices.filter((d) => {

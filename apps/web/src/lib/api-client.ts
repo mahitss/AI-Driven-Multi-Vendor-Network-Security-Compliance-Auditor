@@ -419,6 +419,27 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
         Authorization: `Bearer ${data.session.access_token}`,
       };
     }
+
+    // Storage fallback if getSession() is resolving initial asynchronous state
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith("sb-") || key.includes("supabase")) && key.endsWith("-auth-token")) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const token = parsed?.access_token || parsed?.currentSession?.access_token;
+            if (token) {
+              return {
+                Authorization: `Bearer ${token}`,
+              };
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
   } catch {
     // Fallback if uninitialized
   }
@@ -615,6 +636,39 @@ export async function fetchAudits(configurationId?: string): Promise<AuditItem[]
   const res = await apiFetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to fetch audits: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export interface LatestAuditSummary {
+  audit_id: string;
+  configuration_id: string;
+  filename: string;
+  sha256: string;
+  vendor: string;
+  vendor_confidence: number;
+  compliance_score: number;
+  risk_score: number;
+  critical_count: number;
+  high_count: number;
+  medium_count: number;
+  low_count: number;
+  info_count: number;
+  findings_count: number;
+  open_findings: number;
+  total_configurations: number;
+  total_devices: number;
+  created_at: string;
+  completed_at?: string;
+}
+
+export async function fetchLatestAudit(): Promise<LatestAuditSummary | null> {
+  const res = await apiFetch(`${API_BASE}/api/v1/audits/latest`, { cache: "no-store" });
+  if (res.status === 404) {
+    return null;
+  }
+  if (!res.ok) {
+    throw new Error(`Failed to fetch latest audit summary: HTTP ${res.status}`);
   }
   return res.json();
 }

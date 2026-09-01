@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { User, Session } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
+import type { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { getAppOrigin } from "@/lib/get-app-origin";
 
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const supabase = React.useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setSession(data.session);
               setUser(data.session.user);
               setLoading(false);
+              queryClient.invalidateQueries();
               const target = sessionStorage.getItem("netvigil_auth_redirect") || "/dashboard";
               sessionStorage.removeItem("netvigil_auth_redirect");
               try {
@@ -83,11 +86,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, currentSession: Session | null) => {
       if (mounted) {
+        const prevUserId = user?.id;
+        const newUserId = currentSession?.user?.id;
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setLoading(false);
+        if (prevUserId !== newUserId) {
+          queryClient.clear();
+          queryClient.invalidateQueries();
+        }
       }
     });
 
@@ -95,13 +104,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase, router]);
+  }, [supabase, router, queryClient, user?.id]);
 
   const logout = async () => {
     try {
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      queryClient.clear();
       if (typeof window !== "undefined") {
         window.location.replace("/login");
       } else {
@@ -109,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error("Logout error:", error);
+      queryClient.clear();
       if (typeof window !== "undefined") {
         window.location.replace("/login");
       } else {

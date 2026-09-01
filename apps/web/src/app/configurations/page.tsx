@@ -72,6 +72,7 @@ import {
 } from "@/lib/api-client";
 import { computeClientSha256, formatBytes, cn } from "@/lib/utils";
 import { useSettings } from "@/components/providers/SettingsProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 // Authentic canonical test fixtures from data/demo/
 const CANONICAL_FIXTURES = [
@@ -275,6 +276,7 @@ end`,
 ];
 
 function ConfigurationsPageContent() {
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const isIngestMode = searchParams.get("mode") === "ingest";
@@ -501,39 +503,47 @@ function ConfigurationsPageContent() {
 
   // --- Reactive Query Hooks for Active Audit ---
   const { data: analysisStatus, isLoading: isStatusLoading } = useQuery({
-    queryKey: ["analysis-status", activeAnalysisId],
+    queryKey: ["analysis-status", activeAnalysisId, user?.id],
     queryFn: () => (activeAnalysisId ? fetchAnalysisStatus(activeAnalysisId) : null),
-    enabled: !!activeAnalysisId,
+    enabled: !!activeAnalysisId && !authLoading,
   });
 
   const { data: findings = [], isLoading: isFindingsLoading } = useQuery({
-    queryKey: ["analysis-findings", activeAnalysisId],
+    queryKey: ["analysis-findings", activeAnalysisId, user?.id],
     queryFn: () => (activeAnalysisId ? fetchAnalysisFindings(activeAnalysisId) : []),
-    enabled: !!activeAnalysisId,
+    enabled: !!activeAnalysisId && !authLoading,
   });
 
   const { data: evidenceItems = [], isLoading: isEvidenceLoading } = useQuery({
-    queryKey: ["analysis-evidence", activeAnalysisId],
+    queryKey: ["analysis-evidence", activeAnalysisId, user?.id],
     queryFn: () => (activeAnalysisId ? fetchAnalysisEvidence(activeAnalysisId) : []),
-    enabled: !!activeAnalysisId,
+    enabled: !!activeAnalysisId && !authLoading,
   });
 
   const { data: riskReport, isLoading: isRiskLoading } = useQuery({
-    queryKey: ["analysis-risk", activeAnalysisId],
+    queryKey: ["analysis-risk", activeAnalysisId, user?.id],
     queryFn: () => (activeAnalysisId ? fetchAnalysisRisk(activeAnalysisId) : null),
-    enabled: !!activeAnalysisId,
+    enabled: !!activeAnalysisId && !authLoading,
   });
 
   const { data: configData, isLoading: isConfigLoading } = useQuery({
-    queryKey: ["analysis-config", activeAnalysisId],
+    queryKey: ["analysis-config", activeAnalysisId, user?.id],
     queryFn: () => (activeAnalysisId ? fetchAnalysisConfiguration(activeAnalysisId) : null),
-    enabled: !!activeAnalysisId,
+    enabled: !!activeAnalysisId && !authLoading,
   });
 
   const { data: storedConfigs = [] } = useQuery({
-    queryKey: ["configurations-list"],
+    queryKey: ["configurations-list", user?.id],
     queryFn: () => fetchConfigurations(),
+    enabled: !authLoading,
   });
+
+  // Auto-restore previous user audit/configuration if available and no active analysis is selected
+  useEffect(() => {
+    if (!activeAnalysisId && storedConfigs.length > 0 && !isIngestMode) {
+      setActiveAnalysisId(storedConfigs[0].id);
+    }
+  }, [activeAnalysisId, storedConfigs, isIngestMode]);
 
   // Auto-select first failing finding or first finding
   useEffect(() => {

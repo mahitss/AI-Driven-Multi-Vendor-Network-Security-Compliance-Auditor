@@ -43,7 +43,10 @@ import {
   RiskStats,
   RiskGraph,
   Finding,
+  AuditItem,
+  DeviceItem,
 } from "@/lib/api-client";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { cn } from "@/lib/utils";
 
 // Attack surface taxonomy
@@ -60,6 +63,7 @@ const ATTACK_SURFACES = [
 ];
 
 export default function RiskIntelligencePage() {
+  const { user, loading: authLoading } = useAuth();
   const [selectedPriority, setSelectedPriority] = useState<string>("ALL");
   const [selectedAttackSurface, setSelectedAttackSurface] = useState<string>("ALL");
   const [selectedVendor, setSelectedVendor] = useState<string>("ALL");
@@ -75,15 +79,17 @@ export default function RiskIntelligencePage() {
     isError: isStatsError,
     refetch: refetchStats,
   } = useQuery({
-    queryKey: ["risk-stats"],
+    queryKey: ["risk-stats", user?.id],
     queryFn: fetchRiskStats,
+    enabled: !authLoading,
     staleTime: 30000,
   });
 
   // 2. Fetch audits
   const { data: audits = [] } = useQuery({
-    queryKey: ["audits"],
+    queryKey: ["audits", user?.id],
     queryFn: () => fetchAudits(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 
@@ -94,25 +100,28 @@ export default function RiskIntelligencePage() {
     isError: isRisksError,
     refetch: refetchRisks,
   } = useQuery({
-    queryKey: ["all-risks", selectedPriority, selectedAttackSurface],
+    queryKey: ["all-risks", selectedPriority, selectedAttackSurface, user?.id],
     queryFn: () =>
       fetchRisks({
         priority: selectedPriority === "ALL" ? undefined : selectedPriority,
         category: selectedAttackSurface === "ALL" ? undefined : selectedAttackSurface,
       }),
+    enabled: !authLoading,
   });
 
   // 4. Fetch findings for correlation detail
   const { data: findings = [] } = useQuery({
-    queryKey: ["all-findings-for-risk"],
+    queryKey: ["all-findings-for-risk", user?.id],
     queryFn: () => fetchFindings(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 
   // 5. Fetch devices
   const { data: devices = [] } = useQuery({
-    queryKey: ["devices-for-risk"],
+    queryKey: ["devices-for-risk", user?.id],
     queryFn: () => fetchDevices(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 

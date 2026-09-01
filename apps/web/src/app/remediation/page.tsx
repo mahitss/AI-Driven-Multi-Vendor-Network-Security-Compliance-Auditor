@@ -48,8 +48,10 @@ import {
   AnalysisReanalyzeResult,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 function RemediationContent() {
+  const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const queryParamFindingId = searchParams.get("findingId") || searchParams.get("finding");
   const queryParamAnalysisId = searchParams.get("analysisId") || searchParams.get("analysis");
@@ -75,8 +77,9 @@ function RemediationContent() {
     isLoading: isStatsLoading,
     refetch: refetchStats,
   } = useQuery({
-    queryKey: ["remediation-stats"],
+    queryKey: ["remediation-stats", user?.id],
     queryFn: () => fetchRemediationStats(),
+    enabled: !authLoading,
     staleTime: 30000,
   });
 
@@ -87,25 +90,28 @@ function RemediationContent() {
     isError: isRemediationsError,
     refetch: refetchRemediations,
   } = useQuery({
-    queryKey: ["remediations", selectedVendorFilter, selectedStatusFilter],
+    queryKey: ["remediations", selectedVendorFilter, selectedStatusFilter, user?.id],
     queryFn: () =>
       fetchRemediations({
         vendor: selectedVendorFilter === "ALL" ? undefined : selectedVendorFilter,
         status: selectedStatusFilter === "ALL" ? undefined : selectedStatusFilter,
       }),
+    enabled: !authLoading,
   });
 
   // 3. Fetch findings for control context
   const { data: findings = [] } = useQuery({
-    queryKey: ["all-findings-for-remediation"],
+    queryKey: ["all-findings-for-remediation", user?.id],
     queryFn: () => fetchFindings(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 
   // 4. Fetch configurations
   const { data: configurations = [] } = useQuery({
-    queryKey: ["configurations"],
+    queryKey: ["configurations", user?.id],
     queryFn: () => fetchConfigurations(),
+    enabled: !authLoading,
     staleTime: 60000,
   });
 

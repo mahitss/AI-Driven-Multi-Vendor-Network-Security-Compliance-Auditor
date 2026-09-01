@@ -98,4 +98,26 @@ class FrameworkMetadataResponse(BaseModel):
     document_reference: Optional[str] = None
     source_type: str = "official"
     verified: bool = True
+
+
+class LatestAuditResponse(BaseModel):
+    audit_id: str
+    configuration_id: str
+    filename: str
+    sha256: str
+    vendor: str
+    vendor_confidence: float = 0.98
+    compliance_score: float
+    risk_score: float
+    critical_count: int = 0
+    high_count: int = 0
+    medium_count: int = 0
+    low_count: int = 0
+    info_count: int = 0
+    findings_count: int = 0
+    open_findings: int = 0
+    total_configurations: int = 0
+    total_devices: int = 0
+    created_at: datetime
+    completed_at: Optional[datetime] = None
     controls_count: int = 0

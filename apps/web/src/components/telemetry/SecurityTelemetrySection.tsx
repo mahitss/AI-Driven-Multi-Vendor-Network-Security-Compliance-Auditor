@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSecurityTelemetry } from "@/lib/api-client";
+import { useAuth } from "@/components/providers/AuthProvider";
 import SecurityTrendLineChart from "./SecurityTrendLineChart";
 import CategoricalBarCharts from "./CategoricalBarCharts";
 import SecurityPostureHeatMap from "./SecurityPostureHeatMap";
@@ -23,6 +24,7 @@ import { cn } from "@/lib/utils";
 type TelemetryViewTab = "analytics" | "heatmap" | "topology" | "timeline";
 
 export default function SecurityTelemetrySection() {
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TelemetryViewTab>("analytics");
 
   const {
@@ -33,8 +35,9 @@ export default function SecurityTelemetrySection() {
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: ["securityTelemetry"],
+    queryKey: ["securityTelemetry", user?.id],
     queryFn: fetchSecurityTelemetry,
+    enabled: !authLoading,
     staleTime: 10000,
   });
 
