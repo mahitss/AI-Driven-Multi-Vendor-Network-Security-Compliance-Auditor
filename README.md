@@ -3,7 +3,8 @@
 [![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud%20Run-Serverless-blue?logo=googlecloud)](https://cloud.google.com/run)
 [![Gemini 3.5 / 2.5](https://img.shields.io/badge/Gemini-3.5%20%2F%202.5%20Pro-purple?logo=googlegemini)](https://deepmind.google/technologies/gemini/)
 [![Google ADK](https://img.shields.io/badge/Google-Agent%20Development%20Kit-emerald)](https://github.com/google/agent-development-kit)
-[![Tests](https://img.shields.io/badge/Pytest-147%2F147%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Tests](https://img.shields.io/badge/Pytest-251%2F251%20Passing-brightgreen.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
+[![Security](https://img.shields.io/badge/Security-Hardened%20%26%20Isolated-blue.svg)](https://github.com/mahitss/AI-Driven-Multi-Vendor-Network-Security-Compliance-Auditor)
 [![Track](https://img.shields.io/badge/Hackathon-Taskmaster%20Track-orange)](https://allthingsagentic.devpost.com/)
 
 > **NetVigil is an autonomous AI security agent that audits multi-vendor network configurations, plans controlled remediation, executes approved changes, and independently verifies the result.**

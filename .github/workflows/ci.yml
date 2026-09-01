@@ -8,8 +8,13 @@ on:
 
 jobs:
   backend-test:
-    name: Backend Pytest Suite & Security Verification
+    name: Backend Pytest Suite & Security Hardening
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: test
+      SECRET_KEY: test-ci-pipeline-environment-secret-key-entropy-64
+      SUPABASE_URL: https://test-ci.supabase.co
+      DATABASE_URL: sqlite+aiosqlite:///./test_ci.db
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -42,11 +47,15 @@ jobs:
         with:
           node-version: 20
           cache: "npm"
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: apps/web/package.json
 
       - name: Install Frontend Dependencies
         working-directory: apps/web
-        run: npm ci
+        run: npm install
+
+      - name: Security Vulnerability Scan
+        working-directory: apps/web
+        run: npm audit --audit-level=high
 
       - name: TypeScript Typecheck
         working-directory: apps/web
