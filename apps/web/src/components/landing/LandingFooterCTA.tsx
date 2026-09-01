@@ -23,11 +23,10 @@ export default function LandingFooterCTA() {
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2 font-mono">
           <Link
-            href="/dashboard"
+            href="/console"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#3B82F6] text-white font-bold text-xs hover:bg-[#2563EB] transition-all shadow-sm"
           >
-            <Activity className="w-3.5 h-3.5" />
-            <span>OPEN SECURITY CONSOLE →</span>
+            <span>GET STARTED →</span>
           </Link>
 
           <Link

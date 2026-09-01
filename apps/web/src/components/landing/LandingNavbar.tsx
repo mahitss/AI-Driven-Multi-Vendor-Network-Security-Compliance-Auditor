@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Shield, Activity, Compass, User, LogOut, Settings, ChevronDown, Menu, X } from "lucide-react";
+import { Shield, Activity, Compass, User, LogOut, Settings, ChevronDown, Menu, X, ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function LandingNavbar() {
@@ -26,6 +26,9 @@ export default function LandingNavbar() {
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
     "Operator";
+
+  const getStartedHref = !authLoading && user ? "/console" : "/login";
+  const signInHref = !authLoading && user ? "/console" : "/login";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#080B12]/90 backdrop-blur-md border-b border-[#1D2939] font-mono text-xs">
@@ -69,14 +72,13 @@ export default function LandingNavbar() {
 
           {!authLoading && user ? (
             <>
-              {/* Primary Console CTA for Authenticated User */}
+              {/* Primary GET STARTED for Authenticated User */}
               <Link
                 href="/console"
-                id="landing-console-cta"
+                id="landing-get-started-cta"
                 className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-md bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
               >
-                <Activity className="w-3.5 h-3.5" />
-                <span>Open Security Console →</span>
+                <span>GET STARTED →</span>
               </Link>
 
               {/* Account Dropdown */}
@@ -133,19 +135,18 @@ export default function LandingNavbar() {
           ) : (
             <>
               <Link
-                href="/login"
+                href={signInHref}
                 id="landing-signin-btn"
                 className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] text-[#A7B0C0] hover:text-[#F3F4F6] transition-all duration-150"
               >
                 <span>Sign In</span>
               </Link>
               <Link
-                href="/login?redirectTo=/console"
-                id="landing-console-cta"
+                href={getStartedHref}
+                id="landing-get-started-cta"
                 className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-md bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
               >
-                <Activity className="w-3.5 h-3.5" />
-                <span>Open Security Console</span>
+                <span>GET STARTED →</span>
               </Link>
             </>
           )}
@@ -153,22 +154,12 @@ export default function LandingNavbar() {
 
         {/* Mobile Hamburger Toggle */}
         <div className="flex sm:hidden items-center gap-2">
-          {!authLoading && user ? (
-            <Link
-              href="/console"
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded bg-[#3B82F6] text-white font-bold text-[11px]"
-            >
-              <Activity className="w-3 h-3" />
-              <span>Console</span>
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex items-center h-7 px-2.5 rounded bg-[#0D121C] border border-[#1D2939] text-[#F3F4F6] font-medium text-[11px]"
-            >
-              Sign In
-            </Link>
-          )}
+          <Link
+            href={getStartedHref}
+            className="inline-flex items-center h-7 px-2.5 rounded bg-[#3B82F6] text-white font-bold text-[11px]"
+          >
+            GET STARTED
+          </Link>
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -231,7 +222,7 @@ export default function LandingNavbar() {
                   className="flex items-center justify-center gap-2 h-9 rounded-md bg-[#3B82F6] text-white font-bold"
                 >
                   <Activity className="w-3.5 h-3.5" />
-                  <span>Open Security Console</span>
+                  <span>Security Console</span>
                 </Link>
                 <button
                   type="button"
@@ -255,12 +246,11 @@ export default function LandingNavbar() {
                   Sign In
                 </Link>
                 <Link
-                  href="/login?redirectTo=/console"
+                  href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 h-9 rounded-md bg-[#3B82F6] text-white font-bold"
                 >
-                  <Activity className="w-3.5 h-3.5" />
-                  <span>Open Security Console</span>
+                  <span>GET STARTED →</span>
                 </Link>
               </>
             )}

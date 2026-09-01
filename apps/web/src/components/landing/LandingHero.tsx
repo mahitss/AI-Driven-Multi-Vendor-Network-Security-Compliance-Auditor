@@ -2,14 +2,15 @@
 
 import React from "react";
 import Link from "next/link";
-import { Activity } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import TopographicScene from "./TopographicScene";
 import TelemetryBackground from "./TelemetryBackground";
 
 export default function LandingHero() {
   const { user, loading: authLoading } = useAuth();
-  const consoleLink = !authLoading && user ? "/console" : "/login?redirectTo=/console";
+  const getStartedHref = !authLoading && user ? "/console" : "/login";
+
   return (
     <section className="relative min-h-[780px] lg:h-[calc(100vh-56px)] xl:min-h-[840px] flex items-center pl-6 sm:pl-10 lg:pl-16 pr-4 sm:pr-8 lg:pr-8 pt-14 pb-8 overflow-hidden bg-[#080B12] text-[#F3F4F6]">
       {/* 1. Atmospheric Ambient Peripheral Telemetry */}
@@ -53,27 +54,21 @@ export default function LandingHero() {
         <div className="flex flex-wrap items-center gap-4 font-mono text-xs mb-8">
           {/* Primary: Electric Blue Button */}
           <Link
-            href={consoleLink}
-            id="hero-open-console-cta"
+            href={getStartedHref}
+            id="hero-get-started-cta"
             className="group relative inline-flex items-center justify-center gap-2.5 px-6 h-11 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-[12px] tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98] shadow-sm"
           >
-            <Activity className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-            <span>OPEN SECURITY CONSOLE →</span>
+            <span>GET STARTED →</span>
           </Link>
 
           {/* Secondary: Dark Surface Button */}
           <Link
             href="/demo/multi-vendor"
+            id="hero-explore-engine-cta"
             className="inline-flex items-center justify-center gap-2 px-6 h-11 bg-[#0D121C] hover:bg-[#111827] border border-[#1D2939] hover:border-[#263B55] text-[#F3F4F6] font-semibold text-[12px] tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98]"
           >
             <span>EXPLORE SECURITY ENGINE →</span>
           </Link>
-        </div>
-
-        {/* Faint Telemetry Footnote on Lower Left */}
-        <div className="space-y-1 font-mono text-[10px] text-[#667085]/60 select-none pointer-events-none">
-          <div>[EVIDENCE:[LINE 17]]</div>
-          <div>time_sync.ntp_enabled = false</div>
         </div>
       </div>
 

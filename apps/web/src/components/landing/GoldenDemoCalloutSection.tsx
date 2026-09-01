@@ -55,8 +55,7 @@ export default function GoldenDemoCalloutSection() {
             href="/console"
             className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all shadow-sm"
           >
-            <Activity className="w-3.5 h-3.5" />
-            <span>OPEN SECURITY CONSOLE →</span>
+            <span>GET STARTED →</span>
           </Link>
 
           <Link
