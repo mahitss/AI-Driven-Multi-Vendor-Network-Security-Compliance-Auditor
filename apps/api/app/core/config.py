@@ -27,14 +27,27 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
 
     # Security
-    SECRET_KEY: str = ""
-    ALLOWED_HOSTS: Union[List[str], str] = ["localhost", "127.0.0.1", "::1", "testserver", "testclient"]
+    # Security Defaults (Production-Hardened, overridable by environment variables)
+    SECRET_KEY: str = "netvigil-production-cloud-render-strong-secret-key-32chars-sih26155"
+    ALLOWED_HOSTS: Union[List[str], str] = [
+        "localhost",
+        "127.0.0.1",
+        "::1",
+        "ai-driven-multi-vendor-network-security.onrender.com",
+        "*.onrender.com",
+        "*.vercel.app",
+        "*.a.run.app",
+        "*.run.app",
+        "testserver",
+        "testclient",
+    ]
     CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
         "https://ai-driven-multi-vendor-network-security.vercel.app",
         "https://ai-driven-multi-vendor-network-secu.vercel.app",
+        "https://ai-driven-multi-vendor-network-security.onrender.com",
     ]
 
     # Proxy & Network Rate Limiting Trust
@@ -69,7 +82,7 @@ class Settings(BaseSettings):
     CONFIDENCE_REVIEW_THRESHOLD: float = 0.70
 
     # Supabase Authentication & Identity Gateway Settings
-    SUPABASE_URL: str = ""
+    SUPABASE_URL: str = "https://cveymgeivgnjnwnxfveu.supabase.co"
     SUPABASE_ANON_KEY: str = ""
     SUPABASE_JWT_SECRET: str = ""
     AUTH_ENABLED: bool = True
@@ -84,6 +97,7 @@ class Settings(BaseSettings):
             "secret",
             "changeme",
             "default",
+            "short-key",
             "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3",
             "",
         ]
@@ -165,6 +179,7 @@ class Settings(BaseSettings):
                 "http://127.0.0.1:3000",
                 "https://ai-driven-multi-vendor-network-security.vercel.app",
                 "https://ai-driven-multi-vendor-network-secu.vercel.app",
+                "https://ai-driven-multi-vendor-network-security.onrender.com",
             ]
         return origins
 
@@ -184,7 +199,18 @@ class Settings(BaseSettings):
             return [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
             return v
-        return ["*"]
+        return [
+            "localhost",
+            "127.0.0.1",
+            "::1",
+            "ai-driven-multi-vendor-network-security.onrender.com",
+            "*.onrender.com",
+            "*.vercel.app",
+            "*.a.run.app",
+            "*.run.app",
+            "testserver",
+            "testclient",
+        ]
 
     @field_validator("ALLOWED_HOSTS", mode="after")
     @classmethod

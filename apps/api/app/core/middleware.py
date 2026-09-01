@@ -174,10 +174,15 @@ class HostValidationMiddleware(BaseHTTPMiddleware):
         allowed = [h.split(":")[0].strip().lower() for h in allowed_list]
 
         is_allowed = (
-            host in allowed
+            "*" in allowed
+            or host in allowed
             or host in ["testserver", "testclient", "localhost", "127.0.0.1", "::1"]
+            or host.endswith(".onrender.com")
+            or host.endswith(".vercel.app")
+            or host.endswith(".run.app")
+            or host.endswith(".a.run.app")
             or any(
-                (h.startswith("*.") and host.endswith(h[1:])) or host.endswith(".a.run.app")
+                (h.startswith("*.") and host.endswith(h[1:]))
                 for h in allowed
             )
         )
