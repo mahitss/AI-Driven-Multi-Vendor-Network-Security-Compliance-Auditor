@@ -586,7 +586,7 @@ function ConfigurationsPageContent() {
       setAuditError(null);
 
       // Generate remediated configuration text
-      let remediatedText = configData.raw_text;
+      let remediatedText: string = configData.raw_text || configData.raw_content || rawText || "";
 
       // Apply standard allowlisted hardening transforms based on detected vendor
       if (detectedVendorState.vendor === "cisco") {
@@ -1601,13 +1601,17 @@ function ConfigurationsPageContent() {
                     <span>OVERALL RISK</span>
                   </div>
                   <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
-                    {riskReport?.risk_level || "P0"} CRITICAL
+                    {riskReport?.risk_level || analysisStatus?.risk_level || (findings.some(f => f.status === "FAIL") ? "P1" : "P3")} PRIORITY
                   </span>
                 </div>
 
                 <div className="flex items-baseline justify-between">
                   <div className="text-2xl font-black text-[#EF4444]">
-                    {riskReport?.risk_score !== undefined ? riskReport.risk_score.toFixed(1) : "92.5"}
+                    {riskReport?.risk_score !== undefined
+                      ? riskReport.risk_score.toFixed(1)
+                      : analysisStatus?.risk_score !== undefined
+                      ? analysisStatus.risk_score.toFixed(1)
+                      : "0.0"}
                     <span className="text-xs text-[#667085] font-normal"> / 100</span>
                   </div>
                   <span className="text-[10px] text-[#A7B0C0]">DETERMINISTIC FORMULA</span>
@@ -1619,18 +1623,25 @@ function ConfigurationsPageContent() {
                     CONTRIBUTORS (WHY):
                   </div>
                   <div className="space-y-1 text-[11px] text-[#A7B0C0]">
-                    <div className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
-                      <span>SSHv1 legacy protocol enabled</span>
-                      <span className="text-[#EF4444] font-bold">+25.0</span>
-                    </div>
-                    <div className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
-                      <span>Telnet unencrypted management</span>
-                      <span className="text-[#EF4444] font-bold">+30.0</span>
-                    </div>
-                    <div className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
-                      <span>AAA security model disabled</span>
-                      <span className="text-[#EF4444] font-bold">+25.0</span>
-                    </div>
+                    {riskReport?.contributing_findings && riskReport.contributing_findings.length > 0 ? (
+                      riskReport.contributing_findings.slice(0, 4).map((cf: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
+                          <span className="truncate max-w-[180px]">{cf.title || cf.control_id}</span>
+                          <span className="text-[#EF4444] font-bold text-[10px]">{cf.severity || "FAIL"}</span>
+                        </div>
+                      ))
+                    ) : findings.filter(f => f.status === "FAIL").length > 0 ? (
+                      findings.filter(f => f.status === "FAIL").slice(0, 4).map((f) => (
+                        <div key={f.finding_id} className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
+                          <span className="truncate max-w-[180px]">{f.title || f.control_id}</span>
+                          <span className="text-[#EF4444] font-bold text-[10px]">{f.severity}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-2 text-center text-[#10B981] text-[10px]">
+                        Zero non-compliant risk contributors detected.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

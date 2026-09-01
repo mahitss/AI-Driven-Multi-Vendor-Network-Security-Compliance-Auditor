@@ -19,6 +19,7 @@ from app.models.finding import Finding
 from app.models.risk import RiskItem
 from app.models.remediation import RemediationProposal
 from app.services.agent.memory import AgentMemoryManager
+from app.services.risk.scoring import calculate_risk_score
 from app.db.helpers import get_latest_audits
 
 
@@ -92,13 +93,22 @@ class TelemetryAggregationService:
                 crit_f = int(f_stats.critical or 0)
                 high_f = int(f_stats.high or 0)
 
-                # Calculate audit risk score
+                # Calculate deterministic audit risk score
                 audit_risks = risks_by_audit.get(a.id, [])
                 if audit_risks:
                     valid_risks = [r.risk_score for r in audit_risks if r.risk_score is not None]
                     avg_risk = round(sum(valid_risks) / len(valid_risks), 1) if valid_risks else 0.0
+                elif open_f > 0:
+                    dom_s = "CRITICAL" if crit_f > 0 else ("HIGH" if high_f > 0 else "MEDIUM")
+                    r_calc, _, _ = calculate_risk_score(
+                        severity=dom_s,
+                        exposure="MANAGEMENT_PLANE",
+                        impact="HIGH" if dom_s in ["CRITICAL", "HIGH"] else "MEDIUM",
+                        finding_count=open_f,
+                    )
+                    avg_risk = round(float(r_calc), 1)
                 else:
-                    avg_risk = 75.0 if crit_f > 0 else (50.0 if high_f > 0 else (20.0 if open_f > 0 else 0.0))
+                    avg_risk = 0.0
 
                 # Framework scores from summary_stats
                 fw_scores: Dict[str, float] = {}
@@ -258,13 +268,22 @@ class TelemetryAggregationService:
                     open_a = crit_a + high_a + med_a + low_a + info_a
                     pass_a = sum(1 for r in f_rows if r[2] == "PASS")
 
-                    # Asset risk score
+                    # Deterministic asset risk score
                     audit_risks = risks_by_audit.get(a.id, [])
                     if audit_risks:
                         valid_risks = [r.risk_score for r in audit_risks if r.risk_score is not None]
                         r_score = round(sum(valid_risks) / len(valid_risks), 1) if valid_risks else 0.0
+                    elif open_a > 0:
+                        dom_a = "CRITICAL" if crit_a > 0 else ("HIGH" if high_a > 0 else "MEDIUM")
+                        r_calc_a, _, _ = calculate_risk_score(
+                            severity=dom_a,
+                            exposure="MANAGEMENT_PLANE",
+                            impact="HIGH" if dom_a in ["CRITICAL", "HIGH"] else "MEDIUM",
+                            finding_count=open_a,
+                        )
+                        r_score = round(float(r_calc_a), 1)
                     else:
-                        r_score = 75.0 if crit_a > 0 else (50.0 if high_a > 0 else (20.0 if open_a > 0 else 0.0))
+                        r_score = 0.0
 
                     top_affected_assets.append({
                         "configuration_id": cfg.id,

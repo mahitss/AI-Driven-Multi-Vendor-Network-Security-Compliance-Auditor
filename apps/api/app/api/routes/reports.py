@@ -17,7 +17,8 @@ from app.models.risk import RiskItem
 from app.models.remediation import RemediationProposal
 from app.core.errors import NotFoundError, ResourceNotFoundError
 from app.core.security import redact_sensitive_data
-from app.services.comparison.service import SecurityTimeMachineService
+import hashlib
+from app.services.risk.scoring import calculate_risk_score
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
@@ -92,16 +93,20 @@ async def generate_report(
     rems = list((await db.execute(rems_stmt)).scalars().all())
 
     # Audit Identity
+    cfg_raw = cfg.raw_content if (cfg and cfg.raw_content) else ""
+    real_sha = cfg.hash if (cfg and cfg.hash) else (hashlib.sha256(cfg_raw.encode("utf-8")).hexdigest() if cfg_raw else (audit.id or "sha256_uncalculated"))
+    line_count = len(cfg_raw.splitlines()) if cfg_raw else 0
+
     audit_identity = {
         "audit_id": audit.id,
         "configuration_id": audit.configuration_id,
         "filename": cfg.original_filename if cfg else "configuration.cfg",
         "vendor": cfg.detected_vendor if cfg else "cisco",
         "platform": cfg.detected_platform or "ios",
-        "sha256": cfg.hash if cfg else "e7785a819b32c...",
+        "sha256": real_sha,
         "parser_version": "v1.0.0",
         "audit_timestamp": audit.created_at or now,
-        "line_count": len(cfg.raw_content.split("\n")) if cfg and cfg.raw_content else 35,
+        "line_count": line_count,
     }
 
     # Security Posture Metrics
@@ -109,13 +114,32 @@ async def generate_report(
     passed_count = sum(1 for f in findings if f.status == "PASS")
     failed_count = sum(1 for f in findings if f.status in ["FAIL", "PARTIAL"])
     unknown_count = sum(1 for f in findings if f.status == "UNKNOWN")
-    total_evaluated = len(findings) if len(findings) > 0 else 60
+    total_evaluated = len(findings)
 
-    risk_score = risks[0].risk_score if len(risks) > 0 else (92.5 if failed_count > 20 else 25.0)
-    risk_priority = risks[0].priority if len(risks) > 0 else ("P0" if risk_score >= 80 else "P1" if risk_score >= 50 else "P2")
+    # Calculate real risk from fail findings if risks table not populated
+    crit_count = sum(1 for f in findings if (f.severity or "").upper() == "CRITICAL" and f.status in ["FAIL", "PARTIAL"])
+    high_count = sum(1 for f in findings if (f.severity or "").upper() == "HIGH" and f.status in ["FAIL", "PARTIAL"])
+    med_count = sum(1 for f in findings if (f.severity or "").upper() == "MEDIUM" and f.status in ["FAIL", "PARTIAL"])
+    low_count = sum(1 for f in findings if (f.severity or "").upper() == "LOW" and f.status in ["FAIL", "PARTIAL"])
+
+    if len(risks) > 0:
+        risk_score = risks[0].risk_score or 0.0
+        risk_priority = risks[0].priority or ("P0" if risk_score >= 80 else "P1" if risk_score >= 50 else "P2")
+    elif failed_count > 0:
+        dominant_sev = "CRITICAL" if crit_count > 0 else "HIGH" if high_count > 0 else "MEDIUM"
+        risk_score, risk_priority, _ = calculate_risk_score(
+            severity=dominant_sev,
+            exposure="MANAGEMENT_PLANE",
+            impact="HIGH" if dominant_sev in ["CRITICAL", "HIGH"] else "MEDIUM",
+            finding_count=failed_count,
+        )
+    else:
+        risk_score, risk_priority = 0.0, "P3"
+
+    comp_score = float(audit.score) if audit.score is not None else (round((passed_count / total_evaluated) * 100, 1) if total_evaluated > 0 else 0.0)
 
     security_posture = {
-        "compliance_score": audit.score or (round((passed_count / total_evaluated) * 100, 1) if total_evaluated > 0 else 20.0),
+        "compliance_score": comp_score,
         "risk_score": risk_score,
         "risk_priority": risk_priority,
         "likelihood": 0.85 if risk_score > 70 else 0.45,
@@ -124,55 +148,69 @@ async def generate_report(
         "passed_controls": passed_count,
         "failed_controls": failed_count,
         "unknown_controls": unknown_count,
-        "status": "HARDENED" if (audit.score or 0) >= 80 else "NEEDS_ATTENTION",
+        "status": "HARDENED" if comp_score >= 80 else "NEEDS_ATTENTION",
     }
 
     # Findings Breakdown
     findings_summary = {
         "total_findings": failed_count,
-        "critical": sum(1 for f in findings if f.severity == "CRITICAL" and f.status in ["FAIL", "PARTIAL"]),
-        "high": sum(1 for f in findings if f.severity == "HIGH" and f.status in ["FAIL", "PARTIAL"]),
-        "medium": sum(1 for f in findings if f.severity == "MEDIUM" and f.status in ["FAIL", "PARTIAL"]),
-        "low": sum(1 for f in findings if f.severity == "LOW" and f.status in ["FAIL", "PARTIAL"]),
+        "critical": crit_count,
+        "high": high_count,
+        "medium": med_count,
+        "low": low_count,
         "top_failed_controls": [
             f.control_id for f in findings if f.status in ["FAIL", "PARTIAL"] and f.severity in ["CRITICAL", "HIGH"]
         ][:8],
     }
 
-    # Framework Coverage
+    # Real Framework Coverage
     fw_scores = summary_stats.get("framework_scores", {})
-    framework_coverage = {
-        "CIS": fw_scores.get("CIS", {"score": 20.0, "passed": 12, "failed": 48}),
-        "NIST": fw_scores.get("NIST", {"score": 25.0, "passed": 8, "failed": 24}),
-        "STIG": fw_scores.get("STIG", {"score": 18.0, "passed": 6, "failed": 26}),
-        "ISO": fw_scores.get("ISO", {"score": 30.0, "passed": 5, "failed": 11}),
-    }
+    framework_coverage = {}
+    for fw in ["CIS", "NIST", "STIG", "ISO"]:
+        fw_findings = [f for f in findings if (f.framework or "").upper() == fw]
+        fw_pass = sum(1 for f in fw_findings if f.status == "PASS")
+        fw_fail = sum(1 for f in fw_findings if f.status in ["FAIL", "PARTIAL"])
+        fw_tot = len(fw_findings)
+        fw_pct = round((fw_pass / fw_tot) * 100, 1) if fw_tot > 0 else 0.0
+        if isinstance(fw_scores.get(fw), dict):
+            framework_coverage[fw] = fw_scores[fw]
+        else:
+            framework_coverage[fw] = {
+                "score": fw_pct,
+                "passed": fw_pass,
+                "failed": fw_fail,
+                "total": fw_tot,
+            }
 
     # Evidence Items (Redacted & Grounded)
-    evidence_items = [
-        {
-            "control_id": f.control_id,
-            "title": f.title,
-            "severity": f.severity,
-            "framework": f.framework,
-            "source_line": (f.finding_metadata.get("source_line") if isinstance(f.finding_metadata, dict) else None) or (16 if "SSH" in f.control_id else 11 if "AAA" in f.control_id else 17),
-            "evidence_text": redact_sensitive_data(f.evidence or "Observed directive"),
-            "why_it_failed": f.description or f"Configuration directive violates baseline standard {f.control_id}.",
-        }
-        for f in findings if f.status in ["FAIL", "PARTIAL"]
-    ][:10]
+    evidence_items = []
+    for f in findings:
+        if f.status in ["FAIL", "PARTIAL"]:
+            meta = f.finding_metadata if isinstance(f.finding_metadata, dict) else {}
+            src_lines = meta.get("source_lines") or []
+            src_line = src_lines[0] if src_lines else meta.get("source_line")
+            evidence_items.append({
+                "control_id": f.control_id,
+                "title": f.title,
+                "severity": f.severity,
+                "framework": f.framework,
+                "source_line": src_line,
+                "evidence_text": redact_sensitive_data(f.evidence or ""),
+                "why_it_failed": f.description or f"Configuration directive violates baseline standard {f.control_id}.",
+            })
+    evidence_items = evidence_items[:15]
 
     # Remediation Playbook (Allowlisted Proposal)
     remediation_items = [
         {
             "vendor": rm.vendor,
-            "control": rm.normalized_control or "CIS-1.2.1",
+            "control": rm.normalized_control or "SECURITY-CONTROL",
             "title": rm.title,
-            "commands": redact_sensitive_data(rm.remediation_commands or "ip ssh version 2"),
+            "commands": redact_sensitive_data(rm.remediation_commands or ""),
             "status": "ALLOWLISTED",
             "execution_status": "DISABLED (READ-ONLY ADVISORY)",
         }
-        for rm in rems[:6]
+        for rm in rems[:10]
     ]
 
     # Optional Security Time Machine Evolution Comparison
@@ -350,8 +388,8 @@ async def compare_audits(
     new_violations = sorted(list(r_fails - b_fails))
     unchanged_failures = sorted(list(b_fails & r_fails))
 
-    b_score = baseline.score or 20.0
-    r_score = remediated.score or 46.7
+    b_score = float(baseline.score) if baseline.score is not None else 0.0
+    r_score = float(remediated.score) if remediated.score is not None else 0.0
 
     return {
         "baseline_audit_id": baseline.id,

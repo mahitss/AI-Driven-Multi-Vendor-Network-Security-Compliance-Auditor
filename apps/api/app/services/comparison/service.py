@@ -31,6 +31,7 @@ from app.schemas.comparison import (
 )
 from app.services.remediation.catalog import find_remediation_template
 from app.services.compliance.catalog import compliance_catalog
+from app.services.risk.scoring import calculate_risk_score
 
 
 class SecurityTimeMachineService:
@@ -127,17 +128,42 @@ class SecurityTimeMachineService:
             p3=sum(1 for r in after_risks if r.priority == "P3"),
         )
 
-        # Calculate average risk score
-        before_risk_score = (
-            round(sum(r.risk_score for r in before_risks) / len(before_risks), 1)
-            if before_risks
-            else (92.5 if sum(1 for f in before_findings.values() if f.status == "FAIL") > 20 else 0.0)
-        )
-        after_risk_score = (
-            round(sum(r.risk_score for r in after_risks) / len(after_risks), 1)
-            if after_risks
-            else (41.0 if sum(1 for f in after_findings.values() if f.status == "FAIL") > 10 else 0.0)
-        )
+        # Calculate deterministic risk scores
+        if before_risks:
+            before_risk_score = round(sum(r.risk_score for r in before_risks) / len(before_risks), 1)
+        else:
+            b_fails_count = sum(1 for f in before_findings.values() if f.status == "FAIL")
+            b_crit = sum(1 for f in before_findings.values() if f.status == "FAIL" and (f.severity or "").upper() == "CRITICAL")
+            b_high = sum(1 for f in before_findings.values() if f.status == "FAIL" and (f.severity or "").upper() == "HIGH")
+            if b_fails_count > 0:
+                b_dom = "CRITICAL" if b_crit > 0 else ("HIGH" if b_high > 0 else "MEDIUM")
+                b_score_calc, _, _ = calculate_risk_score(
+                    severity=b_dom,
+                    exposure="MANAGEMENT_PLANE",
+                    impact="HIGH" if b_dom in ["CRITICAL", "HIGH"] else "MEDIUM",
+                    finding_count=b_fails_count,
+                )
+                before_risk_score = round(float(b_score_calc), 1)
+            else:
+                before_risk_score = 0.0
+
+        if after_risks:
+            after_risk_score = round(sum(r.risk_score for r in after_risks) / len(after_risks), 1)
+        else:
+            a_fails_count = sum(1 for f in after_findings.values() if f.status == "FAIL")
+            a_crit = sum(1 for f in after_findings.values() if f.status == "FAIL" and (f.severity or "").upper() == "CRITICAL")
+            a_high = sum(1 for f in after_findings.values() if f.status == "FAIL" and (f.severity or "").upper() == "HIGH")
+            if a_fails_count > 0:
+                a_dom = "CRITICAL" if a_crit > 0 else ("HIGH" if a_high > 0 else "MEDIUM")
+                a_score_calc, _, _ = calculate_risk_score(
+                    severity=a_dom,
+                    exposure="MANAGEMENT_PLANE",
+                    impact="HIGH" if a_dom in ["CRITICAL", "HIGH"] else "MEDIUM",
+                    finding_count=a_fails_count,
+                )
+                after_risk_score = round(float(a_score_calc), 1)
+            else:
+                after_risk_score = 0.0
 
         # 6. Compute Control Transitions
         all_control_ids = sorted(list(set(before_findings.keys()) | set(after_findings.keys())))
@@ -552,8 +578,8 @@ class SecurityTimeMachineService:
                 vendor = cfg.detected_vendor if cfg else "cisco"
                 device_name = (cfg.original_filename if cfg else "DEVICE").replace(".cfg", "").replace(".conf", "").upper()
 
-                b_score = baseline.score or 20.0
-                r_score = latest.score or 60.0
+                b_score = float(baseline.score) if baseline.score is not None else 0.0
+                r_score = float(latest.score) if latest.score is not None else 0.0
                 delta = round(r_score - b_score, 1)
 
                 pairs.append(

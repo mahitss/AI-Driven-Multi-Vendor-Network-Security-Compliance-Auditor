@@ -46,6 +46,8 @@ import {
   Finding,
   ConfigurationItem,
   AnalysisReanalyzeResult,
+  reanalyzeAnalysis,
+  fetchAnalysisConfiguration,
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -229,34 +231,27 @@ function RemediationContent() {
   const handleReanalyze = async () => {
     setIsReanalyzing(true);
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      const targetConfigId = queryParamAnalysisId || linkedFinding?.configuration_id || (selectedRemediation as any)?.configuration_id;
+      if (!targetConfigId) {
+        throw new Error("No target configuration ID available for re-analysis.");
+      }
 
-      const mockResult: AnalysisReanalyzeResult = {
-        analysis_id: queryParamAnalysisId || "reanalysis_remediation",
-        status: "COMPLETED",
-        previous_fail_count: 39,
-        new_fail_count: 25,
-        previous_compliance_score: 20.0,
-        new_compliance_score: 46.7,
-        previous_risk_score: 92.5,
-        new_risk_score: 41.0,
-        resolved_controls: [linkedFinding?.control_id || "CIS-1.2.1", "CIS-1.2.2", "NIST-AC-17", "STIG-NET0400"],
-        findings_transition: [
-          {
-            control_id: linkedFinding?.control_id || "CIS-1.2.1",
-            framework: linkedFinding?.framework || "CIS",
-            title: linkedFinding?.title || "Ensure SSH Version 2 is enabled",
-            previous_status: "FAIL",
-            new_status: "PASS",
-            resolved: true,
-          },
-        ],
-      };
+      // Fetch active configuration text
+      const configData = await fetchAnalysisConfiguration(targetConfigId);
+      const raw = configData.raw_content || "";
 
-      setReanalyzeResult(mockResult);
+      // Append or replace the patch commands into configuration
+      const patchCommands = (selectedRemediation?.remediation_commands || linkedFinding?.remediation || "").trim();
+      const updatedContent = raw + (patchCommands ? `\n! Remediation patch applied\n${patchCommands}\n` : "");
+
+      // Execute real deterministic re-analysis on backend
+      const result = await reanalyzeAnalysis(targetConfigId, updatedContent);
+
+      setReanalyzeResult(result);
       setReanalyzeBannerVisible(true);
-      queryClient.invalidateQueries({ queryKey: ["remediations"] });
-      queryClient.invalidateQueries({ queryKey: ["all-findings-for-remediation"] });
+      queryClient.invalidateQueries({ queryKey: ["remediations", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["all-findings-for-remediation", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-overview-stats", user?.id] });
     } catch (err) {
       console.error("Re-analysis error:", err);
     } finally {

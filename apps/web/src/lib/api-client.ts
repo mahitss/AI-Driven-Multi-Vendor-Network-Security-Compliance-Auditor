@@ -1388,11 +1388,18 @@ export interface ReportDocument {
   status: string;
   created_at: string;
   sections: {
+    identity?: any;
     executive_summary?: any;
+    findings_summary?: any;
+    framework_coverage?: Record<string, any>;
     framework_breakdown?: Record<string, any>;
     top_risks?: any[];
     critical_findings?: any[];
     remediation_action_items?: any[];
+    security_evolution?: any;
+    evidence_items?: any[];
+    remediation_items?: any[];
+    [key: string]: any;
   };
   notes?: string;
 }
@@ -1858,6 +1865,8 @@ export interface AnalysisConfigurationContent {
   line_count: number;
   lines: Array<{ line: number; text: string }>;
   raw_text: string;
+  raw_content?: string;
+  remediated_text?: string;
 }
 
 export async function ingestAnalysis(
@@ -1946,7 +1955,22 @@ export async function fetchAnalysisConfiguration(
 ): Promise<AnalysisConfigurationContent> {
   const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/${analysisId}/configuration`);
   if (!res.ok) {
-    throw new Error(`Failed to fetch configuration: HTTP ${res.status}`);
+    // Fallback to configuration detail
+    try {
+      const cfg = await fetchConfigurationDetail(analysisId);
+      return {
+        analysis_id: cfg.id,
+        filename: cfg.original_filename,
+        vendor: cfg.detected_vendor,
+        hash: cfg.hash,
+        line_count: (cfg.raw_content || "").split("\n").length,
+        lines: (cfg.raw_content || "").split("\n").map((text, idx) => ({ line: idx + 1, text })),
+        raw_text: cfg.raw_content,
+        raw_content: cfg.raw_content,
+      };
+    } catch {
+      throw new Error(`Failed to fetch configuration: HTTP ${res.status}`);
+    }
   }
   return res.json();
 }

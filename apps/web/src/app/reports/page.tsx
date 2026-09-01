@@ -157,26 +157,8 @@ function ReportsContent() {
       });
       setComparisonResult(res);
     } catch (err) {
-      // Fallback deterministic comparison calculation if mock IDs used
-      const baselineAudit = audits.find((a) => a.id === compareBaselineId);
-      const remediatedAudit = audits.find((a) => a.id === compareRemediatedId);
-      const bScore = baselineAudit?.score || 20.0;
-      const rScore = remediatedAudit?.score || 46.7;
-
-      setComparisonResult({
-        baseline_audit_id: compareBaselineId,
-        remediated_audit_id: compareRemediatedId,
-        baseline_compliance_score: bScore,
-        remediated_compliance_score: rScore,
-        compliance_improvement: roundNumber(rScore - bScore, 1),
-        baseline_failed_count: 39,
-        remediated_failed_count: 25,
-        resolved_count: 14,
-        resolved_controls: ["CIS-1.2.1", "CIS-1.1.2", "NIST-AC-17", "STIG-NET0400"],
-        new_violations_count: 0,
-        new_violations: [],
-        unchanged_failures_count: 25,
-      });
+      console.error("Comparison execution error:", err);
+      setComparisonResult(null);
     } finally {
       setIsComparing(false);
     }
@@ -236,7 +218,7 @@ function ReportsContent() {
   };
 
   // Latest metrics
-  const latestCompliance = activeReport?.compliance_score ?? audits[0]?.score ?? 20.0;
+  const latestCompliance = activeReport?.compliance_score ?? audits[0]?.score ?? 0.0;
   const totalAuditsCount = audits.length;
 
   return (
@@ -291,25 +273,42 @@ function ReportsContent() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 font-mono print:hidden">
         <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
           <div className="text-[10px] text-[#667085] uppercase font-semibold">OVERALL COMPLIANCE</div>
-          <div className="text-2xl font-extrabold text-[#10B981] mt-1">{latestCompliance.toFixed(1)}%</div>
+          <div className="text-2xl font-extrabold text-[#10B981] mt-1">
+            {audits.length > 0 && latestCompliance !== undefined ? `${latestCompliance.toFixed(1)}%` : "—"}
+          </div>
           <div className="text-[10px] text-[#667085] font-sans mt-0.5">Across evaluated standards</div>
         </div>
 
         <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
           <div className="text-[10px] text-[#EF4444] uppercase font-semibold">RISK POSTURE</div>
-          <div className="text-2xl font-extrabold text-[#EF4444] mt-1">92.5 <span className="text-xs text-[#667085]">P0</span></div>
+          <div className="text-2xl font-extrabold text-[#EF4444] mt-1">
+            {audits.length > 0 ? (
+              <>
+                {Math.round(Math.max(0, 100 - latestCompliance))}{" "}
+                <span className="text-xs text-[#667085]">{latestCompliance < 50 ? "P0" : "P1"}</span>
+              </>
+            ) : (
+              "—"
+            )}
+          </div>
           <div className="text-[10px] text-[#667085] font-sans mt-0.5">Composite severity tier</div>
         </div>
 
         <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
           <div className="text-[10px] text-[#3B82F6] uppercase font-semibold">COMPLETED AUDITS</div>
-          <div className="text-2xl font-extrabold text-[#3B82F6] mt-1">{totalAuditsCount > 0 ? totalAuditsCount : "1"}</div>
+          <div className="text-2xl font-extrabold text-[#3B82F6] mt-1">{totalAuditsCount}</div>
           <div className="text-[10px] text-[#667085] font-sans mt-0.5">Persisted audit sessions</div>
         </div>
 
         <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
           <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">RESOLVED DELTA</div>
-          <div className="text-2xl font-extrabold text-[#F59E0B] mt-1">+14 <span className="text-xs text-[#667085]">CONTROLS</span></div>
+          <div className="text-2xl font-extrabold text-[#F59E0B] mt-1">
+            {comparisonResult ? (
+              <>+{comparisonResult.resolved_count} <span className="text-xs text-[#667085]">CONTROLS</span></>
+            ) : (
+              "—"
+            )}
+          </div>
           <div className="text-[10px] text-[#667085] font-sans mt-0.5">Post-remediation verified</div>
         </div>
       </div>
@@ -438,36 +437,46 @@ function ReportsContent() {
               <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3">
                 <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
                   <div className="font-bold text-sm text-white font-sans">
-                    CORE-RTR-01 • Cisco IOS Edge Router
+                    {activeReport?.sections?.identity?.filename || activeReport?.title || "Target Network Device Configuration"}
                   </div>
                   <span className="px-2.5 py-0.5 rounded text-xs font-black bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
-                    P0 CRITICAL EXPOSURE
+                    {activeReport?.sections?.executive_summary?.risk_priority || (latestCompliance < 50 ? "P0 CRITICAL" : "P1 HIGH")} EXPOSURE
                   </span>
                 </div>
 
                 <p className="text-xs text-[#A7B0C0] font-sans leading-relaxed">
-                  NetVigil evaluated the target configuration against baseline security controls across CIS Benchmarks, NIST SP 800-53, DISA STIG, and ISO/IEC 27001. The configuration demonstrates severe remote management vulnerabilities, cleartext authentication protocols, and disabled auditing directives requiring remediation.
+                  NetVigil evaluated the target configuration against baseline security controls across CIS Benchmarks, NIST SP 800-53, DISA STIG, and ISO/IEC 27001. All findings, line evidence, and risk metrics are computed deterministically from active configuration directives.
                 </p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
                   <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
                     <div className="text-[10px] text-[#667085]">COMPLIANCE SCORE</div>
-                    <div className="text-xl font-extrabold text-[#10B981] mt-0.5">{latestCompliance.toFixed(1)}%</div>
+                    <div className="text-xl font-extrabold text-[#10B981] mt-0.5">
+                      {(activeReport?.sections?.executive_summary?.compliance_score ?? latestCompliance).toFixed(1)}%
+                    </div>
                   </div>
 
                   <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
                     <div className="text-[10px] text-[#667085]">RISK SCORE</div>
-                    <div className="text-xl font-extrabold text-[#EF4444] mt-0.5">92.5 / 100</div>
+                    <div className="text-xl font-extrabold text-[#EF4444] mt-0.5">
+                      {activeReport?.sections?.executive_summary?.risk_score !== undefined
+                        ? activeReport.sections.executive_summary.risk_score.toFixed(1)
+                        : (100 - latestCompliance).toFixed(1)} / 100
+                    </div>
                   </div>
 
                   <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
                     <div className="text-[10px] text-[#667085]">FAILED CONTROLS</div>
-                    <div className="text-xl font-extrabold text-[#F59E0B] mt-0.5">39 Controls</div>
+                    <div className="text-xl font-extrabold text-[#F59E0B] mt-0.5">
+                      {activeReport?.sections?.executive_summary?.failed_controls ?? activeReport?.sections?.findings_summary?.total_findings ?? 0} Controls
+                    </div>
                   </div>
 
                   <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
                     <div className="text-[10px] text-[#667085]">CRITICAL FINDINGS</div>
-                    <div className="text-xl font-extrabold text-[#EF4444] mt-0.5">6 P0 Findings</div>
+                    <div className="text-xl font-extrabold text-[#EF4444] mt-0.5">
+                      {activeReport?.sections?.findings_summary?.critical ?? 0} P0 Findings
+                    </div>
                   </div>
                 </div>
               </div>
@@ -507,29 +516,25 @@ function ReportsContent() {
                 3. MULTI-FRAMEWORK COVERAGE & COMPLIANCE BREAKDOWN
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1.5">
-                  <div className="text-[10px] text-[#667085] uppercase font-bold">CIS BENCHMARK</div>
-                  <div className="text-lg font-black text-[#10B981]">20.0%</div>
-                  <div className="text-[10px] text-[#A7B0C0]">12 Passed • 48 Failed</div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1.5">
-                  <div className="text-[10px] text-[#667085] uppercase font-bold">NIST SP 800-53</div>
-                  <div className="text-lg font-black text-[#10B981]">25.0%</div>
-                  <div className="text-[10px] text-[#A7B0C0]">8 Passed • 24 Failed</div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1.5">
-                  <div className="text-[10px] text-[#667085] uppercase font-bold">DISA STIG</div>
-                  <div className="text-lg font-black text-[#10B981]">18.8%</div>
-                  <div className="text-[10px] text-[#A7B0C0]">6 Passed • 26 Failed</div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1.5">
-                  <div className="text-[10px] text-[#667085] uppercase font-bold">ISO/IEC 27001</div>
-                  <div className="text-lg font-black text-[#10B981]">31.2%</div>
-                  <div className="text-[10px] text-[#A7B0C0]">5 Passed • 11 Failed</div>
-                </div>
+                {["CIS", "NIST", "STIG", "ISO"].map((fw) => {
+                  const fwData = activeReport?.sections?.framework_coverage?.[fw];
+                  const fwScore = fwData?.score !== undefined ? `${Number(fwData.score).toFixed(1)}%` : (latestCompliance > 0 ? `${latestCompliance.toFixed(1)}%` : "—");
+                  const fwPassed = fwData?.passed !== undefined ? `${fwData.passed} Passed` : "Evaluated";
+                  const fwFailed = fwData?.failed !== undefined ? `${fwData.failed} Failed` : "Controls";
+                  const labelMap: Record<string, string> = {
+                    CIS: "CIS BENCHMARKS",
+                    NIST: "NIST SP 800-53",
+                    STIG: "DISA STIG",
+                    ISO: "ISO/IEC 27001",
+                  };
+                  return (
+                    <div key={fw} className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1.5">
+                      <div className="text-[10px] text-[#667085] uppercase font-bold">{labelMap[fw] || fw}</div>
+                      <div className="text-lg font-black text-[#10B981]">{fwScore}</div>
+                      <div className="text-[10px] text-[#A7B0C0]">{fwPassed} • {fwFailed}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -610,22 +615,54 @@ function ReportsContent() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                   <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
                     <div className="text-[9px] text-[#667085]">COMPLIANCE DELTA</div>
-                    <div className="text-sm font-bold text-[#10B981] mt-0.5">20.0% → 46.7% (+26.7%)</div>
+                    <div className="text-sm font-bold text-[#10B981] mt-0.5">
+                      {activeReport?.sections?.security_evolution ? (
+                        `${activeReport.sections.security_evolution.before_compliance_score?.toFixed(1) || '0.0'}% → ${activeReport.sections.security_evolution.after_compliance_score?.toFixed(1) || '0.0'}%`
+                      ) : comparisonResult ? (
+                        `${comparisonResult.baseline_compliance_score.toFixed(1)}% → ${comparisonResult.remediated_compliance_score.toFixed(1)}%`
+                      ) : (
+                        `${latestCompliance.toFixed(1)}% (Baseline)`
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[9px] text-[#667085]">RISK REDUCTION</div>
-                    <div className="text-sm font-bold text-[#EF4444] mt-0.5">92.5 → 41.0 (-51.5)</div>
+                    <div className="text-[9px] text-[#667085]">RISK DELTA</div>
+                    <div className="text-sm font-bold text-[#EF4444] mt-0.5">
+                      {activeReport?.sections?.security_evolution ? (
+                        `${activeReport.sections.security_evolution.before_risk_score?.toFixed(1) || '0.0'} → ${activeReport.sections.security_evolution.after_risk_score?.toFixed(1) || '0.0'}`
+                      ) : comparisonResult ? (
+                        `${comparisonResult.compliance_improvement >= 0 ? '+' : ''}${comparisonResult.compliance_improvement.toFixed(1)}% Net Improvement`
+                      ) : (
+                        "Baseline Posture"
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
                     <div className="text-[9px] text-[#667085]">FAILED CONTROLS</div>
-                    <div className="text-sm font-bold text-[#F59E0B] mt-0.5">39 → 25 (-14)</div>
+                    <div className="text-sm font-bold text-[#F59E0B] mt-0.5">
+                      {activeReport?.sections?.security_evolution ? (
+                        `${activeReport.sections.security_evolution.before_failed_count ?? 0} → ${activeReport.sections.security_evolution.after_failed_count ?? 0}`
+                      ) : comparisonResult ? (
+                        `${comparisonResult.baseline_failed_count} → ${comparisonResult.remediated_failed_count}`
+                      ) : (
+                        `${activeReport?.sections?.executive_summary?.failed_controls ?? 0} Open`
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
                     <div className="text-[9px] text-[#667085]">RESOLVED STATUS</div>
-                    <div className="text-sm font-bold text-[#3B82F6] mt-0.5">14 CONTROLS PASS ✓</div>
+                    <div className="text-sm font-bold text-[#3B82F6] mt-0.5">
+                      {activeReport?.sections?.security_evolution ? (
+                        `${activeReport.sections.security_evolution.resolved_count ?? 0} CONTROLS RESOLVED`
+                      ) : comparisonResult ? (
+                        `${comparisonResult.resolved_count} CONTROLS PASS ✓`
+                      ) : (
+                        "Audit Baseline Recorded"
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -687,47 +724,60 @@ function ReportsContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1D2939]/60">
-                  {audits.map((a: AuditItem) => (
-                    <tr key={a.id} className="hover:bg-[#111827] transition-colors">
-                      <td className="p-3 font-bold text-white">
-                        CORE-RTR-01 (cisco-core-router.cfg)
-                      </td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded bg-[#0D121C] text-[#3B82F6] border border-[#3B82F6]/30 text-[10px] font-bold">
-                          CISCO IOS
-                        </span>
-                      </td>
-                      <td className="p-3 text-[#667085] font-mono truncate max-w-[140px]">
-                        e7785a819b32...
-                      </td>
-                      <td className="p-3 font-bold text-[#10B981]">
-                        {(a.score ?? 20.0).toFixed(1)}%
-                      </td>
-                      <td className="p-3 font-bold text-[#EF4444]">
-                        92.5 (P0)
-                      </td>
-                      <td className="p-3 text-[#667085] text-[10px]">
-                        {a.started_at ? new Date(a.started_at).toLocaleString() : "Recent"}
-                      </td>
-                      <td className="p-3 text-right space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedAuditId(a.id);
-                            setActiveTab("report");
-                          }}
-                          className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#151E2D] text-[#3B82F6] text-[11px] font-bold border border-[#1D2939]"
-                        >
-                          OPEN REPORT →
-                        </button>
-                        <Link
-                          href={`/findings?auditId=${a.id}`}
-                          className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#151E2D] text-white text-[11px] font-bold border border-[#1D2939]"
-                        >
-                          EVIDENCE →
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                  {audits.map((a: AuditItem) => {
+                    const matchedCfg = configurations.find((c) => c.id === a.configuration_id);
+                    const assetName = matchedCfg?.original_filename || a.device_id || `Audit #${a.id.slice(0, 8)}`;
+                    const assetVendor = (matchedCfg?.detected_vendor || (a as any).vendor || "CISCO").toUpperCase();
+                    const shaDisplay = matchedCfg?.hash ? `${matchedCfg.hash.slice(0, 16)}...` : `${a.id.slice(0, 12)}...`;
+                    const auditScore = a.score !== undefined && a.score !== null ? a.score.toFixed(1) : "0.0";
+                    const auditRisk = (a as any).risk_score !== undefined && (a as any).risk_score !== null
+                      ? `${(a as any).risk_score.toFixed(1)} (${(a as any).risk_priority || 'P1'})`
+                      : a.score !== undefined
+                      ? `${Math.max(0, 100 - a.score).toFixed(1)} (${a.score < 50 ? 'P0' : 'P1'})`
+                      : "0.0 (P3)";
+
+                    return (
+                      <tr key={a.id} className="hover:bg-[#111827] transition-colors">
+                        <td className="p-3 font-bold text-white">
+                          {assetName}
+                        </td>
+                        <td className="p-3">
+                          <span className="px-2 py-0.5 rounded bg-[#0D121C] text-[#3B82F6] border border-[#3B82F6]/30 text-[10px] font-bold">
+                            {assetVendor}
+                          </span>
+                        </td>
+                        <td className="p-3 text-[#667085] font-mono truncate max-w-[140px]" title={matchedCfg?.hash || a.id}>
+                          {shaDisplay}
+                        </td>
+                        <td className="p-3 font-bold text-[#10B981]">
+                          {auditScore}%
+                        </td>
+                        <td className="p-3 font-bold text-[#EF4444]">
+                          {auditRisk}
+                        </td>
+                        <td className="p-3 text-[#667085] text-[10px]">
+                          {a.started_at ? new Date(a.started_at).toLocaleString() : "Recent"}
+                        </td>
+                        <td className="p-3 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedAuditId(a.id);
+                              setActiveTab("report");
+                            }}
+                            className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#151E2D] text-[#3B82F6] text-[11px] font-bold border border-[#1D2939]"
+                          >
+                            OPEN REPORT →
+                          </button>
+                          <Link
+                            href={`/findings?auditId=${a.id}`}
+                            className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#151E2D] text-white text-[11px] font-bold border border-[#1D2939]"
+                          >
+                            EVIDENCE →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -755,7 +805,7 @@ function ReportsContent() {
               >
                 {audits.map((a) => (
                   <option key={a.id} value={a.id}>
-                    Baseline Run: {a.id.slice(0, 12)}... (Score: {a.score ?? 20.0}%)
+                    Baseline Run: {a.id.slice(0, 12)}... (Score: {(a.score ?? 0.0).toFixed(1)}%)
                   </option>
                 ))}
               </select>
@@ -770,7 +820,7 @@ function ReportsContent() {
               >
                 {audits.map((a) => (
                   <option key={a.id} value={a.id}>
-                    Remediated Run: {a.id.slice(0, 12)}... (Score: 46.7%)
+                    Remediated Run: {a.id.slice(0, 12)}... (Score: {(a.score ?? 0.0).toFixed(1)}%)
                   </option>
                 ))}
               </select>
@@ -886,7 +936,7 @@ function ReportsContent() {
                 >
                   {audits.map((a) => (
                     <option key={a.id} value={a.id}>
-                      Audit {a.id.slice(0, 12)}... (Compliance: {a.score ?? 20.0}%)
+                      Audit {a.id.slice(0, 12)}... (Compliance: {(a.score ?? 0.0).toFixed(1)}%)
                     </option>
                   ))}
                 </select>
