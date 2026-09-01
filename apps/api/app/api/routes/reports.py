@@ -43,7 +43,7 @@ class CompareAuditsRequest(BaseModel):
 @router.get("", summary="List all generated security audit reports")
 async def list_reports(current_user: CurrentUserDep) -> List[Dict[str, Any]]:
     """Returns list of generated compliance and remediation reports for current user."""
-    return [r for r in GENERATED_REPORTS if not r.get("user_id") or r.get("user_id") == current_user.id]
+    return [r for r in GENERATED_REPORTS if r.get("user_id") == current_user.id]
 
 
 @router.post("/generate", summary="Generate a new compliance audit report", status_code=status.HTTP_201_CREATED)
@@ -60,36 +60,30 @@ async def generate_report(
     # Target Audit
     audit = None
     if payload.audit_id:
-        audit_stmt = select(Audit).where(Audit.id == payload.audit_id)
-        if effective_user.id != "default_tenant":
-            audit_stmt = audit_stmt.where(or_(Audit.user_id == effective_user.id, Audit.user_id.is_(None)))
+        audit_stmt = select(Audit).where(Audit.id == payload.audit_id, Audit.user_id == effective_user.id)
         audit = (await db.execute(audit_stmt)).scalars().first()
     if not audit:
         # Get latest audit for current user
-        audit_stmt = select(Audit).order_by(desc(Audit.created_at))
-        if effective_user.id != "default_tenant":
-            audit_stmt = audit_stmt.where(or_(Audit.user_id == effective_user.id, Audit.user_id.is_(None)))
+        audit_stmt = select(Audit).where(Audit.user_id == effective_user.id).order_by(desc(Audit.created_at))
         audit = (await db.execute(audit_stmt)).scalars().first()
 
     if not audit:
         raise NotFoundError(message="No audit session available to generate report.")
 
-    cfg_stmt = select(Configuration).where(Configuration.id == audit.configuration_id)
-    if effective_user.id != "default_tenant":
-        cfg_stmt = cfg_stmt.where(or_(Configuration.user_id == effective_user.id, Configuration.user_id.is_(None)))
+    cfg_stmt = select(Configuration).where(Configuration.id == audit.configuration_id, Configuration.user_id == effective_user.id)
     cfg = (await db.execute(cfg_stmt)).scalars().first() if audit.configuration_id else None
     target_device = cfg.original_filename if cfg else "Network Gateway Asset"
 
     # Findings
-    findings_stmt = select(Finding).where(Finding.audit_id == audit.id).order_by(Finding.severity)
+    findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == effective_user.id).order_by(Finding.severity)
     findings = list((await db.execute(findings_stmt)).scalars().all())
 
     # Risks
-    risks_stmt = select(RiskItem).where(RiskItem.audit_id == audit.id).order_by(desc(RiskItem.risk_score))
+    risks_stmt = select(RiskItem).where(RiskItem.audit_id == audit.id, RiskItem.user_id == effective_user.id).order_by(desc(RiskItem.risk_score))
     risks = list((await db.execute(risks_stmt)).scalars().all())
 
     # Remediations
-    rems_stmt = select(RemediationProposal).where(RemediationProposal.audit_id == audit.id)
+    rems_stmt = select(RemediationProposal).where(RemediationProposal.audit_id == audit.id, RemediationProposal.user_id == effective_user.id)
     rems = list((await db.execute(rems_stmt)).scalars().all())
 
     # Audit Identity
@@ -324,7 +318,7 @@ async def export_report_file(
     format: str = Query("json", description="File format: json, markdown, md, or txt", pattern="^(json|markdown|md|txt)$"),
 ):
     """Returns report document with Content-Disposition: attachment header for native browser download."""
-    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id and (not r.get("user_id") or r.get("user_id") == current_user.id)), None)
+    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id and r.get("user_id") == current_user.id), None)
     if not report:
         raise NotFoundError(message=f"Report {report_id} not found.")
 
@@ -357,7 +351,7 @@ async def export_report_file(
 @router.get("/{report_id}", summary="Get full report document details")
 async def get_report_detail(report_id: str, current_user: CurrentUserDep) -> Dict[str, Any]:
     """Retrieves full report content and sections for current user."""
-    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id and (not r.get("user_id") or r.get("user_id") == current_user.id)), None)
+    report = next((r for r in GENERATED_REPORTS if r["id"] == report_id and r.get("user_id") == current_user.id), None)
     if not report:
         raise NotFoundError(message=f"Report {report_id} not found.")
     return report

@@ -284,7 +284,7 @@ async def list_comparable_pairs(
     current_user: CurrentUserDep,
 ) -> List[ComparableAuditPairItem]:
     """Retrieves configurations with multiple completed audits for instant comparison."""
-    return await SecurityTimeMachineService.list_comparable_pairs(db=db)
+    return await SecurityTimeMachineService.list_comparable_pairs(db=db, user_id=current_user.id)
 
 
 @router.get(

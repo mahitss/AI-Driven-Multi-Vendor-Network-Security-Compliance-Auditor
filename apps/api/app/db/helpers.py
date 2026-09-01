@@ -14,10 +14,10 @@ async def get_latest_audit_ids(db: AsyncSession, user_id: Optional[str] = None) 
     Returns the list of Audit IDs representing the most recent audit for each unique configuration,
     strictly isolated by the authenticated user_id.
     """
-    stmt = select(Audit.id, Audit.configuration_id)
-    if user_id:
-        stmt = stmt.where(Audit.user_id == user_id)
-    stmt = stmt.order_by(desc(Audit.created_at), desc(Audit.id))
+    if not user_id:
+        return []
+
+    stmt = select(Audit.id, Audit.configuration_id).where(Audit.user_id == user_id).order_by(desc(Audit.created_at), desc(Audit.id))
 
     audits_res = await db.execute(stmt)
     audit_rows = audits_res.all()
@@ -38,10 +38,10 @@ async def get_latest_audits(db: AsyncSession, user_id: Optional[str] = None) -> 
     Returns full Audit instances representing the most recent audit for each unique configuration,
     strictly isolated by the authenticated user_id.
     """
-    stmt = select(Audit)
-    if user_id:
-        stmt = stmt.where(Audit.user_id == user_id)
-    stmt = stmt.order_by(desc(Audit.created_at), desc(Audit.id))
+    if not user_id:
+        return []
+
+    stmt = select(Audit).where(Audit.user_id == user_id).order_by(desc(Audit.created_at), desc(Audit.id))
 
     audits_res = await db.execute(stmt)
     audits = list(audits_res.scalars().all())

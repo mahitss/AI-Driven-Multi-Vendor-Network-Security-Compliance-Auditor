@@ -6,6 +6,7 @@ Strict Security Invariants:
 1. OpenRouter is the sole external AI provider.
 2. AI is an advisory layer only. Deterministic compliance results cannot be overridden by AI.
 3. Zero credentials or raw secrets are ever exposed in responses or logs.
+4. Strict multi-user tenant ownership verification on all resource explanations and assistants.
 """
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,10 +14,14 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import DatabaseDep
+from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.config import settings
 from app.core.errors import ResourceNotFoundError
+from app.models.audit import Audit
 from app.models.configuration import Configuration
+from app.models.finding import Finding
+from app.models.remediation import RemediationProposal
+from app.models.risk import RiskItem
 from app.schemas.ai import (
     AIHealthResponse,
     AuditAssistantQueryRequest,
@@ -149,12 +154,19 @@ async def get_ai_status() -> AIHealthResponse:
 async def explain_finding(
     finding_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> FindingExplanationResponse:
     """
     Generates an evidence-grounded explanation for a deterministic finding:
+    - Enforces authenticated user ownership on the finding.
     - Grounded strictly in verified configuration lines.
     - Preserves deterministic compliance status invariant.
     """
+    stmt = select(Finding).where(Finding.id == finding_id, Finding.user_id == current_user.id)
+    finding = (await db.execute(stmt)).scalars().first()
+    if not finding:
+        raise ResourceNotFoundError(resource="Finding", identifier=finding_id)
+
     return await FindingExplanationService.explain_finding(finding_id=finding_id, db=db)
 
 
@@ -167,12 +179,19 @@ async def query_audit_assistant(
     audit_id: str,
     payload: AuditAssistantQueryRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AuditAssistantQueryResponse:
     """
     Answers natural language queries about an active audit session:
+    - Enforces authenticated user ownership on the audit session.
     - Uses safe read-only tools to gather findings and scores.
     - Cites supporting finding control IDs.
     """
+    stmt = select(Audit).where(Audit.id == audit_id, Audit.user_id == current_user.id)
+    audit = (await db.execute(stmt)).scalars().first()
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
+
     return await AuditAssistantService.answer_query(
         query=payload.query,
         audit_id=audit_id,
@@ -209,8 +228,14 @@ async def interpret_syntax(
 async def explain_finding_direct(
     finding_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> FindingExplanationResponse:
-    """Direct alias for explain finding."""
+    """Direct alias for explain finding with tenant ownership check."""
+    stmt = select(Finding).where(Finding.id == finding_id, Finding.user_id == current_user.id)
+    finding = (await db.execute(stmt)).scalars().first()
+    if not finding:
+        raise ResourceNotFoundError(resource="Finding", identifier=finding_id)
+
     return await FindingExplanationService.explain_finding(finding_id=finding_id, db=db)
 
 
@@ -239,13 +264,19 @@ async def classify_syntax_direct(
 async def query_assistant_direct(
     payload: AuditAssistantQueryRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AuditAssistantQueryResponse:
-    """Direct alias for AI assistant query."""
+    """Direct alias for AI assistant query with tenant ownership check."""
     if not payload.audit_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="audit_id is required for grounded AI assistant query.",
         )
+    stmt = select(Audit).where(Audit.id == payload.audit_id, Audit.user_id == current_user.id)
+    audit = (await db.execute(stmt)).scalars().first()
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=payload.audit_id)
+
     return await AuditAssistantService.answer_query(
         query=payload.query,
         audit_id=payload.audit_id,
@@ -261,8 +292,14 @@ async def query_assistant_direct(
 async def explain_risk(
     risk_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> RiskExplanationResponse:
-    """Generates an evidence-grounded advisory explanation for prioritized risk intelligence."""
+    """Generates an evidence-grounded advisory explanation for prioritized risk intelligence with tenant check."""
+    stmt = select(RiskItem).where(RiskItem.id == risk_id, RiskItem.user_id == current_user.id)
+    risk = (await db.execute(stmt)).scalars().first()
+    if not risk:
+        raise ResourceNotFoundError(resource="RiskItem", identifier=risk_id)
+
     return await RiskExplanationService.explain_risk(risk_id=risk_id, db=db)
 
 
@@ -274,8 +311,14 @@ async def explain_risk(
 async def explain_remediation(
     remediation_id: str,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> RemediationExplanationResponse:
-    """Generates an evidence-grounded advisory explanation for a static remediation proposal."""
+    """Generates an evidence-grounded advisory explanation for a static remediation proposal with tenant check."""
+    stmt = select(RemediationProposal).where(RemediationProposal.id == remediation_id, RemediationProposal.user_id == current_user.id)
+    prop = (await db.execute(stmt)).scalars().first()
+    if not prop:
+        raise ResourceNotFoundError(resource="RemediationProposal", identifier=remediation_id)
+
     return await RemediationExplanationService.explain_remediation(remediation_id=remediation_id, db=db)
 
 
@@ -287,13 +330,26 @@ async def explain_remediation(
 async def generate_ai_security_briefing(
     payload: AISecurityBriefingRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> AISecurityBriefingResponse:
     """
     Generates a structured, evidence-grounded AI Security Briefing for an audit session:
+    - Enforces authenticated user ownership on the target audit.
     - Synthesizes posture summary, top risks, attack surface, and security evolution deltas.
     - Grounded strictly in deterministic AST findings and verified configuration lines.
     - Zero ability to modify compliance scores or PASS/FAIL verdicts.
     """
+    stmt = select(Audit).where(Audit.id == payload.audit_id, Audit.user_id == current_user.id)
+    audit = (await db.execute(stmt)).scalars().first()
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=payload.audit_id)
+
+    if payload.baseline_audit_id:
+        b_stmt = select(Audit).where(Audit.id == payload.baseline_audit_id, Audit.user_id == current_user.id)
+        b_audit = (await db.execute(b_stmt)).scalars().first()
+        if not b_audit:
+            raise ResourceNotFoundError(resource="Baseline Audit", identifier=payload.baseline_audit_id)
+
     return await AISecurityBriefingService.generate_briefing(
         audit_id=payload.audit_id,
         baseline_audit_id=payload.baseline_audit_id,
@@ -309,10 +365,22 @@ async def generate_ai_security_briefing(
 )
 async def get_ai_security_briefing_by_audit(
     audit_id: str,
+    db: DatabaseDep,
+    current_user: CurrentUserDep,
     baseline_audit_id: Optional[str] = None,
-    db: DatabaseDep = None,
 ) -> AISecurityBriefingResponse:
-    """Direct alias to generate AI Security Briefing for an audit ID."""
+    """Direct alias to generate AI Security Briefing for an audit ID with tenant ownership check."""
+    stmt = select(Audit).where(Audit.id == audit_id, Audit.user_id == current_user.id)
+    audit = (await db.execute(stmt)).scalars().first()
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=audit_id)
+
+    if baseline_audit_id:
+        b_stmt = select(Audit).where(Audit.id == baseline_audit_id, Audit.user_id == current_user.id)
+        b_audit = (await db.execute(b_stmt)).scalars().first()
+        if not b_audit:
+            raise ResourceNotFoundError(resource="Baseline Audit", identifier=baseline_audit_id)
+
     return await AISecurityBriefingService.generate_briefing(
         audit_id=audit_id,
         baseline_audit_id=baseline_audit_id,
@@ -328,13 +396,26 @@ async def get_ai_security_briefing_by_audit(
 async def chat_analyst_copilot(
     payload: CopilotChatRequest,
     db: DatabaseDep,
+    current_user: CurrentUserDep,
 ) -> CopilotChatResponse:
     """
     Natural-language question answering for SOC security engineers:
+    - Enforces authenticated user ownership on the target audit.
     - Grounded strictly in active audit findings and configuration lines.
     - Formats citations as [EVIDENCE · LINE X] linking directly to AST proofs.
     - Strictly advisory; zero device write capability.
     """
+    stmt = select(Audit).where(Audit.id == payload.audit_id, Audit.user_id == current_user.id)
+    audit = (await db.execute(stmt)).scalars().first()
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit", identifier=payload.audit_id)
+
+    if payload.baseline_audit_id:
+        b_stmt = select(Audit).where(Audit.id == payload.baseline_audit_id, Audit.user_id == current_user.id)
+        b_audit = (await db.execute(b_stmt)).scalars().first()
+        if not b_audit:
+            raise ResourceNotFoundError(resource="Baseline Audit", identifier=payload.baseline_audit_id)
+
     return await AISecurityBriefingService.chat_copilot(
         query=payload.query,
         audit_id=payload.audit_id,
@@ -342,5 +423,3 @@ async def chat_analyst_copilot(
         chat_history=payload.chat_history,
         db=db,
     )
-
-

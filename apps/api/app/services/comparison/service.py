@@ -546,17 +546,20 @@ class SecurityTimeMachineService:
         return events
 
     @classmethod
-    async def list_comparable_pairs(cls, db: AsyncSession) -> List[ComparableAuditPairItem]:
+    async def list_comparable_pairs(
+        cls,
+        db: AsyncSession,
+        user_id: Optional[str] = None,
+    ) -> List[ComparableAuditPairItem]:
         """
-        Lists chronological candidate audit pairs for configurations that have multiple completed audits.
+        Lists chronological candidate audit pairs for configurations that have multiple completed audits,
+        strictly scoped to the authenticated user.
         """
-        # Fetch all completed audits ordered by created_at desc
-        stmt = (
-            select(Audit)
-            .where(Audit.status == "COMPLETED")
-            .order_by(desc(Audit.created_at))
-            .limit(100)
-        )
+        # Fetch all completed audits for this user ordered by created_at desc
+        stmt = select(Audit).where(Audit.status == "COMPLETED")
+        if user_id:
+            stmt = stmt.where(Audit.user_id == user_id)
+        stmt = stmt.order_by(desc(Audit.created_at)).limit(100)
         res = await db.execute(stmt)
         audits = list(res.scalars().all())
 
