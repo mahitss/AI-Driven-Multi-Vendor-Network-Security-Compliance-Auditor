@@ -3,6 +3,7 @@ Compliance Catalog Service
 Problem Statement: SIH26155 (NTRO)
 
 Loads, validates, and indexes data-driven compliance rules for CIS, NIST, DISA STIG, and ISO 27001.
+Restores deterministic multi-vendor evaluation isolation and vendor applicability filtering.
 """
 import json
 import os
