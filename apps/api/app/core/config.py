@@ -83,7 +83,7 @@ class Settings(BaseSettings):
 
     # Supabase Authentication & Identity Gateway Settings
     SUPABASE_URL: str = "https://cveymgeivgnjnwnxfveu.supabase.co"
-    SUPABASE_ANON_KEY: str = ""
+    SUPABASE_ANON_KEY: str = "sb_publishable_-OjNhAi0G1ARbRjZEuZ3zQ_TM5pS0hN"
     SUPABASE_JWT_SECRET: str = ""
     AUTH_ENABLED: bool = True
     AUTH_AUDIENCE: str = "authenticated"

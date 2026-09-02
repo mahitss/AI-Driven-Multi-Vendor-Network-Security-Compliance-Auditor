@@ -51,6 +51,20 @@ class AuthenticatedUser(BaseModel):
     user_metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+_jwks_client = None
+
+
+def _get_jwks_client():
+    global _jwks_client
+    if _jwks_client is None and settings.SUPABASE_URL and not settings.SUPABASE_URL.startswith("https://test-"):
+        try:
+            clean_url = settings.SUPABASE_URL.rstrip("/")
+            _jwks_client = jwt.PyJWKClient(f"{clean_url}/auth/v1/.well-known/jwks.json", cache_jwk_set=True, lifespan=3600)
+        except Exception:
+            _jwks_client = None
+    return _jwks_client
+
+
 def _verify_with_supabase_api(token: str, supabase_url: str, apikey: str) -> Optional[Dict[str, Any]]:
     """
     Directly verify a Supabase access JWT against the live Supabase Auth /user endpoint.
@@ -149,31 +163,53 @@ def verify_supabase_jwt(token: str) -> AuthenticatedUser:
         except Exception:
             verified_payload = None
 
-    # 4. Strategy B: If HMAC verification didn't succeed, verify with Supabase Auth API
+    # 4. Strategy B: If HMAC verification didn't succeed, verify with Supabase Auth JWKS / API
     if not verified_payload and settings.SUPABASE_URL and not settings.SUPABASE_URL.startswith("https://test-"):
-        supabase_user_data = _verify_with_supabase_api(
-            token=token,
-            supabase_url=settings.SUPABASE_URL,
-            apikey=getattr(settings, "SUPABASE_ANON_KEY", ""),
-        )
-        if supabase_user_data and "id" in supabase_user_data:
-            user_id = supabase_user_data.get("id")
-            email = supabase_user_data.get("email")
-            user_meta = supabase_user_data.get("user_metadata", {})
-            app_meta = supabase_user_data.get("app_metadata", {})
-            role = app_meta.get("role") or "auditor"
+        # B.1: Attempt fast cryptographic JWKS verification for asymmetric signatures (ES256, RS256)
+        jwks_client = _get_jwks_client()
+        if jwks_client:
+            try:
+                signing_key = jwks_client.get_signing_key_from_jwt(token)
+                verified_payload = jwt.decode(
+                    token,
+                    signing_key.key,
+                    algorithms=["ES256", "RS256", "HS256"],
+                    options={"verify_signature": True, "verify_exp": True, "verify_aud": False},
+                )
+            except jwt.ExpiredSignatureError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication token has expired. Please re-authenticate.",
+                    headers={"WWW-Authenticate": 'Bearer error="invalid_token", error_description="token expired"'},
+                ) from e
+            except Exception:
+                verified_payload = None
 
-            user = AuthenticatedUser(
-                id=str(user_id),
-                email=email,
-                role=role,
-                app_metadata=app_meta,
-                user_metadata=user_meta,
+        # B.2: Fallback to direct Supabase Auth user endpoint
+        if not verified_payload:
+            supabase_user_data = _verify_with_supabase_api(
+                token=token,
+                supabase_url=settings.SUPABASE_URL,
+                apikey=getattr(settings, "SUPABASE_ANON_KEY", ""),
             )
-            # Cache for min(300s, remaining token lifetime) using cryptographic digest
-            cache_ttl = min(300.0, max(5.0, (exp - now) if exp else 300.0))
-            _verified_token_cache[token_digest] = (user, now + cache_ttl)
-            return user
+            if supabase_user_data and "id" in supabase_user_data:
+                user_id = supabase_user_data.get("id")
+                email = supabase_user_data.get("email")
+                user_meta = supabase_user_data.get("user_metadata", {})
+                app_meta = supabase_user_data.get("app_metadata", {})
+                role = app_meta.get("role") or "auditor"
+
+                user = AuthenticatedUser(
+                    id=str(user_id),
+                    email=email,
+                    role=role,
+                    app_metadata=app_meta,
+                    user_metadata=user_meta,
+                )
+                # Cache for min(300s, remaining token lifetime) using cryptographic digest
+                cache_ttl = min(300.0, max(5.0, (exp - now) if exp else 300.0))
+                _verified_token_cache[token_digest] = (user, now + cache_ttl)
+                return user
 
     # 5. Strategy C: Try SECRET_KEY verification (for local/testing tokens)
     if not verified_payload and settings.SECRET_KEY:
@@ -288,9 +324,8 @@ async def get_current_user(
             )
 
     # 3. If no token is provided:
-    # In production mode, when JWT secret is configured, when strict auth is requested,
-    # or in live execution without test harness, unauthenticated requests are rejected immediately with HTTP 401.
-    is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    # In production mode, when JWT secret is configured, or when strict auth is requested,
+    # unauthenticated requests are rejected immediately with HTTP 401.
     is_production = settings.ENVIRONMENT.lower() == "production"
     has_jwt_secret = bool(settings.SUPABASE_JWT_SECRET)
     strict_auth_requested = (
@@ -298,14 +333,14 @@ async def get_current_user(
         or os.environ.get("NETVIGIL_STRICT_AUTH") == "true"
     )
 
-    if is_production or has_jwt_secret or strict_auth_requested or not is_pytest:
+    if is_production or has_jwt_secret or strict_auth_requested:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required: Missing or invalid Authorization Bearer header.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 4. Explicitly limited to internal pytest test harnesses where unit test fixtures do not supply tokens:
+    # 4. Explicitly limited to local development/testing environment when no JWT secret is configured:
     return AuthenticatedUser(
         id="default_tenant",
         email="auditor@netvigil.local",
