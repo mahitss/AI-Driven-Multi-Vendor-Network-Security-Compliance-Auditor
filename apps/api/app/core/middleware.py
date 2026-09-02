@@ -210,9 +210,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     - X-Content-Type-Options: nosniff
     - X-Frame-Options: DENY
     - Referrer-Policy: strict-origin-when-cross-origin
-    - Permissions-Policy: camera=(), microphone=(), geolocation=()
+    - Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=()
     - X-XSS-Protection: 1; mode=block
     - Content-Security-Policy: default-src 'self'; frame-ancestors 'none'; object-src 'none';
+    - Cross-Origin-Resource-Policy: cross-origin
+    - Cache-Control: no-store, no-cache, must-revalidate (for API endpoints)
     - Strict-Transport-Security: max-age=31536000; includeSubDomains (production/HTTPS)
     """
 
@@ -221,9 +223,19 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=()"
+        )
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; object-src 'none';"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+
+        # Multi-tenant cache isolation: API responses containing sensitive user/audit data must never be cached by shared proxies
+        if request.url.path.startswith(settings.API_PREFIX):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+
         if settings.ENVIRONMENT == "production" or request.url.scheme == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 

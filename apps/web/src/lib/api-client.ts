@@ -379,23 +379,32 @@ export interface OverviewStats {
 }
 
 export function getApiBase(): string {
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    process.env.NEXT_PUBLIC_APP_ENV === "production";
+
   // 1. Check explicit environment variables (NEXT_PUBLIC_API_URL or NEXT_PUBLIC_API_BASE_URL)
   const custom =
     process.env.NEXT_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
     process.env.API_BASE_URL;
   if (custom && custom.trim()) {
-    const trimmed = custom.trim().replace(/\/$/, "");
+    let trimmed = custom.trim().replace(/\/$/, "");
+    if (
+      isProduction &&
+      trimmed.startsWith("http://") &&
+      !trimmed.includes("localhost") &&
+      !trimmed.includes("127.0.0.1")
+    ) {
+      trimmed = trimmed.replace("http://", "https://");
+    }
     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
       return trimmed;
     }
   }
 
   // 2. In production mode (Vercel deployment), default to the live Render backend
-  if (
-    process.env.NODE_ENV === "production" ||
-    process.env.NEXT_PUBLIC_APP_ENV === "production"
-  ) {
+  if (isProduction) {
     return "https://ai-driven-multi-vendor-network-security.onrender.com";
   }
 
