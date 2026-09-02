@@ -562,9 +562,9 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                       <div>
                         <div className="text-[11px] font-mono text-[#667085] uppercase mb-1 flex items-center justify-between">
                           <span>ACTUAL CONFIGURATION (EVIDENCE)</span>
-                          {selectedFinding.evidence_lines.length > 0 && (
+                          {selectedFinding.evidence_lines.length > 0 && selectedFinding.evidence_lines[0].line > 0 && (
                             <span className="text-[#3B82F6] font-mono text-[10px]">
-                              Cisco IOS Line {selectedFinding.evidence_lines[0].line}
+                              {(statusData?.vendor || "Device").toUpperCase()} Line {selectedFinding.evidence_lines[0].line}
                             </span>
                           )}
                         </div>

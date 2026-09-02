@@ -509,7 +509,9 @@ export default function SecurityOperationsPage() {
                   </div>
                   <div>
                     <span className="text-[#667085] text-[10px] block uppercase">ASSET TARGET</span>
-                    <span className="font-bold text-[#3B82F6]">CORE-RTR-01 (Cisco IOS)</span>
+                    <span className="font-bold text-[#3B82F6] truncate block">
+                      {(selectedFinding as any)?.device_name || devices[0]?.hostname || "Monitored Asset"} {((selectedFinding as any)?.vendor || devices[0]?.vendor ? `(${((selectedFinding as any)?.vendor || devices[0]?.vendor).toUpperCase()})` : "")}
+                    </span>
                   </div>
                 </div>
 
@@ -525,16 +527,21 @@ export default function SecurityOperationsPage() {
                     <Terminal className="w-3.5 h-3.5 text-[#3B82F6]" />
                     <span className="text-white font-bold">Cited Configuration Evidence</span>
                   </div>
-                  <span className="text-[#EF4444] font-bold">LINE 17 PROOF</span>
+                  <span className="text-[#EF4444] font-bold font-mono">
+                    {selectedFinding?.finding_metadata?.source_lines?.length
+                      ? `LINE ${selectedFinding.finding_metadata.source_lines.join(", ")} PROOF`
+                      : "EVIDENCE CITED"}
+                  </span>
                 </div>
 
                 <div className="p-3 text-[11px] font-mono leading-relaxed space-y-1.5 select-text">
-                  <div className="text-[#667085]">15 | username admin privilege 15 secret ********</div>
-                  <div className="text-[#667085]">16 | !</div>
-                  <div className="p-1.5 rounded bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-white font-bold">
-                    17 | ip ssh version 1  <span className="text-[#EF4444] ml-2">▲ VERIFIED EVIDENCE</span>
-                  </div>
-                  <div className="text-[#667085]">18 | ip http server</div>
+                  {selectedFinding?.evidence ? (
+                    <div className="p-2 rounded bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-white font-bold whitespace-pre-wrap">
+                      {selectedFinding.evidence} <span className="text-[#EF4444] ml-2 font-normal">▲ VERIFIED EVIDENCE</span>
+                    </div>
+                  ) : (
+                    <div className="text-[#667085] text-xs">No configuration evidence citation recorded for this event.</div>
+                  )}
                 </div>
 
                 <div className="p-2 bg-[#0D121C] border-t border-[#1D2939] flex items-center justify-between text-[10px] text-[#667085]">

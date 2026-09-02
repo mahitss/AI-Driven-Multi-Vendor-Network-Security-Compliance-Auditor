@@ -135,12 +135,11 @@ function FindingsContent() {
     return findings.find((f) => f.id === selectedFindingId) || findings[0];
   }, [findings, selectedFindingId]);
 
-  // 5. Fetch linked configuration
+  // 5. Fetch linked configuration strictly for this finding
   const selectedConfigId = useMemo(() => {
-    if (!selectedFinding) return configurations[0]?.id;
-    const linkedAudit = audits.find((a) => a.id === selectedFinding.audit_id);
-    return linkedAudit?.configuration_id || configurations[0]?.id;
-  }, [selectedFinding, audits, configurations]);
+    if (!selectedFinding) return undefined;
+    return (selectedFinding as any).configuration_id || audits.find((a) => a.id === selectedFinding.audit_id)?.configuration_id;
+  }, [selectedFinding, audits]);
 
   const {
     data: configDetail,
@@ -201,39 +200,7 @@ function FindingsContent() {
     if (configDetail?.raw_content) {
       return configDetail.raw_content.split("\n");
     }
-    // Fallback default canonical Cisco router lines if empty
-    return [
-      "! NetVigil Canonical Evaluated Profile",
-      "version 15.0",
-      "no service password-encryption",
-      "service finger",
-      "hostname CORE-RTR-01",
-      "!",
-      "no aaa new-model",
-      "username admin privilege 15 password 0 cisco123",
-      "enable password unencrypted_enable_pass",
-      "!",
-      "ip domain name internal.lab",
-      "ip ssh time-out 60",
-      "ip ssh authentication-retries 3",
-      "ip ssh version 1",
-      "ip http server",
-      "!",
-      "interface GigabitEthernet0/0",
-      " description UNTRUSTED-WAN",
-      " ip address 203.0.113.1 255.255.255.0",
-      " ip proxy-arp",
-      " ip directed-broadcast",
-      "!",
-      "line con 0",
-      " password consolepass",
-      "line vty 0 4",
-      " transport input telnet",
-      " password vtypass",
-      " login",
-      "!",
-      "end"
-    ];
+    return [];
   }, [configDetail]);
 
   // Auto-scroll evidence viewer to cited line
@@ -637,7 +604,7 @@ function FindingsContent() {
                     </div>
 
                     <div className="flex items-center justify-between text-[10px] text-[#667085] pt-1 border-t border-[#1D2939] font-mono">
-                      <span>{f.framework || "CIS"} • {(f as any).device_name || "CORE-RTR-01"}</span>
+                      <span>{f.framework || "CIS"} • {(f as any).device_name || "—"}</span>
                       <span className="text-[#EF4444] font-bold">LINE {citedLine}</span>
                     </div>
                   </button>
@@ -662,13 +629,13 @@ function FindingsContent() {
               <div>
                 <span className="text-[#667085] text-[9px] block uppercase font-mono">SOURCE CONFIGURATION</span>
                 <span className="font-bold text-[#F3F4F6] font-mono text-[11px] truncate block">
-                  {configDetail?.original_filename || "cisco-core-router.cfg"}
+                  {configDetail?.original_filename || (selectedFinding as any)?.device_name || "—"}
                 </span>
               </div>
               <div>
                 <span className="text-[#667085] text-[9px] block uppercase font-mono">DETECTED VENDOR</span>
                 <span className="font-bold text-[#3B82F6] font-mono text-[11px]">
-                  {configDetail?.detected_vendor ? configDetail.detected_vendor.toUpperCase() : "CISCO IOS"}
+                  {(configDetail?.detected_vendor || (selectedFinding as any)?.vendor || "—").toUpperCase()}
                 </span>
               </div>
             </div>
@@ -676,7 +643,7 @@ function FindingsContent() {
             <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[10px] text-[#667085] font-mono">
               <div className="flex items-center gap-1.5 truncate max-w-[200px]">
                 <Hash className="w-3 h-3 text-[#3B82F6]" />
-                <span className="truncate">{configDetail?.hash ? `${configDetail.hash.slice(0, 16)}...` : "e7785a819b32c..."}</span>
+                <span className="truncate">{configDetail?.hash ? `${configDetail.hash.slice(0, 16)}...` : "—"}</span>
               </div>
               <span className="font-bold text-[#EF4444]">
                 EVIDENCE CITED: LINE {evidenceLines.join(", ")}
@@ -689,7 +656,7 @@ function FindingsContent() {
             <div className="p-2 bg-[#0D121C] border-b border-[#1D2939] flex items-center justify-between text-[10px] text-[#667085] font-mono">
               <div className="flex items-center gap-2">
                 <FileCode2 className="w-3.5 h-3.5 text-[#3B82F6]" />
-                <span className="text-[#F3F4F6] font-semibold">{configDetail?.original_filename || "cisco-core-router.cfg"}</span>
+                <span className="text-[#F3F4F6] font-semibold">{configDetail?.original_filename || (selectedFinding as any)?.device_name || "—"}</span>
               </div>
               <span>{rawLines.length} lines</span>
             </div>
@@ -698,7 +665,14 @@ function FindingsContent() {
               ref={evidenceContainerRef}
               className="max-h-[560px] overflow-y-auto p-2 text-[11px] leading-relaxed select-text font-mono bg-[#080B12]"
             >
-              {rawLines.map((lineText, idx) => {
+              {rawLines.length === 0 ? (
+                <div className="py-16 text-center text-[#667085] space-y-1 font-mono">
+                  <FileCode2 className="w-8 h-8 text-[#667085] mx-auto mb-2 opacity-50" />
+                  <p className="font-semibold text-xs text-[#A7B0C0]">No configuration content loaded</p>
+                  <p className="text-[10px] text-[#667085]">Select a finding to inspect its line-level configuration proof.</p>
+                </div>
+              ) : (
+                rawLines.map((lineText, idx) => {
                 const lineNum = idx + 1;
                 const isEvidenceLine = evidenceLines.includes(lineNum);
 
@@ -732,7 +706,7 @@ function FindingsContent() {
                     </div>
                   </div>
                 );
-              })}
+              }))}
             </div>
           </div>
         </div>

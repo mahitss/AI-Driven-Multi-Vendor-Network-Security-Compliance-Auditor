@@ -48,7 +48,7 @@ class ComplianceRule(BaseModel):
     expected_value: Any
     explanation: str
     remediation_key: str
-    applicability: Optional[Dict[str, Any]] = None
+    applicability: Optional[Any] = None
     framework_mappings: Dict[str, FrameworkSourceMeta] = Field(default_factory=dict)
 
 

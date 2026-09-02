@@ -38,11 +38,11 @@ async def list_devices(
         # Extract hostname from normalized profile if available
         profile = c.normalized_profile or {}
         ident = profile.get("identity", {})
-        hostname = (
-            ident.get("hostname", {}).get("value")
-            if isinstance(ident.get("hostname"), dict)
-            else c.original_filename.replace(".cfg", "").replace(".conf", "")
-        ) or c.original_filename
+        raw_hostname = ident.get("hostname", {}).get("value") if isinstance(ident.get("hostname"), dict) else None
+        if raw_hostname and raw_hostname != "unknown-node":
+            hostname = raw_hostname
+        else:
+            hostname = c.original_filename.replace(".cfg", "").replace(".conf", "").replace(".set", "")
 
         if hostname in seen_hostnames:
             continue
@@ -103,11 +103,11 @@ async def get_device_detail(
 
     profile = config.normalized_profile or {}
     ident = profile.get("identity", {})
-    hostname = (
-        ident.get("hostname", {}).get("value")
-        if isinstance(ident.get("hostname"), dict)
-        else config.original_filename
-    ) or config.original_filename
+    raw_hostname = ident.get("hostname", {}).get("value") if isinstance(ident.get("hostname"), dict) else None
+    if raw_hostname and raw_hostname != "unknown-node":
+        hostname = raw_hostname
+    else:
+        hostname = config.original_filename.replace(".cfg", "").replace(".conf", "").replace(".set", "")
 
     # Latest Audit
     audit_stmt = select(Audit).where(Audit.configuration_id == config.id, Audit.user_id == current_user.id).order_by(desc(Audit.created_at))

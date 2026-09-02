@@ -127,7 +127,15 @@ class ComplianceCatalog:
                 continue
             # Check vendor applicability
             if vendor and r.applicability and r.applicability != "all":
-                if vendor.lower() not in r.applicability.lower():
+                allowed: List[str] = []
+                if isinstance(r.applicability, str):
+                    allowed = [v.strip().lower() for v in r.applicability.split(",")]
+                elif isinstance(r.applicability, list):
+                    allowed = [str(v).strip().lower() for v in r.applicability]
+                elif isinstance(r.applicability, dict):
+                    allowed = [str(v).strip().lower() for v in r.applicability.get("vendors", [])]
+
+                if allowed and vendor.lower() not in allowed:
                     continue
             matched.append(r)
         return matched

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import desc, select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import CurrentUserDep, DatabaseDep
-from app.core.errors import ResourceNotFoundError
+from app.core.errors import ResourceNotFoundError, ValidationError
 from app.models.audit import Audit
 from app.models.configuration import Configuration
 from app.models.device import Device

@@ -31,6 +31,15 @@ DEMO_FILENAMES = [
     "cisco-core-router.cfg",
     "juniper-edge-srx.conf",
     "fortinet-perimeter-fgt.conf",
+    "insecure-router.cfg",
+    "insecure-srx.conf",
+    "insecure-firewall.conf",
+    "secure-router.cfg",
+    "secure-srx.conf",
+    "secure-firewall.conf",
+    "mixed-router.cfg",
+    "unknown-directive-router.cfg",
+    "cisco_edge_router.cfg",
 ]
 
 
@@ -40,7 +49,10 @@ async def clean_demo_records(db: AsyncSession) -> int:
     without touching any genuine user-uploaded configurations or audit records.
     """
     demo_configs_res = await db.execute(
-        select(Configuration).where(Configuration.original_filename.in_(DEMO_FILENAMES))
+        select(Configuration).where(
+            (Configuration.original_filename.in_(DEMO_FILENAMES)) |
+            (Configuration.user_id.in_(["default_tenant", "demo", "demo_tenant", "legacy_demo"]))
+        )
     )
     demo_configs = list(demo_configs_res.scalars().all())
     if not demo_configs:

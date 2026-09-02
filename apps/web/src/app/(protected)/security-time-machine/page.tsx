@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   History,
@@ -81,9 +82,6 @@ export default function SecurityTimeMachinePage() {
       );
       setBeforeAuditId(sorted[0].id);
       setAfterAuditId(sorted[sorted.length - 1].id);
-    } else if (audits.length === 1 && !beforeAuditId && !afterAuditId) {
-      setBeforeAuditId(audits[0].id);
-      setAfterAuditId(audits[0].id);
     }
   }, [pairs, audits, beforeAuditId, afterAuditId]);
 
@@ -98,7 +96,7 @@ export default function SecurityTimeMachinePage() {
     }
   };
 
-  // 3. Fetch comparison data
+  // 3. Fetch comparison data (strictly between distinct audits)
   const {
     data: comparison,
     isLoading: comparisonLoading,
@@ -108,7 +106,7 @@ export default function SecurityTimeMachinePage() {
   } = useQuery<AuditComparisonResponse>({
     queryKey: ["audit-comparison", beforeAuditId, afterAuditId],
     queryFn: () => fetchAuditComparison(beforeAuditId, afterAuditId),
-    enabled: Boolean(beforeAuditId && afterAuditId),
+    enabled: Boolean(beforeAuditId && afterAuditId && beforeAuditId !== afterAuditId),
   });
 
   // Filtered transitions
@@ -273,6 +271,35 @@ export default function SecurityTimeMachinePage() {
               {(error as Error)?.message || "Failed to compare selected audits. Ensure both audits are COMPLETED."}
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Insufficient audits notice */}
+      {audits.length < 2 && !auditsLoading && (
+        <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center space-y-3 font-mono">
+          <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] mx-auto">
+            <History className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">HISTORICAL COMPARISON UNAVAILABLE</div>
+            <p className="text-xs text-[#667085] mt-1 max-w-md mx-auto">
+              At least two distinct audit sessions are required to evaluate security drift and remediation impact. Run another audit session to compare baselines.
+            </p>
+          </div>
+          <Link
+            href="/configurations?mode=ingest"
+            className="inline-block px-3.5 py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] text-[#3B82F6] border border-[#3B82F6]/40 text-xs font-semibold"
+          >
+            Ingest Configuration →
+          </Link>
+        </div>
+      )}
+
+      {/* Self-comparison notice */}
+      {beforeAuditId && afterAuditId && beforeAuditId === afterAuditId && (
+        <div className="p-4 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-xs text-[#F59E0B] flex items-center gap-2 font-mono">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>Please select two distinct audit sessions. Comparing an audit to itself is invalid.</span>
         </div>
       )}
 

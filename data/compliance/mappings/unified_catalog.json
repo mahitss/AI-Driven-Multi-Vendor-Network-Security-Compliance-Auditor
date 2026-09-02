@@ -44,7 +44,8 @@
         "reference": "Control A.9.4.2",
         "verified": true
       }
-    }
+    },
+    "applicability": "all"
   },
   {
     "id": "RULE-TELNET-001",
@@ -91,7 +92,8 @@
         "reference": "Control A.13.1.2",
         "verified": true
       }
-    }
+    },
+    "applicability": "all"
   },
   {
     "id": "RULE-HTTP-001",
@@ -138,7 +140,8 @@
         "reference": "Control A.13.1.1",
         "verified": true
       }
-    }
+    },
+    "applicability": "all"
   },
   {
     "id": "RULE-VTY-ACL-001",
@@ -185,7 +188,8 @@
         "reference": "Control A.9.1.2",
         "verified": true
       }
-    }
+    },
+    "applicability": "cisco"
   },
   {
     "id": "RULE-AAA-001",
@@ -232,7 +236,8 @@
         "reference": "Control A.9.2.1",
         "verified": true
       }
-    }
+    },
+    "applicability": "cisco"
   },
   {
     "id": "RULE-PWD-ENC-001",
@@ -279,7 +284,8 @@
         "reference": "Control A.10.1.1",
         "verified": true
       }
-    }
+    },
+    "applicability": "all"
   },
   {
     "id": "RULE-SECRET-001",
@@ -326,7 +332,8 @@
         "reference": "Control A.9.4.3",
         "verified": true
       }
-    }
+    },
+    "applicability": "cisco"
   },
   {
     "id": "RULE-LOG-REMOTE-001",
@@ -373,7 +380,8 @@
         "reference": "Control A.12.4.1",
         "verified": true
       }
-    }
+    },
+    "applicability": "all"
   },
   {
     "id": "RULE-LOG-TIME-001",
@@ -420,7 +428,8 @@
         "reference": "Control A.12.4.4",
         "verified": true
       }
-    }
+    },
+    "applicability": "cisco"
   },
   {
     "id": "RULE-NTP-001",
@@ -467,7 +476,8 @@
         "reference": "Control A.12.4.4",
         "verified": true
       }
-    }
+    },
+    "applicability": "all"
   },
   {
     "id": "RULE-BANNER-001",
@@ -514,7 +524,8 @@
         "reference": "Control A.9.4.2",
         "verified": true
       }
-    }
+    },
+    "applicability": "all"
   },
   {
     "id": "RULE-FINGER-001",
@@ -561,7 +572,8 @@
         "reference": "Control A.13.1.1",
         "verified": true
       }
-    }
+    },
+    "applicability": "cisco"
   },
   {
     "id": "RULE-SNMP-COMM-001",
@@ -608,7 +620,8 @@
         "reference": "Control A.9.4.3",
         "verified": true
       }
-    }
+    },
+    "applicability": "cisco"
   },
   {
     "id": "RULE-BPDU-GUARD-001",
@@ -655,7 +668,8 @@
         "reference": "Control A.13.1.1",
         "verified": true
       }
-    }
+    },
+    "applicability": "cisco"
   },
   {
     "id": "RULE-PROXY-ARP-001",
@@ -701,6 +715,266 @@
         "version": "2022",
         "reference": "Control A.13.1.1",
         "verified": true
+      }
+    },
+    "applicability": "cisco"
+  },
+  {
+    "id": "RULE-ACCOUNT-LOCKOUT-001",
+    "normalized_control_id": "NETSEC-AUTH-LOCKOUT",
+    "title": "Enforce Administrative Failed Login Lockout",
+    "description": "Network devices must lock administrative accounts after consecutive failed authentication attempts to prevent brute-force attacks.",
+    "category": "Authentication",
+    "severity": "HIGH",
+    "fact_path": "authentication.failed_login_lockout_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Unrestricted password attempts permit automated online password guessing and credential stuffing.",
+    "remediation_key": "enable_login_lockout",
+    "applicability": "fortinet,juniper",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.1.4",
+        "title": "Ensure login lockout threshold is configured",
+        "document": "CIS Network Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.1.4",
+        "verified": true,
+        "source_type": "official"
+      },
+      "NIST": {
+        "control_id": "NIST-AC-7",
+        "title": "Unsuccessful Logon Attempts",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AC-7",
+        "verified": true,
+        "source_type": "official"
+      },
+      "STIG": {
+        "control_id": "STIG-NET1630",
+        "title": "Device Account Lockout Policy",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1630-LOCKOUT",
+        "verified": true,
+        "source_type": "official"
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.4.2",
+        "title": "Secure Log-on Procedures",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.4.2",
+        "verified": true,
+        "source_type": "official"
+      }
+    }
+  },
+  {
+    "id": "RULE-SEC-CIPHERS-001",
+    "normalized_control_id": "NETSEC-CRYPTO-STRONG",
+    "title": "Enforce Strong Cryptographic Ciphers",
+    "description": "Administrative management protocols must employ modern, secure cryptographic ciphers and disable legacy weak algorithms.",
+    "category": "Remote Access",
+    "severity": "HIGH",
+    "fact_path": "remote_access.ssh_ciphers_secure.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Weak ciphers such as RC4, 3DES, or CBC-mode ciphers permit plaintext recovery via cryptanalytic side-channel attacks.",
+    "remediation_key": "enforce_strong_ciphers",
+    "applicability": "fortinet,juniper",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.2.4",
+        "title": "Ensure strong cryptographic ciphers are enabled",
+        "document": "CIS Network Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.2.4",
+        "verified": true,
+        "source_type": "official"
+      },
+      "NIST": {
+        "control_id": "NIST-SC-13",
+        "title": "Cryptographic Protection",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "SC-13",
+        "verified": true,
+        "source_type": "official"
+      },
+      "STIG": {
+        "control_id": "STIG-NET0420",
+        "title": "Enforce FIPS-Approved Cryptography",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0420-CRYPTO",
+        "verified": true,
+        "source_type": "official"
+      },
+      "ISO": {
+        "control_id": "ISO-A.10.1.1",
+        "title": "Policy on the Use of Cryptographic Controls",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.10.1.1",
+        "verified": true,
+        "source_type": "official"
+      }
+    }
+  },
+  {
+    "id": "RULE-INACTIVITY-TIMEOUT-001",
+    "normalized_control_id": "NETSEC-MGT-TIMEOUT",
+    "title": "Enforce Administrative Inactivity Timeout",
+    "description": "Idle administrative management sessions must automatically terminate after a maximum of 15 minutes of inactivity.",
+    "category": "Remote Access",
+    "severity": "MEDIUM",
+    "fact_path": "remote_access.inactivity_timeout_minutes.value",
+    "operator": "less_than_or_equal",
+    "expected_value": 15,
+    "explanation": "Unattended open management sessions create an immediate window of vulnerability for unauthorized local or network console takeover.",
+    "remediation_key": "set_inactivity_timeout",
+    "applicability": "fortinet,juniper",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.3.2",
+        "title": "Ensure administrator timeout is 15 minutes or less",
+        "document": "CIS Network Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.3.2",
+        "verified": true,
+        "source_type": "official"
+      },
+      "NIST": {
+        "control_id": "NIST-AC-12",
+        "title": "Session Terminate",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AC-12",
+        "verified": true,
+        "source_type": "official"
+      },
+      "STIG": {
+        "control_id": "STIG-NET0430",
+        "title": "Automatic Session Logout",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0430-TIMEOUT",
+        "verified": true,
+        "source_type": "official"
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.4.2",
+        "title": "Secure Log-on Procedures",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.4.2",
+        "verified": true,
+        "source_type": "official"
+      }
+    }
+  },
+  {
+    "id": "RULE-HTTPS-MGT-001",
+    "normalized_control_id": "NETSEC-MGT-HTTPS",
+    "title": "Enforce Encrypted HTTPS Administrative Management",
+    "description": "Web-based device management interfaces must strictly enforce TLS encryption (HTTPS) across all administrative access channels.",
+    "category": "Remote Access",
+    "severity": "HIGH",
+    "fact_path": "remote_access.https_server_enabled.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Plaintext HTTP management exposes administrative credentials, API tokens, and device configurations to passive network inspection.",
+    "remediation_key": "enable_https_management",
+    "applicability": "fortinet,juniper",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-1.2.5",
+        "title": "Ensure web administration uses HTTPS",
+        "document": "CIS Network Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 1.2.5",
+        "verified": true,
+        "source_type": "official"
+      },
+      "NIST": {
+        "control_id": "NIST-AC-17",
+        "title": "Remote Access - Encrypted Channels",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "AC-17",
+        "verified": true,
+        "source_type": "official"
+      },
+      "STIG": {
+        "control_id": "STIG-NET0410",
+        "title": "Enforce TLS Management",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET0410-HTTPS",
+        "verified": true,
+        "source_type": "official"
+      },
+      "ISO": {
+        "control_id": "ISO-A.9.4.2",
+        "title": "Secure Log-on Procedures",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.9.4.2",
+        "verified": true,
+        "source_type": "official"
+      }
+    }
+  },
+  {
+    "id": "RULE-DEFAULT-DROP-001",
+    "normalized_control_id": "NETSEC-ACL-DEFAULT-DROP",
+    "title": "Enforce Default Deny Inbound Firewall Policy",
+    "category": "Access Control",
+    "severity": "CRITICAL",
+    "fact_path": "access_control.default_drop_inbound.value",
+    "operator": "is_true",
+    "expected_value": true,
+    "explanation": "Firewall perimeter architectures must enforce implicit deny on inbound traffic to ensure unauthorized ingress flows are terminated.",
+    "remediation_key": "set_default_drop_policy",
+    "applicability": "fortinet",
+    "framework_mappings": {
+      "CIS": {
+        "control_id": "CIS-2.1.2",
+        "title": "Ensure default deny policy on all perimeter interfaces",
+        "document": "CIS Network Benchmark",
+        "version": "v2.0.0",
+        "reference": "Section 2.1.2",
+        "verified": true,
+        "source_type": "official"
+      },
+      "NIST": {
+        "control_id": "NIST-SC-7",
+        "title": "Boundary Protection - Default Deny",
+        "document": "NIST SP 800-53 Rev 5",
+        "version": "Rev 5",
+        "reference": "SC-7(5)",
+        "verified": true,
+        "source_type": "official"
+      },
+      "STIG": {
+        "control_id": "STIG-NET1640",
+        "title": "Inbound Traffic Filtering",
+        "document": "DoD Network Infrastructure STIG",
+        "version": "v10r3",
+        "reference": "NET1640-DENY",
+        "verified": true,
+        "source_type": "official"
+      },
+      "ISO": {
+        "control_id": "ISO-A.13.1.1",
+        "title": "Network Controls",
+        "document": "ISO/IEC 27001:2022",
+        "version": "2022",
+        "reference": "Control A.13.1.1",
+        "verified": true,
+        "source_type": "official"
       }
     }
   }

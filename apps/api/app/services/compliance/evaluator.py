@@ -81,6 +81,35 @@ class RuleEvaluator:
         title = mapping.title if mapping else rule.title
         source_dict = mapping.model_dump() if mapping else {"framework": framework, "verified": False}
 
+        # Enforce vendor applicability at evaluation layer
+        if rule.applicability and rule.applicability != "all" and profile.vendor:
+            allowed: List[str] = []
+            if isinstance(rule.applicability, str):
+                allowed = [v.strip().lower() for v in rule.applicability.split(",")]
+            elif isinstance(rule.applicability, list):
+                allowed = [str(v).strip().lower() for v in rule.applicability]
+            elif isinstance(rule.applicability, dict):
+                allowed = [str(v).strip().lower() for v in rule.applicability.get("vendors", [])]
+
+            if allowed and profile.vendor.lower() not in allowed:
+                return RuleEvaluationResult(
+                    rule_id=rule.id,
+                    framework=fw_upper,
+                    control_id=control_id,
+                    title=title,
+                    category=rule.category,
+                    severity=rule.severity,
+                    status=EvaluationStatus.NOT_APPLICABLE,
+                    actual_value=None,
+                    expected_value=rule.expected_value,
+                    evidence=[f"Control {control_id} is specific to vendor profile '{rule.applicability}' and not applicable to '{profile.vendor}'"],
+                    source_lines=[],
+                    explanation=f"Control {control_id} is not applicable to {profile.vendor.upper()} infrastructure.",
+                    remediation="",
+                    source=source_dict,
+                    confidence=1.0,
+                )
+
         actual_val, fact_container = cls._resolve_fact(profile, rule.fact_path)
 
         evidence: List[str] = fact_container.evidence if fact_container else []

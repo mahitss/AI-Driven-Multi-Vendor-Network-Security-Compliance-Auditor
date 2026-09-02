@@ -117,9 +117,6 @@ function ReportsContent() {
     if (audits.length >= 2) {
       if (!compareBaselineId) setCompareBaselineId(audits[1].id);
       if (!compareRemediatedId) setCompareRemediatedId(audits[0].id);
-    } else if (audits.length === 1) {
-      if (!compareBaselineId) setCompareBaselineId(audits[0].id);
-      if (!compareRemediatedId) setCompareRemediatedId(audits[0].id);
     }
   }, [audits, compareBaselineId, compareRemediatedId]);
 
@@ -362,9 +359,9 @@ function ReportsContent() {
           <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] flex flex-wrap items-center justify-between gap-3 text-xs font-mono print:hidden">
             <div className="flex items-center gap-2">
               <span className="text-[#667085] uppercase font-bold text-[10px]">ACTIVE REPORT:</span>
-              <span className="font-bold text-white">
-                {activeReport?.title || "Executive Compliance Audit Report: CORE-RTR-01 (cisco-core-router.cfg)"}
-              </span>
+              <h2 className="text-sm font-bold text-white font-mono">
+                {activeReport?.title || "Executive Compliance Audit Report"}
+              </h2>
             </div>
 
             <div className="flex items-center gap-2">
@@ -491,20 +488,30 @@ function ReportsContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
                   <div>
                     <span className="text-[#667085] text-[10px] block uppercase">FILENAME</span>
-                    <span className="font-bold text-white">cisco-core-router.cfg</span>
+                    <span className="font-bold text-white truncate block">
+                      {activeReport?.sections?.identity?.filename || "—"}
+                    </span>
                   </div>
                   <div>
                     <span className="text-[#667085] text-[10px] block uppercase">VENDOR / PLATFORM</span>
-                    <span className="font-bold text-[#3B82F6]">CISCO IOS (v1.0.0 PARSER)</span>
+                    <span className="font-bold text-[#3B82F6]">
+                      {activeReport?.sections?.identity?.vendor
+                        ? `${String(activeReport.sections.identity.vendor).toUpperCase()} (${activeReport.sections.identity.platform || "v1.0.0"})`
+                        : "—"}
+                    </span>
                   </div>
                   <div>
                     <span className="text-[#667085] text-[10px] block uppercase">LINE COUNT</span>
-                    <span className="font-bold text-white">35 Lines</span>
+                    <span className="font-bold text-white">
+                      {activeReport?.sections?.identity?.line_count != null
+                        ? `${activeReport.sections.identity.line_count} Lines`
+                        : "—"}
+                    </span>
                   </div>
                 </div>
 
                 <div className="pt-2 border-t border-[#1D2939] flex flex-col sm:flex-row sm:items-center justify-between text-[10px] text-[#667085] gap-1">
-                  <div>SHA-256: <strong className="text-white font-mono">e7785a819b32c44883f982759160d5b...</strong></div>
+                  <div>SHA-256: <strong className="text-white font-mono">{activeReport?.sections?.identity?.sha256 ? `${activeReport.sections.identity.sha256.slice(0, 24)}...` : "—"}</strong></div>
                   <div>CONFIDENCE: <strong className="text-[#10B981]">100% DETERMINISTIC AST</strong></div>
                 </div>
               </div>

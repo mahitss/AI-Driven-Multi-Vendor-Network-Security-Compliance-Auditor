@@ -212,6 +212,18 @@ export default function RiskIntelligencePage() {
     return findings.filter((f) => selectedRisk.finding_ids.includes(f.id));
   }, [selectedRisk, findings]);
 
+  // Affected infrastructure devices for selected risk
+  const affectedDevices = useMemo(() => {
+    if (!selectedRisk) return [];
+    const assetNames = selectedRisk.affected_assets || [];
+    return devices.filter(
+      (d) =>
+        assetNames.includes(d.id) ||
+        assetNames.includes(d.hostname) ||
+        (d.last_audit_id && d.last_audit_id === selectedRisk.audit_id)
+    );
+  }, [selectedRisk, devices]);
+
   return (
     <div className="space-y-8 max-w-[1440px] mx-auto pb-16 font-sans">
       {/* 1. Header & Identity */}
@@ -780,40 +792,8 @@ export default function RiskIntelligencePage() {
                       </Link>
                     ))
                   ) : (
-                    <div className="space-y-2">
-                      <Link
-                        href="/findings"
-                        className="p-3.5 rounded-xl bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] hover:border-[#3B82F6]/40 transition-all flex items-center justify-between group"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[#3B82F6] font-bold">CIS-1.2.1</span>
-                            <span className="text-[#667085]">•</span>
-                            <span className="font-sans font-semibold text-[#F3F4F6] group-hover:text-[#3B82F6]">
-                              Ensure SSH Version 2 is enabled
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-[#667085]">Evidence: <code className="text-[#EF4444]">ip ssh version 1 (Line 17)</code></div>
-                        </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-[#667085] group-hover:text-[#3B82F6]" />
-                      </Link>
-
-                      <Link
-                        href="/findings"
-                        className="p-3.5 rounded-xl bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] hover:border-[#3B82F6]/40 transition-all flex items-center justify-between group"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[#3B82F6] font-bold">NIST AC-17</span>
-                            <span className="text-[#667085]">•</span>
-                            <span className="font-sans font-semibold text-[#F3F4F6] group-hover:text-[#3B82F6]">
-                              Ensure Telnet service is disabled
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-[#667085]">Evidence: <code className="text-[#EF4444]">set admin-telnet enable (Line 42)</code></div>
-                        </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-[#667085] group-hover:text-[#3B82F6]" />
-                      </Link>
+                    <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] text-[#667085] text-xs font-mono text-center">
+                      No correlated findings linked to this risk item.
                     </div>
                   )}
                 </div>
@@ -825,28 +805,28 @@ export default function RiskIntelligencePage() {
                   AFFECTED INFRASTRUCTURE
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <Link
-                    href="/devices"
-                    className="p-3 rounded-xl bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] hover:border-[#263B55] transition-all space-y-1 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#F3F4F6] group-hover:text-[#3B82F6]">CORE-RTR-01</span>
-                      <span className="text-[10px] text-[#3B82F6]">Cisco IOS</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {affectedDevices.length > 0 ? (
+                    affectedDevices.map((d) => (
+                      <Link
+                        key={d.id}
+                        href="/devices"
+                        className="p-3 rounded-xl bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] hover:border-[#263B55] transition-all space-y-1 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-[#F3F4F6] group-hover:text-[#3B82F6] truncate">{d.hostname}</span>
+                          <span className="text-[10px] text-[#3B82F6] font-mono">{d.vendor?.toUpperCase()}</span>
+                        </div>
+                        <div className="text-[10px] text-[#667085] font-mono">
+                          Compliance: {d.last_audit_score != null ? `${d.last_audit_score}%` : "—"} • Risk: {d.risk_score}
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] text-[#667085] text-xs font-mono text-center sm:col-span-2">
+                      No affected infrastructure assets identified for this risk item.
                     </div>
-                    <div className="text-[10px] text-[#667085]">4 Correlated Findings</div>
-                  </Link>
-
-                  <Link
-                    href="/devices"
-                    className="p-3 rounded-xl bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] hover:border-[#263B55] transition-all space-y-1 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#F3F4F6] group-hover:text-[#3B82F6]">EDGE-FW-01</span>
-                      <span className="text-[10px] text-[#F59E0B]">Fortinet</span>
-                    </div>
-                    <div className="text-[10px] text-[#667085]">3 Correlated Findings</div>
-                  </Link>
+                  )}
                 </div>
               </div>
 

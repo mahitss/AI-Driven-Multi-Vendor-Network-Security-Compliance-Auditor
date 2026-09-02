@@ -160,7 +160,11 @@ async def ingest_configuration_for_analysis(
     )
 
     # Dynamic Parser Selection & Deterministic AST Extraction
-    effective_vendor_hint = payload.vendor_hint if (payload.vendor_hint and payload.vendor_hint != "unknown") else config_record.detected_vendor
+    # Prioritize authoritative syntax detection from config_record.detected_vendor
+    if config_record.detected_vendor and config_record.detected_vendor != "unknown":
+        effective_vendor_hint = config_record.detected_vendor
+    else:
+        effective_vendor_hint = payload.vendor_hint if (payload.vendor_hint and payload.vendor_hint != "unknown") else "cisco"
     parser = parser_registry.get_parser(
         content=raw_content,
         vendor_hint=effective_vendor_hint,
@@ -363,7 +367,7 @@ async def get_analysis_findings(
         elif f.evidence:
             evidence_items.append(
                 EvidenceItem(
-                    line=1,
+                    line=0,
                     raw_text=f.evidence,
                     property_path=meta.get("property"),
                 )

@@ -158,7 +158,7 @@ async def test_security_time_machine_identical_audits(
     db_session: AsyncSession,
 ):
     """
-    Validates that comparing an audit with itself produces delta = 0 and 0 resolved/regressed controls.
+    Validates that comparing an audit with itself is rejected with HTTP 422 as invalid self-comparison.
     """
     f = {"file": ("core-rtr.cfg", io.BytesIO(BASELINE_CISCO.encode("utf-8")), "text/plain")}
     res = await client.post("/api/v1/configurations", files=f)

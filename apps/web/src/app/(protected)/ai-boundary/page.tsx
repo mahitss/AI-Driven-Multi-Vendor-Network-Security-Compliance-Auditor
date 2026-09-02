@@ -554,21 +554,21 @@ export default function AIBoundaryPage() {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <div className="text-[10px] text-[#667085] uppercase">CONTROL</div>
-                <div className="font-bold text-white mt-0.5">CIS-1.2.1</div>
+                <div className="font-bold text-white mt-0.5">{selectedSimulation.controlId}</div>
               </div>
               <div>
                 <div className="text-[10px] text-[#667085] uppercase">SOURCE</div>
-                <div className="font-bold text-white mt-0.5">Cisco IOS (CORE-RTR-01)</div>
+                <div className="font-bold text-white mt-0.5">{selectedSimulation.device}</div>
               </div>
             </div>
 
             <div className="p-2 rounded bg-[#080B12] border border-[#1D2939]">
-              <div className="text-[10px] text-[#667085]">EVIDENCE (LINE 17):</div>
-              <code className="text-[#EF4444] font-bold">ip ssh version 1</code>
+              <div className="text-[10px] text-[#667085]">EVIDENCE (LINE {selectedSimulation.line}):</div>
+              <code className="text-[#EF4444] font-bold">{selectedSimulation.evidenceSnippet}</code>
             </div>
 
             <div className="p-2.5 rounded bg-[#080B12] border border-[#EF4444]/30 flex items-center justify-between">
-              <span className="font-bold text-[#EF4444]">DETERMINISTIC VERDICT: FAIL</span>
+              <span className="font-bold text-[#EF4444]">DETERMINISTIC VERDICT: {selectedSimulation.deterministicVerdict}</span>
               <span className="text-[10px] text-[#667085]">IMMUTABLE</span>
             </div>
 

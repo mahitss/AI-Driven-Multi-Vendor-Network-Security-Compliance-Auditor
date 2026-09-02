@@ -130,27 +130,8 @@ class RemediationService:
                     is_reviewed=False,
                 )
             else:
-                # Safe unsupported handling
-                proposal = RemediationProposal(
-                    user_id=effective_user_id,
-                    audit_id=audit_id,
-                    finding_id=f.id,
-                    vendor=vendor,
-                    platform=platform,
-                    normalized_control=normalized_prop,
-                    title=f"Manual Hardening Required: {f.title}",
-                    status="NOT_AVAILABLE",
-                    remediation_commands=f"# Automated template unavailable for vendor '{vendor}' or control '{normalized_prop}'.\n# Consult official vendor security hardening guide.",
-                    rollback_commands=None,
-                    diff_preview={"diff_lines": [], "remove_count": 0, "add_count": 0, "preview_text": ""},
-                    why_recommended=f"Non-compliant security baseline for {f.control_id}.",
-                    potential_impact="Manual administrator verification required.",
-                    verification_steps=f"Re-audit device configuration following manual modification.",
-                    template_id="GENERIC-MANUAL-001",
-                    template_version="1.0.0",
-                    confidence=0.5,
-                    is_reviewed=False,
-                )
+                # Do not manufacture generic manual proposals when no authoritative catalog template exists
+                continue
 
             db.add(proposal)
             created_proposals.append(proposal)

@@ -74,207 +74,6 @@ import { computeClientSha256, formatBytes, cn } from "@/lib/utils";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-// Authentic canonical test fixtures from data/demo/
-const CANONICAL_FIXTURES = [
-  {
-    id: "cisco-insecure",
-    name: "cisco-core-router.cfg",
-    vendor: "cisco",
-    platform: "ios",
-    label: "Cisco IOS Core Router (Insecure Baseline)",
-    description: "Contains cleartext passwords, Telnet, HTTP server, SSH v1, and missing syslog.",
-    content: `! =============================================================
-! NetVigil Synthetic Demo Dataset: Insecure Cisco Perimeter Router
-! Hostname: CORE-RTR-01
-! Description: Canonical SIH evaluation configuration with critical vulnerabilities
-! =============================================================
-version 15.0
-no service password-encryption
-service finger
-hostname CORE-RTR-01
-!
-no aaa new-model
-username admin privilege 15 password 0 cisco123
-enable password unencrypted_enable_pass
-!
-ip domain name internal.lab
-ip ssh version 1
-ip http server
-!
-interface GigabitEthernet0/0
- description UNTRUSTED-WAN
- ip address 203.0.113.1 255.255.255.0
- ip proxy-arp
- ip directed-broadcast
-!
-! Missing remote syslog configuration
-! Missing authoritative NTP configuration
-!
-line con 0
- password consolepass
-line vty 0 4
- transport input telnet
- password vtypass
- login
-!
-end`,
-  },
-  {
-    id: "cisco-secure",
-    name: "cisco-hardened-gateway.cfg",
-    vendor: "cisco",
-    platform: "ios",
-    label: "Cisco IOS Hardened Gateway (Compliant)",
-    description: "Fully hardened baseline with SSH v2, AAA, secret password hashing, and remote logging.",
-    content: `! =============================================================
-! NetVigil Synthetic Demo Dataset: Hardened Cisco Gateway Router
-! Hostname: NTRO-SECURE-RTR-01
-! Description: Fully compliant and hardened baseline configuration
-! =============================================================
-version 15.2
-service timestamps debug datetime msec
-service timestamps log datetime msec
-service password-encryption
-no service finger
-hostname NTRO-SECURE-RTR-01
-!
-aaa new-model
-aaa authentication login default local
-aaa authorization exec default local
-!
-username ntro-admin privilege 15 secret 5 $1$mERr$hx5rVt7rPNoS4wqbXKX7m0
-!
-ip domain name ntro.gov.in
-ip ssh version 2
-ip ssh time-out 60
-ip ssh authentication-retries 3
-no ip http server
-no ip http secure-server
-!
-interface GigabitEthernet0/0
- description WAN-UPLINK
- ip address 198.51.100.1 255.255.255.0
- no ip proxy-arp
- no ip directed-broadcast
- spanning-tree bpduguard enable
-!
-logging trap warnings
-logging host 10.10.100.50
-!
-ntp server 10.10.100.1
-!
-line con 0
- exec-timeout 10 0
- login authentication default
-line vty 0 4
- transport input ssh
- exec-timeout 10 0
- login authentication default
-!
-end`,
-  },
-  {
-    id: "juniper-insecure",
-    name: "juniper-edge-srx.conf",
-    vendor: "juniper",
-    platform: "junos",
-    label: "Juniper JunOS SRX Gateway (Insecure)",
-    description: "Hierarchical syntax with Telnet and cleartext Web Management enabled.",
-    content: `# =============================================================
-# NetVigil Synthetic Demo Dataset: Insecure Juniper JunOS Gateway
-# Hostname: LAB-JUNIPER-SRX-02
-# =============================================================
-system {
-    host-name LAB-JUNIPER-SRX-02;
-    services {
-        telnet;
-        web-management {
-            http {
-                port 80;
-            }
-        }
-    }
-}`,
-  },
-  {
-    id: "juniper-secure",
-    name: "juniper-hardened-srx.conf",
-    vendor: "juniper",
-    platform: "junos",
-    label: "Juniper JunOS SRX Gateway (Compliant)",
-    description: "Enforces SSHv2, remote Syslog daemon, and centralized NTP synchronization.",
-    content: `# =============================================================
-# NetVigil Synthetic Demo Dataset: Hardened Juniper JunOS Gateway
-# Hostname: NTRO-JUNIPER-SRX-01
-# =============================================================
-system {
-    host-name NTRO-JUNIPER-SRX-01;
-    services {
-        ssh {
-            protocol-version v2;
-            connection-limit 5;
-            rate-limit 3;
-        }
-    }
-    syslog {
-        host 10.10.100.50 {
-            any warning;
-            authorization info;
-        }
-    }
-    ntp {
-        server 10.10.100.1;
-    }
-}`,
-  },
-  {
-    id: "fortinet-insecure",
-    name: "fortinet-perimeter-fgt.conf",
-    vendor: "fortinet",
-    platform: "fortios",
-    label: "Fortinet FortiGate Firewall (Insecure)",
-    description: "FortiOS block syntax with legacy SSH v1 enabled and insecure administrative port.",
-    content: `# =============================================================
-# NetVigil Synthetic Demo Dataset: Insecure Fortinet FortiOS Firewall
-# Hostname: LAB-FORTIGATE-02
-# =============================================================
-config system global
-    set hostname "LAB-FORTIGATE-02"
-    set admin-ssh-v1 enable
-    set admin-sport 80
-end`,
-  },
-  {
-    id: "fortinet-secure",
-    name: "fortinet-hardened-fgt.conf",
-    vendor: "fortinet",
-    platform: "fortios",
-    label: "Fortinet FortiGate Firewall (Compliant)",
-    description: "Hardened FortiOS profile disabling SSHv1 with TLS 1.3 admin port and remote syslog.",
-    content: `# =============================================================
-# NetVigil Synthetic Demo Dataset: Hardened Fortinet FortiOS Firewall
-# Hostname: NTRO-FORTIGATE-01
-# =============================================================
-config system global
-    set hostname "NTRO-FORTIGATE-01"
-    set admin-ssh-v1 disable
-    set admin-sport 443
-end
-config log syslogd setting
-    set status enable
-    set server "10.10.100.50"
-end
-config system ntp
-    set ntpsync enable
-    config ntpserver
-        edit 1
-            set server "10.10.100.1"
-        next
-    end
-end`,
-  },
-];
-
 function ConfigurationsPageContent() {
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -285,8 +84,7 @@ function ConfigurationsPageContent() {
   const ingestionRef = useRef<HTMLDivElement>(null);
 
   // Ingestion Workspace State - Default to 'upload' as the active tab
-  const [inputMode, setInputMode] = useState<"upload" | "samples" | "paste">("upload");
-  const [selectedFixtureId, setSelectedFixtureId] = useState<string | null>(null);
+  const [inputMode, setInputMode] = useState<"upload" | "paste">("upload");
   const [rawText, setRawText] = useState<string>("");
   const [configFilename, setConfigFilename] = useState<string>("");
   const [selectedFileMeta, setSelectedFileMeta] = useState<{
@@ -344,33 +142,41 @@ function ConfigurationsPageContent() {
       if (isSubscribed) setClientHash(hash);
     });
 
-    // Client-side quick heuristics & server vendor detection
+    // Client-side heuristics & authoritative server vendor detection
     const t = rawText.toLowerCase();
-    if (t.includes("config system") || t.includes("fortigate") || t.includes("end\n")) {
-      setDetectedVendorState({ vendor: "fortinet", confidence: 0.96, platform: "fortios" });
-    } else if (t.includes("system {") || t.includes("set system") || t.includes("junos")) {
-      setDetectedVendorState({ vendor: "juniper", confidence: 0.98, platform: "junos" });
-    } else {
-      setDetectedVendorState({ vendor: "cisco", confidence: 0.99, platform: "ios" });
+    let initialVendor = "cisco";
+    let initialPlatform = "ios";
+    if (t.includes("config system") || t.includes("config firewall") || t.includes("config router") || t.includes("fortigate") || t.includes("#config-version") || t.includes("fortios")) {
+      initialVendor = "fortinet";
+      initialPlatform = "fortios";
+    } else if (t.includes("system {") || t.includes("set system") || t.includes("junos") || t.includes("set interfaces") || t.includes("set security")) {
+      initialVendor = "juniper";
+      initialPlatform = "junos";
+    } else if (t.includes("version 1") || t.includes("cisco") || t.includes("service password") || t.includes("enable secret") || t.includes("line vty") || t.includes("interface gigabit")) {
+      initialVendor = "cisco";
+      initialPlatform = "ios";
     }
+    setDetectedVendorState({ vendor: initialVendor, confidence: 0.95, platform: initialPlatform });
+
+    // Call authoritative server-side detector
+    detectVendorFromText(rawText, configFilename)
+      .then((serverRes) => {
+        if (isSubscribed && serverRes && serverRes.vendor && serverRes.vendor !== "unknown") {
+          setDetectedVendorState({
+            vendor: serverRes.vendor,
+            confidence: serverRes.confidence,
+            platform: serverRes.platform || undefined,
+          });
+        }
+      })
+      .catch(() => {
+        // Retain initial heuristic
+      });
 
     return () => {
       isSubscribed = false;
     };
   }, [rawText]);
-
-  // Load sample fixture
-  const handleSelectFixture = (fixtureId: string) => {
-    const fixture = CANONICAL_FIXTURES.find((f) => f.id === fixtureId);
-    if (!fixture) return;
-    setSelectedFixtureId(fixtureId);
-    setRawText(fixture.content);
-    setConfigFilename(fixture.name);
-    setSelectedFileMeta(null);
-    setUploadValidationError(null);
-    setReanalyzeResult(null);
-    setReanalyzeBannerVisible(false);
-  };
 
   // Accepted configuration file extensions
   const ACCEPTED_EXTENSIONS = [".cfg", ".conf", ".txt", ".json", ".log", ".set"];
@@ -420,7 +226,6 @@ function ConfigurationsPageContent() {
       setUploadValidationError(null);
       setRawText(text);
       setConfigFilename(file.name);
-      setSelectedFixtureId(null);
       setSelectedFileMeta({
         name: file.name,
         size: file.size,
@@ -557,11 +362,12 @@ function ConfigurationsPageContent() {
     return findings.find((f) => f.finding_id === selectedFindingId) || findings[0] || null;
   }, [findings, selectedFindingId]);
 
-  // When selected finding changes, highlight its primary evidence line
+  // When selected finding changes, highlight its primary evidence line (only if line > 0)
   useEffect(() => {
-    if (selectedFinding && selectedFinding.evidence_lines?.length > 0) {
-      const targetLine = selectedFinding.evidence_lines[0].line;
-      setHighlightedLine(targetLine);
+    if (selectedFinding && selectedFinding.evidence_lines?.length > 0 && selectedFinding.evidence_lines[0].line > 0) {
+      setHighlightedLine(selectedFinding.evidence_lines[0].line);
+    } else {
+      setHighlightedLine(null);
     }
   }, [selectedFinding]);
 
@@ -730,25 +536,17 @@ function ConfigurationsPageContent() {
               )}
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>UPLOAD FILE</span>
-            </button>
-            <button
-              onClick={() => setInputMode("samples")}
-              className={cn(
-                "px-3 py-1 rounded transition-all",
-                inputMode === "samples" ? "bg-[#3B82F6] text-white font-bold" : "text-[#A7B0C0] hover:text-white"
-              )}
-            >
-              PRESET FIXTURES (6)
+              <span>UPLOAD CONFIGURATION</span>
             </button>
             <button
               onClick={() => setInputMode("paste")}
               className={cn(
-                "px-3 py-1 rounded transition-all",
+                "px-3 py-1 rounded transition-all flex items-center gap-1.5",
                 inputMode === "paste" ? "bg-[#3B82F6] text-white font-bold" : "text-[#A7B0C0] hover:text-white"
               )}
             >
-              CUSTOM TEXT / PASTE
+              <FileCode2 className="w-3.5 h-3.5" />
+              <span>DIRECT PASTE / RAW CONFIG</span>
             </button>
           </div>
         </div>
@@ -893,46 +691,7 @@ function ConfigurationsPageContent() {
           </div>
         )}
 
-        {/* Input Mode 2: Canonical Preset Fixtures */}
-        {inputMode === "samples" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {CANONICAL_FIXTURES.map((fixture) => (
-              <div
-                key={fixture.id}
-                onClick={() => handleSelectFixture(fixture.id)}
-                className={cn(
-                  "p-3.5 rounded-xl border cursor-pointer transition-all space-y-1.5",
-                  selectedFixtureId === fixture.id
-                    ? "bg-[#111827] border-[#3B82F6] shadow-sm"
-                    : "bg-[#0A0F18] border-[#1D2939] hover:border-[#263B55] hover:bg-[#111827]"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#F3F4F6]">{fixture.label}</span>
-                  <span
-                    className={cn(
-                      "px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase",
-                      fixture.id.includes("insecure")
-                        ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30"
-                        : "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
-                    )}
-                  >
-                    {fixture.id.includes("insecure") ? "VULNERABLE" : "HARDENED"}
-                  </span>
-                </div>
-                <div className="text-[11px] text-[#A7B0C0] line-clamp-2 leading-relaxed font-sans">
-                  {fixture.description}
-                </div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-[#667085] pt-1">
-                  <span>{fixture.name}</span>
-                  <span className="uppercase text-[#3B82F6]">{fixture.vendor} ({fixture.platform})</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Input Mode 3: Paste / Custom Text */}
+        {/* Input Mode 2: Paste / Custom Text */}
         {inputMode === "paste" && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-mono">
@@ -1364,8 +1123,10 @@ function ConfigurationsPageContent() {
                         key={finding.finding_id}
                         onClick={() => {
                           setSelectedFindingId(finding.finding_id);
-                          if (finding.evidence_lines?.length > 0) {
+                          if (finding.evidence_lines?.length > 0 && finding.evidence_lines[0].line > 0) {
                             setHighlightedLine(finding.evidence_lines[0].line);
+                          } else {
+                            setHighlightedLine(null);
                           }
                         }}
                         className={cn(
@@ -1413,7 +1174,7 @@ function ConfigurationsPageContent() {
                           <span>
                             Line(s):{" "}
                             <strong className="text-[#EF4444]">
-                              {finding.evidence_lines?.map((e) => e.line).join(", ") || "Baseline"}
+                              {finding.evidence_lines?.filter((e) => e.line > 0).map((e) => e.line).join(", ") || "Baseline"}
                             </strong>
                           </span>
                           {finding.remediation_proposal && (
@@ -1477,7 +1238,11 @@ function ConfigurationsPageContent() {
                     <span>
                       Active Citation:{" "}
                       <strong className="text-[#EF4444]">
-                        Line {highlightedLine || (selectedFinding?.evidence_lines?.[0]?.line ?? "N/A")}
+                        {highlightedLine && highlightedLine > 0
+                          ? `Line ${highlightedLine}`
+                          : selectedFinding?.evidence_lines?.find((e) => e.line > 0)
+                          ? `Line ${selectedFinding.evidence_lines.find((e) => e.line > 0)?.line}`
+                          : "Baseline Absent (Unconfigured Directive)"}
                       </strong>
                     </span>
                   </div>
@@ -1487,7 +1252,7 @@ function ConfigurationsPageContent() {
                     className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] max-h-[540px] overflow-y-auto text-xs space-y-0.5 font-mono select-text"
                   >
                     {configData?.lines?.map((item) => {
-                      const isCited = selectedFinding?.evidence_lines?.some((e) => e.line === item.line);
+                      const isCited = item.line > 0 && selectedFinding?.evidence_lines?.some((e) => e.line === item.line && e.line > 0);
                       const isHighlighted = highlightedLine === item.line;
 
                       return (
@@ -1683,9 +1448,9 @@ function ConfigurationsPageContent() {
                         <div className="flex items-center justify-between">
                           <span>EVIDENCE:</span>
                           <span className="text-[#EF4444] font-semibold">
-                            {selectedFinding.evidence_lines?.length
-                              ? `Line ${selectedFinding.evidence_lines.map((e) => e.line).join(", ")}`
-                              : "Cited Directive"}
+                            {selectedFinding.evidence_lines?.some((e) => e.line > 0)
+                              ? `Line ${selectedFinding.evidence_lines.filter((e) => e.line > 0).map((e) => e.line).join(", ")}`
+                              : "Baseline Absent (Unconfigured Directive)"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">

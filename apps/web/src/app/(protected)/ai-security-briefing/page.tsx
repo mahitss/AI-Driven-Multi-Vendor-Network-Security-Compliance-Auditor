@@ -227,6 +227,29 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
           </div>
         </div>
 
+        {/* Honest Empty State when no audits exist */}
+        {audits.length === 0 && (
+          <div className="p-8 rounded-2xl bg-[#0D121C] border border-[#1D2939] text-center space-y-3 font-mono">
+            <div className="w-10 h-10 rounded-full bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] mx-auto">
+              <Bot className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
+                NO SECURITY BRIEFING AVAILABLE
+              </div>
+              <p className="text-xs text-[#667085] mt-1 max-w-md mx-auto font-sans leading-relaxed">
+                Ingest and evaluate a network device configuration to generate an evidence-grounded AI security briefing and interactive copilot session.
+              </p>
+            </div>
+            <Link
+              href="/configurations?mode=ingest"
+              className="inline-block px-3.5 py-1.5 rounded-lg bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-semibold"
+            >
+              Ingest Configuration →
+            </Link>
+          </div>
+        )}
+
         {/* Audit Context Selection Bar */}
         <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4 flex-1">
@@ -239,13 +262,18 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
               <select
                 value={selectedAuditId}
                 onChange={(e) => setSelectedAuditId(e.target.value)}
-                className="w-full bg-[#080B12] border border-[#1D2939] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3B82F6]"
+                disabled={audits.length === 0}
+                className="w-full bg-[#080B12] border border-[#1D2939] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3B82F6] disabled:opacity-50"
               >
-                {audits.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    Audit {a.id.substring(0, 8)}... — Score: {a.score?.toFixed(1) || 0}% ({a.device_id || "Gateway"})
-                  </option>
-                ))}
+                {audits.length === 0 ? (
+                  <option value="">No completed audits available</option>
+                ) : (
+                  audits.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      Audit {a.id.substring(0, 8)}... — Score: {a.score?.toFixed(1) || 0}% ({a.device_id || "Gateway"})
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
