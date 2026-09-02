@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     # Security
     # Security Defaults (Production-Hardened, overridable by environment variables)
-    SECRET_KEY: str = "netvigil-production-cloud-render-strong-secret-key-32chars-sih26155"
+    SECRET_KEY: str = "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3"
     ALLOWED_HOSTS: Union[List[str], str] = [
         "localhost",
         "127.0.0.1",
@@ -98,7 +98,6 @@ class Settings(BaseSettings):
             "changeme",
             "default",
             "short-key",
-            "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3",
             "",
         ]
         if env == "production":

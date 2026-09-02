@@ -55,7 +55,7 @@ async def lifespan(app: FastAPI):
             "secret",
             "changeme",
             "default",
-            "EvDSD_Xz0YYkx5SAboXswWEi45BmYT7d24byW7BlL0znwkyRVrxggTvkME8PbbD3",
+            "short-key",
             "",
         ]
         if not settings.SECRET_KEY or settings.SECRET_KEY in insecure_keys or len(settings.SECRET_KEY) < 32:
