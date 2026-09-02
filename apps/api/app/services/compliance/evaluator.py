@@ -113,7 +113,7 @@ class RuleEvaluator:
         actual_val, fact_container = cls._resolve_fact(profile, rule.fact_path)
 
         evidence: List[str] = fact_container.evidence if fact_container else []
-        source_lines: List[int] = fact_container.source_lines if fact_container else []
+        source_lines: List[int] = [l for l in (fact_container.source_lines if fact_container else []) if l and l > 0]
         confidence: float = fact_container.confidence if fact_container else 1.0
 
         # If fact container explicitly marks status as unknown or fact was completely unresolved
@@ -123,6 +123,10 @@ class RuleEvaluator:
             status = EvaluationStatus.UNKNOWN
         else:
             status = cls._evaluate_operator(actual_val, rule.operator, rule.expected_value)
+            # Phase 4: Prevent "no evidence found" from converting to PASS unless rule explicitly defines absence as compliant
+            if status == EvaluationStatus.PASS and fact_container and fact_container.status == "default_inferred" and not source_lines:
+                if not getattr(rule, "absence_compliant", False):
+                    status = EvaluationStatus.UNKNOWN
 
         return RuleEvaluationResult(
             rule_id=rule.id,

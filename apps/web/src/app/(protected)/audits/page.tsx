@@ -848,7 +848,7 @@ export default function AuditsPage() {
                     <div className="text-[#3B82F6] font-bold mt-0.5">{inspectingFinding.actual_value}</div>
                   </div>
                   <div className="p-2 rounded bg-[#0D121C] border border-[#1D2939]">
-                    <div className="text-[#667085] text-[10px]">Expected Baseline Value:</div>
+                    <div className="text-[#667085] text-[10px]">Expected Compliant Value:</div>
                     <div className="text-[#10B981] font-bold mt-0.5">{inspectingFinding.expected_value}</div>
                   </div>
                 </div>
@@ -861,25 +861,25 @@ export default function AuditsPage() {
                     <Terminal className="w-3 h-3" />
                     <span>Verbatim Configuration Evidence</span>
                   </span>
-                  {inspectingFinding.finding_metadata?.source_lines && (
-                    <span className="text-[#667085]">
-                      Line(s):{" "}
-                      <strong className="text-[#3B82F6]">
-                        {inspectingFinding.finding_metadata.source_lines.join(", ")}
-                      </strong>
-                    </span>
-                  )}
+                  <span className="text-[#667085]">
+                    Line(s):{" "}
+                    <strong className="text-[#3B82F6]">
+                      {(inspectingFinding.finding_metadata?.source_lines?.filter((l: number) => l > 0) || []).length > 0
+                        ? inspectingFinding.finding_metadata?.source_lines?.filter((l: number) => l > 0).join(", ")
+                        : "No direct evidence"}
+                    </strong>
+                  </span>
                 </div>
 
                 <pre className="p-3.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[11px] font-mono text-[#3B82F6] overflow-x-auto leading-relaxed select-text">
-                  {inspectingFinding.evidence || "[No direct line evidence — evaluated from default baseline]"}
+                  {inspectingFinding.evidence || "[No direct line evidence — unconfigured directive]"}
                 </pre>
               </div>
 
               {/* Technical Risk Explanation */}
               {inspectingFinding.description && (
                 <div className="space-y-1">
-                  <div className="text-[10px] text-[#667085] uppercase">Baseline Specification</div>
+                  <div className="text-[10px] text-[#667085] uppercase">Rule Specification</div>
                   <p className="text-[#A7B0C0] text-xs leading-relaxed font-sans bg-[#080B12] p-3 rounded-lg border border-[#1D2939]">
                     {inspectingFinding.description}
                   </p>

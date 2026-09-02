@@ -62,7 +62,7 @@ def build_finding_explanation_prompt(
 - Severity Level: {severity}
 - Target Device Vendor: {vendor}
 - Extracted Actual Value: {actual_value}
-- Required Expected Baseline: {expected_value}
+- Required Expected Value: {expected_value}
 - Source Configuration Line(s): {', '.join(map(str, source_lines)) if source_lines else 'Unconfigured'}
 
 VERBATIM CONFIGURATION EVIDENCE:

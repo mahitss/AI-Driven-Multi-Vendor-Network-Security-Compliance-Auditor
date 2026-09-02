@@ -1779,10 +1779,11 @@ export interface AnalysisStatus {
 }
 
 export interface AnalysisEvidenceItem {
-  line: number;
+  line?: number | null;
   raw_text: string;
   property_path?: string | null;
   context?: string | null;
+  evidence_status?: string | null;
 }
 
 export interface AnalysisFindingItem {

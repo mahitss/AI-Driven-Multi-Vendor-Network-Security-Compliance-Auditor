@@ -32,7 +32,7 @@ def generate_remediation_diff(
         diff_lines.append({
             "type": "REMOVE",
             "line": ev,
-            "description": "Non-compliant configuration baseline",
+            "description": "Non-compliant directive",
         })
 
     # Extract remediation commands to mark as ADD

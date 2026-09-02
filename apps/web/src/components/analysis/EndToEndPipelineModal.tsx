@@ -501,9 +501,13 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                             </span>
                           </div>
                           <div className="text-slate-300 font-medium line-clamp-1">{f.title}</div>
-                          {f.evidence_lines.length > 0 && (
+                          {f.evidence_lines.length > 0 && f.evidence_lines[0].line && f.evidence_lines[0].line > 0 ? (
                             <div className="mt-1.5 font-mono text-[10px] text-slate-400 bg-black/40 px-2 py-0.5 rounded border border-white/5 inline-block">
                               Line {f.evidence_lines[0].line}: {f.evidence_lines[0].raw_text}
+                            </div>
+                          ) : (
+                            <div className="mt-1.5 font-mono text-[10px] text-slate-500 bg-black/20 px-2 py-0.5 rounded border border-white/5 inline-block">
+                              Unconfigured Directive (No Line Citation)
                             </div>
                           )}
                         </div>
@@ -562,9 +566,13 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                       <div>
                         <div className="text-[11px] font-mono text-[#667085] uppercase mb-1 flex items-center justify-between">
                           <span>ACTUAL CONFIGURATION (EVIDENCE)</span>
-                          {selectedFinding.evidence_lines.length > 0 && selectedFinding.evidence_lines[0].line > 0 && (
+                          {selectedFinding.evidence_lines.length > 0 && selectedFinding.evidence_lines[0].line && selectedFinding.evidence_lines[0].line > 0 ? (
                             <span className="text-[#3B82F6] font-mono text-[10px]">
                               {(statusData?.vendor || "Device").toUpperCase()} Line {selectedFinding.evidence_lines[0].line}
+                            </span>
+                          ) : (
+                            <span className="text-[#667085] font-mono text-[10px]">
+                              Unconfigured Directive (No Line Citation)
                             </span>
                           )}
                         </div>
@@ -573,7 +581,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                             selectedFinding.evidence_lines.map((ev, idx) => (
                               <div key={idx} className="flex items-center gap-3">
                                 <span className="text-[#667085] select-none w-8 text-right">
-                                  {ev.line}
+                                  {ev.line && ev.line > 0 ? ev.line : "—"}
                                 </span>
                                 <span
                                   className={cn(

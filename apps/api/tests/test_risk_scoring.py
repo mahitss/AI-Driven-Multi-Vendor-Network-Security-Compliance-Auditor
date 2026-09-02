@@ -68,3 +68,29 @@ def test_exposure_and_impact_inference():
 
     imp_low = determine_finding_impact("LOW", "time_sync")
     assert imp_low == "LOW"
+
+
+def test_composite_risk_score_distinct_and_monotonic():
+    from app.services.risk.scoring import calculate_composite_risk_score
+
+    # 1. Zero failures -> score 0.0, P3
+    s_zero, p_zero, _ = calculate_composite_risk_score(0, 0, 0, 0, 60)
+    assert s_zero == 0.0
+    assert p_zero == "P3"
+
+    # 2. Insecure baseline (high failure density) vs moderate non-compliance
+    # E.g. Juniper (3 Crit, 3 High, 3 Med of 11 evaluated)
+    s_juniper, p_juniper, _ = calculate_composite_risk_score(3, 3, 3, 0, 11)
+    # E.g. Cisco (1 Crit, 2 High, 3 Med, 1 Low of 15 evaluated)
+    s_cisco, p_cisco, _ = calculate_composite_risk_score(1, 2, 3, 1, 15)
+    # E.g. Fortinet (1 Crit, 1 High, 4 Med of 12 evaluated)
+    s_fortinet, p_fortinet, _ = calculate_composite_risk_score(1, 1, 4, 0, 12)
+
+    # All three must have DISTINCT risk scores reflecting their specific posture
+    assert len({s_juniper, s_cisco, s_fortinet}) == 3
+
+    # Juniper (18% compliance) must have higher risk than Cisco (53% compliance)
+    assert s_juniper > s_cisco
+    assert s_cisco > 50.0  # Above medium threshold
+    assert s_juniper > 80.0  # High/Critical risk
+

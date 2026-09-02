@@ -100,3 +100,64 @@ def calculate_risk_score(
         likelihood = "LOW"
 
     return risk_score, priority, likelihood
+
+
+def calculate_composite_risk_score(
+    crit_count: int,
+    high_count: int,
+    med_count: int,
+    low_count: int,
+    total_evaluated: int,
+) -> Tuple[float, str, str]:
+    """
+    Computes deterministic aggregate configuration risk score (0.0 - 100.0), priority band (P0-P3),
+    and likelihood rating based on non-compliant finding severity distribution and blast radius.
+    """
+    total_failed = crit_count + high_count + med_count + low_count
+    if total_failed == 0 or total_evaluated == 0:
+        return 0.0, "P3", "LOW"
+
+    # Non-compliance ratio across total evaluated directives (0.0 to 1.0)
+    failure_ratio = total_failed / max(total_evaluated, total_failed)
+
+    # 1. Base floor from highest active severity violation
+    if crit_count > 0:
+        base_floor = 45.0
+    elif high_count > 0:
+        base_floor = 30.0
+    elif med_count > 0:
+        base_floor = 18.0
+    else:
+        base_floor = 8.0
+
+    # 2. Weighted severity accumulation across multiple non-compliant controls
+    # Critical: 4.0 pts, High: 2.5 pts, Medium: 1.2 pts, Low: 0.5 pts (capped at 35.0 pts)
+    weighted_vuln_points = (
+        (crit_count * 4.0)
+        + (high_count * 2.5)
+        + (med_count * 1.2)
+        + (low_count * 0.5)
+    )
+    severity_component = min(35.0, weighted_vuln_points)
+
+    # 3. Posture impact / failure blast radius (up to 20.0 points proportional to fail ratio)
+    ratio_component = failure_ratio * 20.0
+
+    raw = base_floor + severity_component + ratio_component
+    score = min(100.0, max(0.0, round(raw, 1)))
+
+    if score >= 90.0:
+        priority = "P0"
+        likelihood = "HIGH"
+    elif score >= 75.0:
+        priority = "P1"
+        likelihood = "HIGH"
+    elif score >= 50.0:
+        priority = "P2"
+        likelihood = "MEDIUM"
+    else:
+        priority = "P3"
+        likelihood = "LOW"
+
+    return score, priority, likelihood
+

@@ -46,15 +46,16 @@ class SecurityFact(BaseModel, Generic[T]):
         )
 
     @classmethod
-    def default_inferred(cls, default_value: T, reason: str = "Vendor baseline default") -> "SecurityFact[T]":
+    def default_inferred(cls, default_value: T, reason: str = "Vendor default") -> "SecurityFact[T]":
         return cls(
             value=default_value,
-            evidence=[f"[Inferred from vendor baseline: {reason}]"],
+            evidence=[f"[Inferred from vendor default: {reason}]"],
             source_lines=[],
             confidence=0.85,
             method="deterministic",
             status="default_inferred",
         )
+
 
 
 class UnknownItem(BaseModel):

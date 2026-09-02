@@ -343,6 +343,14 @@ function ConfigurationsPageContent() {
     enabled: !authLoading,
   });
 
+  // Reset selection and highlights immediately when switching configurations to prevent stale evidence
+  useEffect(() => {
+    setSelectedFindingId(null);
+    setHighlightedLine(null);
+    setReanalyzeResult(null);
+    setReanalyzeBannerVisible(false);
+  }, [activeAnalysisId]);
+
   // Auto-restore previous user audit/configuration if available and no active analysis is selected
   useEffect(() => {
     if (!activeAnalysisId && storedConfigs.length > 0 && !isIngestMode) {
@@ -364,7 +372,7 @@ function ConfigurationsPageContent() {
 
   // When selected finding changes, highlight its primary evidence line (only if line > 0)
   useEffect(() => {
-    if (selectedFinding && selectedFinding.evidence_lines?.length > 0 && selectedFinding.evidence_lines[0].line > 0) {
+    if (selectedFinding && selectedFinding.evidence_lines?.length > 0 && selectedFinding.evidence_lines[0].line && selectedFinding.evidence_lines[0].line > 0) {
       setHighlightedLine(selectedFinding.evidence_lines[0].line);
     } else {
       setHighlightedLine(null);
@@ -779,7 +787,7 @@ function ConfigurationsPageContent() {
             { key: "NORMALIZE", label: "4. NORMALIZE", done: (evidenceItems.length > 0 || (analysisStatus?.facts_extracted_count ?? 0) > 0) },
             { key: "EVALUATE", label: "5. EVALUATE", done: findings.length > 0 },
             { key: "RISK", label: "6. RISK", done: !!riskReport },
-            { key: "REMEDIATION", label: "7. REMEDIATION", done: findings.some((f) => !!f.remediation_proposal) },
+            { key: "REMEDIATION", label: "7. REMEDIATION", done: !!reanalyzeResult },
             { key: "VERIFY", label: "8. VERIFY", done: !!reanalyzeResult, isVerify: true },
           ].map((stage) => (
             <div
@@ -800,7 +808,9 @@ function ConfigurationsPageContent() {
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </span>
                 ) : stage.isVerify ? (
-                  <span className="text-[#667085] font-bold">—</span>
+                  <span className="text-[#667085] font-mono text-[10px]">pending</span>
+                ) : stage.key === "REMEDIATION" ? (
+                  <span className="text-[#667085] font-mono text-[10px]">pending</span>
                 ) : isAuditing ? (
                   <span className="text-[#3B82F6] font-bold">...</span>
                 ) : (
@@ -1006,13 +1016,31 @@ function ConfigurationsPageContent() {
 
               <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
                 <div className="text-[10px] text-[#667085] uppercase font-bold">RISK INDEX</div>
-                <div className="text-2xl font-black text-[#EF4444]">
+                <div className={cn(
+                  "text-2xl font-black",
+                  (riskReport?.risk_score ?? 0) >= 85
+                    ? "text-[#EF4444]"
+                    : (riskReport?.risk_score ?? 0) >= 70
+                    ? "text-[#F59E0B]"
+                    : (riskReport?.risk_score ?? 0) >= 45
+                    ? "text-[#EAB308]"
+                    : "text-[#10B981]"
+                )}>
                   {riskReport?.risk_score !== undefined
                     ? `${riskReport.risk_score.toFixed(1)}/100`
                     : "--"}
                 </div>
-                <div className="text-[9px] text-[#EF4444] font-bold">
-                  PRIORITY: {riskReport?.risk_level || "P0"} CRITICAL
+                <div className={cn(
+                  "text-[9px] font-bold",
+                  riskReport?.risk_level === "P0"
+                    ? "text-[#EF4444]"
+                    : riskReport?.risk_level === "P1"
+                    ? "text-[#F59E0B]"
+                    : riskReport?.risk_level === "P2"
+                    ? "text-[#EAB308]"
+                    : "text-[#10B981]"
+                )}>
+                  PRIORITY: {riskReport?.risk_level || "P0"} {riskReport?.risk_level === "P0" ? "CRITICAL" : riskReport?.risk_level === "P1" ? "HIGH" : riskReport?.risk_level === "P2" ? "MEDIUM" : "LOW"}
                 </div>
               </div>
 
@@ -1123,7 +1151,7 @@ function ConfigurationsPageContent() {
                         key={finding.finding_id}
                         onClick={() => {
                           setSelectedFindingId(finding.finding_id);
-                          if (finding.evidence_lines?.length > 0 && finding.evidence_lines[0].line > 0) {
+                          if (finding.evidence_lines?.length > 0 && finding.evidence_lines[0].line && finding.evidence_lines[0].line > 0) {
                             setHighlightedLine(finding.evidence_lines[0].line);
                           } else {
                             setHighlightedLine(null);
@@ -1174,7 +1202,9 @@ function ConfigurationsPageContent() {
                           <span>
                             Line(s):{" "}
                             <strong className="text-[#EF4444]">
-                              {finding.evidence_lines?.filter((e) => e.line > 0).map((e) => e.line).join(", ") || "Baseline"}
+                              {finding.evidence_lines?.filter((e) => e.line && e.line > 0).length > 0
+                                ? finding.evidence_lines.filter((e) => e.line && e.line > 0).map((e) => e.line).join(", ")
+                                : "No direct evidence"}
                             </strong>
                           </span>
                           {finding.remediation_proposal && (
@@ -1235,15 +1265,18 @@ function ConfigurationsPageContent() {
                     <span>
                       File: <strong className="text-white">{configData?.filename || configFilename}</strong>
                     </span>
-                    <span>
-                      Active Citation:{" "}
+                    <span className="flex items-center gap-1.5">
+                      <span>Active Citation:</span>
                       <strong className="text-[#EF4444]">
                         {highlightedLine && highlightedLine > 0
                           ? `Line ${highlightedLine}`
-                          : selectedFinding?.evidence_lines?.find((e) => e.line > 0)
-                          ? `Line ${selectedFinding.evidence_lines.find((e) => e.line > 0)?.line}`
-                          : "Baseline Absent (Unconfigured Directive)"}
+                          : selectedFinding?.evidence_lines?.some((e) => e.line && e.line > 0)
+                          ? `Line ${selectedFinding.evidence_lines.find((e) => e.line && e.line > 0)?.line}`
+                          : "Unconfigured Directive"}
                       </strong>
+                      {!highlightedLine && !selectedFinding?.evidence_lines?.some((e) => e.line && e.line > 0) && (
+                        <span className="text-[#667085] text-[10px] font-mono">(No Line Citation)</span>
+                      )}
                     </span>
                   </div>
 
@@ -1338,14 +1371,14 @@ function ConfigurationsPageContent() {
                         <div
                           key={idx}
                           onClick={() => {
-                            setHighlightedLine(item.line);
+                            setHighlightedLine(item.line ?? null);
                             setCenterTab("evidence");
                           }}
                           className="p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939] hover:border-[#3B82F6]/40 cursor-pointer transition-all space-y-1"
                         >
                           <div className="flex items-center justify-between text-[10px]">
                             <span className="text-[#3B82F6] font-bold">{item.property_path}</span>
-                            <span className="text-[#EF4444]">Line {item.line}</span>
+                            <span className="text-[#EF4444]">{item.line && item.line > 0 ? `Line ${item.line}` : "Unconfigured"}</span>
                           </div>
                           <div className="text-xs text-[#A7B0C0] font-mono">{item.raw_text}</div>
                         </div>
@@ -1365,13 +1398,31 @@ function ConfigurationsPageContent() {
                     <Flame className="w-4 h-4" />
                     <span>OVERALL RISK</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
+                  <span className={cn(
+                    "px-2 py-0.5 rounded text-[10px] font-extrabold border",
+                    (riskReport?.risk_level || analysisStatus?.risk_level) === "P0"
+                      ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
+                      : (riskReport?.risk_level || analysisStatus?.risk_level) === "P1"
+                      ? "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
+                      : (riskReport?.risk_level || analysisStatus?.risk_level) === "P2"
+                      ? "bg-[#EAB308]/15 text-[#EAB308] border-[#EAB308]/30"
+                      : "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
+                  )}>
                     {riskReport?.risk_level || analysisStatus?.risk_level || (findings.some(f => f.status === "FAIL") ? "P1" : "P3")} PRIORITY
                   </span>
                 </div>
 
                 <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-black text-[#EF4444]">
+                  <div className={cn(
+                    "text-2xl font-black",
+                    ((riskReport?.risk_score ?? analysisStatus?.risk_score) ?? 0) >= 85
+                      ? "text-[#EF4444]"
+                      : ((riskReport?.risk_score ?? analysisStatus?.risk_score) ?? 0) >= 70
+                      ? "text-[#F59E0B]"
+                      : ((riskReport?.risk_score ?? analysisStatus?.risk_score) ?? 0) >= 45
+                      ? "text-[#EAB308]"
+                      : "text-[#10B981]"
+                  )}>
                     {riskReport?.risk_score !== undefined
                       ? riskReport.risk_score.toFixed(1)
                       : analysisStatus?.risk_score !== undefined
@@ -1446,17 +1497,32 @@ function ConfigurationsPageContent() {
                           <span className="text-white font-semibold">{configFilename}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span>EVIDENCE:</span>
+                          <span>EVIDENCE STATUS:</span>
+                          <span
+                            className={cn(
+                              "font-semibold",
+                              selectedFinding.evidence_lines?.some((e) => e.line && e.line > 0)
+                                ? "text-[#10B981]"
+                                : "text-[#EF4444]"
+                            )}
+                          >
+                            {selectedFinding.evidence_lines?.some((e) => e.line && e.line > 0)
+                              ? "Configured Directive"
+                              : "Unconfigured Directive"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>LINE CITATION:</span>
                           <span className="text-[#EF4444] font-semibold">
-                            {selectedFinding.evidence_lines?.some((e) => e.line > 0)
-                              ? `Line ${selectedFinding.evidence_lines.filter((e) => e.line > 0).map((e) => e.line).join(", ")}`
-                              : "Baseline Absent (Unconfigured Directive)"}
+                            {selectedFinding.evidence_lines?.some((e) => e.line && e.line > 0)
+                              ? `Line ${selectedFinding.evidence_lines.filter((e) => e.line && e.line > 0).map((e) => e.line).join(", ")}`
+                              : "No direct evidence"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>OBSERVED:</span>
                           <span className="text-[#F59E0B] font-semibold">
-                            {selectedFinding.actual_value || "Insecure Directive"}
+                            {selectedFinding.actual_value || "None / Unconfigured"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -1476,7 +1542,7 @@ function ConfigurationsPageContent() {
                     <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
                       <div className="text-[9px] text-[#667085] uppercase font-bold">WHY FAILED?</div>
                       <p className="text-[11px] text-[#A7B0C0] font-sans leading-relaxed">
-                        {selectedFinding.why_it_failed || "Deterministic security rule evaluation identified a violation against baseline control specifications."}
+                        {selectedFinding.why_it_failed || "Deterministic security rule evaluation identified a violation against control specifications."}
                       </p>
                     </div>
                   </div>
@@ -1516,7 +1582,7 @@ function ConfigurationsPageContent() {
                           ))
                         ) : (
                           <div className="text-[#10B981] whitespace-pre-wrap">
-                            {selectedFinding.remediation_proposal || "! Standard baseline patch"}
+                            {selectedFinding.remediation_proposal || "! Recommended remediation patch"}
                           </div>
                         )}
                       </div>

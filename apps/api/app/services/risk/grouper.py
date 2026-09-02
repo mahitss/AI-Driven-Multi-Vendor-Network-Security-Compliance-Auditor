@@ -171,7 +171,7 @@ def group_findings_into_risks(findings: List[Finding], audit_id: str, device_id:
                 "confidence": 0.90,
                 "finding_ids": [f.id],
                 "affected_assets": [device_id or "Target Infrastructure Node"],
-                "evidence_summary": f"{f.control_id}: {f.evidence or 'Non-compliant configuration baseline'}",
+                "evidence_summary": f"{f.control_id}: {f.evidence or 'Unconfigured or non-compliant directive'}",
                 "status": "OPEN",
             })
 

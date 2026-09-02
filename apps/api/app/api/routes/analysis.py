@@ -26,7 +26,7 @@ from app.services.parser.models import NormalizedSecurityProfile
 from app.services.parser.registry import parser_registry
 from app.services.parsing.vendor_detector import VendorDetector
 from app.services.remediation.diff_generator import generate_remediation_diff
-from app.services.risk.scoring import calculate_risk_score
+from app.services.risk.scoring import calculate_risk_score, calculate_composite_risk_score
 
 router = APIRouter(prefix="/analysis", tags=["Security Analysis Pipeline"])
 
@@ -51,10 +51,13 @@ class IngestAnalysisResponse(BaseModel):
 
 
 class EvidenceItem(BaseModel):
-    line: int
+    line: Optional[int] = None
     raw_text: str
     property_path: Optional[str] = None
     context: Optional[str] = None
+    evidence_status: Optional[str] = "configured"  # "configured" or "unconfigured"
+
+
 
 
 class FindingItem(BaseModel):
@@ -275,16 +278,13 @@ async def get_analysis_status(
             else:
                 low_count += 1
 
-    if fail_count > 0:
-        dominant_sev = "CRITICAL" if crit_count > 0 else "HIGH" if high_count > 0 else "MEDIUM"
-        r_score, r_level, _ = calculate_risk_score(
-            severity=dominant_sev,
-            exposure="MANAGEMENT_PLANE",
-            impact="HIGH" if dominant_sev in ["CRITICAL", "HIGH"] else "MEDIUM",
-            finding_count=fail_count,
-        )
-    else:
-        r_score, r_level = 0.0, "P3"
+    r_score, r_level, _ = calculate_composite_risk_score(
+        crit_count=crit_count,
+        high_count=high_count,
+        med_count=med_count,
+        low_count=low_count,
+        total_evaluated=total_evaluated,
+    )
 
     lines_parsed = len((cfg.raw_content or "").splitlines())
 
@@ -354,24 +354,51 @@ async def get_analysis_findings(
         source_lines = meta.get("source_lines") or []
         evidence_list = meta.get("evidence_list") or []
 
-        if source_lines:
-            for i, line_num in enumerate(source_lines):
+        valid_lines = [l for l in source_lines if isinstance(l, int) and l > 0]
+
+        if valid_lines:
+            for i, line_num in enumerate(valid_lines):
                 raw_snippet = evidence_list[i] if i < len(evidence_list) else (f.evidence or "")
                 evidence_items.append(
                     EvidenceItem(
                         line=line_num,
                         raw_text=raw_snippet,
                         property_path=meta.get("property"),
+                        evidence_status="configured",
                     )
                 )
         elif f.evidence:
+            clean_snippet = f.evidence
+            if clean_snippet in [
+                "Baseline",
+                "Baseline Absent",
+                "Non-compliant configuration baseline",
+                "[No direct line evidence — evaluated from default baseline]",
+            ]:
+                clean_snippet = "Unconfigured Directive"
+
             evidence_items.append(
                 EvidenceItem(
-                    line=0,
-                    raw_text=f.evidence,
+                    line=None,
+                    raw_text=clean_snippet,
                     property_path=meta.get("property"),
+                    evidence_status="unconfigured",
                 )
             )
+        else:
+            evidence_items.append(
+                EvidenceItem(
+                    line=None,
+                    raw_text="Unconfigured Directive",
+                    property_path=meta.get("property"),
+                    evidence_status="unconfigured",
+                )
+            )
+
+        # Normalize actual_value if it holds legacy baseline text
+        norm_actual = f.actual_value
+        if norm_actual in ["Baseline", "Baseline Absent"]:
+            norm_actual = "None / Unconfigured"
 
         # Generate structured remediation diff if finding failed
         remed_diff = None
@@ -391,7 +418,7 @@ async def get_analysis_findings(
                 severity=f.severity,
                 status=f.status,
                 expected_value=f.expected_value,
-                actual_value=f.actual_value,
+                actual_value=norm_actual,
                 why_it_failed=f.description,
                 evidence_lines=evidence_items,
                 remediation_proposal=f.remediation,
@@ -441,21 +468,35 @@ async def get_analysis_evidence(
         domain_dict = profile_dict.get(domain_name, {})
         if isinstance(domain_dict, dict):
             for prop_name, fact_dict in domain_dict.items():
-                if isinstance(fact_dict, dict) and "source_lines" in fact_dict:
+                if isinstance(fact_dict, dict):
                     lines = fact_dict.get("source_lines") or []
                     ev_list = fact_dict.get("evidence") or []
-                    for i, l_num in enumerate(lines):
-                        txt = ev_list[i] if i < len(ev_list) else str(fact_dict.get("value"))
+                    valid_lines = [l for l in lines if isinstance(l, int) and l > 0]
+                    if valid_lines:
+                        for i, l_num in enumerate(valid_lines):
+                            txt = ev_list[i] if i < len(ev_list) else str(fact_dict.get("value"))
+                            evidence_items.append(
+                                EvidenceItem(
+                                    line=l_num,
+                                    raw_text=txt,
+                                    property_path=f"{domain_name}.{prop_name}",
+                                    context=domain_name,
+                                    evidence_status="configured",
+                                )
+                            )
+                    elif fact_dict.get("status") in ["unknown", "default_inferred"] or fact_dict.get("value") is not None:
+                        val_str = str(fact_dict.get("value")) if fact_dict.get("value") is not None else "Unconfigured"
                         evidence_items.append(
                             EvidenceItem(
-                                line=l_num,
-                                raw_text=txt,
+                                line=None,
+                                raw_text=val_str,
                                 property_path=f"{domain_name}.{prop_name}",
                                 context=domain_name,
+                                evidence_status="unconfigured",
                             )
                         )
 
-    return sorted(evidence_items, key=lambda x: x.line)
+    return sorted(evidence_items, key=lambda x: (x.line is None, x.line or 0))
 
 
 @router.get(
@@ -522,12 +563,15 @@ async def get_analysis_risk(
             contributing_findings=[],
         )
 
-    dominant_sev = "CRITICAL" if crit_count > 0 else "HIGH" if high_count > 0 else "MEDIUM"
-    risk_score, risk_level, likelihood = calculate_risk_score(
-        severity=dominant_sev,
-        exposure="MANAGEMENT_PLANE",
-        impact="HIGH" if dominant_sev in ["CRITICAL", "HIGH"] else "MEDIUM",
-        finding_count=total_failed,
+    total_eval_stmt = select(func.count(Finding.id)).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
+    total_eval = (await db.execute(total_eval_stmt)).scalar() or total_failed
+
+    risk_score, risk_level, likelihood = calculate_composite_risk_score(
+        crit_count=crit_count,
+        high_count=high_count,
+        med_count=med_count,
+        low_count=low_count,
+        total_evaluated=total_eval,
     )
 
     breakdown_parts = []
