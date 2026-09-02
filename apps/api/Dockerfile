@@ -18,6 +18,12 @@ COPY data /app/data
 
 RUN mkdir -p /app/storage/uploads
 
+# Create non-root system user for security
+RUN useradd -m -u 1001 netvigil && \
+    chown -R netvigil:netvigil /app
+
+USER netvigil
+
 WORKDIR /app/apps/api
 ENV PYTHONPATH=/app/apps/api
 

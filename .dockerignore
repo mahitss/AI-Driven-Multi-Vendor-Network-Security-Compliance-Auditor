@@ -1,0 +1,27 @@
+# NetVigil Root Docker Build Context Ignore
+.git
+.gitignore
+.github
+.env
+.env.*
+*.env
+node_modules
+**/node_modules
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+**/.pytest_cache
+.next
+**/.next
+*.db
+*.sqlite
+*.sqlite3
+netvigil.db
+test.db
+coverage
+htmlcov
+.coverage
+scratch
+storage/uploads/*
+!storage/uploads/.gitkeep

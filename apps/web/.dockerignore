@@ -1,0 +1,7 @@
+# NetVigil Web Docker Build Context Ignore
+.git
+.env
+.env.*
+.env.local
+node_modules
+.next
