@@ -4,15 +4,27 @@ Problem Statement: SIH26155 (NTRO)
 """
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CreateAuditRequest(BaseModel):
-    configuration_id: str = Field(..., description="Unique ID of configuration to audit")
+    configuration_id: str = Field(..., min_length=1, max_length=64, description="Unique ID of configuration to audit")
     frameworks: Optional[List[str]] = Field(
         default=["CIS", "NIST", "STIG", "ISO"],
+        max_length=10,
         description="List of frameworks to evaluate (CIS, NIST, STIG, ISO)",
     )
+
+    @field_validator("frameworks")
+    @classmethod
+    def validate_frameworks(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if not v:
+            return v
+        allowed = {"CIS", "NIST", "STIG", "ISO"}
+        for fw in v:
+            if not isinstance(fw, str) or fw.upper() not in allowed:
+                raise ValueError(f"Invalid framework '{fw}'. Allowed frameworks: {', '.join(sorted(allowed))}")
+        return [fw.upper() for fw in v]
 
 
 class FrameworkScoreResponse(BaseModel):

@@ -6,7 +6,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, Query, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select, desc, or_
 from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.auth import AuthenticatedUser
@@ -15,7 +15,7 @@ from app.models.configuration import Configuration
 from app.models.finding import Finding
 from app.models.risk import RiskItem
 from app.models.remediation import RemediationProposal
-from app.core.errors import NotFoundError, ResourceNotFoundError
+from app.core.errors import NotFoundError, ResourceNotFoundError, ValidationError
 from app.core.security import redact_sensitive_data
 import hashlib
 from app.services.risk.scoring import calculate_risk_score
@@ -27,17 +27,25 @@ GENERATED_REPORTS: List[Dict[str, Any]] = []
 
 
 class GenerateReportRequest(BaseModel):
-    report_type: str = "EXECUTIVE_AUDIT_SUMMARY"  # EXECUTIVE_AUDIT_SUMMARY, DEVICE_COMPLIANCE, REMEDIATION_PLAN
-    audit_id: Optional[str] = None
-    baseline_audit_id: Optional[str] = None
-    device_id: Optional[str] = None
-    title: Optional[str] = None
-    notes: Optional[str] = None
+    report_type: str = Field(default="EXECUTIVE_AUDIT_SUMMARY", max_length=50)  # EXECUTIVE_AUDIT_SUMMARY, DEVICE_COMPLIANCE, REMEDIATION_PLAN
+    audit_id: Optional[str] = Field(default=None, max_length=64)
+    baseline_audit_id: Optional[str] = Field(default=None, max_length=64)
+    device_id: Optional[str] = Field(default=None, max_length=64)
+    title: Optional[str] = Field(default=None, max_length=200)
+    notes: Optional[str] = Field(default=None, max_length=2000)
+
+    @field_validator("report_type")
+    @classmethod
+    def validate_report_type(cls, v: str) -> str:
+        allowed = {"EXECUTIVE_AUDIT_SUMMARY", "DEVICE_COMPLIANCE", "REMEDIATION_PLAN", "AUDIT_COMPARISON"}
+        if v.upper() not in allowed:
+            raise ValueError(f"Invalid report type '{v}'. Allowed: {', '.join(sorted(allowed))}")
+        return v.upper()
 
 
 class CompareAuditsRequest(BaseModel):
-    baseline_audit_id: str
-    remediated_audit_id: str
+    baseline_audit_id: str = Field(..., min_length=1, max_length=64)
+    remediated_audit_id: str = Field(..., min_length=1, max_length=64)
 
 
 @router.get("", summary="List all generated security audit reports")
@@ -371,6 +379,9 @@ async def compare_audits(
 
     if not baseline or not remediated:
         raise NotFoundError(message="One or both audit sessions were not found.")
+
+    if payload.baseline_audit_id == payload.remediated_audit_id:
+        raise ValidationError(message="Cannot compare an audit session against itself. Baseline and remediated audit sessions must be distinct.")
 
     b_findings = list((await db.execute(select(Finding).where(Finding.audit_id == baseline.id, Finding.user_id == current_user.id))).scalars().all())
     r_findings = list((await db.execute(select(Finding).where(Finding.audit_id == remediated.id, Finding.user_id == current_user.id))).scalars().all())

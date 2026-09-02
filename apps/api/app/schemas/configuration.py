@@ -20,8 +20,8 @@ class VendorDetectionResult(BaseModel):
 
 
 class VendorDetectionRequest(BaseModel):
-    content: str = Field(..., min_length=1, description="Raw configuration text to detect")
-    filename: Optional[str] = Field(default=None, description="Optional filename for heuristic guidance")
+    content: str = Field(..., min_length=1, max_length=10_485_760, description="Raw configuration text to detect")
+    filename: Optional[str] = Field(default=None, max_length=255, description="Optional filename for heuristic guidance")
 
 
 class ConfigurationResponse(BaseModel):

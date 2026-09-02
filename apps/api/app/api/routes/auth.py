@@ -29,10 +29,10 @@ class LogoutResponse(BaseModel):
 
 
 class ProfileRequest(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50, description="Unique username")
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    avatar_url: Optional[str] = None
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_\-\.]+$", description="Unique username")
+    email: Optional[str] = Field(default=None, max_length=255)
+    full_name: Optional[str] = Field(default=None, max_length=100)
+    avatar_url: Optional[str] = Field(default=None, max_length=500)
 
 
 class ProfileResponse(BaseModel):

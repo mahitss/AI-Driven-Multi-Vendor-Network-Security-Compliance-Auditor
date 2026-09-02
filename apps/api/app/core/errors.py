@@ -94,23 +94,28 @@ class ValidationError(NetVigilException):
         )
 
 
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
 def format_error_response(
     code: str,
     message: str,
     request_id: Optional[str] = None,
     details: Optional[Any] = None,
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
+    headers: Optional[dict] = None,
 ) -> JSONResponse:
     content = {
         "error": {
             "code": code,
             "message": message,
             "request_id": request_id or "unknown",
-        }
+        },
+        "detail": message,
     }
     if details is not None:
         content["error"]["details"] = details
-    return JSONResponse(status_code=status_code, content=content)
+    return JSONResponse(status_code=status_code, content=content, headers=headers)
 
 
 async def netvigil_exception_handler(request: Request, exc: NetVigilException) -> JSONResponse:
@@ -121,6 +126,32 @@ async def netvigil_exception_handler(request: Request, exc: NetVigilException) -
         request_id=request_id,
         details=exc.details,
         status_code=exc.status_code,
+    )
+
+
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+    code_map = {
+        status.HTTP_400_BAD_REQUEST: "BAD_REQUEST",
+        status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+        status.HTTP_403_FORBIDDEN: "FORBIDDEN",
+        status.HTTP_404_NOT_FOUND: "NOT_FOUND",
+        status.HTTP_405_METHOD_NOT_ALLOWED: "METHOD_NOT_ALLOWED",
+        status.HTTP_409_CONFLICT: "CONFLICT",
+        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: "PAYLOAD_TOO_LARGE",
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: "UNSUPPORTED_MEDIA_TYPE",
+        status.HTTP_422_UNPROCESSABLE_ENTITY: "UNPROCESSABLE_ENTITY",
+        status.HTTP_429_TOO_MANY_REQUESTS: "RATE_LIMIT_EXCEEDED",
+    }
+    code = code_map.get(exc.status_code, "HTTP_ERROR")
+    msg = exc.detail if isinstance(exc.detail, str) else "A request processing error occurred."
+    headers = getattr(exc, "headers", None)
+    return format_error_response(
+        code=code,
+        message=msg,
+        request_id=request_id,
+        status_code=exc.status_code,
+        headers=headers,
     )
 
 

@@ -20,13 +20,13 @@ router = APIRouter(tags=["Risk Intelligence"])
 async def list_risks(
     db: DatabaseDep,
     current_user: CurrentUserDep,
-    severity: Optional[str] = Query(default=None),
-    priority: Optional[str] = Query(default=None),
-    category: Optional[str] = Query(default=None),
-    status: Optional[str] = Query(default=None),
-    audit_id: Optional[str] = Query(default=None),
+    severity: Optional[str] = Query(default=None, max_length=50),
+    priority: Optional[str] = Query(default=None, max_length=50),
+    category: Optional[str] = Query(default=None, max_length=100),
+    status: Optional[str] = Query(default=None, max_length=50),
+    audit_id: Optional[str] = Query(default=None, max_length=64),
     latest_only: bool = Query(default=True, description="Filter to risks from latest audit per configuration"),
-    limit: int = Query(default=50, le=200),
+    limit: int = Query(default=50, ge=1, le=200),
 ):
     """Lists risk items across active fleet audits for authenticated user with multi-dimensional filtering."""
     stmt = select(RiskItem).where(RiskItem.user_id == current_user.id)

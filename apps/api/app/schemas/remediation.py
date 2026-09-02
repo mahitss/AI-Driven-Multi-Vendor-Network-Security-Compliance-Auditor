@@ -4,7 +4,7 @@ Problem Statement: SIH26155 (NTRO)
 """
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class RemediationProposalResponse(BaseModel):
@@ -36,10 +36,20 @@ class RemediationProposalResponse(BaseModel):
 
 
 class ReviewRemediationRequest(BaseModel):
-    reviewer_email: Optional[str] = "admin@ntro.gov.in"
-    reviewed_by: Optional[str] = None
-    status: Optional[str] = "REVIEWED"
-    notes: Optional[str] = "Verified and approved by network security officer"
+    reviewer_email: Optional[str] = Field(default="admin@ntro.gov.in", max_length=255)
+    reviewed_by: Optional[str] = Field(default=None, max_length=150)
+    status: Optional[str] = Field(default="REVIEWED", max_length=50)
+    notes: Optional[str] = Field(default="Verified and approved by network security officer", max_length=2000)
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return "REVIEWED"
+        allowed = {"REVIEWED", "APPROVED", "REJECTED", "DISMISSED"}
+        if v.upper() not in allowed:
+            raise ValueError(f"Invalid remediation status '{v}'. Allowed: {', '.join(sorted(allowed))}")
+        return v.upper()
 
 
 class RemediationSummaryStatsResponse(BaseModel):

@@ -24,9 +24,9 @@ router = APIRouter(tags=["Remediation Center"])
 async def list_remediations(
     db: DatabaseDep,
     current_user: CurrentUserDep,
-    vendor: Optional[str] = Query(default=None),
-    status: Optional[str] = Query(default=None),
-    limit: int = Query(default=50, le=200),
+    vendor: Optional[str] = Query(default=None, max_length=50),
+    status: Optional[str] = Query(default=None, max_length=50),
+    limit: int = Query(default=50, ge=1, le=200),
 ):
     """Lists remediation proposals for the authenticated user with filtering."""
     stmt = select(RemediationProposal).where(RemediationProposal.user_id == current_user.id)
@@ -142,7 +142,7 @@ async def review_remediation(
     return await RemediationService.review_remediation(
         remediation_id=remediation_id,
         status=payload.status,
-        reviewed_by=payload.reviewed_by or payload.reviewer_email or current_user.email or "Security Officer",
+        reviewed_by=payload.reviewed_by or payload.reviewer_email or current_user.email or current_user.id or "Security Officer",
         notes=payload.notes,
         db=db,
     )

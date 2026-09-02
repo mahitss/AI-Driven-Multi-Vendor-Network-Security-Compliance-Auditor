@@ -5,7 +5,7 @@ Problem Statement: SIH26155 (NTRO)
 """
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class AgentConstraint(BaseModel):
@@ -17,11 +17,27 @@ class AgentConstraint(BaseModel):
 
 class AgentObjectiveRequest(BaseModel):
     """User objective input to autonomous network security engineer."""
-    objective: str = Field(..., description="Natural language security objective")
-    target_configurations: Optional[List[str]] = Field(default=None, description="Optional target configuration filenames or analysis IDs")
-    baseline_framework: str = Field(default="CIS", description="Target compliance standard (CIS, NIST, STIG, ISO)")
-    risk_threshold: str = Field(default="HIGH", description="Remediation focus threshold (CRITICAL, HIGH, ALL)")
+    objective: str = Field(..., min_length=1, max_length=1000, description="Natural language security objective")
+    target_configurations: Optional[List[str]] = Field(default=None, max_length=50, description="Optional target configuration filenames or analysis IDs")
+    baseline_framework: str = Field(default="CIS", max_length=10, description="Target compliance standard (CIS, NIST, STIG, ISO)")
+    risk_threshold: str = Field(default="HIGH", max_length=20, description="Remediation focus threshold (CRITICAL, HIGH, ALL)")
     auto_approve_safe: bool = Field(default=False, description="Whether to auto-apply low-impact changes without human prompt")
+
+    @field_validator("baseline_framework")
+    @classmethod
+    def validate_baseline_framework(cls, v: str) -> str:
+        allowed = {"CIS", "NIST", "STIG", "ISO"}
+        if v.upper() not in allowed:
+            raise ValueError(f"Invalid baseline framework '{v}'. Allowed: {', '.join(sorted(allowed))}")
+        return v.upper()
+
+    @field_validator("risk_threshold")
+    @classmethod
+    def validate_risk_threshold(cls, v: str) -> str:
+        allowed = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "ALL"}
+        if v.upper() not in allowed:
+            raise ValueError(f"Invalid risk threshold '{v}'. Allowed: {', '.join(sorted(allowed))}")
+        return v.upper()
 
 
 class TimelineEvent(BaseModel):

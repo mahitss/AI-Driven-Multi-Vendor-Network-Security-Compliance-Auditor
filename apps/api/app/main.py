@@ -27,10 +27,13 @@ from app.api.routes import (
 from app.core.config import settings
 from app.core.errors import (
     NetVigilException,
+    http_exception_handler,
     netvigil_exception_handler,
     unhandled_exception_handler,
     validation_exception_handler,
 )
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.exceptions import HTTPException as FastAPIHTTPException
 from app.core.logging import logger
 from app.core.middleware import (
     RequestContextMiddleware,
@@ -152,6 +155,8 @@ app.add_middleware(
 # Custom Exception Handlers
 app.add_exception_handler(NetVigilException, netvigil_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(FastAPIHTTPException, http_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 from fastapi import Depends

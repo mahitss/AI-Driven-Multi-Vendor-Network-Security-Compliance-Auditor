@@ -823,9 +823,9 @@ async def init_multivendor_demo(db: DatabaseDep, current_user: CurrentUserDep) -
 
 @router.get("/search", summary="Global unified entity search across fleet, audits, findings, rules, and reports")
 async def global_unified_search(
-    q: str = Query(..., min_length=1, description="Search term or rule query"),
-    context_audit_id: Optional[str] = Query(None, description="Optional active audit ID for prioritized context"),
-    context_config_id: Optional[str] = Query(None, description="Optional active configuration ID"),
+    q: str = Query(..., min_length=1, max_length=200, description="Search term or rule query"),
+    context_audit_id: Optional[str] = Query(None, max_length=64, description="Optional active audit ID for prioritized context"),
+    context_config_id: Optional[str] = Query(None, max_length=64, description="Optional active configuration ID"),
     db: DatabaseDep = None,
     current_user: CurrentUserDep = None,
 ) -> Dict[str, Any]:
