@@ -7,7 +7,7 @@ import type { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { getAppOrigin } from "@/lib/get-app-origin";
 
-import { resolveUsernameToEmail, upsertUserProfile } from "@/lib/api-client";
+import { resolveUsernameToEmail, upsertUserProfile, logoutBackendSession } from "@/lib/api-client";
 
 interface AuthContextType {
   user: User | null;
@@ -126,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      await logoutBackendSession();
       await supabase.auth.signOut();
     } catch (error) {
       console.error("Logout error:", error);
@@ -192,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!targetEmail.includes("@")) {
         const resolved = await resolveUsernameToEmail(targetEmail);
         if (!resolved.found || !resolved.email) {
-          return { error: new Error("No account found with that username. Please check your username or email.") };
+          return { error: new Error("Invalid username/email or password. Please verify your credentials and try again.") };
         }
         targetEmail = resolved.email;
       }

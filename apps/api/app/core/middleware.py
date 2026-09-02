@@ -44,6 +44,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._history: Dict[str, collections.deque] = collections.defaultdict(collections.deque)
         # Endpoint prefix rules: (path_prefix, max_requests_per_window)
         self._rate_limits: List[Tuple[str, int]] = [
+            (f"{settings.API_PREFIX}/auth/resolve-username", 15),
+            (f"{settings.API_PREFIX}/auth/", 30),
             (f"{settings.API_PREFIX}/ai/", 120),
             (f"{settings.API_PREFIX}/configurations/upload", 60),
             (f"{settings.API_PREFIX}/configurations", 60),

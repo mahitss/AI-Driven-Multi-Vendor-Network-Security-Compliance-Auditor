@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.main import app
 from app.models.base import Base
+from app.models.user import User, Profile
 
 # Ensure fast deterministic test execution by default
 settings.OPENROUTER_API_KEY = ""

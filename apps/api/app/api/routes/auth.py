@@ -3,23 +3,29 @@ User Profile and Authentication Supporting API Routes
 Problem Statement: SIH26155 (NTRO)
 """
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from app.api.dependencies import CurrentUserDep, DatabaseDep
+from app.core.auth import revoke_token
 from app.models.user import Profile
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Profiles"])
 
 
 class ResolveUsernameRequest(BaseModel):
-    identifier: str = Field(..., description="Username or Email to resolve")
+    identifier: str = Field(..., min_length=1, max_length=100, description="Username or Email to resolve")
 
 
 class ResolveUsernameResponse(BaseModel):
     email: Optional[str] = None
     username: Optional[str] = None
     found: bool
+
+
+class LogoutResponse(BaseModel):
+    status: str = "logged_out"
+    message: str = "Session token invalidated"
 
 
 class ProfileRequest(BaseModel):
@@ -62,6 +68,22 @@ async def resolve_username(
         )
 
     return ResolveUsernameResponse(email=None, username=None, found=False)
+
+
+@router.post(
+    "/logout",
+    response_model=LogoutResponse,
+    summary="Explicitly terminate session and invalidate backend cached verification",
+)
+async def logout_session(
+    request: Request,
+    current_user: CurrentUserDep,
+) -> LogoutResponse:
+    auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
+        revoke_token(token)
+    return LogoutResponse(status="logged_out", message="Session token invalidated")
 
 
 @router.get(

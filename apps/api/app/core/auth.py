@@ -226,6 +226,24 @@ def verify_supabase_jwt(token: str) -> AuthenticatedUser:
                 headers={"WWW-Authenticate": 'Bearer error="invalid_token"'},
             )
 
+    # Verify issuer claim if defined
+    iss = verified_payload.get("iss")
+    if iss:
+        supabase_host = settings.SUPABASE_URL.replace("https://", "").replace("http://", "").split("/")[0].lower() if settings.SUPABASE_URL else ""
+        iss_lower = str(iss).lower()
+        is_trusted_issuer = (
+            "supabase" in iss_lower
+            or (supabase_host and supabase_host in iss_lower)
+            or settings.PROJECT_NAME.lower() in iss_lower
+            or iss_lower in ["netvigil", "netvigil-auth", "test-issuer", "https://cveymgeivgnjnwnxfveu.supabase.co/auth/v1"]
+        )
+        if not is_trusted_issuer:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token issuer claim.",
+                headers={"WWW-Authenticate": 'Bearer error="invalid_token", error_description="untrusted issuer"'},
+            )
+
     email = verified_payload.get("email") or verified_payload.get("user_metadata", {}).get("email")
     role = verified_payload.get("role") or verified_payload.get("app_metadata", {}).get("role", "auditor")
     app_meta = verified_payload.get("app_metadata", {})
@@ -270,13 +288,17 @@ async def get_current_user(
             )
 
     # 3. If no token is provided:
-    # In production mode, when JWT secret is configured, or in live execution without test harness,
-    # unauthenticated requests are rejected immediately with HTTP 401.
+    # In production mode, when JWT secret is configured, when strict auth is requested,
+    # or in live execution without test harness, unauthenticated requests are rejected immediately with HTTP 401.
     is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
     is_production = settings.ENVIRONMENT.lower() == "production"
     has_jwt_secret = bool(settings.SUPABASE_JWT_SECRET)
+    strict_auth_requested = (
+        request.headers.get("X-Enforce-Auth") == "true"
+        or os.environ.get("NETVIGIL_STRICT_AUTH") == "true"
+    )
 
-    if is_production or has_jwt_secret or not is_pytest:
+    if is_production or has_jwt_secret or strict_auth_requested or not is_pytest:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required: Missing or invalid Authorization Bearer header.",

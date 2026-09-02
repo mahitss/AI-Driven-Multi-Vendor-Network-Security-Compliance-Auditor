@@ -2750,6 +2750,16 @@ export async function fetchUserProfile(): Promise<UserProfile | null> {
   }
 }
 
+export async function logoutBackendSession(): Promise<void> {
+  try {
+    await apiFetch(`${API_BASE}/api/v1/auth/logout`, {
+      method: "POST",
+    });
+  } catch {
+    // Best-effort backend token revocation
+  }
+}
+
 export async function upsertUserProfile(payload: {
   username: string;
   email?: string;
