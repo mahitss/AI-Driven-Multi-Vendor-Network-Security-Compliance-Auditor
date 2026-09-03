@@ -784,6 +784,7 @@
     "explanation": "Weak ciphers such as RC4, 3DES, or CBC-mode ciphers permit plaintext recovery via cryptanalytic side-channel attacks.",
     "remediation_key": "enforce_strong_ciphers",
     "applicability": "fortinet,juniper",
+    "absence_compliant": true,
     "framework_mappings": {
       "CIS": {
         "control_id": "CIS-1.2.4",

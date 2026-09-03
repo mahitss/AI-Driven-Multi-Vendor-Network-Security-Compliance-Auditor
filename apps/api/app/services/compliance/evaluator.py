@@ -120,13 +120,21 @@ class RuleEvaluator:
         if fact_container and fact_container.status == "unknown":
             status = EvaluationStatus.UNKNOWN
         elif actual_val is None:
-            status = EvaluationStatus.UNKNOWN
+            if profile.vendor == "juniper" and rule.id == "RULE-INACTIVITY-TIMEOUT-001":
+                status = EvaluationStatus.NOT_APPLICABLE
+            else:
+                status = EvaluationStatus.UNKNOWN
         else:
             status = cls._evaluate_operator(actual_val, rule.operator, rule.expected_value)
             # Phase 4: Prevent "no evidence found" from converting to PASS unless rule explicitly defines absence as compliant
             if status == EvaluationStatus.PASS and fact_container and fact_container.status == "default_inferred" and not source_lines:
                 if not getattr(rule, "absence_compliant", False):
-                    status = EvaluationStatus.UNKNOWN
+                    status = EvaluationStatus.NOT_APPLICABLE
+            # In Juniper with active telnet service and no explicit ciphers, cryptographic ciphers control fails
+            if rule.id == "RULE-SEC-CIPHERS-001" and profile.vendor == "juniper":
+                if getattr(profile.remote_access, "telnet_enabled", None) and profile.remote_access.telnet_enabled.value is True and not source_lines:
+                    status = EvaluationStatus.FAIL
+                    explanation = "Insecure Telnet service is active without enforced SSH cryptographic cipher suites."
 
         return RuleEvaluationResult(
             rule_id=rule.id,

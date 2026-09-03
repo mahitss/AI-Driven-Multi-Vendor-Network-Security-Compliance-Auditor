@@ -49,6 +49,7 @@ class ComplianceRule(BaseModel):
     explanation: str
     remediation_key: str
     applicability: Optional[Any] = None
+    absence_compliant: bool = False
     framework_mappings: Dict[str, FrameworkSourceMeta] = Field(default_factory=dict)
 
 
@@ -99,4 +100,5 @@ class AuditScoreSummary(BaseModel):
     severity_breakdown: SeverityStats = Field(default_factory=SeverityStats)
     status_breakdown: Dict[str, int] = Field(default_factory=dict)
     total_findings: int = 0
+    total_applicable: int = 0
     evaluated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -90,4 +90,5 @@ class ComplianceScoringEngine:
             severity_breakdown=severity_counts,
             status_breakdown=dict(status_counts),
             total_findings=len(results),
+            total_applicable=total_applicable,
         )

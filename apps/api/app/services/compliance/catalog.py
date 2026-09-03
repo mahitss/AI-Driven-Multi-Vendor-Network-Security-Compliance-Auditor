@@ -85,6 +85,7 @@ class ComplianceCatalog:
                 explanation=item.get("explanation", ""),
                 remediation_key=item.get("remediation_key", ""),
                 applicability=item.get("applicability"),
+                absence_compliant=item.get("absence_compliant", False),
                 framework_mappings=mappings,
             )
             self._rules.append(rule)

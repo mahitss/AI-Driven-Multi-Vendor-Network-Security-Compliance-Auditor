@@ -1025,7 +1025,11 @@ function ConfigurationsPageContent() {
                     ? `${analysisStatus.compliance_score.toFixed(1)}%`
                     : "--"}
                 </div>
-                <div className="text-[9px] text-[#10B981]">CIS • NIST • STIG • ISO</div>
+                <div className="text-[9px] text-[#10B981]">
+                  {analysisStatus?.total_applicable_controls !== undefined && analysisStatus?.total_applicable_controls > 0
+                    ? `${analysisStatus.pass_count}/${analysisStatus.total_applicable_controls} APPLICABLE`
+                    : "CIS • NIST • STIG • ISO"}
+                </div>
               </div>
 
               <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">

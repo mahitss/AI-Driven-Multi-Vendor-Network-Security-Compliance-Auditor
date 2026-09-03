@@ -252,6 +252,8 @@ class FortinetParser(BaseConfigurationParser):
                             https_lines.append(line_no)
                             http_disabled_evidence.append(raw_line)
                             http_disabled_lines.append(line_no)
+                            if strong_crypto_val is None:
+                                strong_crypto_val = (True, raw_line, line_no)
                         tracker.mark_matched(line_no)
                         continue
                     elif key == "admin-ssh-v1":

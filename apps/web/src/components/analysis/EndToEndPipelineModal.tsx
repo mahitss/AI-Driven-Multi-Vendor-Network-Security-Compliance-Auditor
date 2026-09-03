@@ -314,7 +314,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                   {currentStep >= 3 && <Check className="h-3.5 w-3.5 text-[#3B82F6]" />}
                 </div>
                 <div className="text-[11px] text-[#A7B0C0]">
-                  {statusData ? `${statusData.controls_evaluated_count} Rules (CIS/NIST)` : "Zero-LLM Rule Evaluator"}
+                  {statusData ? `${statusData.total_applicable_controls ?? statusData.controls_evaluated_count} Applicable Rules (CIS/NIST)` : "Zero-LLM Rule Evaluator"}
                 </div>
               </div>
 

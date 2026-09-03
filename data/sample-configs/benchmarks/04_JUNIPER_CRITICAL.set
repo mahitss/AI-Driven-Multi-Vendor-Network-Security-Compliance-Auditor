@@ -1,0 +1,6 @@
+set system host-name TEST-JUNIPER-CRITICAL
+set system services telnet
+set system services web-management http
+set system services ssh protocol-version v1
+set system login user admin class super-user
+set interfaces ge-0/0/0 unit 0 family inet address 198.51.100.10/24

@@ -104,6 +104,12 @@ class AnalysisStatusResponse(BaseModel):
     compliance_score: float
     risk_score: float
     risk_level: str
+    total_applicable_controls: Optional[int] = None
+    not_applicable_count: Optional[int] = None
+    passed_controls: Optional[int] = None
+    failed_controls: Optional[int] = None
+    unknown_controls: Optional[int] = None
+    compliance_percent: Optional[float] = None
     created_at: datetime
     processed_at: Optional[datetime] = None
 
@@ -243,11 +249,11 @@ async def get_analysis_status(
     pass_count = 0
     fail_count = 0
     unknown_count = 0
-    total_evaluated = 0
+    na_count = 0
+    total_applicable = 0
     comp_score = 0.0
 
     if audit:
-        comp_score = audit.score or 0.0
         findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
         f_res = await db.execute(findings_stmt)
         findings = f_res.scalars().all()
@@ -255,7 +261,15 @@ async def get_analysis_status(
         pass_count = sum(1 for f in findings if f.status == "PASS")
         fail_count = sum(1 for f in findings if f.status == "FAIL")
         unknown_count = sum(1 for f in findings if f.status == "UNKNOWN")
-        total_evaluated = len(findings)
+        na_count = sum(1 for f in findings if f.status == "NOT_APPLICABLE")
+        total_applicable = pass_count + fail_count + unknown_count
+
+        if total_applicable > 0:
+            comp_score = round(pass_count / total_applicable * 100.0, 1)
+        elif audit.score is not None:
+            comp_score = audit.score
+        else:
+            comp_score = 100.0
 
     # Calculate derived risk from actual findings
     crit_count = 0
@@ -283,7 +297,7 @@ async def get_analysis_status(
         high_count=high_count,
         med_count=med_count,
         low_count=low_count,
-        total_evaluated=total_evaluated,
+        total_evaluated=total_applicable if total_applicable > 0 else (len(findings) if audit else 60),
     )
 
     lines_parsed = len((cfg.raw_content or "").splitlines())
@@ -297,13 +311,19 @@ async def get_analysis_status(
         lines_parsed=lines_parsed,
         facts_extracted_count=cfg.facts_extracted_count or 0,
         unknown_items_count=cfg.unknown_items_count or 0,
-        controls_evaluated_count=total_evaluated,
+        controls_evaluated_count=total_applicable if total_applicable > 0 else (len(findings) if audit else 0),
         pass_count=pass_count,
         fail_count=fail_count,
         unknown_count=unknown_count,
         compliance_score=comp_score,
         risk_score=r_score,
         risk_level=r_level,
+        total_applicable_controls=total_applicable,
+        not_applicable_count=na_count,
+        passed_controls=pass_count,
+        failed_controls=fail_count,
+        unknown_controls=unknown_count,
+        compliance_percent=comp_score,
         created_at=cfg.created_at,
         processed_at=cfg.processed_at,
     )
