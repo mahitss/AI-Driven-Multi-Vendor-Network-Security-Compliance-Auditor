@@ -17,6 +17,7 @@ from app.core.errors import ResourceNotFoundError, ValidationError
 from app.models.audit import Audit
 from app.models.configuration import Configuration
 from app.models.finding import Finding
+from app.models.remediation import RemediationProposal
 from app.services.compliance.catalog import compliance_catalog
 from app.services.compliance.evaluator import RuleEvaluator
 from app.services.compliance.scorer import ComplianceScoringEngine
@@ -26,6 +27,7 @@ from app.services.parser.models import NormalizedSecurityProfile
 from app.services.parser.registry import parser_registry
 from app.services.parsing.vendor_detector import VendorDetector
 from app.services.remediation.diff_generator import generate_remediation_diff
+from app.services.remediation.service import RemediationService
 from app.services.risk.scoring import calculate_risk_score, calculate_composite_risk_score
 
 router = APIRouter(prefix="/analysis", tags=["Security Analysis Pipeline"])
@@ -110,12 +112,27 @@ class AnalysisStatusResponse(BaseModel):
     failed_controls: Optional[int] = None
     unknown_controls: Optional[int] = None
     compliance_percent: Optional[float] = None
+    remediation_status: str = Field(default="pending", description="Stage 7 status: pending, complete, failed")
+    remediation_proposals_count: int = Field(default=0, description="Count of generated remediation proposals")
+    verification_status: str = Field(default="pending", description="Stage 8 status: pending, complete, failed")
+    verification_details: Optional[Dict[str, Any]] = Field(default=None, description="Detailed verification results")
     created_at: datetime
     processed_at: Optional[datetime] = None
 
 
+class RemediateAnalysisResponse(BaseModel):
+    analysis_id: str
+    audit_id: str
+    remediation_status: str
+    proposals_count: int
+    eligible_controls_count: int
+    remediated_content: str
+    remediated_hash: str
+    proposals: List[Dict[str, Any]]
+
+
 class ReanalyzeRequest(BaseModel):
-    modified_content: str = Field(..., description="Updated configuration content after remediation")
+    modified_content: Optional[str] = Field(default=None, description="Updated configuration content after remediation; optional")
 
 
 class ReanalyzeResponse(BaseModel):
@@ -129,6 +146,10 @@ class ReanalyzeResponse(BaseModel):
     new_risk_score: float
     resolved_controls: List[str]
     findings_transition: List[Dict[str, Any]]
+    verification_status: str = "complete"
+    remediated_findings: List[Dict[str, Any]] = Field(default_factory=list)
+    original_hash: Optional[str] = None
+    remediated_hash: Optional[str] = None
 
 
 # --- Routes ---
@@ -302,6 +323,35 @@ async def get_analysis_status(
 
     lines_parsed = len((cfg.raw_content or "").splitlines())
 
+    # Authoritative Stage 7 (Remediation) status
+    rem_count = 0
+    has_remediation_run = False
+    if audit:
+        rem_stmt = select(func.count(RemediationProposal.id)).where(
+            RemediationProposal.audit_id == audit.id,
+            RemediationProposal.user_id == current_user.id,
+        )
+        rem_count = (await db.execute(rem_stmt)).scalar() or 0
+        has_remediation_run = rem_count > 0 or bool(audit.summary_stats and "remediation" in audit.summary_stats)
+    remediation_status = "complete" if has_remediation_run else "pending"
+
+    # Authoritative Stage 8 (Verify) status
+    verification_details = None
+    if audit and audit.summary_stats and "verification" in audit.summary_stats:
+        verification_details = audit.summary_stats["verification"]
+    else:
+        ver_stmt = (
+            select(Audit)
+            .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
+            .order_by(desc(Audit.created_at))
+        )
+        all_audits = (await db.execute(ver_stmt)).scalars().all()
+        for a in all_audits:
+            if a.summary_stats and "verification" in a.summary_stats:
+                verification_details = a.summary_stats["verification"]
+                break
+    verification_status = "complete" if verification_details else "pending"
+
     return AnalysisStatusResponse(
         analysis_id=cfg.id,
         filename=cfg.original_filename,
@@ -324,6 +374,10 @@ async def get_analysis_status(
         failed_controls=fail_count,
         unknown_controls=unknown_count,
         compliance_percent=comp_score,
+        remediation_status=remediation_status,
+        remediation_proposals_count=rem_count,
+        verification_status=verification_status,
+        verification_details=verification_details,
         created_at=cfg.created_at,
         processed_at=cfg.processed_at,
     )
@@ -638,6 +692,94 @@ async def get_analysis_risk(
 
 
 @router.post(
+    "/{analysis_id}/remediate",
+    response_model=RemediateAnalysisResponse,
+    summary="Execute allowlisted remediation diff generation for failed audit findings",
+)
+async def generate_analysis_remediation(
+    analysis_id: str,
+    db: DatabaseDep,
+    current_user: CurrentUserDep,
+) -> RemediateAnalysisResponse:
+    """
+    Stage 7: Authoritative Remediation Generation
+    - Discovers all failed findings for active audit
+    - Resolves allowlisted remediation templates
+    - Generates deterministic diff previews
+    - Synthesizes safe remediated configuration text artifact
+    - Zero remote device connection or automated deployment
+    """
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
+    cfg = (await db.execute(stmt)).scalars().first()
+    if not cfg:
+        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
+
+    audit_stmt = (
+        select(Audit)
+        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
+        .order_by(desc(Audit.created_at))
+        .limit(1)
+    )
+    audit = (await db.execute(audit_stmt)).scalars().first()
+    if not audit:
+        raise ResourceNotFoundError(resource="Audit for Analysis", identifier=analysis_id)
+
+    # Generate remediation proposals using existing catalog and diff generator
+    proposals = await RemediationService.generate_audit_remediations(
+        audit_id=audit.id,
+        db=db,
+        force_regenerate=True,
+        user_id=current_user.id,
+    )
+
+    # Construct safe remediated configuration artifact
+    remediated_content = RemediationService.construct_remediated_config(
+        original_config=cfg.raw_content,
+        vendor=cfg.detected_vendor,
+        proposals=proposals,
+    )
+    remediated_hash = hashlib.sha256(remediated_content.encode("utf-8")).hexdigest()
+
+    # Record on audit summary stats
+    audit.summary_stats = {
+        **(audit.summary_stats or {}),
+        "remediation": {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "proposals_count": len(proposals),
+            "status": "complete",
+            "remediated_hash": remediated_hash,
+        },
+    }
+    await db.commit()
+
+    return RemediateAnalysisResponse(
+        analysis_id=cfg.id,
+        audit_id=audit.id,
+        remediation_status="complete",
+        proposals_count=len(proposals),
+        eligible_controls_count=len(proposals),
+        remediated_content=remediated_content,
+        remediated_hash=remediated_hash,
+        proposals=[
+            {
+                "id": p.id,
+                "finding_id": p.finding_id,
+                "normalized_control": p.normalized_control,
+                "title": p.title,
+                "vendor": p.vendor,
+                "template_id": p.template_id,
+                "status": p.status,
+                "remediation_commands": p.remediation_commands,
+                "diff_preview": p.diff_preview,
+                "why_recommended": p.why_recommended,
+                "verification_steps": p.verification_steps,
+            }
+            for p in proposals
+        ],
+    )
+
+
+@router.post(
     "/{analysis_id}/reanalyze",
     response_model=ReanalyzeResponse,
     summary="Re-evaluate modified configuration and prove remediation turns FAIL into PASS",
@@ -649,20 +791,16 @@ async def reanalyze_modified_configuration(
     current_user: CurrentUserDep,
 ) -> ReanalyzeResponse:
     """
-    Step 9: Re-Analysis & Deterministic Verification
-    - Accepts remediated configuration text
+    Stage 8: Re-Analysis & Deterministic Verification
+    - Accepts remediated configuration text or uses generated remediated artifact
     - Re-parses configuration AST
-    - Re-evaluates controls
-    - Demonstrates before-and-after finding transitions
+    - Re-evaluates controls deterministically
+    - Records before-and-after finding transitions, evidence, and verification status
     """
     stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
     cfg = (await db.execute(stmt)).scalars().first()
     if not cfg:
         raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
-
-    new_content = payload.modified_content.strip()
-    if not new_content:
-        raise ValidationError(message="Modified configuration text cannot be empty.")
 
     # 1. Fetch previous audit stats for delta
     prev_audit_stmt = (
@@ -674,16 +812,43 @@ async def reanalyze_modified_configuration(
     prev_res = await db.execute(prev_audit_stmt)
     prev_audit = prev_res.scalars().first()
 
+    new_content = (payload.modified_content or "").strip()
+    if not new_content:
+        # Synthesize safe remediated configuration from allowlisted proposals
+        proposals = await RemediationService.get_audit_remediations(
+            audit_id=prev_audit.id if prev_audit else "",
+            db=db,
+            user_id=current_user.id,
+        )
+        new_content = RemediationService.construct_remediated_config(
+            original_config=cfg.raw_content,
+            vendor=cfg.detected_vendor,
+            proposals=proposals,
+        )
+
+    if not new_content:
+        raise ValidationError(message="Modified configuration text cannot be empty.")
+
     prev_score = prev_audit.score if prev_audit else 0.0
     prev_findings_stmt = select(Finding).where(Finding.audit_id == (prev_audit.id if prev_audit else ""), Finding.user_id == current_user.id)
     prev_f_res = await db.execute(prev_findings_stmt)
     prev_findings = {f.control_id: f for f in prev_f_res.scalars().all()}
     prev_fail_count = sum(1 for f in prev_findings.values() if f.status == "FAIL")
 
-    # 2. Update Configuration with new content
+    # Preserve original configuration and hash provenance
+    details = dict(cfg.detection_details or {})
+    if "original_content" not in details:
+        details["original_content"] = cfg.raw_content
+        details["original_hash"] = cfg.hash
+        cfg.detection_details = details
+
+    original_hash = details.get("original_hash", cfg.hash)
+    remediated_hash = hashlib.sha256(new_content.encode("utf-8")).hexdigest()
+
+    # 2. Update Configuration with remediated content
     cfg.raw_content = new_content
     cfg.file_size_bytes = len(new_content.encode("utf-8"))
-    cfg.hash = hashlib.sha256(new_content.encode("utf-8")).hexdigest()
+    cfg.hash = remediated_hash
 
     # 3. Re-parse with deterministic parser
     parser = parser_registry.get_parser(
@@ -711,7 +876,7 @@ async def reanalyze_modified_configuration(
         user_id=current_user.id,
     )
 
-    # 5. Fetch new findings to calculate transitions
+    # 5. Fetch new findings to calculate transitions and verification records
     new_findings_stmt = select(Finding).where(Finding.audit_id == new_audit.id, Finding.user_id == current_user.id)
     new_f_res = await db.execute(new_findings_stmt)
     new_findings = {f.control_id: f for f in new_f_res.scalars().all()}
@@ -719,6 +884,7 @@ async def reanalyze_modified_configuration(
 
     resolved_controls: List[str] = []
     transitions: List[Dict[str, Any]] = []
+    remediated_findings_records: List[Dict[str, Any]] = []
 
     for ctrl_id, old_f in prev_findings.items():
         new_f = new_findings.get(ctrl_id)
@@ -742,9 +908,48 @@ async def reanalyze_modified_configuration(
                 "resolved": False,
             })
 
+        # Record verification for each previously failing finding
+        if old_f.status == "FAIL":
+            actual_status = new_f.status if new_f else "UNKNOWN"
+            is_verified = (actual_status == "PASS")
+            remediated_findings_records.append({
+                "control_id": ctrl_id,
+                "title": old_f.title,
+                "original_status": "FAIL",
+                "expected_post_remediation_status": "PASS",
+                "actual_post_remediation_status": actual_status,
+                "original_evidence": [e.model_dump() if hasattr(e, "model_dump") else e for e in (old_f.evidence or [])],
+                "remediated_evidence": [e.model_dump() if hasattr(e, "model_dump") else e for e in (new_f.evidence or [])] if new_f else [],
+                "verification_status": "VERIFIED" if is_verified else "FAILED",
+            })
+
     # Calculate previous & new risk scores
     prev_r_score = round(min(100.0, prev_fail_count * 12.5), 1) if prev_fail_count > 0 else 0.0
     new_r_score = round(min(100.0, new_fail_count * 12.5), 1) if new_fail_count > 0 else 0.0
+
+    # Record verification provenance in new_audit and prev_audit summary stats
+    ver_summary = {
+        "original_audit_id": prev_audit.id if prev_audit else "",
+        "original_hash": original_hash,
+        "remediated_hash": remediated_hash,
+        "verified_at": datetime.now(timezone.utc).isoformat(),
+        "verification_status": "complete",
+        "resolved_controls": resolved_controls,
+        "remediated_findings": remediated_findings_records,
+        "transitions": transitions,
+    }
+    new_audit.summary_stats = {
+        **(new_audit.summary_stats or {}),
+        "verification": ver_summary,
+    }
+    if prev_audit:
+        prev_audit.summary_stats = {
+            **(prev_audit.summary_stats or {}),
+            "verification": ver_summary,
+            "verification_audit_id": new_audit.id,
+            "verification_status": "complete",
+        }
+    await db.commit()
 
     return ReanalyzeResponse(
         analysis_id=cfg.id,
@@ -757,6 +962,10 @@ async def reanalyze_modified_configuration(
         new_risk_score=new_r_score,
         resolved_controls=resolved_controls,
         findings_transition=transitions,
+        verification_status="complete",
+        remediated_findings=remediated_findings_records,
+        original_hash=original_hash,
+        remediated_hash=remediated_hash,
     )
 
 

@@ -1787,6 +1787,10 @@ export interface AnalysisStatus {
   failed_controls?: number;
   unknown_controls?: number;
   compliance_percent?: number;
+  remediation_status?: string;
+  remediation_proposals_count?: number;
+  verification_status?: string;
+  verification_details?: any;
   created_at: string;
   processed_at: string | null;
 }
@@ -1839,6 +1843,17 @@ export interface AnalysisRiskReport {
   }>;
 }
 
+export interface AnalysisRemediationResult {
+  analysis_id: string;
+  audit_id: string;
+  remediation_status: string;
+  proposals_count: number;
+  eligible_controls_count: number;
+  remediated_content: string;
+  remediated_hash: string;
+  proposals: any[];
+}
+
 export interface AnalysisReanalyzeResult {
   analysis_id: string;
   status: string;
@@ -1857,6 +1872,19 @@ export interface AnalysisReanalyzeResult {
     new_status: string;
     resolved: boolean;
   }>;
+  verification_status?: string;
+  remediated_findings?: Array<{
+    control_id: string;
+    title: string;
+    original_status: string;
+    expected_post_remediation_status: string;
+    actual_post_remediation_status: string;
+    original_evidence: any[];
+    remediated_evidence: any[];
+    verification_status: string;
+  }>;
+  original_hash?: string;
+  remediated_hash?: string;
 }
 
 export interface AnalysisConfigurationContent {
@@ -1935,14 +1963,28 @@ export async function fetchAnalysisRisk(analysisId: string): Promise<AnalysisRis
   return res.json();
 }
 
+export async function triggerRemediation(
+  analysisId: string
+): Promise<AnalysisRemediationResult> {
+  const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/${analysisId}/remediate`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
+    const errorMsg = err?.error?.message || err?.detail || err?.message || `Remediation generation failed (HTTP ${res.status})`;
+    throw new Error(errorMsg);
+  }
+  return res.json();
+}
+
 export async function reanalyzeAnalysis(
   analysisId: string,
-  modifiedContent: string
+  modifiedContent?: string
 ): Promise<AnalysisReanalyzeResult> {
   const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/${analysisId}/reanalyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ modified_content: modifiedContent }),
+    body: JSON.stringify({ modified_content: modifiedContent || undefined }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));

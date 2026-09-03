@@ -136,11 +136,97 @@ class RemediationService:
             db.add(proposal)
             created_proposals.append(proposal)
 
+        # Record Stage 7 remediation completion in audit summary stats
+        audit.summary_stats = {
+            **(audit.summary_stats or {}),
+            "remediation": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "proposals_count": len(created_proposals),
+                "status": "complete",
+            },
+        }
+
         await db.commit()
         for p in created_proposals:
             await db.refresh(p)
 
         return created_proposals
+
+    @classmethod
+    def construct_remediated_config(
+        cls,
+        original_config: str,
+        vendor: str,
+        proposals: List[RemediationProposal],
+    ) -> str:
+        """
+        Constructs safe remediated configuration text artifact by applying allowlisted patch transformations.
+        Operates strictly locally / in-memory. Never modifies live network devices.
+        """
+        remediated = original_config
+        v = (vendor or "cisco").lower()
+        controls = {p.normalized_control for p in proposals}
+
+        if v == "cisco":
+            if "remote_access.ssh_version" in controls:
+                if "ip ssh version 1" in remediated:
+                    remediated = remediated.replace("ip ssh version 1", "ip ssh version 2")
+                elif "ip ssh version 2" not in remediated:
+                    remediated += "\nip ssh version 2\n"
+            if "remote_access.telnet_enabled" in controls:
+                if "transport input telnet" in remediated:
+                    remediated = remediated.replace("transport input telnet", "transport input ssh")
+                elif "transport input all" in remediated:
+                    remediated = remediated.replace("transport input all", "transport input ssh")
+                elif "transport input ssh" not in remediated:
+                    remediated += "\nline vty 0 4\n transport input ssh\n"
+            if "authentication.password_encryption_enabled" in controls:
+                if "no service password-encryption" in remediated:
+                    remediated = remediated.replace("no service password-encryption", "service password-encryption")
+                elif "service password-encryption" not in remediated:
+                    remediated += "\nservice password-encryption\n"
+            if "authentication.aaa_enabled" in controls:
+                if "no aaa new-model" in remediated:
+                    remediated = remediated.replace("no aaa new-model", "aaa new-model")
+                elif "aaa new-model" not in remediated:
+                    remediated += "\naaa new-model\n"
+            if "remote_access.http_server_enabled" in controls:
+                if "ip http server" in remediated and "no ip http server" not in remediated:
+                    remediated = remediated.replace("ip http server", "no ip http server")
+
+        elif v == "juniper":
+            lines = remediated.splitlines()
+            new_lines = []
+            for line in lines:
+                stripped = line.strip()
+                if "remote_access.telnet_enabled" in controls and ("system services telnet" in stripped or "services telnet" in stripped):
+                    continue
+                if "remote_access.http_server_enabled" in controls and ("web-management http" in stripped and "https" not in stripped):
+                    continue
+                if "remote_access.ssh_version" in controls and "protocol-version v1" in stripped:
+                    line = line.replace("protocol-version v1", "protocol-version v2")
+                new_lines.append(line)
+            remediated = "\n".join(new_lines)
+            if "remote_access.ssh_version" in controls and "protocol-version v2" not in remediated:
+                remediated += "\nset system services ssh protocol-version v2\n"
+
+        elif v == "fortinet":
+            import re
+            lines = remediated.splitlines()
+            new_lines = []
+            for line in lines:
+                if "set allowaccess" in line:
+                    if "remote_access.telnet_enabled" in controls:
+                        line = re.sub(r'\btelnet\b', '', line)
+                    if "remote_access.http_server_enabled" in controls:
+                        line = re.sub(r'\bhttp\b', '', line)
+                    line = re.sub(r'\s+', ' ', line).strip()
+                    if line.startswith("set allowaccess"):
+                        line = "    " + line
+                new_lines.append(line)
+            remediated = "\n".join(new_lines)
+
+        return remediated
 
     @classmethod
     async def get_audit_remediations(

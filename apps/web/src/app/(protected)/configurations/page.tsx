@@ -56,6 +56,7 @@ import {
   fetchAnalysisEvidence,
   fetchAnalysisRisk,
   reanalyzeAnalysis,
+  triggerRemediation,
   fetchAnalysisConfiguration,
   fetchConfigurations,
   fetchConfigurationDetail,
@@ -100,6 +101,7 @@ function ConfigurationsPageContent() {
     confidence: number;
     platform?: string;
   }>({ vendor: "unknown", confidence: 0, platform: undefined });
+  const [isGeneratingRemediation, setIsGeneratingRemediation] = useState(false);
 
   // Auto-switch to upload mode & scroll when mode=ingest is provided
   useEffect(() => {
@@ -429,41 +431,43 @@ function ConfigurationsPageContent() {
     });
   }, [findings, frameworkFilter, statusFilter, searchFilter]);
 
-  // --- Real Re-Analysis Workflow ---
+  // --- Real Remediation & Verification Workflow ---
+  const handleReviewRemediation = async () => {
+    if (!activeAnalysisId) return;
+    try {
+      setIsGeneratingRemediation(true);
+      await triggerRemediation(activeAnalysisId);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["analysis-status", activeAnalysisId] }),
+        queryClient.invalidateQueries({ queryKey: ["audit-remediations", activeAnalysisId] }),
+      ]);
+    } catch (err) {
+      console.error("Remediation generation error:", err);
+    } finally {
+      setIsGeneratingRemediation(false);
+      const el = document.getElementById("panel-remediation");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleReanalyzeWithRemediation = async () => {
-    if (!activeAnalysisId || !configData) return;
+    if (!activeAnalysisId) return;
     try {
       setIsReanalyzing(true);
       setAuditError(null);
 
-      // Generate remediated configuration text
-      let remediatedText: string = configData.raw_text || configData.raw_content || rawText || "";
+      // Generate or retrieve backend safe remediated configuration artifact
+      const remResult = await triggerRemediation(activeAnalysisId);
+      const remediatedText = remResult.remediated_content;
 
-      // Apply standard allowlisted hardening transforms based on detected vendor
-      if (detectedVendorState.vendor === "cisco") {
-        remediatedText = remediatedText
-          .replace(/ip ssh version 1/g, "ip ssh version 2")
-          .replace(/no service password-encryption/g, "service password-encryption")
-          .replace(/no aaa new-model/g, "aaa new-model")
-          .replace(/ip http server/g, "no ip http server")
-          .replace(/transport input telnet/g, "transport input ssh");
-      } else if (detectedVendorState.vendor === "juniper") {
-        remediatedText = remediatedText
-          .replace(/telnet;/g, "ssh { protocol-version v2; }")
-          .replace(/http {/g, "https {");
-      } else if (detectedVendorState.vendor === "fortinet") {
-        remediatedText = remediatedText
-          .replace(/set admin-ssh-v1 enable/g, "set admin-ssh-v1 disable")
-          .replace(/set admin-sport 80/g, "set admin-sport 443");
-      }
-
-      // Execute backend re-analysis endpoint
+      // Execute backend re-analysis endpoint (Stage 8)
       const result = await reanalyzeAnalysis(activeAnalysisId, remediatedText);
       setReanalyzeResult(result);
       setReanalyzeBannerVisible(true);
 
-      // Update workspace rawText to reflect remediated content
-      setRawText(remediatedText);
+      if (remediatedText) {
+        setRawText(remediatedText);
+      }
 
       // Invalidate queries to refresh findings and scores
       await Promise.all([
@@ -836,8 +840,10 @@ function ConfigurationsPageContent() {
           isEvaluateDone &&
           (analysisStatus?.risk_score !== undefined || !!riskReport)
         );
-        const isRemediationDone = !!reanalyzeResult;
-        const isVerifyDone = !!reanalyzeResult;
+        const isRemediationDone = analysisStatus?.remediation_status === "complete";
+        const isRemediationFailed = analysisStatus?.remediation_status === "failed";
+        const isVerifyDone = analysisStatus?.verification_status === "complete" || (!!reanalyzeResult && reanalyzeResult.status === "REANALYZED");
+        const isVerifyFailed = analysisStatus?.verification_status === "failed";
 
         return (
           <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] font-mono">
@@ -853,8 +859,8 @@ function ConfigurationsPageContent() {
                 { key: "NORMALIZE", label: "4. NORMALIZE", done: isNormalizeDone },
                 { key: "EVALUATE", label: "5. EVALUATE", done: isEvaluateDone },
                 { key: "RISK", label: "6. RISK", done: isRiskDone },
-                { key: "REMEDIATION", label: "7. REMEDIATION", done: isRemediationDone },
-                { key: "VERIFY", label: "8. VERIFY", done: isVerifyDone, isVerify: true },
+                { key: "REMEDIATION", label: "7. REMEDIATION", done: isRemediationDone, failed: isRemediationFailed },
+                { key: "VERIFY", label: "8. VERIFY", done: isVerifyDone, failed: isVerifyFailed, isVerify: true },
               ].map((stage) => (
                 <div
                   key={stage.key}
@@ -862,7 +868,9 @@ function ConfigurationsPageContent() {
                     "p-2 rounded-lg border transition-all flex flex-col items-center justify-center gap-1",
                     stage.done
                       ? "bg-[#10B981]/10 border-[#10B981]/40 text-[#10B981]"
-                      : isAuditing
+                      : stage.failed
+                      ? "bg-[#EF4444]/10 border-[#EF4444]/40 text-[#EF4444]"
+                      : isAuditing || (stage.key === "REMEDIATION" && isGeneratingRemediation) || (stage.key === "VERIFY" && isReanalyzing)
                       ? "bg-[#3B82F6]/5 border-[#3B82F6]/20 text-[#3B82F6] animate-pulse"
                       : "bg-[#080B12] border-[#1D2939] text-[#667085]"
                   )}
@@ -873,7 +881,9 @@ function ConfigurationsPageContent() {
                       <span className="text-[#10B981] font-bold flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                       </span>
-                    ) : isAuditing ? (
+                    ) : stage.failed ? (
+                      <span className="text-[#EF4444] font-bold text-[10px]">failed</span>
+                    ) : isAuditing || (stage.key === "REMEDIATION" && isGeneratingRemediation) || (stage.key === "VERIFY" && isReanalyzing) ? (
                       <span className="text-[#3B82F6] font-bold animate-pulse">...</span>
                     ) : (
                       <span className="text-[#667085] font-mono text-[10px]">pending</span>
@@ -1037,14 +1047,12 @@ function ConfigurationsPageContent() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    const el = document.getElementById("panel-remediation");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#10B981] font-bold transition-all flex items-center gap-1.5"
+                  onClick={handleReviewRemediation}
+                  disabled={isGeneratingRemediation}
+                  className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-[#10B981] font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  <Wrench className="w-3.5 h-3.5" />
-                  <span>REVIEW REMEDIATION</span>
+                  <Wrench className={cn("w-3.5 h-3.5", isGeneratingRemediation && "animate-spin")} />
+                  <span>{isGeneratingRemediation ? "GENERATING..." : "REVIEW REMEDIATION"}</span>
                 </button>
 
                 <button
