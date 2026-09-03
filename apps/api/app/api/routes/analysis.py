@@ -416,8 +416,8 @@ async def get_analysis_findings(
         return []
 
     query = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
-    if status_filter:
-        query = query.where(Finding.status == status_filter.upper())
+    if isinstance(status_filter, str) and status_filter.strip():
+        query = query.where(Finding.status == status_filter.strip().upper())
     else:
         query = query.where(Finding.status.in_(["PASS", "FAIL", "UNKNOWN"]))
     query = query.order_by(Finding.severity, Finding.control_id)
