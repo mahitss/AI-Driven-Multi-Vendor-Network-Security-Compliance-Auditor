@@ -383,19 +383,58 @@ function ConfigurationsPageContent() {
     }
   }, [configData, rawText]);
 
-  const effectiveRiskScore = riskReport?.risk_score ?? analysisStatus?.risk_score;
-  const effectiveRiskLevel =
-    riskReport?.risk_level ||
-    analysisStatus?.risk_level ||
-    (findings.some((f) => f.status === "FAIL") ? "P1" : "P3");
-  const effectiveSeverityName =
-    effectiveRiskLevel === "P0"
-      ? "CRITICAL"
-      : effectiveRiskLevel === "P1"
-      ? "HIGH"
-      : effectiveRiskLevel === "P2"
-      ? "MEDIUM"
-      : "LOW";
+  // Active audit synchronization checks
+  const isAuditStatusMatch = Boolean(
+    activeAnalysisId &&
+    analysisStatus &&
+    analysisStatus.analysis_id === activeAnalysisId &&
+    !isStatusLoading
+  );
+
+  // Authoritative Risk completion check
+  const isRiskDone = Boolean(
+    !isReanalyzing &&
+    !isAuditing &&
+    isAuditStatusMatch &&
+    analysisStatus?.status === "COMPLETED" &&
+    analysisStatus?.risk_score !== null &&
+    analysisStatus?.risk_score !== undefined
+  );
+
+  // Enforce Invariant:
+  // IF risk stage != COMPLETE: risk score = null, priority = null
+  // IF risk stage == COMPLETE: risk score = authoritative backend value, priority = authoritative backend value
+  const effectiveRiskScore = isRiskDone
+    ? (analysisStatus?.risk_score ?? riskReport?.risk_score ?? null)
+    : null;
+
+  const effectiveRiskLevel = isRiskDone
+    ? (analysisStatus?.risk_level || riskReport?.risk_level || null)
+    : null;
+
+  const effectiveSeverityName = effectiveRiskLevel
+    ? (effectiveRiskLevel === "P0"
+        ? "CRITICAL"
+        : effectiveRiskLevel === "P1"
+        ? "HIGH"
+        : effectiveRiskLevel === "P2"
+        ? "MEDIUM"
+        : "LOW")
+    : null;
+
+  // Authoritative Compliance completion check
+  const effectiveComplianceScore = (!isReanalyzing && !isAuditing && isAuditStatusMatch && analysisStatus?.compliance_score !== null && analysisStatus?.compliance_score !== undefined)
+    ? analysisStatus.compliance_score
+    : null;
+
+  // Authoritative Full Audit completion check (Stages 1-6 complete)
+  const isAuditFullyComplete = Boolean(
+    !isAuditing &&
+    !isReanalyzing &&
+    isAuditStatusMatch &&
+    analysisStatus?.status === "COMPLETED" &&
+    isRiskDone
+  );
 
   // Auto-select first failing finding or first finding
   useEffect(() => {
@@ -455,6 +494,8 @@ function ConfigurationsPageContent() {
     try {
       setIsReanalyzing(true);
       setAuditError(null);
+      setReanalyzeResult(null);
+      setReanalyzeBannerVisible(false);
 
       // Generate or retrieve backend safe remediated configuration artifact
       const remResult = await triggerRemediation(activeAnalysisId);
@@ -816,34 +857,29 @@ function ConfigurationsPageContent() {
 
       {/* Real Pipeline Stages Progress Bar */}
       {(() => {
-        const isIngestDone = !!(rawText.trim() || selectedFileMeta || activeAnalysisId || analysisStatus);
-        const isDetectDone = !!(
+        const isIngestDone = Boolean(rawText.trim() || selectedFileMeta || activeAnalysisId);
+        const isDetectDone = Boolean(
           isIngestDone &&
-          ((detectedVendorState.confidence > 0 && detectedVendorState.vendor !== "unknown") || !!analysisStatus?.vendor)
+          ((detectedVendorState.confidence > 0 && detectedVendorState.vendor !== "unknown") || (isAuditStatusMatch && Boolean(analysisStatus?.vendor)))
         );
-        const isParseDone = !!(
-          analysisStatus?.status === "COMPLETED" ||
-          (analysisStatus?.lines_parsed ?? 0) > 0 ||
-          (configData?.lines && configData.lines.length > 0) ||
-          (analysisStatus?.facts_extracted_count ?? 0) > 0 ||
-          findings.length > 0
+        const isParseDone = Boolean(
+          isAuditStatusMatch &&
+          (analysisStatus?.status === "COMPLETED" || (analysisStatus?.lines_parsed ?? 0) > 0 || (analysisStatus?.facts_extracted_count ?? 0) > 0)
         );
-        const isNormalizeDone = !!(
+        const isNormalizeDone = Boolean(
           isParseDone &&
-          ((analysisStatus?.facts_extracted_count ?? 0) > 0 || evidenceItems.length > 0)
+          isAuditStatusMatch &&
+          (analysisStatus?.facts_extracted_count ?? 0) > 0
         );
-        const isEvaluateDone = !!(
+        const isEvaluateDone = Boolean(
           isNormalizeDone &&
-          (findings.length > 0 || (analysisStatus?.controls_evaluated_count ?? 0) > 0)
+          isAuditStatusMatch &&
+          (analysisStatus?.controls_evaluated_count ?? 0) > 0
         );
-        const isRiskDone = !!(
-          isEvaluateDone &&
-          (analysisStatus?.risk_score !== undefined || !!riskReport)
-        );
-        const isRemediationDone = analysisStatus?.remediation_status === "complete";
-        const isRemediationFailed = analysisStatus?.remediation_status === "failed";
-        const isVerifyDone = analysisStatus?.verification_status === "complete" || (!!reanalyzeResult && reanalyzeResult.status === "REANALYZED");
-        const isVerifyFailed = analysisStatus?.verification_status === "failed";
+        const isRemediationDone = !isReanalyzing && isAuditStatusMatch && analysisStatus?.remediation_status === "complete";
+        const isRemediationFailed = isAuditStatusMatch && analysisStatus?.remediation_status === "failed";
+        const isVerifyDone = !isReanalyzing && isAuditStatusMatch && (analysisStatus?.verification_status === "complete" || (Boolean(reanalyzeResult) && reanalyzeResult?.status === "REANALYZED"));
+        const isVerifyFailed = isAuditStatusMatch && analysisStatus?.verification_status === "failed";
 
         return (
           <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] font-mono">
@@ -870,7 +906,7 @@ function ConfigurationsPageContent() {
                       ? "bg-[#10B981]/10 border-[#10B981]/40 text-[#10B981]"
                       : stage.failed
                       ? "bg-[#EF4444]/10 border-[#EF4444]/40 text-[#EF4444]"
-                      : isAuditing || (stage.key === "REMEDIATION" && isGeneratingRemediation) || (stage.key === "VERIFY" && isReanalyzing)
+                      : isAuditing || (stage.key === "REMEDIATION" && isGeneratingRemediation) || (stage.key === "VERIFY" && isReanalyzing) || (stage.key === "RISK" && (isStatusLoading || isRiskLoading || isReanalyzing))
                       ? "bg-[#3B82F6]/5 border-[#3B82F6]/20 text-[#3B82F6] animate-pulse"
                       : "bg-[#080B12] border-[#1D2939] text-[#667085]"
                   )}
@@ -883,7 +919,7 @@ function ConfigurationsPageContent() {
                       </span>
                     ) : stage.failed ? (
                       <span className="text-[#EF4444] font-bold text-[10px]">failed</span>
-                    ) : isAuditing || (stage.key === "REMEDIATION" && isGeneratingRemediation) || (stage.key === "VERIFY" && isReanalyzing) ? (
+                    ) : isAuditing || (stage.key === "REMEDIATION" && isGeneratingRemediation) || (stage.key === "VERIFY" && isReanalyzing) || (stage.key === "RISK" && (isStatusLoading || isRiskLoading || isReanalyzing)) ? (
                       <span className="text-[#3B82F6] font-bold animate-pulse">...</span>
                     ) : (
                       <span className="text-[#667085] font-mono text-[10px]">pending</span>
@@ -1003,12 +1039,29 @@ function ConfigurationsPageContent() {
           <div className="p-5 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-4 font-mono">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1D2939] pb-3">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#10B981]/15 border border-[#10B981]/30 flex items-center justify-center text-[#10B981]">
-                  <CheckCircle2 className="w-4 h-4" />
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center border",
+                  isAuditFullyComplete
+                    ? "bg-[#10B981]/15 border-[#10B981]/30 text-[#10B981]"
+                    : "bg-[#3B82F6]/15 border-[#3B82F6]/30 text-[#3B82F6]"
+                )}>
+                  {isAuditFullyComplete ? (
+                    <CheckCircle2 className="w-4 h-4" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-[#F3F4F6] tracking-wider uppercase">AUDIT COMPLETE</span>
+                    <span className="text-xs font-black text-[#F3F4F6] tracking-wider uppercase">
+                      {isReanalyzing
+                        ? "RE-ANALYSIS IN PROGRESS"
+                        : (isAuditing || !isAuditStatusMatch || isStatusLoading || analysisStatus?.status === "PROCESSING")
+                        ? "AUDIT IN PROGRESS"
+                        : isAuditFullyComplete
+                        ? "AUDIT COMPLETE"
+                        : "ANALYSIS IN PROGRESS"}
+                    </span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30">
                       {(analysisStatus?.vendor || detectedVendorState.vendor || "CISCO").toUpperCase()}
                     </span>
@@ -1079,12 +1132,12 @@ function ConfigurationsPageContent() {
               <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
                 <div className="text-[10px] text-[#667085] uppercase font-bold">COMPLIANCE</div>
                 <div className="text-2xl font-black text-[#F3F4F6]">
-                  {analysisStatus?.compliance_score !== undefined
-                    ? `${analysisStatus.compliance_score.toFixed(1)}%`
+                  {effectiveComplianceScore !== null && effectiveComplianceScore !== undefined
+                    ? `${effectiveComplianceScore.toFixed(1)}%`
                     : "--"}
                 </div>
                 <div className="text-[9px] text-[#10B981]">
-                  {analysisStatus?.total_applicable_controls !== undefined && analysisStatus?.total_applicable_controls > 0
+                  {isAuditStatusMatch && analysisStatus?.total_applicable_controls !== undefined && analysisStatus.total_applicable_controls > 0
                     ? `${analysisStatus.pass_count}/${analysisStatus.total_applicable_controls} APPLICABLE`
                     : "CIS • NIST • STIG • ISO"}
                 </div>
@@ -1094,15 +1147,17 @@ function ConfigurationsPageContent() {
                 <div className="text-[10px] text-[#667085] uppercase font-bold">RISK INDEX</div>
                 <div className={cn(
                   "text-2xl font-black",
-                  (effectiveRiskScore ?? 0) >= 85
+                  effectiveRiskScore === null || effectiveRiskScore === undefined
+                    ? "text-[#667085]"
+                    : effectiveRiskScore >= 85
                     ? "text-[#EF4444]"
-                    : (effectiveRiskScore ?? 0) >= 70
+                    : effectiveRiskScore >= 70
                     ? "text-[#F59E0B]"
-                    : (effectiveRiskScore ?? 0) >= 45
+                    : effectiveRiskScore >= 45
                     ? "text-[#EAB308]"
                     : "text-[#10B981]"
                 )}>
-                  {effectiveRiskScore !== undefined
+                  {effectiveRiskScore !== null && effectiveRiskScore !== undefined
                     ? `${effectiveRiskScore.toFixed(1)}/100`
                     : "--"}
                 </div>
@@ -1114,16 +1169,22 @@ function ConfigurationsPageContent() {
                     ? "text-[#F59E0B]"
                     : effectiveRiskLevel === "P2"
                     ? "text-[#EAB308]"
-                    : "text-[#10B981]"
+                    : effectiveRiskLevel === "P3"
+                    ? "text-[#10B981]"
+                    : "text-[#667085]"
                 )}>
-                  PRIORITY: {effectiveRiskLevel} {effectiveSeverityName}
+                  {effectiveRiskLevel
+                    ? `PRIORITY: ${effectiveRiskLevel} ${effectiveSeverityName}`
+                    : "PRIORITY: PENDING"}
                 </div>
               </div>
 
               <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
                 <div className="text-[10px] text-[#667085] uppercase font-bold">FAILED CONTROLS</div>
                 <div className="text-2xl font-black text-[#EF4444]">
-                  {analysisStatus?.fail_count ?? findings.filter(f => f.status === "FAIL").length}
+                  {isAuditStatusMatch && analysisStatus?.fail_count !== undefined
+                    ? analysisStatus.fail_count
+                    : "--"}
                 </div>
                 <div className="text-[9px] text-[#EF4444]">VIOLATIONS DETECTED</div>
               </div>
@@ -1131,7 +1192,9 @@ function ConfigurationsPageContent() {
               <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
                 <div className="text-[10px] text-[#667085] uppercase font-bold">PASSED CONTROLS</div>
                 <div className="text-2xl font-black text-[#10B981]">
-                  {analysisStatus?.pass_count ?? findings.filter(f => f.status === "PASS").length}
+                  {isAuditStatusMatch && analysisStatus?.pass_count !== undefined
+                    ? analysisStatus.pass_count
+                    : "--"}
                 </div>
                 <div className="text-[9px] text-[#10B981]">HARDENED COMPLIANT</div>
               </div>
@@ -1139,7 +1202,9 @@ function ConfigurationsPageContent() {
               <div className="p-3.5 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-1">
                 <div className="text-[10px] text-[#667085] uppercase font-bold">NORMALIZED FACTS</div>
                 <div className="text-2xl font-black text-[#3B82F6]">
-                  {analysisStatus?.facts_extracted_count ?? evidenceItems.length}
+                  {isAuditStatusMatch && analysisStatus?.facts_extracted_count !== undefined
+                    ? analysisStatus.facts_extracted_count
+                    : "--"}
                 </div>
                 <div className="text-[9px] text-[#3B82F6]">UNIVERSAL MODEL AST</div>
               </div>
@@ -1470,39 +1535,46 @@ function ConfigurationsPageContent() {
               {/* Top Risk & Contributing Factors Card */}
               <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#EF4444]/30 space-y-3 text-xs">
                 <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
-                  <div className="flex items-center gap-1.5 text-[#EF4444] font-extrabold">
-                    <Flame className="w-4 h-4" />
-                    <span>OVERALL RISK</span>
-                  </div>
+                  <span className="text-[10px] text-[#667085] uppercase tracking-wider font-bold">
+                    COMPOSITE SYSTEM RISK
+                  </span>
                   <span className={cn(
-                    "px-2 py-0.5 rounded text-[10px] font-extrabold border",
+                    "px-2 py-0.5 rounded text-[10px] font-bold border",
                     effectiveRiskLevel === "P0"
                       ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
                       : effectiveRiskLevel === "P1"
                       ? "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
                       : effectiveRiskLevel === "P2"
                       ? "bg-[#EAB308]/15 text-[#EAB308] border-[#EAB308]/30"
-                      : "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
+                      : effectiveRiskLevel === "P3"
+                      ? "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
+                      : "bg-[#1D2939] text-[#667085] border-[#1D2939]"
                   )}>
-                    {effectiveRiskLevel} PRIORITY
+                    {effectiveRiskLevel ? `${effectiveRiskLevel} PRIORITY` : "PENDING"}
                   </span>
                 </div>
 
                 <div className="flex items-baseline justify-between">
                   <div className={cn(
                     "text-2xl font-black",
-                    (effectiveRiskScore ?? 0) >= 85
+                    effectiveRiskScore === null || effectiveRiskScore === undefined
+                      ? "text-[#667085]"
+                      : effectiveRiskScore >= 85
                       ? "text-[#EF4444]"
-                      : (effectiveRiskScore ?? 0) >= 70
+                      : effectiveRiskScore >= 70
                       ? "text-[#F59E0B]"
-                      : (effectiveRiskScore ?? 0) >= 45
+                      : effectiveRiskScore >= 45
                       ? "text-[#EAB308]"
                       : "text-[#10B981]"
                   )}>
-                    {effectiveRiskScore !== undefined
-                      ? effectiveRiskScore.toFixed(1)
-                      : "0.0"}
-                    <span className="text-xs text-[#667085] font-normal"> / 100</span>
+                    {effectiveRiskScore !== null && effectiveRiskScore !== undefined ? (
+                      <>
+                        {effectiveRiskScore.toFixed(1)}
+                        <span className="text-xs text-[#667085] font-normal"> / 100</span>
+                      </>
+                    ) : (
+                      "--"
+                    )}
                   </div>
                   <span className="text-[10px] text-[#A7B0C0]">DETERMINISTIC FORMULA</span>
                 </div>
@@ -1797,7 +1869,12 @@ function ConfigurationsPageContent() {
                     <button
                       onClick={() => {
                         setActiveAnalysisId(cfg.id);
-                        setRawText(cfg.original_filename);
+                        setRawText("");
+                        setConfigFilename(cfg.original_filename);
+                        setSelectedFindingId(null);
+                        setHighlightedLine(null);
+                        setReanalyzeResult(null);
+                        setReanalyzeBannerVisible(false);
                       }}
                       className="px-2.5 py-1 rounded bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#3B82F6] font-bold text-[10px] transition-all"
                     >

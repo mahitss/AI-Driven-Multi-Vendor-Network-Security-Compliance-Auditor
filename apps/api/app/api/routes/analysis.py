@@ -78,9 +78,9 @@ class FindingItem(BaseModel):
 
 
 class RiskAnalysisResponse(BaseModel):
-    risk_score: float
-    risk_level: str  # P0, P1, P2, P3
-    likelihood: str
+    risk_score: Optional[float] = None
+    risk_level: Optional[str] = None  # P0, P1, P2, P3
+    likelihood: Optional[str] = None
     formula_breakdown: str
     total_findings: int
     critical_count: int
@@ -103,9 +103,9 @@ class AnalysisStatusResponse(BaseModel):
     pass_count: int
     fail_count: int
     unknown_count: int
-    compliance_score: float
-    risk_score: float
-    risk_level: str
+    compliance_score: Optional[float] = None
+    risk_score: Optional[float] = None
+    risk_level: Optional[str] = None
     total_applicable_controls: Optional[int] = None
     not_applicable_count: Optional[int] = None
     passed_controls: Optional[int] = None
@@ -272,7 +272,9 @@ async def get_analysis_status(
     unknown_count = 0
     na_count = 0
     total_applicable = 0
-    comp_score = 0.0
+    comp_score = None
+    r_score = None
+    r_level = None
 
     if audit:
         findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
@@ -292,16 +294,13 @@ async def get_analysis_status(
         else:
             comp_score = 100.0
 
-    # Calculate derived risk from actual findings
-    crit_count = 0
-    high_count = 0
-    med_count = 0
-    low_count = 0
+        # Calculate derived risk from actual findings
+        crit_count = 0
+        high_count = 0
+        med_count = 0
+        low_count = 0
 
-    if audit:
-        findings_stmt = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id, Finding.status == "FAIL")
-        f_res = await db.execute(findings_stmt)
-        fail_findings = f_res.scalars().all()
+        fail_findings = [f for f in findings if f.status == "FAIL"]
         for f in fail_findings:
             sev = (f.severity or "MEDIUM").upper()
             if sev == "CRITICAL":
@@ -313,13 +312,13 @@ async def get_analysis_status(
             else:
                 low_count += 1
 
-    r_score, r_level, _ = calculate_composite_risk_score(
-        crit_count=crit_count,
-        high_count=high_count,
-        med_count=med_count,
-        low_count=low_count,
-        total_evaluated=total_applicable if total_applicable > 0 else (len(findings) if audit else 60),
-    )
+        r_score, r_level, _ = calculate_composite_risk_score(
+            crit_count=crit_count,
+            high_count=high_count,
+            med_count=med_count,
+            low_count=low_count,
+            total_evaluated=total_applicable if total_applicable > 0 else (len(findings) if audit else 60),
+        )
 
     lines_parsed = len((cfg.raw_content or "").splitlines())
 
@@ -357,7 +356,7 @@ async def get_analysis_status(
         filename=cfg.original_filename,
         vendor=cfg.detected_vendor,
         platform=cfg.detected_platform,
-        status="COMPLETED" if cfg.parser_status == "parsed" else "PROCESSING",
+        status="COMPLETED" if (audit and cfg.parser_status == "parsed") else "PROCESSING",
         lines_parsed=lines_parsed,
         facts_extracted_count=cfg.facts_extracted_count or 0,
         unknown_items_count=cfg.unknown_items_count or 0,
@@ -602,10 +601,10 @@ async def get_analysis_risk(
 
     if not audit:
         return RiskAnalysisResponse(
-            risk_score=0.0,
-            risk_level="P3",
-            likelihood="LOW",
-            formula_breakdown="Zero evaluated findings.",
+            risk_score=None,
+            risk_level=None,
+            likelihood=None,
+            formula_breakdown="Analysis in progress; risk evaluation pending.",
             total_findings=0,
             critical_count=0,
             high_count=0,

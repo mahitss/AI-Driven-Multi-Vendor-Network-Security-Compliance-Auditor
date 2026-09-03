@@ -1778,9 +1778,9 @@ export interface AnalysisStatus {
   pass_count: number;
   fail_count: number;
   unknown_count: number;
-  compliance_score: number;
-  risk_score: number;
-  risk_level: string;
+  compliance_score?: number | null;
+  risk_score?: number | null;
+  risk_level?: string | null;
   total_applicable_controls?: number;
   not_applicable_count?: number;
   passed_controls?: number;
@@ -1825,9 +1825,9 @@ export interface AnalysisFindingItem {
 }
 
 export interface AnalysisRiskReport {
-  risk_score: number;
-  risk_level: string;
-  likelihood: string;
+  risk_score?: number | null;
+  risk_level?: string | null;
+  likelihood?: string | null;
   formula_breakdown: string;
   total_findings: number;
   critical_count: number;

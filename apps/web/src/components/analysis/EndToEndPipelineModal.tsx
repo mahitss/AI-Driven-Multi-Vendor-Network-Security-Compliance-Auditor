@@ -348,15 +348,21 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                     <span
                       className={cn(
                         "text-3xl font-black font-mono",
-                        riskData?.risk_score === 0 ? "text-[#10B981]" : "text-[#F59E0B]"
+                        riskData?.risk_score != null && riskData.risk_score >= 85
+                          ? "text-[#EF4444]"
+                          : riskData?.risk_score != null && riskData.risk_score === 0
+                          ? "text-[#10B981]"
+                          : "text-[#F59E0B]"
                       )}
                     >
-                      {riskData?.risk_score ?? 0}
+                      {riskData?.risk_score != null ? riskData.risk_score : "--"}
                     </span>
                     <span className="text-xs text-[#667085] font-mono">/ 100</span>
-                    <span className="ml-auto px-2 py-0.5 rounded text-[10px] font-mono bg-[#111827] border border-[#1D2939] text-[#A7B0C0]">
-                      {riskData?.risk_level}
-                    </span>
+                    {riskData?.risk_level && (
+                      <span className="ml-auto px-2 py-0.5 rounded text-[10px] font-mono bg-[#111827] border border-[#1D2939] text-[#A7B0C0]">
+                        {riskData.risk_level}
+                      </span>
+                    )}
                   </div>
                   <p className="text-[10px] text-[#667085] mt-2 line-clamp-2">
                     {riskData?.formula_breakdown}
@@ -367,7 +373,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                   <div className="text-[11px] font-mono text-[#667085] mb-1">COMPLIANCE SCORE</div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-black font-mono text-[#F3F4F6]">
-                      {statusData.compliance_score.toFixed(1)}%
+                      {statusData.compliance_score != null ? `${statusData.compliance_score.toFixed(1)}%` : "--"}
                     </span>
                   </div>
                   <div className="text-[11px] text-[#667085] mt-2 flex gap-3">
