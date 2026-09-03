@@ -10,7 +10,7 @@ import hashlib
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, select
 
 from app.api.dependencies import CurrentUserDep, DatabaseDep
 from app.core.errors import ResourceNotFoundError, ValidationError
