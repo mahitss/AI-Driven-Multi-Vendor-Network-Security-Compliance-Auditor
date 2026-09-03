@@ -33,6 +33,7 @@ from app.api.routes.analysis import (
     ingest_configuration_for_analysis,
     get_analysis_status,
     get_analysis_findings,
+    get_analysis_risk,
     IngestAnalysisRequest,
 )
 
@@ -178,3 +179,78 @@ async def test_api_status_authoritative_response(db_session: AsyncSession):
     assert status_res.pass_count == 20
     assert status_res.fail_count == 28
     assert status_res.not_applicable_count == 12
+
+
+@pytest.mark.asyncio
+async def test_api_findings_and_risk_consistency(db_session: AsyncSession):
+    """Verifies that findings endpoint count equals applicable controls and risk endpoints are synchronized."""
+    user = AuthenticatedUser(
+        id="test-p2-sync-user",
+        email="p2@netvigil.io",
+        role="auditor",
+        app_metadata={},
+        user_metadata={},
+    )
+    test_cases = [
+        ("02_CISCO_HARDENED.cfg", "cisco", 48, 20, 28, 91.7, "P0"),
+        ("04_CISCO_REAL_EVIDENCE.cfg", "cisco", 40, 12, 28, 94.0, "P0"),
+        ("03_FORTINET_SCORE_HIGH.conf", "fortinet", 48, 24, 20, 88.3, "P1"),
+    ]
+    for filename, vendor, exp_applicable, exp_pass, exp_fail, exp_risk, exp_priority in test_cases:
+        p = BENCHMARKS_DIR / filename
+        content = p.read_text(encoding="utf-8")
+        req = IngestAnalysisRequest(content=content, filename=filename, vendor_hint=vendor)
+        ingest_res = await ingest_configuration_for_analysis(req, db_session, user)
+
+        status_res = await get_analysis_status(ingest_res.analysis_id, db_session, user)
+        risk_res = await get_analysis_risk(ingest_res.analysis_id, db_session, user)
+        findings_res = await get_analysis_findings(ingest_res.analysis_id, db_session, user)
+
+        # Summary card and findings panel cannot disagree
+        assert len(findings_res) == exp_applicable, f"{filename}: findings count {len(findings_res)} != {exp_applicable}"
+        assert status_res.total_applicable_controls == exp_applicable
+        assert status_res.pass_count == exp_pass
+        assert status_res.fail_count == exp_fail
+
+        # Risk score and priority must come authoritatively from backend and match between endpoints
+        assert status_res.risk_score == exp_risk, f"{filename}: status risk {status_res.risk_score} != {exp_risk}"
+        assert risk_res.risk_score == exp_risk, f"{filename}: risk endpoint {risk_res.risk_score} != {exp_risk}"
+        assert status_res.risk_level == exp_priority
+        assert risk_res.risk_level == exp_priority
+
+
+@pytest.mark.asyncio
+async def test_multi_audit_isolation(db_session: AsyncSession):
+    """Verifies Cisco -> Fortinet -> Juniper -> Cisco sequential switching maintains strict isolation."""
+    user = AuthenticatedUser(
+        id="test-iso-user",
+        email="iso@netvigil.io",
+        role="auditor",
+        app_metadata={},
+        user_metadata={},
+    )
+    sequence = [
+        ("02_CISCO_HARDENED.cfg", "cisco", 48, 20, 28),
+        ("03_FORTINET_SCORE_HIGH.conf", "fortinet", 48, 24, 20),
+        ("04_JUNIPER_CRITICAL.set", "juniper", 40, 4, 36),
+        ("04_CISCO_REAL_EVIDENCE.cfg", "cisco", 40, 12, 28),
+    ]
+    audit_ids = []
+    for filename, vendor, exp_applicable, exp_pass, exp_fail in sequence:
+        p = BENCHMARKS_DIR / filename
+        content = p.read_text(encoding="utf-8")
+        req = IngestAnalysisRequest(content=content, filename=filename, vendor_hint=vendor)
+        ingest_res = await ingest_configuration_for_analysis(req, db_session, user)
+        audit_ids.append((ingest_res.analysis_id, vendor, exp_applicable, exp_pass, exp_fail))
+
+    # Re-query each audit in sequence to ensure no cross-contamination or state leakage
+    for analysis_id, expected_vendor, exp_applicable, exp_pass, exp_fail in audit_ids:
+        status_res = await get_analysis_status(analysis_id, db_session, user)
+        findings_res = await get_analysis_findings(analysis_id, db_session, user)
+
+        assert status_res.vendor == expected_vendor
+        assert status_res.total_applicable_controls == exp_applicable
+        assert status_res.pass_count == exp_pass
+        assert status_res.fail_count == exp_fail
+        assert len(findings_res) == exp_applicable
+

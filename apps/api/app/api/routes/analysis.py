@@ -361,6 +361,8 @@ async def get_analysis_findings(
     query = select(Finding).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
     if status_filter:
         query = query.where(Finding.status == status_filter.upper())
+    else:
+        query = query.where(Finding.status.in_(["PASS", "FAIL", "UNKNOWN"]))
     query = query.order_by(Finding.severity, Finding.control_id)
 
     f_res = await db.execute(query)
@@ -583,7 +585,11 @@ async def get_analysis_risk(
             contributing_findings=[],
         )
 
-    total_eval_stmt = select(func.count(Finding.id)).where(Finding.audit_id == audit.id, Finding.user_id == current_user.id)
+    total_eval_stmt = select(func.count(Finding.id)).where(
+        Finding.audit_id == audit.id,
+        Finding.user_id == current_user.id,
+        Finding.status.in_(["PASS", "FAIL", "UNKNOWN"]),
+    )
     total_eval = (await db.execute(total_eval_stmt)).scalar() or total_failed
 
     risk_score, risk_level, likelihood = calculate_composite_risk_score(

@@ -99,7 +99,7 @@ function ConfigurationsPageContent() {
     vendor: string;
     confidence: number;
     platform?: string;
-  }>({ vendor: "cisco", confidence: 0.98, platform: "ios" });
+  }>({ vendor: "unknown", confidence: 0, platform: undefined });
 
   // Auto-switch to upload mode & scroll when mode=ingest is provided
   useEffect(() => {
@@ -357,6 +357,29 @@ function ConfigurationsPageContent() {
       setActiveAnalysisId(storedConfigs[0].id);
     }
   }, [activeAnalysisId, storedConfigs, isIngestMode]);
+
+  // Synchronize detected vendor and filename when active analysis changes to ensure multi-audit isolation
+  useEffect(() => {
+    if (analysisStatus) {
+      if (analysisStatus.vendor && analysisStatus.vendor !== "unknown") {
+        setDetectedVendorState({
+          vendor: analysisStatus.vendor,
+          platform: analysisStatus.platform || undefined,
+          confidence: 1.0,
+        });
+      }
+      if (analysisStatus.filename) {
+        setConfigFilename(analysisStatus.filename);
+      }
+    }
+  }, [analysisStatus]);
+
+  // Sync rawText with active configuration content when available
+  useEffect(() => {
+    if (configData?.raw_text && !rawText) {
+      setRawText(configData.raw_text);
+    }
+  }, [configData, rawText]);
 
   const effectiveRiskScore = riskReport?.risk_score ?? analysisStatus?.risk_score;
   const effectiveRiskLevel =
@@ -788,53 +811,80 @@ function ConfigurationsPageContent() {
       </div>
 
       {/* Real Pipeline Stages Progress Bar */}
-      <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] font-mono">
-        <div className="text-[10px] text-[#667085] uppercase font-bold tracking-wider mb-2.5 flex items-center justify-between">
-          <span>DETERMINISTIC ANALYSIS PIPELINE</span>
-          <span className="text-[#3B82F6]">REAL BACKEND PROVENANCE</span>
-        </div>
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs">
-          {[
-            { key: "INGEST", label: "1. INGEST", done: !!rawText.trim() },
-            { key: "DETECT", label: "2. DETECT", done: detectedVendorState.confidence > 0 },
-            { key: "PARSE", label: "3. PARSE", done: !!analysisStatus || !!activeAnalysisId },
-            { key: "NORMALIZE", label: "4. NORMALIZE", done: (evidenceItems.length > 0 || (analysisStatus?.facts_extracted_count ?? 0) > 0) },
-            { key: "EVALUATE", label: "5. EVALUATE", done: findings.length > 0 },
-            { key: "RISK", label: "6. RISK", done: !!riskReport || !!analysisStatus?.risk_score },
-            { key: "REMEDIATION", label: "7. REMEDIATION", done: !!reanalyzeResult },
-            { key: "VERIFY", label: "8. VERIFY", done: !!reanalyzeResult, isVerify: true },
-          ].map((stage) => (
-            <div
-              key={stage.key}
-              className={cn(
-                "p-2 rounded-lg border transition-all flex flex-col items-center justify-center gap-1",
-                stage.done
-                  ? "bg-[#10B981]/10 border-[#10B981]/40 text-[#10B981]"
-                  : isAuditing
-                  ? "bg-[#3B82F6]/5 border-[#3B82F6]/20 text-[#3B82F6] animate-pulse"
-                  : "bg-[#080B12] border-[#1D2939] text-[#667085]"
-              )}
-            >
-              <div className="text-[10px] font-extrabold">{stage.label}</div>
-              <div className="text-xs">
-                {stage.done ? (
-                  <span className="text-[#10B981] font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                  </span>
-                ) : stage.isVerify ? (
-                  <span className="text-[#667085] font-mono text-[10px]">pending</span>
-                ) : stage.key === "REMEDIATION" ? (
-                  <span className="text-[#667085] font-mono text-[10px]">pending</span>
-                ) : isAuditing ? (
-                  <span className="text-[#3B82F6] font-bold">...</span>
-                ) : (
-                  <span className="text-[#667085]">○</span>
-                )}
-              </div>
+      {(() => {
+        const isIngestDone = !!(rawText.trim() || selectedFileMeta || activeAnalysisId || analysisStatus);
+        const isDetectDone = !!(
+          isIngestDone &&
+          ((detectedVendorState.confidence > 0 && detectedVendorState.vendor !== "unknown") || !!analysisStatus?.vendor)
+        );
+        const isParseDone = !!(
+          analysisStatus?.status === "COMPLETED" ||
+          (analysisStatus?.lines_parsed ?? 0) > 0 ||
+          (configData?.lines && configData.lines.length > 0) ||
+          (analysisStatus?.facts_extracted_count ?? 0) > 0 ||
+          findings.length > 0
+        );
+        const isNormalizeDone = !!(
+          isParseDone &&
+          ((analysisStatus?.facts_extracted_count ?? 0) > 0 || evidenceItems.length > 0)
+        );
+        const isEvaluateDone = !!(
+          isNormalizeDone &&
+          (findings.length > 0 || (analysisStatus?.controls_evaluated_count ?? 0) > 0)
+        );
+        const isRiskDone = !!(
+          isEvaluateDone &&
+          (analysisStatus?.risk_score !== undefined || !!riskReport)
+        );
+        const isRemediationDone = !!reanalyzeResult;
+        const isVerifyDone = !!reanalyzeResult;
+
+        return (
+          <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] font-mono">
+            <div className="text-[10px] text-[#667085] uppercase font-bold tracking-wider mb-2.5 flex items-center justify-between">
+              <span>DETERMINISTIC ANALYSIS PIPELINE</span>
+              <span className="text-[#3B82F6]">REAL BACKEND PROVENANCE</span>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="grid grid-cols-4 md:grid-cols-8 gap-2 text-center text-xs">
+              {[
+                { key: "INGEST", label: "1. INGEST", done: isIngestDone },
+                { key: "DETECT", label: "2. DETECT", done: isDetectDone },
+                { key: "PARSE", label: "3. PARSE", done: isParseDone },
+                { key: "NORMALIZE", label: "4. NORMALIZE", done: isNormalizeDone },
+                { key: "EVALUATE", label: "5. EVALUATE", done: isEvaluateDone },
+                { key: "RISK", label: "6. RISK", done: isRiskDone },
+                { key: "REMEDIATION", label: "7. REMEDIATION", done: isRemediationDone },
+                { key: "VERIFY", label: "8. VERIFY", done: isVerifyDone, isVerify: true },
+              ].map((stage) => (
+                <div
+                  key={stage.key}
+                  className={cn(
+                    "p-2 rounded-lg border transition-all flex flex-col items-center justify-center gap-1",
+                    stage.done
+                      ? "bg-[#10B981]/10 border-[#10B981]/40 text-[#10B981]"
+                      : isAuditing
+                      ? "bg-[#3B82F6]/5 border-[#3B82F6]/20 text-[#3B82F6] animate-pulse"
+                      : "bg-[#080B12] border-[#1D2939] text-[#667085]"
+                  )}
+                >
+                  <div className="text-[10px] font-extrabold">{stage.label}</div>
+                  <div className="text-xs">
+                    {stage.done ? (
+                      <span className="text-[#10B981] font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </span>
+                    ) : isAuditing ? (
+                      <span className="text-[#3B82F6] font-bold animate-pulse">...</span>
+                    ) : (
+                      <span className="text-[#667085] font-mono text-[10px]">pending</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Audit Execution Progress Overlay Card */}
       {isAuditing && (
@@ -950,13 +1000,13 @@ function ConfigurationsPageContent() {
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black text-[#F3F4F6] tracking-wider uppercase">AUDIT COMPLETE</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30">
-                      {detectedVendorState.vendor.toUpperCase() || analysisStatus?.vendor?.toUpperCase() || "CISCO"}
+                      {(analysisStatus?.vendor || detectedVendorState.vendor || "CISCO").toUpperCase()}
                     </span>
                   </div>
                   <div className="text-[11px] text-[#667085] flex items-center gap-2 mt-0.5">
-                    <span>Target: <strong className="text-[#F3F4F6]">{configFilename.replace(/\.[^/.]+$/, "") || "DEVICE-01"}</strong></span>
+                    <span>Target: <strong className="text-[#F3F4F6]">{(analysisStatus?.filename || configFilename).replace(/\.[^/.]+$/, "") || "DEVICE-01"}</strong></span>
                     <span>•</span>
-                    <span>File: <strong className="text-[#F3F4F6]">{configFilename}</strong></span>
+                    <span>File: <strong className="text-[#F3F4F6]">{analysisStatus?.filename || configFilename || "network_config.cfg"}</strong></span>
                   </div>
                 </div>
               </div>
