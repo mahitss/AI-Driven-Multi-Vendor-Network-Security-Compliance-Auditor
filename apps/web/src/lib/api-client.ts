@@ -383,7 +383,14 @@ export function getApiBase(): string {
     process.env.NODE_ENV === "production" ||
     process.env.NEXT_PUBLIC_APP_ENV === "production";
 
-  // 1. Check explicit environment variables (NEXT_PUBLIC_API_URL or NEXT_PUBLIC_API_BASE_URL)
+  // 1. In browser production, default to same-origin (window.location.origin)
+  // so requests seamlessly route through Next.js rewrite proxy in next.config.ts
+  // (/api/v1/* -> Render), eliminating CORS preflight errors and cross-origin credential blocking.
+  if (typeof window !== "undefined" && isProduction) {
+    return window.location.origin;
+  }
+
+  // 2. Check explicit environment variables (NEXT_PUBLIC_API_URL or NEXT_PUBLIC_API_BASE_URL)
   const custom =
     process.env.NEXT_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -401,13 +408,6 @@ export function getApiBase(): string {
     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
       return trimmed;
     }
-  }
-
-  // 2. In browser production, default to same-origin (window.location.origin)
-  // so requests seamlessly route through Next.js rewrite proxy in next.config.ts
-  // (/api/v1/* -> Render), eliminating CORS preflight errors across all Vercel domains.
-  if (typeof window !== "undefined" && isProduction) {
-    return window.location.origin;
   }
 
   // 3. In server-side production mode (SSR), default to the live Render backend
@@ -441,7 +441,7 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
   return {};
 }
 
-export const DEFAULT_TIMEOUT_MS = 12000;
+export const DEFAULT_TIMEOUT_MS = 60000;
 
 export async function fetchWithTimeout(
   url: string,
