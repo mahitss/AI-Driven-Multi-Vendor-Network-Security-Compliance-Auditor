@@ -441,6 +441,88 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
   return {};
 }
 
+export class ApiError extends Error {
+  status?: number;
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
+
+export interface RetryOptions {
+  maxRetries?: number;
+  backoffMs?: number[];
+  onRetry?: (attempt: number, error: any) => void;
+}
+
+export function isTransientServerError(err: any): boolean {
+  const status = err?.status;
+  if (typeof status === "number") {
+    // Retry HTTP 500, 502, 503, 504 ONLY
+    if ([500, 502, 503, 504].includes(status)) {
+      return true;
+    }
+    // Do NOT retry 4xx errors such as 400, 401, 403, 404
+    if (status >= 400 && status < 500) {
+      return false;
+    }
+  }
+
+  const msg = String(err?.message || "");
+  // Explicitly reject 4xx errors
+  if (
+    msg.includes("HTTP 400") ||
+    msg.includes("HTTP 401") ||
+    msg.includes("HTTP 403") ||
+    msg.includes("HTTP 404") ||
+    msg.includes("AUTHENTICATION REQUIRED")
+  ) {
+    return false;
+  }
+
+  // Transient 5xx server errors
+  if (
+    msg.includes("HTTP 500") ||
+    msg.includes("HTTP 502") ||
+    msg.includes("HTTP 503") ||
+    msg.includes("HTTP 504") ||
+    msg.includes("API ERROR: The backend returned HTTP 500") ||
+    msg.includes("API ERROR: The backend returned HTTP 502") ||
+    msg.includes("API ERROR: The backend returned HTTP 503") ||
+    msg.includes("API ERROR: The backend returned HTTP 504")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+export async function retryTransientHydration<T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> {
+  const maxRetries = options.maxRetries ?? 2;
+  const backoffMs = options.backoffMs ?? [1000, 2000];
+
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      if (attempt < maxRetries && isTransientServerError(err)) {
+        const delay = backoffMs[attempt] ?? backoffMs[backoffMs.length - 1] ?? 1000;
+        options.onRetry?.(attempt + 1, err);
+        attempt++;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 export const DEFAULT_TIMEOUT_MS = 60000;
 
 export async function fetchWithTimeout(
@@ -480,21 +562,27 @@ export async function fetchWithTimeout(
     }
 
     if (res.status === 401) {
-      throw new Error(`AUTHENTICATION REQUIRED: The API rejected this request with HTTP 401.`);
+      throw new ApiError(`AUTHENTICATION REQUIRED: The API rejected this request with HTTP 401.`, 401);
     }
     if (res.status === 500) {
-      throw new Error(`API ERROR: The backend returned HTTP 500.`);
+      throw new ApiError(`API ERROR: The backend returned HTTP 500.`, 500);
+    }
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      throw new ApiError(`API ERROR: The backend returned HTTP ${res.status}.`, res.status);
     }
 
     return res;
   } catch (err: any) {
     if (err?.name === "AbortError") {
-      throw new Error(`BACKEND TIMEOUT (${timeoutMs / 1000}s): Unable to reach NetVigil API at ${url}.`);
+      throw new ApiError(`BACKEND TIMEOUT (${timeoutMs / 1000}s): Unable to reach NetVigil API at ${url}.`, 504);
+    }
+    if (err instanceof ApiError) {
+      throw err;
     }
     if (err?.message?.startsWith("AUTHENTICATION REQUIRED") || err?.message?.startsWith("API ERROR")) {
       throw err;
     }
-    throw new Error(`BACKEND UNAVAILABLE: Unable to connect to NetVigil API at the configured endpoint.`);
+    throw new ApiError(`BACKEND UNAVAILABLE: Unable to connect to NetVigil API at the configured endpoint.`, 503);
   } finally {
     clearTimeout(timer);
   }
@@ -1926,12 +2014,17 @@ export async function ingestAnalysis(
   return res.json();
 }
 
-export async function fetchAnalysisStatus(analysisId: string): Promise<AnalysisStatus> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/${analysisId}`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch analysis status: HTTP ${res.status}`);
-  }
-  return res.json();
+export async function fetchAnalysisStatus(
+  analysisId: string,
+  retryOptions?: RetryOptions
+): Promise<AnalysisStatus> {
+  return retryTransientHydration(async () => {
+    const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/${analysisId}`);
+    if (!res.ok) {
+      throw new ApiError(`Failed to fetch analysis status: HTTP ${res.status}`, res.status);
+    }
+    return res.json();
+  }, retryOptions);
 }
 
 export async function fetchAnalysisFindings(
@@ -1957,12 +2050,17 @@ export async function fetchAnalysisEvidence(analysisId: string): Promise<Analysi
   return res.json();
 }
 
-export async function fetchAnalysisRisk(analysisId: string): Promise<AnalysisRiskReport> {
-  const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/${analysisId}/risk`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch analysis risk: HTTP ${res.status}`);
-  }
-  return res.json();
+export async function fetchAnalysisRisk(
+  analysisId: string,
+  retryOptions?: RetryOptions
+): Promise<AnalysisRiskReport> {
+  return retryTransientHydration(async () => {
+    const res = await fetchWithTimeout(`${API_BASE}/api/v1/analysis/${analysisId}/risk`);
+    if (!res.ok) {
+      throw new ApiError(`Failed to fetch analysis risk: HTTP ${res.status}`, res.status);
+    }
+    return res.json();
+  }, retryOptions);
 }
 
 export async function triggerRemediation(
