@@ -105,11 +105,11 @@ def test_dataset_c_juniper_critical():
 
 
 def test_dataset_d_juniper_telnet_enabled():
-    """Dataset D: Juniper Telnet Enabled config must yield 32 applicable controls and 0.0% compliance."""
+    """Dataset D: Juniper Telnet Enabled config must yield 36 applicable controls and 0.0% compliance."""
     res = _evaluate_benchmark("05_JUNIPER_TELNET_ENABLED.set")
     assert res["pass_count"] == 0, f"Expected 0 PASS, got {res['pass_count']}"
-    assert res["fail_count"] == 32, f"Expected 32 FAIL, got {res['fail_count']}"
-    assert res["total_applicable"] == 32, f"Expected 32 applicable, got {res['total_applicable']}"
+    assert res["fail_count"] == 36, f"Expected 36 FAIL, got {res['fail_count']}"
+    assert res["total_applicable"] == 36, f"Expected 36 applicable, got {res['total_applicable']}"
     assert res["compliance_score"] == pytest.approx(0.0, 0.1), f"Expected 0.0%, got {res['compliance_score']}"
 
 
@@ -136,7 +136,7 @@ def test_dataset_f_universal_catalog_not_denominator():
     assert res_b["total_applicable"] == 40
 
     assert res_d["total_applicable"] != 44
-    assert res_d["total_applicable"] == 32
+    assert res_d["total_applicable"] == 36
 
 
 def test_dataset_g_evidence_and_line_citations_preserved():

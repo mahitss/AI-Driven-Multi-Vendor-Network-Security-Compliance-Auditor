@@ -107,6 +107,8 @@ class AnalysisStatusResponse(BaseModel):
     risk_score: Optional[float] = None
     risk_level: Optional[str] = None
     total_applicable_controls: Optional[int] = None
+    applicable_count: Optional[int] = None
+    total_applicable: Optional[int] = None
     not_applicable_count: Optional[int] = None
     passed_controls: Optional[int] = None
     failed_controls: Optional[int] = None
@@ -368,6 +370,8 @@ async def get_analysis_status(
         risk_score=r_score,
         risk_level=r_level,
         total_applicable_controls=total_applicable,
+        applicable_count=total_applicable,
+        total_applicable=total_applicable,
         not_applicable_count=na_count,
         passed_controls=pass_count,
         failed_controls=fail_count,

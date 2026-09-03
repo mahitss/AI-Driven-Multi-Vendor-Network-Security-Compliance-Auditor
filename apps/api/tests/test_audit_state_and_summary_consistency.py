@@ -86,11 +86,14 @@ async def test_h_j_juniper_telnet_enabled_authoritative_facts_and_compliance(db_
     H & J:
     05_JUNIPER_TELNET_ENABLED.set must produce:
     - facts_extracted_count = 4 (NOT 43!)
-    - total_applicable_controls = 32
-    - failed_controls = 32
+    - applicable_count = 36 (> 0)
+    - total_applicable_controls = 36
+    - failed_controls = 36
     - passed_controls = 0
-    - compliance_score = 0.0 (0 / 32 * 100)
+    - failed + passed = applicable_count (36)
+    - compliance_score = 0.0 (0 / 36 * 100)
     - risk_score = 100.0, risk_level = P0
+    - CIS-1.2.2 remains FAIL with Line 2 citation
     """
     user = AuthenticatedUser(id="user-juniper-telnet-check", email="jtel@netvigil.io", role="auditor", app_metadata={}, user_metadata={})
     p = BENCHMARKS_DIR / "05_JUNIPER_TELNET_ENABLED.set"
@@ -103,15 +106,30 @@ async def test_h_j_juniper_telnet_enabled_authoritative_facts_and_compliance(db_
 
     # Requirement H: Sourced strictly from facts_extracted_count
     assert status_res.facts_extracted_count == 4, f"Normalized facts must be 4, got {status_res.facts_extracted_count}"
-    assert status_res.fail_count == 32, f"Failed controls must be 32, got {status_res.fail_count}"
+    assert status_res.fail_count == 36, f"Failed controls must be 36, got {status_res.fail_count}"
     assert status_res.pass_count == 0, f"Passed controls must be 0, got {status_res.pass_count}"
 
-    # Requirement J: Applicable control compliance passed / total
-    assert status_res.total_applicable_controls == 32
+    # Requirement: applicable_count > 0, failed + passed = applicable_count, compliance = passed / applicable_count * 100
+    applicable = status_res.applicable_count if status_res.applicable_count is not None else status_res.total_applicable_controls
+    assert applicable is not None and applicable > 0, f"applicable_count must be > 0, got {applicable}"
+    assert status_res.fail_count + status_res.pass_count == applicable, (
+        f"Failed ({status_res.fail_count}) + Passed ({status_res.pass_count}) must equal applicable ({applicable})"
+    )
+    assert status_res.total_applicable_controls == 36
+    expected_compliance = round(status_res.pass_count / applicable * 100.0, 1)
+    assert status_res.compliance_score == expected_compliance
     assert status_res.compliance_score == 0.0
     assert status_res.risk_score == 100.0
     assert status_res.risk_level == "P0"
     assert status_res.status == "COMPLETED"
+
+    # Verify CIS-1.2.2 remains FAIL and evidence remains Line 2
+    findings = await get_analysis_findings(ingest_res.analysis_id, db_session, user)
+    telnet_finding = next((f for f in findings if f.control_id == "CIS-1.2.2"), None)
+    assert telnet_finding is not None, "CIS-1.2.2 finding must be present"
+    assert telnet_finding.status == "FAIL", "CIS-1.2.2 must be FAIL"
+    assert any(ev.line == 2 for ev in telnet_finding.evidence_lines), "CIS-1.2.2 evidence must cite Line 2"
+    assert any("set system services telnet" in (ev.raw_text or "") for ev in telnet_finding.evidence_lines), "Evidence must contain 'set system services telnet'"
 
 
 @pytest.mark.asyncio
@@ -141,13 +159,13 @@ async def test_f_i_switching_audits_isolation(db_session: AsyncSession):
     assert jcrit_status.pass_count == 4
     assert jcrit_status.vendor == "juniper"
 
-    # 3. Juniper Telnet (4 facts, 32 fail, score 0.0%)
+    # 3. Juniper Telnet (4 facts, 36 fail, score 0.0%)
     jtel_p = BENCHMARKS_DIR / "05_JUNIPER_TELNET_ENABLED.set"
     jtel_req = IngestAnalysisRequest(content=jtel_p.read_text(encoding="utf-8"), filename=jtel_p.name, vendor_hint="juniper")
     jtel_res = await ingest_configuration_for_analysis(jtel_req, db_session, user)
     jtel_status = await get_analysis_status(jtel_res.analysis_id, db_session, user)
     assert jtel_status.facts_extracted_count == 4
-    assert jtel_status.fail_count == 32
+    assert jtel_status.fail_count == 36
     assert jtel_status.pass_count == 0
     assert jtel_status.vendor == "juniper"
 

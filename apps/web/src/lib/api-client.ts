@@ -1782,6 +1782,8 @@ export interface AnalysisStatus {
   risk_score?: number | null;
   risk_level?: string | null;
   total_applicable_controls?: number;
+  applicable_count?: number;
+  total_applicable?: number;
   not_applicable_count?: number;
   passed_controls?: number;
   failed_controls?: number;

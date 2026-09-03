@@ -1246,8 +1246,8 @@ function ConfigurationsPageContent() {
                     : "--"}
                 </div>
                 <div className="text-[9px] text-[#10B981]">
-                  {isAuditStatusMatch && analysisStatus?.total_applicable_controls !== undefined && analysisStatus.total_applicable_controls > 0
-                    ? `${analysisStatus.pass_count}/${analysisStatus.total_applicable_controls} APPLICABLE`
+                  {isAuditStatusMatch && analysisStatus && (analysisStatus.total_applicable_controls ?? analysisStatus.applicable_count) !== undefined && ((analysisStatus.total_applicable_controls ?? analysisStatus.applicable_count) ?? 0) > 0
+                    ? `${analysisStatus.pass_count} PASSED / ${analysisStatus.total_applicable_controls ?? analysisStatus.applicable_count} APPLICABLE`
                     : "CIS • NIST • STIG • ISO"}
                 </div>
               </div>
