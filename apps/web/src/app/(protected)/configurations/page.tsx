@@ -133,6 +133,9 @@ function ConfigurationsPageContent() {
   const [reanalyzeResult, setReanalyzeResult] = useState<AnalysisReanalyzeResult | null>(null);
   const [reanalyzeBannerVisible, setReanalyzeBannerVisible] = useState(false);
 
+  // Monotonic execution sequence tracker to prevent asynchronous out-of-order race conditions
+  const executionVersionRef = useRef<number>(0);
+
   // Auto-detect vendor & compute SHA-256 whenever rawText changes
   useEffect(() => {
     let isSubscribed = true;
@@ -269,11 +272,22 @@ function ConfigurationsPageContent() {
   // --- Real End-to-End Audit Execution ---
   const handleRunGoldenAudit = async () => {
     if (!rawText.trim()) return;
+    const currentVersion = ++executionVersionRef.current;
     try {
       setIsAuditing(true);
       setAuditError(null);
       setReanalyzeResult(null);
       setReanalyzeBannerVisible(false);
+      setSelectedFindingId(null);
+      setHighlightedLine(null);
+
+      // Invalidate and clear current query data immediately to prevent stale leak
+      if (activeAnalysisId) {
+        queryClient.setQueryData(["analysis-status", activeAnalysisId, user?.id], null);
+        queryClient.setQueryData(["analysis-findings", activeAnalysisId, user?.id], []);
+        queryClient.setQueryData(["analysis-evidence", activeAnalysisId, user?.id], []);
+        queryClient.setQueryData(["analysis-risk", activeAnalysisId, user?.id], null);
+      }
 
       let activeName = (configFilename || "").trim();
       if (!activeName) {
@@ -291,6 +305,8 @@ function ConfigurationsPageContent() {
         detectedVendorState.vendor
       );
 
+      if (currentVersion !== executionVersionRef.current) return;
+
       setActiveAnalysisId(ingestRes.analysis_id);
 
       // Invalidate existing queries to trigger reactive refresh
@@ -301,10 +317,13 @@ function ConfigurationsPageContent() {
       await queryClient.invalidateQueries({ queryKey: ["analysis-config", ingestRes.analysis_id] });
       await queryClient.invalidateQueries({ queryKey: ["configurations-list"] });
     } catch (err: any) {
+      if (currentVersion !== executionVersionRef.current) return;
       console.error("Audit execution failed:", err);
       setAuditError(err?.message || "Audit execution failed. Please verify the backend service.");
     } finally {
-      setIsAuditing(false);
+      if (currentVersion === executionVersionRef.current) {
+        setIsAuditing(false);
+      }
     }
   };
 
@@ -436,17 +455,44 @@ function ConfigurationsPageContent() {
     isRiskDone
   );
 
-  // Auto-select first failing finding or first finding
+  // Authoritative Audit Result Available check: true ONLY when not in-flight and backend status is COMPLETED
+  const isAuditResultAvailable = Boolean(
+    !isAuditing &&
+    !isReanalyzing &&
+    isAuditStatusMatch &&
+    analysisStatus?.status === "COMPLETED"
+  );
+
+  // Effective data sources strictly bound to authoritative audit result availability
+  const effectiveFindings = useMemo(() => {
+    return isAuditResultAvailable ? findings : [];
+  }, [isAuditResultAvailable, findings]);
+
+  const effectiveEvidenceItems = useMemo(() => {
+    return isAuditResultAvailable ? evidenceItems : [];
+  }, [isAuditResultAvailable, evidenceItems]);
+
+  const effectiveRiskReport = useMemo(() => {
+    return isAuditResultAvailable && isRiskDone ? riskReport : null;
+  }, [isAuditResultAvailable, isRiskDone, riskReport]);
+
+  // Auto-select first failing finding or first finding only when effective findings exist
   useEffect(() => {
-    if (findings.length > 0 && !selectedFindingId) {
-      const firstFail = findings.find((f) => f.status === "FAIL");
-      setSelectedFindingId(firstFail ? firstFail.finding_id : findings[0].finding_id);
+    if (!isAuditResultAvailable || effectiveFindings.length === 0) {
+      setSelectedFindingId(null);
+      setHighlightedLine(null);
+      return;
     }
-  }, [findings, selectedFindingId]);
+    if (!selectedFindingId || !effectiveFindings.some((f) => f.finding_id === selectedFindingId)) {
+      const firstFail = effectiveFindings.find((f) => f.status === "FAIL");
+      setSelectedFindingId(firstFail ? firstFail.finding_id : effectiveFindings[0].finding_id);
+    }
+  }, [isAuditResultAvailable, effectiveFindings, selectedFindingId]);
 
   const selectedFinding = useMemo(() => {
-    return findings.find((f) => f.finding_id === selectedFindingId) || findings[0] || null;
-  }, [findings, selectedFindingId]);
+    if (!isAuditResultAvailable || effectiveFindings.length === 0) return null;
+    return effectiveFindings.find((f) => f.finding_id === selectedFindingId) || effectiveFindings[0] || null;
+  }, [isAuditResultAvailable, effectiveFindings, selectedFindingId]);
 
   // When selected finding changes, highlight its primary evidence line (only if line > 0)
   useEffect(() => {
@@ -459,7 +505,8 @@ function ConfigurationsPageContent() {
 
   // Filtered findings list
   const filteredFindings = useMemo(() => {
-    return findings.filter((f) => {
+    if (!isAuditResultAvailable) return [];
+    return effectiveFindings.filter((f) => {
       const matchFw = frameworkFilter === "ALL" || f.framework.toUpperCase() === frameworkFilter;
       const matchStatus = statusFilter === "ALL" || f.status.toUpperCase() === statusFilter;
       const matchSearch =
@@ -468,7 +515,7 @@ function ConfigurationsPageContent() {
         f.title.toLowerCase().includes(searchFilter.toLowerCase());
       return matchFw && matchStatus && matchSearch;
     });
-  }, [findings, frameworkFilter, statusFilter, searchFilter]);
+  }, [isAuditResultAvailable, effectiveFindings, frameworkFilter, statusFilter, searchFilter]);
 
   // --- Real Remediation & Verification Workflow ---
   const handleReviewRemediation = async () => {
@@ -491,18 +538,29 @@ function ConfigurationsPageContent() {
 
   const handleReanalyzeWithRemediation = async () => {
     if (!activeAnalysisId) return;
+    const currentVersion = ++executionVersionRef.current;
     try {
       setIsReanalyzing(true);
       setAuditError(null);
       setReanalyzeResult(null);
       setReanalyzeBannerVisible(false);
+      setSelectedFindingId(null);
+      setHighlightedLine(null);
+
+      // Clear query cache immediately so no old results display during re-analysis
+      queryClient.setQueryData(["analysis-status", activeAnalysisId, user?.id], null);
+      queryClient.setQueryData(["analysis-findings", activeAnalysisId, user?.id], []);
+      queryClient.setQueryData(["analysis-evidence", activeAnalysisId, user?.id], []);
+      queryClient.setQueryData(["analysis-risk", activeAnalysisId, user?.id], null);
 
       // Generate or retrieve backend safe remediated configuration artifact
       const remResult = await triggerRemediation(activeAnalysisId);
+      if (currentVersion !== executionVersionRef.current) return;
       const remediatedText = remResult.remediated_content;
 
       // Execute backend re-analysis endpoint (Stage 8)
       const result = await reanalyzeAnalysis(activeAnalysisId, remediatedText);
+      if (currentVersion !== executionVersionRef.current) return;
       setReanalyzeResult(result);
       setReanalyzeBannerVisible(true);
 
@@ -519,10 +577,13 @@ function ConfigurationsPageContent() {
         queryClient.invalidateQueries({ queryKey: ["analysis-config", activeAnalysisId] }),
       ]);
     } catch (err: any) {
+      if (currentVersion !== executionVersionRef.current) return;
       console.error("Re-analysis execution error:", err);
       setAuditError(err?.message || "Re-analysis failed.");
     } finally {
-      setIsReanalyzing(false);
+      if (currentVersion === executionVersionRef.current) {
+        setIsReanalyzing(false);
+      }
     }
   };
 
@@ -1223,12 +1284,20 @@ function ConfigurationsPageContent() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-[10px]">
-                  <span className="px-1.5 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444]">
-                    {findings.filter((f) => f.status === "FAIL").length} FAIL
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded bg-[#10B981]/15 text-[#10B981]">
-                    {findings.filter((f) => f.status === "PASS").length} PASS
-                  </span>
+                  {isAuditResultAvailable ? (
+                    <>
+                      <span className="px-1.5 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444]">
+                        {effectiveFindings.filter((f) => f.status === "FAIL").length} FAIL
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-[#10B981]/15 text-[#10B981]">
+                        {effectiveFindings.filter((f) => f.status === "PASS").length} PASS
+                      </span>
+                    </>
+                  ) : (
+                    <span className="px-1.5 py-0.5 rounded bg-[#3B82F6]/15 text-[#3B82F6] animate-pulse">
+                      EVALUATING...
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1279,7 +1348,7 @@ function ConfigurationsPageContent() {
               <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
                 {filteredFindings.length === 0 ? (
                   <div className="p-6 text-center text-xs text-[#667085] rounded-xl bg-[#080B12] border border-dashed border-[#1D2939]">
-                    No findings matching active filters.
+                    {!isAuditResultAvailable ? "Evaluating compliance rules..." : "No findings matching active filters."}
                   </div>
                 ) : (
                   filteredFindings.map((finding) => {
@@ -1413,10 +1482,14 @@ function ConfigurationsPageContent() {
                           ? `Line ${highlightedLine}`
                           : selectedFinding?.evidence_lines?.some((e) => e.line && e.line > 0)
                           ? `Line ${selectedFinding.evidence_lines.find((e) => e.line && e.line > 0)?.line}`
-                          : "Unconfigured Directive"}
+                          : selectedFinding
+                          ? "Unconfigured Directive"
+                          : "None (Awaiting Evaluation)"}
                       </strong>
                       {!highlightedLine && !selectedFinding?.evidence_lines?.some((e) => e.line && e.line > 0) && (
-                        <span className="text-[#667085] text-[10px] font-mono">(No Line Citation)</span>
+                        <span className="text-[#667085] text-[10px] font-mono">
+                          {selectedFinding ? "(No Line Citation)" : "(Pending Analysis)"}
+                        </span>
                       )}
                     </span>
                   </div>
@@ -1503,12 +1576,12 @@ function ConfigurationsPageContent() {
                   </div>
 
                   <div className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] max-h-[540px] overflow-y-auto text-xs space-y-2">
-                    {evidenceItems.length === 0 ? (
+                    {effectiveEvidenceItems.length === 0 ? (
                       <div className="text-center text-[#667085] py-6">
-                        No AST facts extracted for this profile.
+                        {!isAuditResultAvailable ? "Extracting configuration AST facts..." : "No AST facts extracted for this profile."}
                       </div>
                     ) : (
-                      evidenceItems.map((item, idx) => (
+                      effectiveEvidenceItems.map((item, idx) => (
                         <div
                           key={idx}
                           onClick={() => {
@@ -1585,15 +1658,19 @@ function ConfigurationsPageContent() {
                     CONTRIBUTORS (WHY):
                   </div>
                   <div className="space-y-1 text-[11px] text-[#A7B0C0]">
-                    {riskReport?.contributing_findings && riskReport.contributing_findings.length > 0 ? (
-                      riskReport.contributing_findings.slice(0, 4).map((cf: any, idx: number) => (
+                    {!isAuditResultAvailable || !isRiskDone ? (
+                      <div className="p-2 text-center text-[#667085] text-[10px]">
+                        Risk evaluation in progress...
+                      </div>
+                    ) : effectiveRiskReport?.contributing_findings && effectiveRiskReport.contributing_findings.length > 0 ? (
+                      effectiveRiskReport.contributing_findings.slice(0, 4).map((cf: any, idx: number) => (
                         <div key={idx} className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
                           <span className="truncate max-w-[180px]">{cf.title || cf.control_id}</span>
                           <span className="text-[#EF4444] font-bold text-[10px]">{cf.severity || "FAIL"}</span>
                         </div>
                       ))
-                    ) : findings.filter(f => f.status === "FAIL").length > 0 ? (
-                      findings.filter(f => f.status === "FAIL").slice(0, 4).map((f) => (
+                    ) : effectiveFindings.filter(f => f.status === "FAIL").length > 0 ? (
+                      effectiveFindings.filter(f => f.status === "FAIL").slice(0, 4).map((f) => (
                         <div key={f.finding_id} className="flex items-center justify-between p-1.5 rounded bg-[#080B12] border border-[#1D2939]">
                           <span className="truncate max-w-[180px]">{f.title || f.control_id}</span>
                           <span className="text-[#EF4444] font-bold text-[10px]">{f.severity}</span>
