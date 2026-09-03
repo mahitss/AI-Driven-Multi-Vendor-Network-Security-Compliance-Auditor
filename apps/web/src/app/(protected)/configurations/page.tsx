@@ -358,6 +358,20 @@ function ConfigurationsPageContent() {
     }
   }, [activeAnalysisId, storedConfigs, isIngestMode]);
 
+  const effectiveRiskScore = riskReport?.risk_score ?? analysisStatus?.risk_score;
+  const effectiveRiskLevel =
+    riskReport?.risk_level ||
+    analysisStatus?.risk_level ||
+    (findings.some((f) => f.status === "FAIL") ? "P1" : "P3");
+  const effectiveSeverityName =
+    effectiveRiskLevel === "P0"
+      ? "CRITICAL"
+      : effectiveRiskLevel === "P1"
+      ? "HIGH"
+      : effectiveRiskLevel === "P2"
+      ? "MEDIUM"
+      : "LOW";
+
   // Auto-select first failing finding or first finding
   useEffect(() => {
     if (findings.length > 0 && !selectedFindingId) {
@@ -786,7 +800,7 @@ function ConfigurationsPageContent() {
             { key: "PARSE", label: "3. PARSE", done: !!analysisStatus || !!activeAnalysisId },
             { key: "NORMALIZE", label: "4. NORMALIZE", done: (evidenceItems.length > 0 || (analysisStatus?.facts_extracted_count ?? 0) > 0) },
             { key: "EVALUATE", label: "5. EVALUATE", done: findings.length > 0 },
-            { key: "RISK", label: "6. RISK", done: !!riskReport },
+            { key: "RISK", label: "6. RISK", done: !!riskReport || !!analysisStatus?.risk_score },
             { key: "REMEDIATION", label: "7. REMEDIATION", done: !!reanalyzeResult },
             { key: "VERIFY", label: "8. VERIFY", done: !!reanalyzeResult, isVerify: true },
           ].map((stage) => (
@@ -1018,29 +1032,29 @@ function ConfigurationsPageContent() {
                 <div className="text-[10px] text-[#667085] uppercase font-bold">RISK INDEX</div>
                 <div className={cn(
                   "text-2xl font-black",
-                  (riskReport?.risk_score ?? 0) >= 85
+                  (effectiveRiskScore ?? 0) >= 85
                     ? "text-[#EF4444]"
-                    : (riskReport?.risk_score ?? 0) >= 70
+                    : (effectiveRiskScore ?? 0) >= 70
                     ? "text-[#F59E0B]"
-                    : (riskReport?.risk_score ?? 0) >= 45
+                    : (effectiveRiskScore ?? 0) >= 45
                     ? "text-[#EAB308]"
                     : "text-[#10B981]"
                 )}>
-                  {riskReport?.risk_score !== undefined
-                    ? `${riskReport.risk_score.toFixed(1)}/100`
+                  {effectiveRiskScore !== undefined
+                    ? `${effectiveRiskScore.toFixed(1)}/100`
                     : "--"}
                 </div>
                 <div className={cn(
                   "text-[9px] font-bold",
-                  riskReport?.risk_level === "P0"
+                  effectiveRiskLevel === "P0"
                     ? "text-[#EF4444]"
-                    : riskReport?.risk_level === "P1"
+                    : effectiveRiskLevel === "P1"
                     ? "text-[#F59E0B]"
-                    : riskReport?.risk_level === "P2"
+                    : effectiveRiskLevel === "P2"
                     ? "text-[#EAB308]"
                     : "text-[#10B981]"
                 )}>
-                  PRIORITY: {riskReport?.risk_level || "P0"} {riskReport?.risk_level === "P0" ? "CRITICAL" : riskReport?.risk_level === "P1" ? "HIGH" : riskReport?.risk_level === "P2" ? "MEDIUM" : "LOW"}
+                  PRIORITY: {effectiveRiskLevel} {effectiveSeverityName}
                 </div>
               </div>
 
@@ -1400,33 +1414,31 @@ function ConfigurationsPageContent() {
                   </div>
                   <span className={cn(
                     "px-2 py-0.5 rounded text-[10px] font-extrabold border",
-                    (riskReport?.risk_level || analysisStatus?.risk_level) === "P0"
+                    effectiveRiskLevel === "P0"
                       ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
-                      : (riskReport?.risk_level || analysisStatus?.risk_level) === "P1"
+                      : effectiveRiskLevel === "P1"
                       ? "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
-                      : (riskReport?.risk_level || analysisStatus?.risk_level) === "P2"
+                      : effectiveRiskLevel === "P2"
                       ? "bg-[#EAB308]/15 text-[#EAB308] border-[#EAB308]/30"
                       : "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
                   )}>
-                    {riskReport?.risk_level || analysisStatus?.risk_level || (findings.some(f => f.status === "FAIL") ? "P1" : "P3")} PRIORITY
+                    {effectiveRiskLevel} PRIORITY
                   </span>
                 </div>
 
                 <div className="flex items-baseline justify-between">
                   <div className={cn(
                     "text-2xl font-black",
-                    ((riskReport?.risk_score ?? analysisStatus?.risk_score) ?? 0) >= 85
+                    (effectiveRiskScore ?? 0) >= 85
                       ? "text-[#EF4444]"
-                      : ((riskReport?.risk_score ?? analysisStatus?.risk_score) ?? 0) >= 70
+                      : (effectiveRiskScore ?? 0) >= 70
                       ? "text-[#F59E0B]"
-                      : ((riskReport?.risk_score ?? analysisStatus?.risk_score) ?? 0) >= 45
+                      : (effectiveRiskScore ?? 0) >= 45
                       ? "text-[#EAB308]"
                       : "text-[#10B981]"
                   )}>
-                    {riskReport?.risk_score !== undefined
-                      ? riskReport.risk_score.toFixed(1)
-                      : analysisStatus?.risk_score !== undefined
-                      ? analysisStatus.risk_score.toFixed(1)
+                    {effectiveRiskScore !== undefined
+                      ? effectiveRiskScore.toFixed(1)
                       : "0.0"}
                     <span className="text-xs text-[#667085] font-normal"> / 100</span>
                   </div>
