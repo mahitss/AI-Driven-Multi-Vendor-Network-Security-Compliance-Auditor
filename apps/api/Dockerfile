@@ -25,8 +25,11 @@ RUN useradd -m -u 1001 netvigil && \
 USER netvigil
 
 WORKDIR /app/apps/api
-ENV PYTHONPATH=/app/apps/api
+ENV PYTHONPATH=/app/apps/api \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
 
-EXPOSE 8000 8080 10000
+EXPOSE 10000 8000 8080
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

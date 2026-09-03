@@ -105,7 +105,64 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Database clean/seed lifecycle notice: {e}")
 
+    # Auxiliary multi-port listener bridge: Ensures ports 10000, 8000, and 8080 are all open and reachable
+    # regardless of whether Render (10000), local dev / Docker compose (8000), or Cloud Run (8080) connects.
+    aux_servers = []
+    try:
+        import asyncio
+        import os
+
+        primary_port = int(os.environ.get("PORT", "10000"))
+
+        async def _forward_stream(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+            try:
+                while not reader.at_eof():
+                    data = await reader.read(4096)
+                    if not data:
+                        break
+                    writer.write(data)
+                    await writer.drain()
+            except Exception:
+                pass
+            finally:
+                try:
+                    writer.close()
+                except Exception:
+                    pass
+
+        async def _handle_proxy(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, target_port: int):
+            try:
+                t_reader, t_writer = await asyncio.open_connection("127.0.0.1", target_port)
+                asyncio.create_task(_forward_stream(reader, t_writer))
+                asyncio.create_task(_forward_stream(t_reader, writer))
+            except Exception:
+                try:
+                    writer.close()
+                except Exception:
+                    pass
+
+        for p in [10000, 8000, 8080]:
+            if p != primary_port:
+                try:
+                    srv = await asyncio.start_server(
+                        lambda r, w, tp=primary_port: _handle_proxy(r, w, tp),
+                        "0.0.0.0",
+                        p,
+                    )
+                    aux_servers.append(srv)
+                    logger.info(f"Auxiliary port listener active on port {p} (bridging to primary {primary_port})")
+                except Exception as ex:
+                    logger.debug(f"Auxiliary port {p} listener skipped: {ex}")
+    except Exception as e:
+        logger.warning(f"Auxiliary multi-port listener setup notice: {e}")
+
     yield
+
+    for srv in aux_servers:
+        try:
+            srv.close()
+        except Exception:
+            pass
 
     logger.info(f"Shutting down {settings.PROJECT_NAME}")
     await async_engine.dispose()

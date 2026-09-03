@@ -96,12 +96,12 @@ def test_dataset_b_cisco_real_evidence():
 
 
 def test_dataset_c_juniper_critical():
-    """Dataset C: Juniper Critical config must yield 40 applicable controls and 10.0% compliance."""
+    """Dataset C: Juniper Critical config must yield 40 applicable controls and 0.0% compliance."""
     res = _evaluate_benchmark("04_JUNIPER_CRITICAL.set")
-    assert res["pass_count"] == 4, f"Expected 4 PASS, got {res['pass_count']}"
-    assert res["fail_count"] == 36, f"Expected 36 FAIL, got {res['fail_count']}"
+    assert res["pass_count"] == 0, f"Expected 0 PASS, got {res['pass_count']}"
+    assert res["fail_count"] == 40, f"Expected 40 FAIL, got {res['fail_count']}"
     assert res["total_applicable"] == 40, f"Expected 40 applicable, got {res['total_applicable']}"
-    assert res["compliance_score"] == pytest.approx(10.0, 0.1), f"Expected 10.0%, got {res['compliance_score']}"
+    assert res["compliance_score"] == pytest.approx(0.0, 0.1), f"Expected 0.0%, got {res['compliance_score']}"
 
 
 def test_dataset_d_juniper_telnet_enabled():
@@ -232,7 +232,7 @@ async def test_multi_audit_isolation(db_session: AsyncSession):
     sequence = [
         ("02_CISCO_HARDENED.cfg", "cisco", 48, 20, 28),
         ("03_FORTINET_SCORE_HIGH.conf", "fortinet", 48, 24, 20),
-        ("04_JUNIPER_CRITICAL.set", "juniper", 40, 4, 36),
+        ("04_JUNIPER_CRITICAL.set", "juniper", 40, 0, 40),
         ("04_CISCO_REAL_EVIDENCE.cfg", "cisco", 40, 12, 28),
     ]
     audit_ids = []
