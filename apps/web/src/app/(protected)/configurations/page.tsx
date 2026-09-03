@@ -72,6 +72,7 @@ import {
   ConfigurationItem,
 } from "@/lib/api-client";
 import { computeClientSha256, formatBytes, cn } from "@/lib/utils";
+import { getFindingActiveEvidence } from "@/lib/evidence-utils";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -499,7 +500,7 @@ function ConfigurationsPageContent() {
     return isAuditResultAvailable && isRiskDone ? riskReport : null;
   }, [isAuditResultAvailable, isRiskDone, riskReport]);
 
-  // Auto-select first failing finding or first finding only when effective findings exist
+  // Auto-select first finding with line evidence, first fail, or first overall
   useEffect(() => {
     if (!isAuditResultAvailable || effectiveFindings.length === 0) {
       setSelectedFindingId(null);
@@ -507,24 +508,37 @@ function ConfigurationsPageContent() {
       return;
     }
     if (!selectedFindingId || !effectiveFindings.some((f) => f.finding_id === selectedFindingId)) {
+      const firstWithEvidence = effectiveFindings.find((f) => f.evidence_lines?.some((e) => e.line && e.line > 0));
       const firstFail = effectiveFindings.find((f) => f.status === "FAIL");
-      setSelectedFindingId(firstFail ? firstFail.finding_id : effectiveFindings[0].finding_id);
+      const defaultFinding = firstWithEvidence || firstFail || effectiveFindings[0];
+      setSelectedFindingId(defaultFinding.finding_id);
     }
   }, [isAuditResultAvailable, effectiveFindings, selectedFindingId]);
 
+  // Selected finding strictly bound to selectedFindingId
   const selectedFinding = useMemo(() => {
     if (!isAuditResultAvailable || effectiveFindings.length === 0) return null;
-    return effectiveFindings.find((f) => f.finding_id === selectedFindingId) || effectiveFindings[0] || null;
+    if (!selectedFindingId) return null;
+    return effectiveFindings.find((f) => f.finding_id === selectedFindingId) || null;
   }, [isAuditResultAvailable, effectiveFindings, selectedFindingId]);
 
-  // When selected finding changes, highlight its primary evidence line (only if line > 0)
+  // Authoritative, synchronous active evidence derivation strictly bound to selectedFinding (Requirements 1, 2, 3, 4)
+  const activeEvidence = useMemo(() => {
+    return getFindingActiveEvidence(selectedFinding);
+  }, [selectedFinding]);
+
+  // When selected finding's active evidence changes, synchronize highlightedLine and scroll to cited line
   useEffect(() => {
-    if (selectedFinding && selectedFinding.evidence_lines?.length > 0 && selectedFinding.evidence_lines[0].line && selectedFinding.evidence_lines[0].line > 0) {
-      setHighlightedLine(selectedFinding.evidence_lines[0].line);
+    if (activeEvidence.hasLineCitation && activeEvidence.line) {
+      setHighlightedLine(activeEvidence.line);
+      const lineEl = document.getElementById(`line-${activeEvidence.line}`);
+      if (lineEl && evidenceContainerRef.current) {
+        lineEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     } else {
       setHighlightedLine(null);
     }
-  }, [selectedFinding]);
+  }, [activeEvidence]);
 
   // Filtered findings list
   const filteredFindings = useMemo(() => {
@@ -1395,11 +1409,6 @@ function ConfigurationsPageContent() {
                         key={finding.finding_id}
                         onClick={() => {
                           setSelectedFindingId(finding.finding_id);
-                          if (finding.evidence_lines?.length > 0 && finding.evidence_lines[0].line && finding.evidence_lines[0].line > 0) {
-                            setHighlightedLine(finding.evidence_lines[0].line);
-                          } else {
-                            setHighlightedLine(null);
-                          }
                         }}
                         className={cn(
                           "p-3 rounded-xl border cursor-pointer transition-all space-y-1.5",
@@ -1511,18 +1520,16 @@ function ConfigurationsPageContent() {
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span>Active Citation:</span>
-                      <strong className="text-[#EF4444]">
-                        {highlightedLine && highlightedLine > 0
-                          ? `Line ${highlightedLine}`
-                          : selectedFinding?.evidence_lines?.some((e) => e.line && e.line > 0)
-                          ? `Line ${selectedFinding.evidence_lines.find((e) => e.line && e.line > 0)?.line}`
-                          : selectedFinding
-                          ? "Unconfigured Directive"
-                          : "None (Awaiting Evaluation)"}
+                      <strong
+                        className={cn(
+                          activeEvidence.hasLineCitation ? "text-[#3B82F6]" : "text-[#EF4444]"
+                        )}
+                      >
+                        {activeEvidence.citationText}
                       </strong>
-                      {!highlightedLine && !selectedFinding?.evidence_lines?.some((e) => e.line && e.line > 0) && (
+                      {!activeEvidence.hasLineCitation && (
                         <span className="text-[#667085] text-[10px] font-mono">
-                          {selectedFinding ? "(No Line Citation)" : "(Pending Analysis)"}
+                          {activeEvidence.statusText}
                         </span>
                       )}
                     </span>
@@ -1533,7 +1540,7 @@ function ConfigurationsPageContent() {
                     className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] max-h-[540px] overflow-y-auto text-xs space-y-0.5 font-mono select-text"
                   >
                     {configData?.lines?.map((item) => {
-                      const isCited = item.line > 0 && selectedFinding?.evidence_lines?.some((e) => e.line === item.line && e.line > 0);
+                      const isCited = activeEvidence.hasLineCitation && activeEvidence.line === item.line;
                       const isHighlighted = highlightedLine === item.line;
 
                       return (
@@ -1758,22 +1765,16 @@ function ConfigurationsPageContent() {
                           <span
                             className={cn(
                               "font-semibold",
-                              selectedFinding.evidence_lines?.some((e) => e.line && e.line > 0)
-                                ? "text-[#10B981]"
-                                : "text-[#EF4444]"
+                              activeEvidence.hasLineCitation ? "text-[#10B981]" : "text-[#EF4444]"
                             )}
                           >
-                            {selectedFinding.evidence_lines?.some((e) => e.line && e.line > 0)
-                              ? "Configured Directive"
-                              : "Unconfigured Directive"}
+                            {activeEvidence.hasLineCitation ? "Configured Directive" : "Unconfigured Directive"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>LINE CITATION:</span>
                           <span className="text-[#EF4444] font-semibold">
-                            {selectedFinding.evidence_lines?.some((e) => e.line && e.line > 0)
-                              ? `Line ${selectedFinding.evidence_lines.filter((e) => e.line && e.line > 0).map((e) => e.line).join(", ")}`
-                              : "No direct evidence"}
+                            {activeEvidence.hasLineCitation ? activeEvidence.citationText : "No direct evidence"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
