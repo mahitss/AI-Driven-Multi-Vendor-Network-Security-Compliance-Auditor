@@ -236,6 +236,11 @@ function ConfigurationsPageContent() {
         size: file.size,
         lines: text.split("\n").length,
       });
+      setActiveAnalysisId(null);
+      setSelectedFindingId(null);
+      setHighlightedLine(null);
+      setReanalyzeResult(null);
+      setReanalyzeBannerVisible(false);
     };
     reader.onerror = () => {
       setUploadValidationError("Failed to read the selected file. Please verify file permissions and try again.");
@@ -264,6 +269,11 @@ function ConfigurationsPageContent() {
     setSelectedFileMeta(null);
     setUploadValidationError(null);
     setClientHash("");
+    setActiveAnalysisId(null);
+    setSelectedFindingId(null);
+    setHighlightedLine(null);
+    setReanalyzeResult(null);
+    setReanalyzeBannerVisible(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -298,7 +308,7 @@ function ConfigurationsPageContent() {
         activeName += detectedVendorState.vendor === "juniper" ? ".set" : detectedVendorState.vendor === "fortinet" ? ".conf" : ".cfg";
       }
 
-      // 1. Ingest via real backend pipeline endpoint
+      // 1. Ingest via real backend pipeline endpoint (executes Stages 1-6 synchronously)
       const ingestRes = await ingestAnalysis(
         rawText,
         activeName,
@@ -307,14 +317,26 @@ function ConfigurationsPageContent() {
 
       if (currentVersion !== executionVersionRef.current) return;
 
+      // 2. Fetch fresh completed authoritative results directly from backend
+      const [freshStatus, freshFindings, freshEvidence, freshRisk, freshConfig] = await Promise.all([
+        fetchAnalysisStatus(ingestRes.analysis_id),
+        fetchAnalysisFindings(ingestRes.analysis_id),
+        fetchAnalysisEvidence(ingestRes.analysis_id),
+        fetchAnalysisRisk(ingestRes.analysis_id),
+        fetchAnalysisConfiguration(ingestRes.analysis_id),
+      ]);
+
+      if (currentVersion !== executionVersionRef.current) return;
+
+      // 3. Directly hydrate query cache so stages and summary advance to COMPLETED immediately
+      queryClient.setQueryData(["analysis-status", ingestRes.analysis_id, user?.id], freshStatus);
+      queryClient.setQueryData(["analysis-findings", ingestRes.analysis_id, user?.id], freshFindings);
+      queryClient.setQueryData(["analysis-evidence", ingestRes.analysis_id, user?.id], freshEvidence);
+      queryClient.setQueryData(["analysis-risk", ingestRes.analysis_id, user?.id], freshRisk);
+      queryClient.setQueryData(["analysis-config", ingestRes.analysis_id, user?.id], freshConfig);
+
       setActiveAnalysisId(ingestRes.analysis_id);
 
-      // Invalidate existing queries to trigger reactive refresh
-      await queryClient.invalidateQueries({ queryKey: ["analysis-status", ingestRes.analysis_id] });
-      await queryClient.invalidateQueries({ queryKey: ["analysis-findings", ingestRes.analysis_id] });
-      await queryClient.invalidateQueries({ queryKey: ["analysis-evidence", ingestRes.analysis_id] });
-      await queryClient.invalidateQueries({ queryKey: ["analysis-risk", ingestRes.analysis_id] });
-      await queryClient.invalidateQueries({ queryKey: ["analysis-config", ingestRes.analysis_id] });
       await queryClient.invalidateQueries({ queryKey: ["configurations-list"] });
     } catch (err: any) {
       if (currentVersion !== executionVersionRef.current) return;
@@ -332,6 +354,7 @@ function ConfigurationsPageContent() {
     queryKey: ["analysis-status", activeAnalysisId, user?.id],
     queryFn: () => (activeAnalysisId ? fetchAnalysisStatus(activeAnalysisId) : null),
     enabled: !!activeAnalysisId && !authLoading,
+    refetchInterval: (query) => (query.state.data?.status === "PROCESSING" ? 1000 : false),
   });
 
   const { data: findings = [], isLoading: isFindingsLoading } = useQuery({
@@ -561,21 +584,30 @@ function ConfigurationsPageContent() {
       // Execute backend re-analysis endpoint (Stage 8)
       const result = await reanalyzeAnalysis(activeAnalysisId, remediatedText);
       if (currentVersion !== executionVersionRef.current) return;
-      setReanalyzeResult(result);
-      setReanalyzeBannerVisible(true);
 
       if (remediatedText) {
         setRawText(remediatedText);
       }
 
-      // Invalidate queries to refresh findings and scores
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["analysis-status", activeAnalysisId] }),
-        queryClient.invalidateQueries({ queryKey: ["analysis-findings", activeAnalysisId] }),
-        queryClient.invalidateQueries({ queryKey: ["analysis-evidence", activeAnalysisId] }),
-        queryClient.invalidateQueries({ queryKey: ["analysis-risk", activeAnalysisId] }),
-        queryClient.invalidateQueries({ queryKey: ["analysis-config", activeAnalysisId] }),
+      // Fetch fresh authoritative results post-remediation
+      const [freshStatus, freshFindings, freshEvidence, freshRisk, freshConfig] = await Promise.all([
+        fetchAnalysisStatus(activeAnalysisId),
+        fetchAnalysisFindings(activeAnalysisId),
+        fetchAnalysisEvidence(activeAnalysisId),
+        fetchAnalysisRisk(activeAnalysisId),
+        fetchAnalysisConfiguration(activeAnalysisId),
       ]);
+
+      if (currentVersion !== executionVersionRef.current) return;
+
+      queryClient.setQueryData(["analysis-status", activeAnalysisId, user?.id], freshStatus);
+      queryClient.setQueryData(["analysis-findings", activeAnalysisId, user?.id], freshFindings);
+      queryClient.setQueryData(["analysis-evidence", activeAnalysisId, user?.id], freshEvidence);
+      queryClient.setQueryData(["analysis-risk", activeAnalysisId, user?.id], freshRisk);
+      queryClient.setQueryData(["analysis-config", activeAnalysisId, user?.id], freshConfig);
+
+      setReanalyzeResult(result);
+      setReanalyzeBannerVisible(true);
     } catch (err: any) {
       if (currentVersion !== executionVersionRef.current) return;
       console.error("Re-analysis execution error:", err);
@@ -1117,11 +1149,13 @@ function ConfigurationsPageContent() {
                     <span className="text-xs font-black text-[#F3F4F6] tracking-wider uppercase">
                       {isReanalyzing
                         ? "RE-ANALYSIS IN PROGRESS"
-                        : (isAuditing || !isAuditStatusMatch || isStatusLoading || analysisStatus?.status === "PROCESSING")
+                        : isAuditing
+                        ? "AUDIT IN PROGRESS"
+                        : (isAuditStatusMatch && analysisStatus?.status === "PROCESSING")
                         ? "AUDIT IN PROGRESS"
                         : isAuditFullyComplete
                         ? "AUDIT COMPLETE"
-                        : "ANALYSIS IN PROGRESS"}
+                        : "AWAITING AUDIT"}
                     </span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30">
                       {(analysisStatus?.vendor || detectedVendorState.vendor || "CISCO").toUpperCase()}

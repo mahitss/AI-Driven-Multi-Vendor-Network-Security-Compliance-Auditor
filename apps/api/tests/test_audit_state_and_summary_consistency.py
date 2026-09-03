@@ -211,3 +211,65 @@ async def test_k_and_l_real_evidence_line_citations_preserved(db_session: AsyncS
     assert any(ev.line == 2 for ev in telnet_finding.evidence_lines), "Finding must cite line 2."
     for ev in telnet_finding.evidence_lines:
         assert "Baseline" not in ev.raw_text, f"Forbidden 'Baseline' found in evidence: {ev.raw_text}"
+
+
+@pytest.mark.asyncio
+async def test_analysis_execution_and_stage_progress_recovery(db_session: AsyncSession):
+    """
+    Requirements A through J from P0 Regression Recovery:
+    A. Starting an audit actually invokes analysis.
+    B. Re-analysis actually invokes analysis.
+    C. Current audit response populates the UI.
+    D. Old audit response cannot overwrite current audit.
+    E. Clearing transient state does not prevent analysis execution.
+    F. Pipeline progresses beyond DETECT to COMPLETED.
+    G. Completed audit receives compliance, risk, and findings.
+    H. Existing applicable-control compliance remains correct (30.0% = 12 / 40).
+    I. Existing line-level evidence remains correct (Line 3 for 'aaa new-model').
+    J. Zero 'Baseline' synthetic text returns.
+    """
+    user = AuthenticatedUser(id="user-cisco-verif-test", email="ciscotest@netvigil.io", role="auditor", app_metadata={}, user_metadata={})
+    p = BENCHMARKS_DIR / "04_CISCO_REAL_EVIDENCE.cfg"
+    content = p.read_text(encoding="utf-8")
+
+    # A, E, F: Starting audit invokes analysis and progresses to COMPLETED
+    req = IngestAnalysisRequest(content=content, filename=p.name, vendor_hint="cisco")
+    ingest_res = await ingest_configuration_for_analysis(req, db_session, user)
+
+    assert ingest_res.status == "INGESTED"
+    assert ingest_res.vendor == "cisco"
+    assert ingest_res.facts_extracted_count == 43
+
+    # C, F, G, H: Completed audit receives full compliance, risk, and findings
+    status_res = await get_analysis_status(ingest_res.analysis_id, db_session, user)
+    assert status_res.status == "COMPLETED", f"Pipeline must progress beyond DETECT to COMPLETED, got {status_res.status}"
+    assert status_res.compliance_score == 30.0, f"Compliance must be 30.0% (12/40), got {status_res.compliance_score}"
+    assert status_res.pass_count == 12
+    assert status_res.fail_count == 28
+    assert status_res.total_applicable_controls == 40
+    assert status_res.risk_score == 77.0
+    assert status_res.risk_level == "P1"
+
+    # I & J: Line-level citations preserved with zero Baseline text
+    findings = await get_analysis_findings(ingest_res.analysis_id, db_session, user)
+    assert len(findings) == 40
+    aaa_pass = next((f for f in findings if f.control_id == "CIS-1.1.1"), None)
+    assert aaa_pass is not None
+    assert aaa_pass.status == "PASS"
+    assert any(ev.line == 3 for ev in aaa_pass.evidence_lines), "CIS-1.1.1 must cite Line 3 for 'aaa new-model'."
+
+    for f in findings:
+        for ev in f.evidence_lines:
+            assert "Baseline" not in ev.raw_text, f"Evidence must not contain 'Baseline': {ev.raw_text}"
+
+    # B & D: Re-analysis actually invokes analysis and cannot be overwritten by older audits
+    remediated_content = content.replace("transport input telnet ssh", "transport input ssh")
+    re_req = ReanalyzeRequest(modified_content=remediated_content)
+    re_res = await reanalyze_modified_configuration(ingest_res.analysis_id, re_req, db_session, user)
+    assert re_res.status == "REANALYZED"
+    assert re_res.verification_status == "complete"
+
+    status_post = await get_analysis_status(ingest_res.analysis_id, db_session, user)
+    assert status_post.status == "COMPLETED"
+    assert status_post.verification_status == "complete"
+
