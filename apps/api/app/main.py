@@ -140,7 +140,7 @@ app.add_middleware(RequestContextMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # 5. CORS Middleware
-cors_regex = None if is_prod else r"https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+"
+cors_regex = r"https://.*\.vercel\.app|https://.*\.onrender\.com|http://localhost:\d+|http://127\.0\.0\.1:\d+"
 
 app.add_middleware(
     CORSMiddleware,

@@ -403,12 +403,19 @@ export function getApiBase(): string {
     }
   }
 
-  // 2. In production mode (Vercel deployment), default to the live Render backend
+  // 2. In browser production, default to same-origin (window.location.origin)
+  // so requests seamlessly route through Next.js rewrite proxy in next.config.ts
+  // (/api/v1/* -> Render), eliminating CORS preflight errors across all Vercel domains.
+  if (typeof window !== "undefined" && isProduction) {
+    return window.location.origin;
+  }
+
+  // 3. In server-side production mode (SSR), default to the live Render backend
   if (isProduction) {
     return "https://ai-driven-multi-vendor-network-security.onrender.com";
   }
 
-  // 3. In local development, connect directly to local FastAPI server
+  // 4. In local development, connect directly to local FastAPI server
   return "http://127.0.0.1:8000";
 }
 
