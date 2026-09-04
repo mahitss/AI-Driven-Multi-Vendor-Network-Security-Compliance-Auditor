@@ -212,3 +212,64 @@ def test_schema_serialization_independence():
     assert serialized["NIST"]["score"] == 50.0
     assert serialized["NIST"]["passed_count"] == 6
     assert serialized["CIS"] is not serialized["NIST"]
+
+
+def test_benchmark_configs_framework_independence_and_legitimate_symmetry(catalog):
+    """
+    Forensically verify that benchmark configurations:
+    1. 03_FORTINET_SCORE_HIGH.conf -> 6/12 passed (50.0%) across all 4 frameworks
+    2. 02_CISCO_HARDENED.cfg -> 5/12 passed (41.7%) across all 4 frameworks (with 3 N/A)
+    3. 04_JUNIPER_CRITICAL.set -> 0/10 passed (0.0%) across all 4 frameworks (with 1 N/A)
+    Verify that each framework calculation is strictly scoped to its own findings.
+    """
+    benchmarks = [
+        ("data/sample-configs/benchmarks/03_FORTINET_SCORE_HIGH.conf", 12, 48, 6, 5, 1, 0, 50.0),
+        ("data/sample-configs/benchmarks/02_CISCO_HARDENED.cfg", 15, 60, 5, 7, 0, 3, 41.7),
+        ("data/sample-configs/benchmarks/04_JUNIPER_CRITICAL.set", 11, 44, 0, 10, 0, 1, 0.0),
+    ]
+
+    for file_path, expected_rules, expected_findings, exp_pass, exp_fail, exp_unk, exp_na, exp_score in benchmarks:
+        path = Path(file_path)
+        if not path.exists():
+            continue
+        content = path.read_text(encoding="utf-8")
+        p = parser_registry.get_parser(content, filename=path.name)
+        prof = p.parse(content, filename=path.name)
+
+        rules = catalog.get_rules_for_audit(["CIS", "NIST", "STIG", "ISO"], vendor=prof.vendor)
+        assert len(rules) == expected_rules, f"Expected {expected_rules} rules for {path.name}"
+
+        res = []
+        for r in rules:
+            for fw in ["CIS", "NIST", "STIG", "ISO"]:
+                if fw in r.framework_mappings:
+                    res.append(RuleEvaluator.evaluate_rule(r, prof, fw))
+
+        assert len(res) == expected_findings, f"Expected {expected_findings} findings for {path.name}"
+
+        summary = ComplianceScoringEngine.calculate_scores(f"audit-{path.stem}", f"cfg-{path.stem}", res)
+        assert summary.overall_score == exp_score, f"Overall score mismatch for {path.name}"
+
+        for fw in ["CIS", "NIST", "STIG", "ISO"]:
+            fw_data = summary.framework_scores[fw]
+            assert fw_data.score == exp_score, f"{fw} score mismatch for {path.name}"
+            assert fw_data.passed_count == exp_pass, f"{fw} passed_count mismatch for {path.name}"
+            assert fw_data.failed_count == exp_fail, f"{fw} failed_count mismatch for {path.name}"
+            assert fw_data.unknown_count == exp_unk, f"{fw} unknown_count mismatch for {path.name}"
+            assert fw_data.not_applicable_count == exp_na, f"{fw} not_applicable mismatch for {path.name}"
+            assert fw_data.total_applicable == exp_pass + exp_fail + exp_unk
+
+            # Strict framework identity verification
+            fw_findings = [r for r in res if r.framework == fw]
+            assert len(fw_findings) == expected_rules
+            # Control IDs must be framework-prefixed (or framework-specific)
+            control_ids = [r.control_id for r in fw_findings]
+            if fw == "CIS":
+                assert all(cid.startswith("CIS-") for cid in control_ids)
+            elif fw == "NIST":
+                assert all(cid.startswith("NIST-") for cid in control_ids)
+            elif fw == "STIG":
+                assert all(cid.startswith("STIG-") for cid in control_ids)
+            elif fw == "ISO":
+                assert all(cid.startswith("ISO-") for cid in control_ids)
+
