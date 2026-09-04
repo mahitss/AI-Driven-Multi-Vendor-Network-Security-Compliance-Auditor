@@ -129,6 +129,14 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_async_database_url(cls, v: str) -> str:
         if not v:
+            # Check common alternative cloud postgres environment variable names
+            for alt_var in ["SUPABASE_DB_URL", "SUPABASE_DATABASE_URL", "POSTGRES_URL", "RENDER_POSTGRES_URL"]:
+                alt_val = os.environ.get(alt_var)
+                if alt_val and alt_val.strip():
+                    v = alt_val.strip()
+                    break
+
+        if not v:
             for persistent_candidate in ["/var/data", "/data", "/app/storage"]:
                 cand_path = Path(persistent_candidate)
                 try:

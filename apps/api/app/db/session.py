@@ -27,9 +27,11 @@ if is_sqlite:
 else:
     # Production PostgreSQL resilience (Supabase / Render / Cloud Run)
     # Recycles connections every 300s to avoid firewall/NAT idle disconnects
+    # Disables statement cache for transaction pooler / PgBouncer compatibility
     async_engine_kwargs["pool_recycle"] = 300
     async_engine_kwargs["pool_size"] = 10
     async_engine_kwargs["max_overflow"] = 20
+    async_engine_kwargs["connect_args"] = {"statement_cache_size": 0}
 
 # Async Engine for FastAPI Request Handlers
 async_engine = create_async_engine(
