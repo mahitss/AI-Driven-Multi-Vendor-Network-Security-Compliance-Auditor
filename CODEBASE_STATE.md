@@ -185,3 +185,26 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * Added `apps/api/tests/test_audit_persistence_and_posture_flow.py` with 8 automated pytest cases (all passing).
   * Extended `apps/web/tests/findings-audit-consistency.test.ts` to 15/15 automated regression tests (all passing).
 
+### P1 — Multi-Framework Score Binding & Selected Audit Score Mismatch (September 2026)
+* **Bug 1 & 4 (41.7% vs 50.0% Selected Audit Score Mismatch)**:
+  * **Root Cause**: `apps/web/src/app/(protected)/audits/page.tsx` lacked identity verification between `selectedAuditId` and the async `auditDetail` fetched by React Query. During audit selection transitions (e.g. from `03_FORTINET_SCORE_HIGH.conf` to `02_CISCO_HARDENED.cfg`), the tab pill displayed `41.7%` from the active audit list while the page body derived `currentScore`, `fwScores`, and findings from stale cached `auditDetail` belonging to Fortinet (50.0%). In addition, async `router.replace` updates caused race conditions in `resolveAuthoritativeAuditId`.
+  * **Fix**:
+    1. Implemented strict identity verification: `isDetailMatching = Boolean(auditDetail && selectedAuditId && auditDetail.id === selectedAuditId)`. Added development invariant warnings when IDs disagree.
+    2. Enforced single source of truth fallback: If `auditDetail` is loading or mismatched, `currentScore`, `fwScores`, and `sevStats` immediately derive from `activeAudit = audits.find(a => a.id === selectedAuditId)` (which already holds authoritative score `41.7` and framework breakdown), guaranteeing zero stale score contamination or 0% flashing.
+    3. Gated findings list to only render when `isDetailMatching === true`.
+    4. Protected manual audit clicks with `manualSelectionRef` to prevent async Next.js router URL updates from bouncing the selected audit back to stale parameters.
+* **Bug 2 & 3 (Framework Scores Identical & Framework Count Denominators)**:
+  * **Root Cause & Mathematical Proof**: In `data/compliance/mappings/unified_catalog.json`, all baseline benchmark rules map symmetrically across CIS, NIST, STIG, and ISO:
+    - In `02_CISCO_HARDENED.cfg`, exactly 12 controls apply to all 4 frameworks with 5 pass, 7 fail, and 3 N/A. Thus, each framework independently evaluates to 5/12 = 41.7% (with overall score = 20/48 = 41.7%).
+    - In `03_FORTINET_SCORE_HIGH.conf`, exactly 12 controls apply with 6 pass, 5 fail, and 1 unknown. Thus, each framework independently evaluates to 6/12 = 50.0% (with overall score = 24/48 = 50.0%).
+    - The backend scores were genuinely identical across frameworks for each configuration because the underlying controls are universal network security controls mapped across all four benchmarks.
+  * **Frontend Binding Hardening**:
+    - Bound each card strictly to `fwScores[fw.key]` and checked `isEvaluated = Boolean(fwData && (fwData.total_evaluated > 0 || fwData.total_applicable > 0))`.
+    - Formatted scores with 1 decimal place (`scoreVal.toFixed(1)}%`) to align with the rest of the application.
+    - Updated denominator label to `{fwData.passed_count}/{fwData.total_applicable} passed` with tooltip `"Passed / Applicable Controls"`, ensuring users know the denominator is framework-specific applicable controls (12), not overall fleet findings (48).
+    - Un-evaluated frameworks render `"Not Evaluated"` and `"—"` rather than copying another framework or displaying 0%.
+* **Regression Verification**:
+  * Added `test_multi_framework_score_and_audit_consistency` to `apps/api/tests/test_audit_state_and_summary_consistency.py` validating 41.7% (5/12) for Cisco and 50.0% (6/12) for Fortinet.
+  * Extended `apps/web/tests/findings-audit-consistency.test.ts` to 22/22 automated regression tests covering audit switching, stale detail rejection, framework card isolation, and framework denominators.
+
+

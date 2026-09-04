@@ -296,3 +296,86 @@ async def test_analysis_execution_and_stage_progress_recovery(db_session: AsyncS
     assert status_post.status == "COMPLETED"
     assert status_post.verification_status == "complete"
 
+
+@pytest.mark.asyncio
+async def test_multi_framework_score_and_audit_consistency(db_session: AsyncSession):
+    """
+    P1 Multi-Framework Score Binding Regression Test:
+    1. 02_CISCO_HARDENED.cfg yields score 41.7% with 5/12 passed across each framework.
+    2. 03_FORTINET_SCORE_HIGH.conf yields score 50.0% with 6/12 passed across each framework.
+    3. get_audit({audit_id}) returns exact framework scores without copying overall score or cross-audit contamination.
+    4. Denominators are strictly framework-specific total_applicable (12), never overall total findings (48).
+    """
+    from app.api.routes.audits import get_audit
+
+    user = AuthenticatedUser(
+        id="user-multi-fw-test",
+        email="multifw@netvigil.io",
+        role="analyst",
+        app_metadata={},
+        user_metadata={},
+    )
+
+    # 1. Ingest & Audit Cisco Hardened
+    cisco_p = BENCHMARKS_DIR / "02_CISCO_HARDENED.cfg"
+    cisco_req = IngestAnalysisRequest(content=cisco_p.read_text(encoding="utf-8"), filename=cisco_p.name, vendor_hint="cisco")
+    cisco_ingest = await ingest_configuration_for_analysis(cisco_req, db_session, user)
+
+    cisco_audit = (
+        await db_session.execute(select(Audit).where(Audit.configuration_id == cisco_ingest.analysis_id))
+    ).scalars().first()
+    assert cisco_audit is not None
+    assert cisco_audit.score == pytest.approx(41.7, 0.1)
+
+    # 2. Ingest & Audit Fortinet Score High
+    fortinet_p = BENCHMARKS_DIR / "03_FORTINET_SCORE_HIGH.conf"
+    fortinet_req = IngestAnalysisRequest(content=fortinet_p.read_text(encoding="utf-8"), filename=fortinet_p.name, vendor_hint="fortinet")
+    fortinet_ingest = await ingest_configuration_for_analysis(fortinet_req, db_session, user)
+
+    fortinet_audit = (
+        await db_session.execute(select(Audit).where(Audit.configuration_id == fortinet_ingest.analysis_id))
+    ).scalars().first()
+    assert fortinet_audit is not None
+    assert fortinet_audit.score == pytest.approx(50.0, 0.1)
+
+    # 3. Verify get_audit for Cisco: exactly 41.7% overall and 5/12 per framework
+    cisco_detail = await get_audit(audit_id=cisco_audit.id, db=db_session, current_user=user)
+    assert cisco_detail.id == cisco_audit.id
+    assert cisco_detail.score == pytest.approx(41.7, 0.1)
+    assert cisco_detail.score != 50.0
+
+    for fw_key in ["CIS", "NIST", "STIG", "ISO"]:
+        assert fw_key in cisco_detail.framework_scores
+        fw = cisco_detail.framework_scores[fw_key]
+        assert fw.framework == fw_key
+        assert fw.score == pytest.approx(41.7, 0.1)
+        assert fw.passed_count == 5
+        assert fw.failed_count == 7
+        assert fw.total_applicable == 12
+        assert fw.total_evaluated == 15
+        assert fw.total_applicable != 48  # Must not be total findings count
+
+    # 4. Verify get_audit for Fortinet: exactly 50.0% overall and 6/12 per framework
+    fortinet_detail = await get_audit(audit_id=fortinet_audit.id, db=db_session, current_user=user)
+    assert fortinet_detail.id == fortinet_audit.id
+    assert fortinet_detail.score == pytest.approx(50.0, 0.1)
+    assert fortinet_detail.score != 41.7
+
+    for fw_key in ["CIS", "NIST", "STIG", "ISO"]:
+        assert fw_key in fortinet_detail.framework_scores
+        fw = fortinet_detail.framework_scores[fw_key]
+        assert fw.framework == fw_key
+        assert fw.score == pytest.approx(50.0, 0.1)
+        assert fw.passed_count == 6
+        assert fw.failed_count == 5
+        assert fw.unknown_count == 1
+        assert fw.total_applicable == 12
+        assert fw.total_evaluated == 12
+        assert fw.total_applicable != 48
+
+    # 5. Cross-audit re-query: Cisco detail must remain completely isolated
+    cisco_recheck = await get_audit(audit_id=cisco_audit.id, db=db_session, current_user=user)
+    assert cisco_recheck.score == pytest.approx(41.7, 0.1)
+    assert cisco_recheck.framework_scores["CIS"].passed_count == 5
+
+

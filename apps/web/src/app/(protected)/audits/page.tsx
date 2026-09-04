@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -117,7 +117,10 @@ function AuditsPageContent() {
     enabled: !authLoading && !!user,
   });
 
+  const manualSelectionRef = useRef<string | null>(null);
+
   const handleSelectAudit = (auditId: string) => {
+    manualSelectionRef.current = auditId;
     setSelectedAuditId(auditId);
     persistActiveAuditId(auditId);
     setFindingExplanation(null);
@@ -132,6 +135,15 @@ function AuditsPageContent() {
   // Authoritative audit selection prioritizing URL params -> localStorage -> newest audit (Bug 1, 3, 7)
   useEffect(() => {
     if (audits.length === 0) return;
+
+    // If manual selection in progress and query param is still catching up, do not revert
+    if (manualSelectionRef.current) {
+      if (queryAuditId === manualSelectionRef.current) {
+        manualSelectionRef.current = null;
+      } else {
+        return;
+      }
+    }
 
     const authoritativeId = resolveAuthoritativeAuditId(audits, queryAuditId, queryConfigId);
     if (authoritativeId && authoritativeId !== selectedAuditId) {
@@ -249,8 +261,40 @@ function AuditsPageContent() {
     }
   };
 
-  // Filtered findings
-  const findings = auditDetail?.findings || [];
+  // Authoritative active audit resolved directly from audit list cache
+  const activeAudit = audits.find((a) => a.id === selectedAuditId);
+
+  // Strict identity verification: auditDetail MUST belong to currently selectedAuditId
+  const isDetailMatching = Boolean(
+    auditDetail &&
+    selectedAuditId &&
+    auditDetail.id === selectedAuditId
+  );
+
+  // Development / runtime invariant assertion to prevent stale cross-audit contamination
+  if (auditDetail && selectedAuditId && auditDetail.id !== selectedAuditId) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        `[NetVigil State Guard] Mismatched auditDetail: expected ${selectedAuditId}, got ${auditDetail.id}. Discarding stale metrics.`
+      );
+    }
+  }
+
+  // Authoritative metrics derivation: If detail matches, use full detail; otherwise fallback to activeAudit summary_stats
+  const currentScore = isDetailMatching
+    ? (auditDetail?.score ?? 0)
+    : (activeAudit?.score ?? 0);
+
+  const fwScores = (isDetailMatching
+    ? auditDetail?.framework_scores
+    : activeAudit?.summary_stats?.framework_scores) || {};
+
+  const sevStats = (isDetailMatching
+    ? auditDetail?.severity_breakdown
+    : activeAudit?.summary_stats?.severity_breakdown) || { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+
+  // Filtered findings: Only derive findings when auditDetail strictly matches selectedAuditId
+  const findings = isDetailMatching ? (auditDetail?.findings || []) : [];
   const filteredFindings = findings.filter((f) => {
     const matchesFw = activeFrameworkFilter === "ALL" || f.framework === activeFrameworkFilter;
     const matchesSev = activeSeverityFilter === "ALL" || f.severity === activeSeverityFilter;
@@ -262,10 +306,6 @@ function AuditsPageContent() {
       (f.description && f.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFw && matchesSev && matchesStatus && matchesSearch;
   });
-
-  const currentScore = auditDetail?.score ?? 0;
-  const fwScores = auditDetail?.framework_scores || {};
-  const sevStats = auditDetail?.severity_breakdown || { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -416,16 +456,20 @@ function AuditsPageContent() {
               </div>
             </div>
 
-            {auditDetail && (
+            {(isDetailMatching ? auditDetail : activeAudit) && (
               <div className="text-[11px] font-mono text-[#667085] flex items-center gap-3 self-end md:self-auto">
                 <span>
                   Executed:{" "}
                   <strong className="text-[#A7B0C0]">
-                    {new Date(auditDetail.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(
+                      ((isDetailMatching && auditDetail?.started_at) || activeAudit?.started_at) || Date.now()
+                    ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </strong>
                 </span>
                 <span>•</span>
-                <span className="text-[#10B981] font-semibold uppercase">{auditDetail.status}</span>
+                <span className="text-[#10B981] font-semibold uppercase">
+                  {(isDetailMatching && auditDetail?.status) || activeAudit?.status || "COMPLETED"}
+                </span>
               </div>
             )}
           </div>
@@ -473,6 +517,7 @@ function AuditsPageContent() {
                 { key: "ISO", label: "ISO 27001", sub: "Annex A Controls" },
               ].map((fw) => {
                 const fwData = fwScores[fw.key];
+                const isEvaluated = Boolean(fwData && (fwData.total_evaluated > 0 || fwData.total_applicable > 0));
                 const scoreVal = fwData ? fwData.score : 0;
                 return (
                   <div
@@ -488,17 +533,24 @@ function AuditsPageContent() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#F3F4F6] font-mono">{fw.key}</span>
-                        {fwData && (
-                          <span className="text-[10px] font-mono text-[#667085]">
-                            {fwData.passed_count}/{fwData.total_applicable}
+                        {isEvaluated && fwData ? (
+                          <span
+                            className="text-[10px] font-mono text-[#667085]"
+                            title={`${fwData.passed_count} passed out of ${fwData.total_applicable} applicable controls`}
+                          >
+                            {fwData.passed_count}/{fwData.total_applicable} passed
                           </span>
+                        ) : (
+                          <span className="text-[10px] font-mono text-[#667085]">Not Evaluated</span>
                         )}
                       </div>
                       <div className="text-[11px] text-[#A7B0C0] font-medium mt-0.5">{fw.label}</div>
                     </div>
 
                     <div className="mt-3">
-                      <div className="text-xl font-bold font-mono text-[#3B82F6]">{scoreVal.toFixed(0)}%</div>
+                      <div className="text-xl font-bold font-mono text-[#3B82F6]">
+                        {isEvaluated ? `${scoreVal.toFixed(1)}%` : "—"}
+                      </div>
                       <div className="text-[10px] text-[#667085] font-mono mt-0.5">{fw.sub}</div>
                     </div>
                   </div>
@@ -609,7 +661,7 @@ function AuditsPageContent() {
             </div>
 
             {/* Findings Table */}
-            {isDetailLoading ? (
+            {isDetailLoading || (!isDetailMatching && activeAudit) ? (
               <div className="py-16 text-center text-[#667085] font-mono text-xs flex items-center justify-center gap-2">
                 <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
                 <span>Loading compliance findings...</span>
