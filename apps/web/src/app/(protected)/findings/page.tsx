@@ -34,6 +34,7 @@ import {
   ChevronDown,
   RotateCcw,
   Plus,
+  Info,
 } from "lucide-react";
 import {
   fetchFindings,
@@ -52,6 +53,7 @@ import {
   ConfigurationItem,
   AnalysisReanalyzeResult,
 } from "@/lib/api-client";
+import { getFindingActiveEvidence } from "@/lib/evidence-utils";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/components/providers/SettingsProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -79,6 +81,19 @@ function FindingsContent() {
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [reanalyzeResult, setReanalyzeResult] = useState<AnalysisReanalyzeResult | null>(null);
   const [reanalyzeBannerVisible, setReanalyzeBannerVisible] = useState(false);
+
+  // Reset state when active analysis scope changes
+  useEffect(() => {
+    setSelectedFindingId(null);
+    setReanalyzeResult(null);
+    setReanalyzeBannerVisible(false);
+  }, [queryParamAnalysisId]);
+
+  // Reset dependent UI state when selected finding changes
+  useEffect(() => {
+    setCopiedCode(false);
+    setIsAiExpanded(false);
+  }, [selectedFindingId]);
 
   // 1. Fetch live findings
   const {
@@ -126,14 +141,28 @@ function FindingsContent() {
   useEffect(() => {
     if (queryParamFindingId) {
       setSelectedFindingId(queryParamFindingId);
-    } else if (findings.length > 0 && !selectedFindingId) {
-      setSelectedFindingId(findings[0].id);
+    } else if (findings.length > 0) {
+      if (!selectedFindingId || !findings.some((f) => f.id === selectedFindingId)) {
+        setSelectedFindingId(findings[0].id);
+      }
+    } else {
+      setSelectedFindingId(null);
     }
   }, [queryParamFindingId, findings, selectedFindingId]);
 
-  const selectedFinding: Finding | undefined = useMemo(() => {
-    return findings.find((f) => f.id === selectedFindingId) || findings[0];
+  const selectedFinding: Finding | null = useMemo(() => {
+    if (!findings || findings.length === 0) return null;
+    return findings.find((f) => f.id === selectedFindingId) || findings[0] || null;
   }, [findings, selectedFindingId]);
+
+  // Dev-mode runtime assertions to ensure panel integrity
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production" && selectedFinding && selectedFindingId) {
+      if (selectedFinding.id !== selectedFindingId) {
+        console.warn(`[NetVigil Integrity] Finding selection mismatch: selectedFinding.id (${selectedFinding.id}) !== selectedFindingId (${selectedFindingId})`);
+      }
+    }
+  }, [selectedFinding, selectedFindingId]);
 
   // 5. Fetch linked configuration strictly for this finding
   const selectedConfigId = useMemo(() => {
@@ -151,18 +180,18 @@ function FindingsContent() {
     staleTime: 120000,
   });
 
-  // 6. Fetch finding remediation proposal
+  // 6. Fetch finding remediation proposal strictly for this finding
   const {
     data: remediation,
     isLoading: isRemediationLoading,
   } = useQuery({
     queryKey: ["finding-remediation", selectedFinding?.id],
-    queryFn: () => (selectedFinding ? fetchFindingRemediation(selectedFinding.id) : null),
-    enabled: !!selectedFinding?.id,
+    queryFn: () => (selectedFinding && selectedFinding.status === "FAIL" ? fetchFindingRemediation(selectedFinding.id) : null),
+    enabled: !!selectedFinding?.id && selectedFinding?.status === "FAIL",
     staleTime: 60000,
   });
 
-  // 7. Fetch AI explanation
+  // 7. Fetch AI explanation strictly for this finding
   const {
     data: aiExplanation,
     isLoading: isAiLoading,
@@ -174,26 +203,29 @@ function FindingsContent() {
     staleTime: 120000,
   });
 
-  // Correlated risk item
+  // Correlated risk item strictly scoped to this finding and its audit (never default to risks[0])
   const correlatedRisk: RiskItem | undefined = useMemo(() => {
     if (!selectedFinding) return undefined;
-    return risks.find((r) => r.finding_ids?.includes(selectedFinding.id)) || risks[0];
+    return risks.find((r) => r.audit_id === selectedFinding.audit_id && r.finding_ids?.includes(selectedFinding.id));
   }, [selectedFinding, risks]);
 
-  // Evidence line detection
+  // Authoritative evidence derivation strictly bound to selected finding
+  const activeEvidence = useMemo(() => {
+    return getFindingActiveEvidence(selectedFinding);
+  }, [selectedFinding]);
+
+  // Evidence line detection with zero fake fallback lines
   const evidenceLines: number[] = useMemo(() => {
-    if (!selectedFinding) return [16];
+    if (!selectedFinding) return [];
+    if (activeEvidence.hasLineCitation && activeEvidence.line) {
+      return [activeEvidence.line];
+    }
     if (selectedFinding.finding_metadata?.source_lines && selectedFinding.finding_metadata.source_lines.length > 0) {
-      return selectedFinding.finding_metadata.source_lines;
+      const validLines = selectedFinding.finding_metadata.source_lines.filter((l) => typeof l === "number" && l > 0);
+      if (validLines.length > 0) return validLines;
     }
-    if (configDetail?.raw_content && selectedFinding.evidence) {
-      const lines = configDetail.raw_content.split("\n");
-      const targetSnippet = selectedFinding.evidence.trim().toLowerCase();
-      const matchIdx = lines.findIndex((l) => l.trim().toLowerCase().includes(targetSnippet));
-      if (matchIdx !== -1) return [matchIdx + 1];
-    }
-    return [16];
-  }, [selectedFinding, configDetail]);
+    return [];
+  }, [selectedFinding, activeEvidence]);
 
   // Raw configuration lines
   const rawLines = useMemo(() => {
@@ -256,9 +288,15 @@ function FindingsContent() {
     return [baseCtrl, "NIST-AC-17", "STIG-NET0400", "ISO-A.13.1.2"];
   }, [selectedFinding]);
 
-  // Finding risk contribution
+  // Finding risk contribution strictly derived from selected finding status and severity
   const findingRiskContribution = useMemo(() => {
-    if (!selectedFinding) return "+25.0";
+    if (!selectedFinding) return "0.0";
+    if (selectedFinding.status === "PASS" || selectedFinding.status === "NOT_APPLICABLE") {
+      return "0.0";
+    }
+    if (selectedFinding.status === "UNKNOWN") {
+      return "+2.0";
+    }
     if (selectedFinding.severity === "CRITICAL") return "+25.0";
     if (selectedFinding.severity === "HIGH") return "+15.0";
     if (selectedFinding.severity === "MEDIUM") return "+8.0";
@@ -266,9 +304,8 @@ function FindingsContent() {
   }, [selectedFinding]);
 
   const handleCopyCommands = () => {
-    const textToCopy =
-      remediation?.remediation_commands ||
-      (selectedFinding?.control_id.includes("1.2.1") ? "ip ssh version 2\nno ip http server" : "service password-encryption");
+    const textToCopy = remediation?.remediation_commands || selectedFinding?.remediation || "";
+    if (!textToCopy) return;
     navigator.clipboard.writeText(textToCopy);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
@@ -562,7 +599,7 @@ function FindingsContent() {
             <div className="space-y-1.5 max-h-[700px] overflow-y-auto pr-1">
               {filteredFindings.map((f: Finding) => {
                 const isSelected = selectedFinding?.id === f.id;
-                const citedLine = (f as any).line || (f as any).source_line || (f.finding_metadata?.source_lines?.[0]) || "16";
+                const fEvidence = getFindingActiveEvidence(f);
 
                 return (
                   <button
@@ -593,7 +630,13 @@ function FindingsContent() {
                       </div>
                       <span className={cn(
                         "text-[9px] font-mono font-bold",
-                        f.status === "FAIL" ? "text-[#EF4444]" : "text-[#10B981]"
+                        f.status === "FAIL"
+                          ? "text-[#EF4444]"
+                          : f.status === "PASS"
+                          ? "text-[#10B981]"
+                          : f.status === "NOT_APPLICABLE"
+                          ? "text-[#94A3B8]"
+                          : "text-[#F59E0B]"
                       )}>
                         {f.status}
                       </span>
@@ -605,7 +648,16 @@ function FindingsContent() {
 
                     <div className="flex items-center justify-between text-[10px] text-[#667085] pt-1 border-t border-[#1D2939] font-mono">
                       <span>{f.framework || "CIS"} • {(f as any).device_name || "—"}</span>
-                      <span className="text-[#EF4444] font-bold">LINE {citedLine}</span>
+                      {fEvidence.hasLineCitation ? (
+                        <span className={cn(
+                          "font-bold",
+                          f.status === "FAIL" ? "text-[#EF4444]" : f.status === "PASS" ? "text-[#10B981]" : "text-[#94A3B8]"
+                        )}>
+                          LINE {fEvidence.line}
+                        </span>
+                      ) : (
+                        <span className="text-[#64748B] font-medium">{fEvidence.citationText}</span>
+                      )}
                     </div>
                   </button>
                 );
@@ -620,7 +672,24 @@ function FindingsContent() {
             <span className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">
               EVIDENCE VIEWER
             </span>
-            <span className="text-[10px] text-[#10B981]">EXACT LINE PROOF</span>
+            <span className={cn(
+              "text-[10px] font-bold",
+              selectedFinding?.status === "FAIL"
+                ? "text-[#EF4444]"
+                : selectedFinding?.status === "PASS"
+                ? "text-[#10B981]"
+                : selectedFinding?.status === "NOT_APPLICABLE"
+                ? "text-[#94A3B8]"
+                : "text-[#F59E0B]"
+            )}>
+              {selectedFinding?.status === "FAIL"
+                ? "NON-COMPLIANT PROOF"
+                : selectedFinding?.status === "PASS"
+                ? "COMPLIANT EVIDENCE"
+                : selectedFinding?.status === "NOT_APPLICABLE"
+                ? "NOT APPLICABLE"
+                : "EVIDENCE CITATION"}
+            </span>
           </div>
 
           {/* Evidence Metadata Box */}
@@ -645,9 +714,18 @@ function FindingsContent() {
                 <Hash className="w-3 h-3 text-[#3B82F6]" />
                 <span className="truncate">{configDetail?.hash ? `${configDetail.hash.slice(0, 16)}...` : "—"}</span>
               </div>
-              <span className="font-bold text-[#EF4444]">
-                EVIDENCE CITED: LINE {evidenceLines.join(", ")}
-              </span>
+              {activeEvidence.hasLineCitation && evidenceLines.length > 0 ? (
+                <span className={cn(
+                  "font-bold",
+                  selectedFinding?.status === "FAIL" ? "text-[#EF4444]" : selectedFinding?.status === "PASS" ? "text-[#10B981]" : "text-[#94A3B8]"
+                )}>
+                  EVIDENCE CITED: LINE {evidenceLines.join(", ")}
+                </span>
+              ) : (
+                <span className="text-[#64748B] font-mono">
+                  {activeEvidence.statusText}
+                </span>
+              )}
             </div>
           </div>
 
@@ -675,6 +753,7 @@ function FindingsContent() {
                 rawLines.map((lineText, idx) => {
                 const lineNum = idx + 1;
                 const isEvidenceLine = evidenceLines.includes(lineNum);
+                const isPass = selectedFinding?.status === "PASS";
 
                 return (
                   <div
@@ -683,14 +762,20 @@ function FindingsContent() {
                     className={cn(
                       "flex items-start rounded transition-colors group px-1 py-0.5 font-mono",
                       isEvidenceLine
-                        ? "bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-[#F3F4F6] font-semibold"
+                        ? isPass
+                          ? "bg-[#10B981]/15 border-l-2 border-[#10B981] text-[#F3F4F6] font-semibold"
+                          : "bg-[#EF4444]/15 border-l-2 border-[#EF4444] text-[#F3F4F6] font-semibold"
                         : "hover:bg-[#111827] text-[#A7B0C0]"
                     )}
                   >
                     <span
                       className={cn(
                         "w-9 shrink-0 text-right pr-2.5 select-none text-[10px]",
-                        isEvidenceLine ? "text-[#EF4444] font-bold" : "text-[#667085]"
+                        isEvidenceLine
+                          ? isPass
+                            ? "text-[#10B981] font-bold"
+                            : "text-[#EF4444] font-bold"
+                          : "text-[#667085]"
                       )}
                     >
                       {lineNum}
@@ -699,8 +784,15 @@ function FindingsContent() {
                     <div className="flex-1 overflow-x-auto whitespace-pre font-mono">
                       <span>{lineText || " "}</span>
                       {isEvidenceLine && (
-                        <div className="text-[9px] text-[#EF4444] font-bold mt-0.5 flex items-center gap-1">
-                          <span>▲ CITATION FOR {selectedFinding?.control_id || "CIS-1.2.1"}</span>
+                        <div className={cn(
+                          "text-[9px] font-bold mt-0.5 flex items-center gap-1",
+                          isPass ? "text-[#10B981]" : "text-[#EF4444]"
+                        )}>
+                          <span>
+                            {isPass
+                              ? `▲ COMPLIANT CONFIGURATION FOR ${selectedFinding?.control_id}`
+                              : `▲ CITATION FOR ${selectedFinding?.control_id || "CIS-1.2.1"}`}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -717,16 +809,36 @@ function FindingsContent() {
             <span className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">
               SECURITY CONTEXT
             </span>
-            <span className="text-[10px] text-[#EF4444] font-bold">FAIL</span>
+            <span className={cn(
+              "text-[10px] font-bold",
+              selectedFinding?.status === "FAIL"
+                ? "text-[#EF4444]"
+                : selectedFinding?.status === "PASS"
+                ? "text-[#10B981]"
+                : selectedFinding?.status === "NOT_APPLICABLE"
+                ? "text-[#94A3B8]"
+                : "text-[#F59E0B]"
+            )}>
+              {selectedFinding?.status || "—"}
+            </span>
           </div>
 
           {selectedFinding ? (
             <div className="space-y-2.5">
-              {/* 1. Why Did This Fail Card */}
+              {/* 1. Context / Explanation Card */}
               <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] space-y-2 text-xs">
                 <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
                   <span className="text-[10px] text-[#3B82F6] uppercase font-bold">{selectedFinding.control_id}</span>
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
+                  <span className={cn(
+                    "px-1.5 py-0.2 rounded text-[9px] font-bold border",
+                    selectedFinding.status === "FAIL"
+                      ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
+                      : selectedFinding.status === "PASS"
+                      ? "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
+                      : selectedFinding.status === "NOT_APPLICABLE"
+                      ? "bg-[#94A3B8]/15 text-[#94A3B8] border-[#94A3B8]/30"
+                      : "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
+                  )}>
                     {selectedFinding.status} ({selectedFinding.severity})
                   </span>
                 </div>
@@ -736,10 +848,56 @@ function FindingsContent() {
                   <div className="font-semibold text-[#F3F4F6] font-sans text-xs mt-0.5">{selectedFinding.title}</div>
                 </div>
 
+                {/* Actual vs Expected Values */}
+                {(selectedFinding.actual_value || selectedFinding.expected_value) && (
+                  <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] space-y-1 text-[11px] font-mono">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#667085] text-[10px]">OBSERVED:</span>
+                      <span className={cn(
+                        "font-semibold",
+                        selectedFinding.status === "PASS"
+                          ? "text-[#10B981]"
+                          : selectedFinding.status === "NOT_APPLICABLE"
+                          ? "text-[#94A3B8]"
+                          : "text-[#EF4444]"
+                      )}>
+                        {selectedFinding.actual_value || "Unconfigured"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#667085] text-[10px]">EXPECTED:</span>
+                      <span className="text-[#10B981] font-semibold">
+                        {selectedFinding.expected_value || "Hardened Standard"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] space-y-1">
-                  <div className="text-[9px] text-[#667085] uppercase font-bold">WHY THIS FAILED</div>
+                  <div className={cn(
+                    "text-[9px] uppercase font-bold",
+                    selectedFinding.status === "FAIL"
+                      ? "text-[#EF4444]"
+                      : selectedFinding.status === "PASS"
+                      ? "text-[#10B981]"
+                      : "text-[#667085]"
+                  )}>
+                    {selectedFinding.status === "FAIL"
+                      ? "WHY THIS FAILED"
+                      : selectedFinding.status === "PASS"
+                      ? "POLICY COMPLIANCE VERIFIED"
+                      : selectedFinding.status === "NOT_APPLICABLE"
+                      ? "NOT APPLICABLE"
+                      : "INSUFFICIENT EVIDENCE / UNKNOWN"}
+                  </div>
                   <p className="text-[11px] text-[#A7B0C0] font-sans leading-relaxed">
-                    {(selectedFinding as any).why_it_failed || selectedFinding.description || "Insecure baseline state detected in device configuration."}
+                    {selectedFinding.status === "PASS"
+                      ? selectedFinding.description || "Device configuration satisfies this security baseline control. Expected parameters are present and properly enforced."
+                      : selectedFinding.status === "NOT_APPLICABLE"
+                      ? selectedFinding.description || "This control is not applicable to this device type, software version, or operating mode."
+                      : selectedFinding.status === "UNKNOWN"
+                      ? selectedFinding.description || "Could not conclusively determine compliance status from available configuration evidence."
+                      : (selectedFinding as any).why_it_failed || selectedFinding.description || "Insecure baseline state detected in device configuration."}
                   </p>
                 </div>
 
@@ -759,60 +917,138 @@ function FindingsContent() {
               {/* 2. Risk Connection Card */}
               <div className="p-3 rounded bg-[#0D121C] border border-[#1D2939] space-y-2 text-xs">
                 <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
-                  <span className="text-[10px] text-[#EF4444] uppercase font-bold flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5" />
+                  <span className={cn(
+                    "text-[10px] uppercase font-bold flex items-center gap-1.5",
+                    selectedFinding.status === "FAIL" ? "text-[#EF4444]" : selectedFinding.status === "PASS" ? "text-[#10B981]" : "text-[#94A3B8]"
+                  )}>
+                    {selectedFinding.status === "FAIL" ? (
+                      <Flame className="w-3.5 h-3.5" />
+                    ) : selectedFinding.status === "PASS" ? (
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    ) : (
+                      <Info className="w-3.5 h-3.5" />
+                    )}
                     <span>RISK CONTRIBUTION</span>
                   </span>
-                  <span className="text-[10px] text-[#EF4444] font-bold">{findingRiskContribution}</span>
+                  <span className={cn(
+                    "text-[10px] font-bold",
+                    selectedFinding.status === "FAIL" ? "text-[#EF4444]" : selectedFinding.status === "PASS" ? "text-[#10B981]" : "text-[#94A3B8]"
+                  )}>
+                    {findingRiskContribution}
+                  </span>
                 </div>
 
                 <div className="flex items-baseline justify-between">
                   <div>
                     <div className="text-[9px] text-[#667085]">SEVERITY TIER</div>
-                    <div className="text-base font-bold text-[#EF4444] mt-0.5">
-                      {selectedFinding.severity}
+                    <div className={cn(
+                      "text-base font-bold mt-0.5",
+                      selectedFinding.status === "FAIL" ? "text-[#EF4444]" : selectedFinding.status === "PASS" ? "text-[#10B981]" : "text-[#94A3B8]"
+                    )}>
+                      {selectedFinding.status === "NOT_APPLICABLE" ? "N/A" : selectedFinding.severity}
                     </div>
                   </div>
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
-                    EXPOSURE ACTIVE
-                  </span>
+                  {selectedFinding.status === "FAIL" ? (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
+                      EXPOSURE ACTIVE
+                    </span>
+                  ) : selectedFinding.status === "PASS" ? (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                      HARDENED / SECURED
+                    </span>
+                  ) : selectedFinding.status === "NOT_APPLICABLE" ? (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#94A3B8]/15 text-[#94A3B8] border border-[#94A3B8]/30">
+                      NOT APPLICABLE
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30">
+                      UNCERTAIN STATE
+                    </span>
+                  )}
                 </div>
 
                 <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[10px] text-[#A7B0C0] font-sans">
                   <strong className="text-[#F3F4F6] block mb-0.5 font-mono text-[9px]">SECURITY IMPLICATION:</strong>
-                  Management plane exposure or weak crypto parameters violating fleet compliance baseline.
+                  {selectedFinding.status === "FAIL"
+                    ? "Management plane exposure or weak crypto parameters violating fleet compliance baseline."
+                    : selectedFinding.status === "PASS"
+                    ? "Control successfully enforced. Zero residual risk added to device posture score."
+                    : selectedFinding.status === "NOT_APPLICABLE"
+                    ? "Control is non-applicable to this architecture or device role. Zero risk contribution."
+                    : "Compliance status could not be conclusively determined. Manual verification advised."}
                 </div>
               </div>
 
               {/* 3. Allowlisted Remediation & Re-Analysis Card */}
-              <div className="p-3 rounded bg-[#0D121C] border border-[#10B981]/25 space-y-2 text-xs">
+              <div className={cn(
+                "p-3 rounded bg-[#0D121C] border space-y-2 text-xs",
+                selectedFinding.status === "FAIL"
+                  ? "border-[#10B981]/25"
+                  : selectedFinding.status === "PASS"
+                  ? "border-[#10B981]/15 opacity-90"
+                  : "border-[#1D2939] opacity-80"
+              )}>
                 <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
-                  <span className="text-[10px] text-[#10B981] uppercase font-bold flex items-center gap-1.5">
+                  <span className={cn(
+                    "text-[10px] uppercase font-bold flex items-center gap-1.5",
+                    selectedFinding.status === "FAIL"
+                      ? "text-[#10B981]"
+                      : selectedFinding.status === "PASS"
+                      ? "text-[#10B981]"
+                      : "text-[#94A3B8]"
+                  )}>
                     <Wrench className="w-3.5 h-3.5" />
-                    <span>ALLOWLISTED REMEDIATION</span>
+                    <span>
+                      {selectedFinding.status === "PASS"
+                        ? "CONTROL COMPLIANT"
+                        : selectedFinding.status === "NOT_APPLICABLE"
+                        ? "CONTROL NOT APPLICABLE"
+                        : "ALLOWLISTED REMEDIATION"}
+                    </span>
                   </span>
-                  <span className="text-[9px] text-[#667085]">PROPOSED PATCH</span>
+                  <span className="text-[9px] text-[#667085]">
+                    {selectedFinding.status === "PASS"
+                      ? "VERIFIED"
+                      : selectedFinding.status === "NOT_APPLICABLE"
+                      ? "N/A"
+                      : "PROPOSED PATCH"}
+                  </span>
                 </div>
 
-                {/* Before / After Preview */}
-                <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[10px] space-y-0.5 font-mono">
-                  <div className="text-[#EF4444]">- {selectedFinding.evidence || "non-compliant configuration line"}</div>
-                  <div className="text-[#10B981]">+ {remediation?.remediation_commands?.split("\n")[0] || "hardened configuration line"}</div>
-                </div>
+                {/* Diff Preview / Status Message */}
+                {selectedFinding.status === "FAIL" ? (
+                  <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[10px] space-y-0.5 font-mono">
+                    <div className="text-[#EF4444]">- {selectedFinding.evidence || "non-compliant configuration line"}</div>
+                    <div className="text-[#10B981]">+ {remediation?.remediation_commands?.split("\n")[0] || "hardened configuration line"}</div>
+                  </div>
+                ) : selectedFinding.status === "PASS" ? (
+                  <div className="p-2 rounded bg-[#080B12] border border-[#10B981]/20 text-[10px] text-[#10B981] font-mono flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 shrink-0" />
+                    <span>Control is compliant with security baseline. No remediation patch required.</span>
+                  </div>
+                ) : (
+                  <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[10px] text-[#94A3B8] font-mono">
+                    Control not applicable to this device profile. No remediation action needed.
+                  </div>
+                )}
 
-                <div className="text-[10px] text-[#667085] flex items-center justify-between font-mono">
-                  <span>NETWORK PUSH:</span>
-                  <span className="text-[#EF4444] font-semibold">GATE PROTECTED</span>
-                </div>
+                {selectedFinding.status === "FAIL" && (
+                  <div className="text-[10px] text-[#667085] flex items-center justify-between font-mono">
+                    <span>NETWORK PUSH:</span>
+                    <span className="text-[#EF4444] font-semibold">GATE PROTECTED</span>
+                  </div>
+                )}
 
                 <div className="space-y-1.5 pt-1">
-                  <button
-                    onClick={handleCopyCommands}
-                    className="w-full py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-white font-mono transition-all flex items-center justify-center gap-1.5 text-xs"
-                  >
-                    {copiedCode ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedCode ? "Copied" : "Copy Remediation CLI"}</span>
-                  </button>
+                  {selectedFinding.status === "FAIL" && (
+                    <button
+                      onClick={handleCopyCommands}
+                      className="w-full py-1.5 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-white font-mono transition-all flex items-center justify-center gap-1.5 text-xs"
+                    >
+                      {copiedCode ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedCode ? "Copied" : "Copy Remediation CLI"}</span>
+                    </button>
+                  )}
 
                   <button
                     onClick={handleReanalyze}

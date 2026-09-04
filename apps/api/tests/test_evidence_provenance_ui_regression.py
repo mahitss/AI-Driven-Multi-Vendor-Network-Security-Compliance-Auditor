@@ -3,6 +3,11 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+import uuid
+from datetime import datetime, timezone, timedelta
+import jwt
+from app.core.config import settings
+
 from app.models.configuration import Configuration
 from app.models.audit import Audit
 from app.models.finding import Finding
@@ -13,6 +18,35 @@ from app.services.parser.vendors.fortinet.parser import FortinetParser
 from app.services.compliance.service import ComplianceAuditService
 from app.services.ingestion.config_ingestion import ConfigurationIngestionService
 from app.api.routes.analysis import EvidenceItem, get_analysis_findings
+
+
+def _create_test_jwt(user_id: str, email: str) -> str:
+    payload = {
+        "sub": user_id,
+        "email": email,
+        "aud": "authenticated",
+        "role": "authenticated",
+        "exp": int((datetime.now(timezone.utc) + timedelta(hours=2)).timestamp()),
+    }
+    key = settings.SUPABASE_JWT_SECRET or settings.SECRET_KEY or "netvigil-secure-test-jwt-secret-key-32b"
+    return jwt.encode(payload, key, algorithm="HS256")
+
+
+async def _get_or_create_user(db_session: AsyncSession, email: str, full_name: str) -> tuple[User, dict[str, str]]:
+    u_res = await db_session.execute(select(User).where(User.email == email))
+    user = u_res.scalars().first()
+    if not user:
+        user = User(
+            id=str(uuid.uuid4()),
+            email=email,
+            name=full_name,
+            role="analyst",
+        )
+        db_session.add(user)
+        await db_session.commit()
+    token = _create_test_jwt(user.id, user.email)
+    headers = {"Authorization": f"Bearer {token}"}
+    return user, headers
 
 
 @pytest.mark.asyncio
@@ -63,19 +97,7 @@ config system settings
 end
 """
     # Register test user
-    reg_res = await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "forti_telnet@netvigil.io",
-            "password": "Password123!",
-            "full_name": "Forti Tester",
-        },
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    u_res = await db_session.execute(select(User).where(User.email == "forti_telnet@netvigil.io"))
-    user = u_res.scalars().first()
+    user, headers = await _get_or_create_user(db_session, "forti_telnet@netvigil.io", "Forti Tester")
 
     # Ingest and audit
     cfg = await ConfigurationIngestionService.ingest_file(
@@ -123,19 +145,7 @@ config system interface
 end
 """
     # Register test user
-    reg_res = await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "forti_hardened@netvigil.io",
-            "password": "Password123!",
-            "full_name": "Forti Hardened Tester",
-        },
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    u_res = await db_session.execute(select(User).where(User.email == "forti_hardened@netvigil.io"))
-    user = u_res.scalars().first()
+    user, headers = await _get_or_create_user(db_session, "forti_hardened@netvigil.io", "Forti Hardened Tester")
 
     # Ingest and audit
     cfg = await ConfigurationIngestionService.ingest_file(
@@ -171,26 +181,15 @@ async def test_legacy_persisted_evidence_serialization(
     client: AsyncClient, db_session: AsyncSession
 ):
     """TEST 3: Legacy persisted evidence source_lines=[0], evidence='Baseline Absent' serializes cleanly."""
-    reg_res = await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "legacy_serial@netvigil.io",
-            "password": "Password123!",
-            "full_name": "Legacy Tester",
-        },
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    u_res = await db_session.execute(select(User).where(User.email == "legacy_serial@netvigil.io"))
-    user = u_res.scalars().first()
+    user, headers = await _get_or_create_user(db_session, "legacy_serial@netvigil.io", "Legacy Tester")
 
     cfg = Configuration(
         user_id=user.id,
         filename="test_legacy.cfg",
         original_filename="test_legacy.cfg",
+        storage_path="mock/test_legacy.cfg",
         file_size_bytes=100,
-        file_hash_sha256="abc123hash_legacy",
+        hash="abc123hash_legacy",
         detected_vendor="fortinet",
         detected_platform="fortios",
         parser_status="parsed",
@@ -247,19 +246,7 @@ async def test_api_response_contains_zero_baseline_strings(
     client: AsyncClient, db_session: AsyncSession
 ):
     """TEST 4 & 7: No API response may contain runtime evidence strings 'Baseline' or 'Baseline Absent'."""
-    reg_res = await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "zero_baseline@netvigil.io",
-            "password": "Password123!",
-            "full_name": "Zero Baseline Tester",
-        },
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    u_res = await db_session.execute(select(User).where(User.email == "zero_baseline@netvigil.io"))
-    user = u_res.scalars().first()
+    user, headers = await _get_or_create_user(db_session, "zero_baseline@netvigil.io", "Zero Baseline Tester")
 
     raw_conf = "config system global\n  set hostname ZERO-BASELINE\nend\n"
     cfg = await ConfigurationIngestionService.ingest_file(
@@ -298,22 +285,10 @@ async def test_configuration_switching_isolation(
     client: AsyncClient, db_session: AsyncSession
 ):
     """TEST 5 & 6: Real line citations survive and switching between configurations isolates evidence."""
-    reg_res = await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "isolation_test@netvigil.io",
-            "password": "Password123!",
-            "full_name": "Isolation Tester",
-        },
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    u_res = await db_session.execute(select(User).where(User.email == "isolation_test@netvigil.io"))
-    user = u_res.scalars().first()
+    user, headers = await _get_or_create_user(db_session, "isolation_test@netvigil.io", "Isolation Tester")
 
     # Config A: Cisco
-    cisco_cfg = "hostname CISCO-ISO\nip ssh version 2\n"
+    cisco_cfg = "service password-encryption\nip ssh version 2\nline vty 0 4\n transport input ssh\n"
     cfg_a = await ConfigurationIngestionService.ingest_file(
         filename="cisco_iso.cfg",
         content_bytes=cisco_cfg.encode("utf-8"),

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShieldCheck,
@@ -59,9 +60,12 @@ interface ChatMessage {
   timestamp: string;
 }
 
-export default function AuditsPage() {
+function AuditsPageContent() {
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const queryAuditId = searchParams.get("audit_id") || searchParams.get("auditId");
+  const queryConfigId = searchParams.get("configuration_id") || searchParams.get("configurationId") || searchParams.get("configId");
 
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [activeFrameworkFilter, setActiveFrameworkFilter] = useState<string>("ALL");
@@ -110,12 +114,44 @@ export default function AuditsPage() {
     enabled: !authLoading && !!user,
   });
 
-  // Set default selected audit when loaded
+  // Authoritative audit selection prioritizing URL query parameters (Requirement Bug 3 & 7)
   useEffect(() => {
-    if (audits.length > 0 && !selectedAuditId) {
-      setSelectedAuditId(audits[0].id);
+    if (audits.length === 0) return;
+
+    // 1. Explicit auditId requested via URL
+    if (queryAuditId && audits.some((a) => a.id === queryAuditId)) {
+      if (selectedAuditId !== queryAuditId) {
+        setSelectedAuditId(queryAuditId);
+        setInspectingFinding(null);
+        setFindingExplanation(null);
+      }
+      return;
     }
-  }, [audits, selectedAuditId]);
+
+    // 2. Configuration requested via URL: pick audit matching that configuration
+    if (queryConfigId) {
+      const match = audits.find((a) => a.configuration_id === queryConfigId);
+      if (match && selectedAuditId !== match.id) {
+        setSelectedAuditId(match.id);
+        setInspectingFinding(null);
+        setFindingExplanation(null);
+        return;
+      }
+    }
+
+    // 3. Fallback: first audit in list if none currently selected or current selection is invalid
+    if (!selectedAuditId || !audits.some((a) => a.id === selectedAuditId)) {
+      setSelectedAuditId(audits[0].id);
+      setInspectingFinding(null);
+      setFindingExplanation(null);
+    }
+  }, [audits, queryAuditId, queryConfigId, selectedAuditId]);
+
+  // Reset dependent finding inspector state atomically when selected audit changes (Bug 2, 7)
+  useEffect(() => {
+    setInspectingFinding(null);
+    setFindingExplanation(null);
+  }, [selectedAuditId]);
 
   // Fetch selected audit detail
   const { data: auditDetail, isLoading: isDetailLoading } = useQuery({
@@ -339,33 +375,41 @@ export default function AuditsPage() {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
               <span className="text-xs font-mono text-[#667085] whitespace-nowrap">Audit Session:</span>
               <div className="flex items-center gap-1.5">
-                {audits.map((a) => (
-                  <button
-                    key={a.id}
-                    onClick={() => {
-                      setSelectedAuditId(a.id);
-                      setFindingExplanation(null);
-                    }}
-                    className={cn(
-                      "px-3 py-1 rounded-md text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-1.5",
-                      selectedAuditId === a.id
-                        ? "bg-[#111827] text-[#3B82F6] border border-[#3B82F6] font-semibold shadow-sm"
-                        : "bg-[#080B12] text-[#A7B0C0] hover:text-[#F3F4F6] border border-[#1D2939]"
-                    )}
-                  >
-                    <span>ID: {a.id.slice(0, 8)}...</span>
-                    {a.score !== null && a.score !== undefined && (
-                      <span
-                        className={cn(
-                          "px-1.5 py-0.2 rounded text-[10px] font-bold",
-                          a.score >= 80 ? "text-[#10B981]" : a.score >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
-                        )}
-                      >
-                        {a.score.toFixed(0)}%
-                      </span>
-                    )}
-                  </button>
-                ))}
+                {audits.map((a) => {
+                  const cfg = configurations.find((c) => c.id === a.configuration_id);
+                  const deviceLabel = cfg?.original_filename || (a as any).device_name || `Session ${a.id.slice(0, 8)}`;
+                  const isSelected = selectedAuditId === a.id;
+
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => {
+                        setSelectedAuditId(a.id);
+                        setFindingExplanation(null);
+                        setInspectingFinding(null);
+                      }}
+                      className={cn(
+                        "px-3 py-1.5 rounded-md text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-2",
+                        isSelected
+                          ? "bg-[#111827] text-[#3B82F6] border border-[#3B82F6] font-semibold shadow-sm"
+                          : "bg-[#080B12] text-[#A7B0C0] hover:text-[#F3F4F6] border border-[#1D2939]"
+                      )}
+                    >
+                      <span className="font-sans font-medium text-[#F3F4F6]">{deviceLabel}</span>
+                      <span className="text-[10px] text-[#667085]">({a.id.slice(0, 8)})</span>
+                      {a.score !== null && a.score !== undefined && (
+                        <span
+                          className={cn(
+                            "px-1.5 py-0.2 rounded text-[10px] font-bold",
+                            a.score >= 80 ? "text-[#10B981]" : a.score >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
+                          )}
+                        >
+                          {a.score.toFixed(1)}%
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -401,7 +445,7 @@ export default function AuditsPage() {
                     currentScore >= 80 ? "text-[#10B981]" : currentScore >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
                   )}
                 >
-                  {currentScore.toFixed(0)}
+                  {currentScore.toFixed(1)}
                 </span>
                 <span className="text-[#667085] text-sm font-semibold">/ 100</span>
               </div>
@@ -525,7 +569,7 @@ export default function AuditsPage() {
 
                 {/* Status Filter */}
                 <div className="flex items-center gap-1 bg-[#080B12] border border-[#1D2939] p-1 rounded-md text-xs font-mono">
-                  {["ALL", "FAIL", "PASS", "UNKNOWN"].map((st) => (
+                  {["ALL", "FAIL", "PASS", "NOT_APPLICABLE", "UNKNOWN"].map((st) => (
                     <button
                       key={st}
                       onClick={() => setActiveStatusFilter(st)}
@@ -536,11 +580,13 @@ export default function AuditsPage() {
                             ? "bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40"
                             : st === "PASS"
                             ? "bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40"
+                            : st === "NOT_APPLICABLE"
+                            ? "bg-[#94A3B8]/20 text-[#94A3B8] border border-[#94A3B8]/40"
                             : "bg-[#3B82F6]/20 text-[#3B82F6] border border-[#3B82F6]/40"
                           : "text-[#A7B0C0] hover:text-white"
                       )}
                     >
-                      {st}
+                      {st === "NOT_APPLICABLE" ? "N/A" : st}
                     </button>
                   ))}
                 </div>
@@ -590,6 +636,7 @@ export default function AuditsPage() {
                     {filteredFindings.map((f) => {
                       const isPass = f.status === "PASS";
                       const isFail = f.status === "FAIL";
+                      const isNA = f.status === "NOT_APPLICABLE";
                       const isUnknown = f.status === "UNKNOWN";
 
                       return (
@@ -607,11 +654,13 @@ export default function AuditsPage() {
                                 "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border",
                                 isPass && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30",
                                 isFail && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30",
+                                isNA && "bg-[#94A3B8]/10 text-[#94A3B8] border-[#94A3B8]/30",
                                 isUnknown && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                               )}
                             >
                               {isPass && <CheckCircle2 className="w-3 h-3" />}
                               {isFail && <XCircle className="w-3 h-3" />}
+                              {isNA && <ShieldCheck className="w-3 h-3" />}
                               {isUnknown && <HelpCircle className="w-3 h-3" />}
                               <span>{f.status}</span>
                             </span>
@@ -621,14 +670,15 @@ export default function AuditsPage() {
                             <span
                               className={cn(
                                 "text-[10px] font-bold uppercase",
-                                f.severity === "CRITICAL" && "text-[#EF4444]",
-                                f.severity === "HIGH" && "text-[#F59E0B]",
-                                f.severity === "MEDIUM" && "text-[#F59E0B]/80",
-                                f.severity === "LOW" && "text-[#3B82F6]",
-                                f.severity === "INFO" && "text-[#667085]"
+                                isNA && "text-[#667085]",
+                                !isNA && f.severity === "CRITICAL" && "text-[#EF4444]",
+                                !isNA && f.severity === "HIGH" && "text-[#F59E0B]",
+                                !isNA && f.severity === "MEDIUM" && "text-[#F59E0B]/80",
+                                !isNA && f.severity === "LOW" && "text-[#3B82F6]",
+                                !isNA && f.severity === "INFO" && "text-[#667085]"
                               )}
                             >
-                              {f.severity}
+                              {isNA ? "N/A" : f.severity}
                             </span>
                           </td>
 
@@ -656,10 +706,13 @@ export default function AuditsPage() {
                           <td className="py-3 px-3 font-mono text-[11px]">
                             <div className="space-y-0.5">
                               <div className="text-[#667085]">
-                                Actual: <span className="text-[#3B82F6] font-semibold">{f.actual_value}</span>
+                                Actual: <span className={cn(
+                                  "font-semibold",
+                                  isPass ? "text-[#10B981]" : isNA ? "text-[#94A3B8]" : "text-[#EF4444]"
+                                )}>{f.actual_value || "—"}</span>
                               </div>
                               <div className="text-[#667085]">
-                                Expected: <span className="text-[#A7B0C0]">{f.expected_value}</span>
+                                Expected: <span className="text-[#A7B0C0]">{f.expected_value || "—"}</span>
                               </div>
                             </div>
                           </td>
@@ -714,6 +767,7 @@ export default function AuditsPage() {
                       "px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border",
                       inspectingFinding.status === "PASS" && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30",
                       inspectingFinding.status === "FAIL" && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30",
+                      inspectingFinding.status === "NOT_APPLICABLE" && "bg-[#94A3B8]/10 text-[#94A3B8] border-[#94A3B8]/30",
                       inspectingFinding.status === "UNKNOWN" && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                     )}
                   >
@@ -889,13 +943,32 @@ export default function AuditsPage() {
 
             {/* Drawer Footer */}
             <div className="p-4 border-t border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
-              <Link
-                href="/remediation"
-                className="px-3.5 py-1.5 rounded-lg bg-[#10B981]/10 hover:bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-xs font-mono font-semibold transition-colors flex items-center gap-1.5"
-              >
-                <Wrench className="w-3.5 h-3.5 text-[#10B981]" />
-                <span>View Remediation Fix</span>
-              </Link>
+              {inspectingFinding.status === "FAIL" ? (
+                <Link
+                  href="/remediation"
+                  className="px-3.5 py-1.5 rounded-lg bg-[#10B981]/10 hover:bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 text-xs font-mono font-semibold transition-colors flex items-center gap-1.5"
+                >
+                  <Wrench className="w-3.5 h-3.5 text-[#10B981]" />
+                  <span>View Remediation Fix</span>
+                </Link>
+              ) : (
+                <span className={cn(
+                  "text-xs font-mono font-semibold flex items-center gap-1.5",
+                  inspectingFinding.status === "PASS" ? "text-[#10B981]" : "text-[#94A3B8]"
+                )}>
+                  {inspectingFinding.status === "PASS" ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Control Verified Compliant</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Control Not Applicable</span>
+                    </>
+                  )}
+                </span>
+              )}
 
               <button
                 onClick={() => {
@@ -1152,3 +1225,12 @@ export default function AuditsPage() {
     </div>
   );
 }
+
+export default function AuditsPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-[#667085] font-mono">Loading Security Audits...</div>}>
+      <AuditsPageContent />
+    </Suspense>
+  );
+}
+

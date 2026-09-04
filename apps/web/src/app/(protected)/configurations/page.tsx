@@ -1591,15 +1591,36 @@ function ConfigurationsPageContent() {
                   {selectedFinding && (
                     <div className="p-3 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
                       <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-[#667085] uppercase font-bold">WHY THIS FAILED</span>
+                        <span className={cn(
+                          "uppercase font-bold",
+                          selectedFinding.status === "PASS"
+                            ? "text-[#10B981]"
+                            : selectedFinding.status === "NOT_APPLICABLE"
+                            ? "text-[#94A3B8]"
+                            : selectedFinding.status === "UNKNOWN"
+                            ? "text-[#F59E0B]"
+                            : "text-[#EF4444]"
+                        )}>
+                          {selectedFinding.status === "PASS"
+                            ? "POLICY COMPLIANCE VERIFIED"
+                            : selectedFinding.status === "NOT_APPLICABLE"
+                            ? "NOT APPLICABLE"
+                            : selectedFinding.status === "UNKNOWN"
+                            ? "UNCERTAIN / INSUFFICIENT EVIDENCE"
+                            : "WHY THIS FAILED"}
+                        </span>
                         <span className="text-[#3B82F6] font-bold">CONTROL: {selectedFinding.control_id}</span>
                       </div>
                       <p className="text-xs text-[#A7B0C0] font-sans leading-relaxed">
-                        {selectedFinding.why_it_failed || selectedFinding.title || "Deterministic compliance rule evaluated against extracted security facts."}
+                        {selectedFinding.status === "PASS"
+                          ? ((selectedFinding as any).description || "Deterministic compliance rule evaluated against extracted security facts: Control passed verification.")
+                          : selectedFinding.status === "NOT_APPLICABLE"
+                          ? ((selectedFinding as any).description || "This control is not applicable to the targeted device type or architecture.")
+                          : (selectedFinding.why_it_failed || selectedFinding.title || "Deterministic compliance rule evaluated against extracted security facts.")}
                       </p>
                       {selectedFinding.actual_value && (
                         <div className="flex items-center gap-3 text-[11px] pt-1 border-t border-[#1D2939]">
-                          <span>Observed: <strong className="text-[#EF4444] font-mono">{selectedFinding.actual_value}</strong></span>
+                          <span>Observed: <strong className={cn("font-mono", selectedFinding.status === "PASS" ? "text-[#10B981]" : selectedFinding.status === "NOT_APPLICABLE" ? "text-[#94A3B8]" : "text-[#EF4444]")}>{selectedFinding.actual_value}</strong></span>
                           <span>•</span>
                           <span>Expected: <strong className="text-[#10B981] font-mono">{selectedFinding.expected_value || "Hardened standard"}</strong></span>
                         </div>
@@ -1773,13 +1794,27 @@ function ConfigurationsPageContent() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span>LINE CITATION:</span>
-                          <span className="text-[#EF4444] font-semibold">
-                            {activeEvidence.hasLineCitation ? activeEvidence.citationText : "No direct evidence"}
+                          <span className={cn(
+                            "font-semibold",
+                            selectedFinding.status === "PASS"
+                              ? "text-[#10B981]"
+                              : selectedFinding.status === "NOT_APPLICABLE"
+                              ? "text-[#94A3B8]"
+                              : "text-[#EF4444]"
+                          )}>
+                            {activeEvidence.hasLineCitation ? activeEvidence.citationText : activeEvidence.statusText}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>OBSERVED:</span>
-                          <span className="text-[#F59E0B] font-semibold">
+                          <span className={cn(
+                            "font-semibold",
+                            selectedFinding.status === "PASS"
+                              ? "text-[#10B981]"
+                              : selectedFinding.status === "NOT_APPLICABLE"
+                              ? "text-[#94A3B8]"
+                              : "text-[#F59E0B]"
+                          )}>
                             {selectedFinding.actual_value || "None / Unconfigured"}
                           </span>
                         </div>
@@ -1791,94 +1826,161 @@ function ConfigurationsPageContent() {
                         </div>
                         <div className="flex items-center justify-between border-t border-[#1D2939] pt-1 mt-0.5">
                           <span>VERDICT:</span>
-                          <span className="text-[#EF4444] font-extrabold">{selectedFinding.status} ({selectedFinding.severity})</span>
+                          <span className={cn(
+                            "font-extrabold",
+                            selectedFinding.status === "PASS"
+                              ? "text-[#10B981]"
+                              : selectedFinding.status === "NOT_APPLICABLE"
+                              ? "text-[#94A3B8]"
+                              : selectedFinding.status === "UNKNOWN"
+                              ? "text-[#F59E0B]"
+                              : "text-[#EF4444]"
+                          )}>
+                            {selectedFinding.status} {selectedFinding.status === "NOT_APPLICABLE" ? "" : `(${selectedFinding.severity})`}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Why Failed Explanation */}
+                    {/* Context Explanation */}
                     <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-1">
-                      <div className="text-[9px] text-[#667085] uppercase font-bold">WHY FAILED?</div>
+                      <div className={cn(
+                        "text-[9px] uppercase font-bold",
+                        selectedFinding.status === "PASS"
+                          ? "text-[#10B981]"
+                          : selectedFinding.status === "NOT_APPLICABLE"
+                          ? "text-[#94A3B8]"
+                          : selectedFinding.status === "UNKNOWN"
+                          ? "text-[#F59E0B]"
+                          : "text-[#667085]"
+                      )}>
+                        {selectedFinding.status === "PASS"
+                          ? "POLICY COMPLIANCE VERIFIED"
+                          : selectedFinding.status === "NOT_APPLICABLE"
+                          ? "NOT APPLICABLE"
+                          : selectedFinding.status === "UNKNOWN"
+                          ? "INSUFFICIENT EVIDENCE"
+                          : "WHY FAILED?"}
+                      </div>
                       <p className="text-[11px] text-[#A7B0C0] font-sans leading-relaxed">
-                        {selectedFinding.why_it_failed || "Deterministic security rule evaluation identified a violation against control specifications."}
+                        {selectedFinding.status === "PASS"
+                          ? ((selectedFinding as any).description || "Deterministic security rule evaluation verified that the configuration complies with specifications.")
+                          : selectedFinding.status === "NOT_APPLICABLE"
+                          ? ((selectedFinding as any).description || "This control is not applicable to the detected device platform or operating mode.")
+                          : (selectedFinding.why_it_failed || "Deterministic security rule evaluation identified a violation against control specifications.")}
                       </p>
                     </div>
                   </div>
 
                   {/* Safe Remediation & Re-Analysis Action Card */}
-                  <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#10B981]/30 space-y-3 text-xs">
-                    <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
-                      <div className="flex items-center gap-1.5 text-[#10B981] font-bold">
-                        <Wrench className="w-3.5 h-3.5" />
-                        <span>SAFE REMEDIATION</span>
+                  {selectedFinding.status === "FAIL" ? (
+                    <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#10B981]/30 space-y-3 text-xs">
+                      <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+                        <div className="flex items-center gap-1.5 text-[#10B981] font-bold">
+                          <Wrench className="w-3.5 h-3.5" />
+                          <span>SAFE REMEDIATION</span>
+                        </div>
+                        <span className="text-[9px] text-[#667085]">READ-ONLY ADVISORY</span>
                       </div>
-                      <span className="text-[9px] text-[#667085]">READ-ONLY ADVISORY</span>
-                    </div>
 
-                    {/* Diff Preview: Current vs Proposed */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-[#667085]">
-                        <span>CURRENT vs PROPOSED DIFF</span>
-                        <span className="text-[#10B981] font-bold">ALLOWLISTED</span>
-                      </div>
-                      <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[11px] font-mono space-y-1 select-text">
-                        {selectedFinding.remediation_diff?.diff_lines ? (
-                          selectedFinding.remediation_diff.diff_lines.map((dl: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className={cn(
-                                dl.type === "REMOVE"
-                                  ? "text-[#EF4444]"
-                                  : dl.type === "ADD"
-                                  ? "text-[#10B981]"
-                                  : "text-[#667085]"
-                              )}
-                            >
-                              {dl.type === "REMOVE" ? "- " : dl.type === "ADD" ? "+ " : "  "}
-                              {dl.line}
+                      {/* Diff Preview: Current vs Proposed */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#667085]">
+                          <span>CURRENT vs PROPOSED DIFF</span>
+                          <span className="text-[#10B981] font-bold">ALLOWLISTED</span>
+                        </div>
+                        <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[11px] font-mono space-y-1 select-text">
+                          {selectedFinding.remediation_diff?.diff_lines ? (
+                            selectedFinding.remediation_diff.diff_lines.map((dl: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className={cn(
+                                  dl.type === "REMOVE"
+                                    ? "text-[#EF4444]"
+                                    : dl.type === "ADD"
+                                    ? "text-[#10B981]"
+                                    : "text-[#667085]"
+                                )}
+                              >
+                                {dl.type === "REMOVE" ? "- " : dl.type === "ADD" ? "+ " : "  "}
+                                {dl.line}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-[#10B981] whitespace-pre-wrap">
+                              {selectedFinding.remediation_proposal || "! Recommended remediation patch"}
                             </div>
-                          ))
-                        ) : (
-                          <div className="text-[#10B981] whitespace-pre-wrap">
-                            {selectedFinding.remediation_proposal || "! Recommended remediation patch"}
-                          </div>
-                        )}
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] text-[#667085] flex items-center justify-between pt-1">
+                        <span>NETWORK PUSH:</span>
+                        <span className="text-[#EF4444] font-bold">DISABLED (LOCAL DIFF ONLY)</span>
+                      </div>
+
+                      <div className="space-y-1.5 pt-1">
+                        <button
+                          onClick={() =>
+                            handleCopyClipboard(
+                              selectedFinding.remediation_proposal || "",
+                              "cli"
+                            )
+                          }
+                          className="w-full py-2 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white font-bold transition-all flex items-center justify-center gap-1.5"
+                        >
+                          {copiedText === "cli" ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                              <span>COPIED TO CLIPBOARD</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>COPY REMEDIATION CLI</span>
+                            </>
+                          )}
+                        </button>
+
+                        {/* Primary Re-Analysis CTA */}
+                        <button
+                          onClick={handleReanalyzeWithRemediation}
+                          disabled={isReanalyzing}
+                          className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0ea371] text-white font-extrabold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {isReanalyzing ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>RE-ANALYZING DETERMINISTICALLY...</span>
+                            </>
+                          ) : (
+                            <>
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>RE-ANALYZE & VERIFY</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
+                  ) : selectedFinding.status === "PASS" ? (
+                    <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#10B981]/30 space-y-3 text-xs">
+                      <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+                        <div className="flex items-center gap-1.5 text-[#10B981] font-bold">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>CONTROL COMPLIANT</span>
+                        </div>
+                        <span className="text-[9px] text-[#10B981] font-bold">VERIFIED</span>
+                      </div>
 
-                    <div className="text-[10px] text-[#667085] flex items-center justify-between pt-1">
-                      <span>NETWORK PUSH:</span>
-                      <span className="text-[#EF4444] font-bold">DISABLED (LOCAL DIFF ONLY)</span>
-                    </div>
+                      <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#10B981]/20 text-[11px] font-mono text-[#10B981] flex items-center gap-2">
+                        <Check className="w-4 h-4 shrink-0" />
+                        <span>Configuration satisfies baseline security requirements. No remediation patch needed.</span>
+                      </div>
 
-                    <div className="space-y-1.5 pt-1">
-                      <button
-                        onClick={() =>
-                          handleCopyClipboard(
-                            selectedFinding.remediation_proposal || "",
-                            "cli"
-                          )
-                        }
-                        className="w-full py-2 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white font-bold transition-all flex items-center justify-center gap-1.5"
-                      >
-                        {copiedText === "cli" ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-[#10B981]" />
-                            <span>COPIED TO CLIPBOARD</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>COPY REMEDIATION CLI</span>
-                          </>
-                        )}
-                      </button>
-
-                      {/* Primary Re-Analysis CTA */}
                       <button
                         onClick={handleReanalyzeWithRemediation}
                         disabled={isReanalyzing}
-                        className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0ea371] text-white font-extrabold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0ea371] text-white font-extrabold text-xs transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 font-mono"
                       >
                         {isReanalyzing ? (
                           <>
@@ -1888,12 +1990,26 @@ function ConfigurationsPageContent() {
                         ) : (
                           <>
                             <RotateCcw className="w-3.5 h-3.5" />
-                            <span>RE-ANALYZE WITH REMEDIATION</span>
+                            <span>RE-ANALYZE & VERIFY</span>
                           </>
                         )}
                       </button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-3 text-xs">
+                      <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+                        <div className="flex items-center gap-1.5 text-[#94A3B8] font-bold">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>CONTROL NOT APPLICABLE</span>
+                        </div>
+                        <span className="text-[9px] text-[#667085]">N/A</span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[11px] font-mono text-[#94A3B8]">
+                        This control is out of scope for this architecture or platform. No remediation action required.
+                      </div>
+                    </div>
+                  )}
 
                   {/* AI Advisory Note */}
                   <div className="p-4 rounded-2xl bg-[#0D121C] border border-[#8B5CF6]/30 space-y-2 text-xs">
