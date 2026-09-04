@@ -525,7 +525,7 @@ function ReportsContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {["CIS", "NIST", "STIG", "ISO"].map((fw) => {
                   const fwData = activeReport?.sections?.framework_coverage?.[fw];
-                  const fwScore = fwData?.score !== undefined ? `${Number(fwData.score).toFixed(1)}%` : (latestCompliance > 0 ? `${latestCompliance.toFixed(1)}%` : "—");
+                  const fwScore = fwData?.score !== undefined ? `${Number(fwData.score).toFixed(1)}%` : "—";
                   const fwPassed = fwData?.passed !== undefined ? `${fwData.passed} Passed` : "Evaluated";
                   const fwFailed = fwData?.failed !== undefined ? `${fwData.failed} Failed` : "Controls";
                   const labelMap: Record<string, string> = {

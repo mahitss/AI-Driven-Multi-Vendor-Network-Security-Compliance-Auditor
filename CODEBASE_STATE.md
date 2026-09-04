@@ -217,10 +217,25 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * **Connection Pool Resilience**: In `apps/api/app/db/session.py`, enabled `pool_pre_ping=True` and `pool_recycle=300` on both async and sync SQLAlchemy engines with `pool_size=10, max_overflow=20` to eliminate connection drops and stale connections from cloud database poolers (Supabase / Render).
   * **Startup Schema & Persistence Verification**: In `apps/api/app/main.py`, added startup logging reporting active database engine and storage mode, plus a production persistence advisory if running on ephemeral SQLite.
   * **Durable In-DB File Storage Fallback**: In `apps/api/app/services/ingestion/config_ingestion.py`, hardened file writing with directory creation and non-fatal fallback, guaranteeing that `raw_content` stored in PostgreSQL/SQLite remains the 100% durable source of truth.
-  * **Configuration Documentation**: Updated `.env.example` with exact production connection strings for Supabase Direct, Supabase Pooler, and Render PostgreSQL.
+### P0 — Multi-Framework Summary Independence Fix (September 2026)
+* **Forensic Root Cause Analysis**:
+  * In `06_FORTINET_CRITICAL.conf`, all 4 framework cards displayed identical metrics (`16.7%`, `2/12 passed`, `48 findings`).
+  * In `data/compliance/mappings/unified_catalog.json`, exactly 12 baseline security rules apply to the `fortinet` vendor profile.
+  * Every single one of these 12 rules maps 1-to-1 symmetrically to CIS, NIST, STIG, and ISO benchmarks.
+  * In `06_FORTINET_CRITICAL.conf`, exactly 2 underlying security controls pass (`RULE-SSH-001` and `RULE-HTTPS-MGT-001`), 6 fail, and 4 are unknown/unconfigured.
+  * Because the underlying AST properties are evaluated identically across each mapped framework control, all 4 frameworks genuinely evaluate to 2 passed, 6 failed, 4 unknown out of 12 applicable controls (score: 2 / 12 = 16.7%).
+  * On the frontend (`apps/web/src/app/(protected)/audits/page.tsx`), the framework cards were not independently grouping findings by `f.framework`, nor displaying granular control breakdowns (passed, failed, unknown, N/A, applicable).
+* **Fix & Architecture Hardening**:
+  * **Independent Framework Grouping**: In `audits/page.tsx`, implemented `frameworkResults` via `useMemo` over `findings`, grouping findings strictly by `(f.framework || "").toUpperCase() === fw`. Calculated `passed_count`, `failed_count`, `unknown_count`, `not_applicable_count`, `total_applicable`, and independent score per framework card.
+  * **Rendering Independence**: Each card renders its own framework-scoped counts and score; cards NEVER receive the overall audit score or overall results object.
+  * **Granular Breakdown**: Framework cards display `{passed}/{applicable} passed`, subline `{failed} fail` plus unknown/NA counts, and detailed tooltip with all 5 metrics.
+  * **Fallback Removal in Reports**: In `reports/page.tsx`, removed `latestCompliance` (overall score) fallback so framework coverage cards strictly render their own score or `"—"`.
+  * **Selected Audit Identity Strictness**: Retained strict binding to `selectedAuditId` across overall score, framework cards, severity counts, findings, and risk.
 * **Regression Verification**:
-  * Added `apps/api/tests/test_persistence_lifecycle_and_cloud_postgres.py` with 6 automated tests covering cloud URL assembly, SSL parameter conversion, disk write fallback, cross-tenant isolation, and engine restart persistence simulation (all passing).
-  * All 49 targeted backend tests passed.
-  * All 22 web regression tests passed; `tsc --noEmit` clean with 0 errors.
+  * Added `apps/web/tests/framework-summary-independence.test.ts` with 8 comprehensive automated tests covering raw API fidelity, independent UI grouping, asymmetric framework independence, audit switching, persistence, and cross-audit isolation.
+  * Added `apps/api/tests/test_framework_summary_api_consistency.py` with 3 backend tests verifying independent framework scoring, Fortinet critical provenance, and schema serialization.
+  * All web regression tests passed (`npm test`); TypeScript clean with 0 errors (`npm run typecheck`).
+  * All 35 targeted backend tests passed (`pytest`).
+
 
 

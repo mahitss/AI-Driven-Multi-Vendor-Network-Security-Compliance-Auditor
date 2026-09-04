@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -295,6 +295,78 @@ function AuditsPageContent() {
 
   // Filtered findings: Only derive findings when auditDetail strictly matches selectedAuditId
   const findings = isDetailMatching ? (auditDetail?.findings || []) : [];
+
+  // Independent Multi-Framework Grouping:
+  // Each framework card is calculated and rendered strictly from results/findings belonging to that framework.
+  // The cards NEVER receive the overall audit score or overall result object.
+  const frameworkResults = useMemo(() => {
+    const frameworks = ["CIS", "NIST", "STIG", "ISO"] as const;
+    const map: Record<
+      string,
+      {
+        framework: string;
+        score: number;
+        passed_count: number;
+        failed_count: number;
+        unknown_count: number;
+        not_applicable_count: number;
+        total_applicable: number;
+        total_evaluated: number;
+      }
+    > = {};
+
+    for (const fw of frameworks) {
+      const backendFw = fwScores[fw];
+      // Group findings belonging strictly to this framework identifier
+      const fwFindings = findings.filter(
+        (f) => (f.framework || "").toUpperCase() === fw
+      );
+
+      if (fwFindings.length > 0) {
+        const passed = fwFindings.filter((f) => f.status === "PASS").length;
+        const failed = fwFindings.filter((f) => f.status === "FAIL").length;
+        const unknown = fwFindings.filter((f) => f.status === "UNKNOWN").length;
+        const na = fwFindings.filter((f) => f.status === "NOT_APPLICABLE").length;
+        const applicable = passed + failed + unknown;
+        const calcScore = applicable > 0 ? (passed / applicable) * 100.0 : 100.0;
+        const score = backendFw?.score !== undefined ? backendFw.score : Number(calcScore.toFixed(1));
+
+        map[fw] = {
+          framework: fw,
+          score,
+          passed_count: passed,
+          failed_count: failed,
+          unknown_count: unknown,
+          not_applicable_count: na,
+          total_applicable: applicable,
+          total_evaluated: fwFindings.length,
+        };
+      } else if (backendFw) {
+        map[fw] = {
+          framework: fw,
+          score: backendFw.score ?? 0,
+          passed_count: backendFw.passed_count ?? 0,
+          failed_count: backendFw.failed_count ?? 0,
+          unknown_count: backendFw.unknown_count ?? 0,
+          not_applicable_count: backendFw.not_applicable_count ?? 0,
+          total_applicable: backendFw.total_applicable ?? 0,
+          total_evaluated: backendFw.total_evaluated ?? 0,
+        };
+      } else {
+        map[fw] = {
+          framework: fw,
+          score: 0,
+          passed_count: 0,
+          failed_count: 0,
+          unknown_count: 0,
+          not_applicable_count: 0,
+          total_applicable: 0,
+          total_evaluated: 0,
+        };
+      }
+    }
+    return map;
+  }, [findings, fwScores]);
   const filteredFindings = findings.filter((f) => {
     const matchesFw = activeFrameworkFilter === "ALL" || f.framework === activeFrameworkFilter;
     const matchesSev = activeSeverityFilter === "ALL" || f.severity === activeSeverityFilter;
@@ -516,7 +588,7 @@ function AuditsPageContent() {
                 { key: "STIG", label: "DISA STIG", sub: "DoD Hardening" },
                 { key: "ISO", label: "ISO 27001", sub: "Annex A Controls" },
               ].map((fw) => {
-                const fwData = fwScores[fw.key];
+                const fwData = frameworkResults[fw.key];
                 const isEvaluated = Boolean(fwData && (fwData.total_evaluated > 0 || fwData.total_applicable > 0));
                 const scoreVal = fwData ? fwData.score : 0;
                 return (
@@ -536,7 +608,7 @@ function AuditsPageContent() {
                         {isEvaluated && fwData ? (
                           <span
                             className="text-[10px] font-mono text-[#667085]"
-                            title={`${fwData.passed_count} passed out of ${fwData.total_applicable} applicable controls`}
+                            title={`${fwData.passed_count} passed, ${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A (${fwData.total_applicable} applicable controls)`}
                           >
                             {fwData.passed_count}/{fwData.total_applicable} passed
                           </span>
@@ -551,7 +623,17 @@ function AuditsPageContent() {
                       <div className="text-xl font-bold font-mono text-[#3B82F6]">
                         {isEvaluated ? `${scoreVal.toFixed(1)}%` : "—"}
                       </div>
-                      <div className="text-[10px] text-[#667085] font-mono mt-0.5">{fw.sub}</div>
+                      <div className="text-[10px] text-[#667085] font-mono mt-0.5 flex items-center justify-between">
+                        <span>{fw.sub}</span>
+                        {isEvaluated && fwData && (
+                          <span
+                            className="text-[#A7B0C0]"
+                            title={`${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A`}
+                          >
+                            {fwData.failed_count} fail{fwData.unknown_count > 0 ? ` · ${fwData.unknown_count} unk` : ""}{fwData.not_applicable_count > 0 ? ` · ${fwData.not_applicable_count} N/A` : ""}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

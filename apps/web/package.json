@@ -8,7 +8,7 @@
     "start": "next start -p 3000",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "npx tsx tests/evidence-explorer-selection.test.ts && npx tsx tests/transient-retry.test.ts && npx tsx tests/findings-audit-consistency.test.ts"
+    "test": "npx tsx tests/evidence-explorer-selection.test.ts && npx tsx tests/transient-retry.test.ts && npx tsx tests/findings-audit-consistency.test.ts && npx tsx tests/framework-summary-independence.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
