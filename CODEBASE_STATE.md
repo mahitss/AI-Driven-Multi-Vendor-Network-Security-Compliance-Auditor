@@ -334,6 +334,8 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * **Health Check Degraded State (`health.py`)**: `/api/v1/health` marks `status="degraded"` if production is ever detected running on non-persistent storage.
   * **Development & Test Preservation**: SQLite engines (`sqlite+aiosqlite`) remain fully supported and active when `ENVIRONMENT in ["development", "test"]`.
   * **Automatic Sync URL Derivation**: `SYNC_DATABASE_URL` automatically derives a valid PostgreSQL sync connection string from `DATABASE_URL` for Alembic/synchronous operations.
+  * **Transparent IPv4 Pooler Normalization (`config.py`)**: Resolves the Render IPv6 outbound limitation. Automatically maps direct Supabase endpoints (`db.cveymgeivgnjnwnxfveu.supabase.co:5432`, which only resolve to IPv6 AAAA) to the official IPv4 connection pooler (`aws-0-ap-southeast-1.pooler.supabase.com`) with `postgres.cveymgeivgnjnwnxfveu` user and enforces `ssl=require`.
+  * **Health Diagnostic Error Visibility (`health.py`, `schemas/health.py`)**: Added sanitized `error` field to `DatabaseHealth` reporting exact connection issues without exposing credentials.
   * **Durable Raw Content**: Database-backed `Configuration.raw_content` remains the 100% durable source of truth for AST parsing, evidence citations, and diffs across container restarts.
   * **Regression Suite**: Added fail-fast and persistence invariant tests to `apps/api/tests/test_persistence_lifecycle_and_cloud_postgres.py`. All tests pass (`100%`).
 

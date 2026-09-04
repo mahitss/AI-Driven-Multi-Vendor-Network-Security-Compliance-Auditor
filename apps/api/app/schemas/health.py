@@ -12,6 +12,7 @@ class DatabaseHealth(BaseModel):
     engine: str = Field(..., description="Database driver/dialect in use")
     is_persistent: bool = Field(default=False, description="True if database storage survives container restarts/redeploys")
     storage_mode: str = Field(default="ephemeral_container_sqlite", description="Storage architecture mode")
+    error: Optional[str] = Field(default=None, description="Safe error details if database connection fails")
 
 
 class SystemHealthResponse(BaseModel):

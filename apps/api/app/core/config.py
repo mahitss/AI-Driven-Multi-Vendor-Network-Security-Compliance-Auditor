@@ -152,9 +152,25 @@ class Settings(BaseSettings):
         elif val.startswith("postgresql://") and not val.startswith("postgresql+asyncpg://"):
             val = val.replace("postgresql://", "postgresql+asyncpg://", 1)
 
+        # Transparent IPv4 pooler normalization for Supabase IPv6-only direct endpoints
+        # Render and other cloud platforms do not support outbound IPv6.
+        # Direct Supabase endpoints (db.<ref>.supabase.co) only resolve to IPv6 (AAAA).
+        # This translates direct connections to the official IPv4 connection pooler (aws-0-ap-southeast-1.pooler.supabase.com).
+        if "db.cveymgeivgnjnwnxfveu.supabase.co" in val:
+            val = val.replace("db.cveymgeivgnjnwnxfveu.supabase.co", "aws-0-ap-southeast-1.pooler.supabase.com")
+            # In pooler mode, user must be postgres.<project_ref>
+            if "://postgres:" in val:
+                val = val.replace("://postgres:", "://postgres.cveymgeivgnjnwnxfveu:", 1)
+
         # asyncpg requires ssl= parameter instead of libpq's sslmode=
         if "postgresql+asyncpg://" in val and "sslmode=" in val:
             val = val.replace("sslmode=", "ssl=")
+
+        # Supabase requires SSL, ensure ssl=require is present if connecting to Supabase
+        if ("supabase.co" in val or "supabase.com" in val) and "ssl=" not in val:
+            delimiter = "&" if "?" in val else "?"
+            val = f"{val}{delimiter}ssl=require"
+
         return val
 
     @field_validator("DATABASE_URL", mode="after")

@@ -262,6 +262,8 @@ def test_production_mode_accepts_valid_postgresql_url():
     assert s.storage_architecture_mode == "persistent_postgresql"
     assert s.DATABASE_URL.startswith("postgresql+asyncpg://")
     assert "ssl=require" in s.DATABASE_URL
+    assert "aws-0-ap-southeast-1.pooler.supabase.com" in s.DATABASE_URL
+    assert "postgres.cveymgeivgnjnwnxfveu:" in s.DATABASE_URL
 
 
 def test_development_mode_allows_sqlite_database():

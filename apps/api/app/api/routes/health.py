@@ -26,6 +26,7 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
     db_status = "connected"
     db_engine_name = db.bind.name if db.bind else "unknown"
     latency_ms = None
+    db_error = None
 
     start_time = time.perf_counter()
     try:
@@ -34,6 +35,11 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
     except Exception as err:
         logger.warning("Database connectivity probe check failed: %s", err)
         db_status = "disconnected"
+        err_msg = str(err)
+        if "@" in err_msg:
+            # Strip credentials from connection errors
+            err_msg = err_msg.split("@")[-1]
+        db_error = f"{type(err).__name__}: {err_msg}"
 
     import os
     from app.services.agent.memory import AgentMemoryManager
@@ -58,6 +64,7 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
             engine=db_engine_name,
             is_persistent=settings.is_persistent_database,
             storage_mode=settings.storage_architecture_mode,
+            error=db_error,
         ),
         components={
             "vendor_detector": "operational",

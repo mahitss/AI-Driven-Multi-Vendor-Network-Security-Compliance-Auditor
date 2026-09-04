@@ -244,7 +244,7 @@ async def test_rate_limit_spoofed_ip_defense():
 # PHASE 2: Comprehensive Multi-User Isolation (User A vs User B)
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
-async def test_multi_user_end_to_end_data_isolation():
+async def test_multi_user_end_to_end_data_isolation(client: AsyncClient):
     """11-15. Strict isolation across configurations, audits, findings, devices, telemetry, and remediations."""
     user_a_id = "user_sec_alpha_1111"
     user_b_id = "user_sec_bravo_2222"
@@ -252,8 +252,7 @@ async def test_multi_user_end_to_end_data_isolation():
     token_a = generate_test_jwt(user_a_id, email="alpha@netvigil.ai")
     token_b = generate_test_jwt(user_b_id, email="bravo@netvigil.ai")
 
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
+    if True:
         # Step 1: User A uploads a configuration
         files = {"file": ("cisco_alpha_core.cfg", CISCO_TEST_CONFIG.encode("utf-8"), "text/plain")}
         res_a_up = await client.post(
