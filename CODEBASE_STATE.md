@@ -48,7 +48,7 @@ SIH2026/
 │   │   │   │   ├── compliance/            # Compliance Engine
 │   │   │   │   │   ├── service.py         # ComplianceAuditService (run_audit)
 │   │   │   │   │   ├── evaluator.py       # RuleEvaluator
-│   │   │   │   │   └── scoring.py         # Compliance Scoring
+│   │   │   │   └── scoring.py             # Compliance Scoring
 │   │   │   │   └── risk/                  # Risk Scoring Engine
 │   │   └── tests/                         # Pytest Backend Suite
 │   └── web/                               # Next.js 14 Frontend Application
@@ -59,6 +59,9 @@ SIH2026/
 │       │   │   ├── configurations/page.tsx# Configuration viewer, line citations, diff
 │       │   │   ├── dashboard/page.tsx     # Fleet overview & executive KPIs
 │       │   │   └── remediation/page.tsx   # Remediation runbooks & CLI patches
+│       │   ├── components/
+│       │   │   └── layout/
+│       │   │       └── AppShell.tsx           # Matte-black responsive layout with collapsible sidebar
 │       │   ├── lib/
 │       │   │   ├── api.ts                 # API client, JWT injection, transient retries
 │       │   │   └── evidence-utils.ts      # Authoritative line citation & status mapping
@@ -338,4 +341,25 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * **Health Diagnostic Error Visibility (`health.py`, `schemas/health.py`)**: Added sanitized `error` field to `DatabaseHealth` reporting exact connection issues without exposing credentials.
   * **Durable Raw Content**: Database-backed `Configuration.raw_content` remains the 100% durable source of truth for AST parsing, evidence citations, and diffs across container restarts.
   * **Regression Suite**: Added fail-fast and persistence invariant tests to `apps/api/tests/test_persistence_lifecycle_and_cloud_postgres.py`. All tests pass (`100%`).
+
+### Collapsible Sidebar Implementation (September 2026)
+* **Design & Aesthetic**:
+  * Adheres strictly to the NetVigil matte-black SOC visual language (`#080808`, `#070707`, `#121212`, `#1F1F1F`, `#242424`).
+  * Smooth CSS transitions (`transition-[width] duration-200 ease-in-out`) between expanded (280px) and collapsed (68px) states.
+  * Typography bump on expanded navigation items to `text-[14px]` font-medium with `text-[11px]` font-mono section headers for optimal scannability.
+* **Collapsed Presentation**:
+  * Centered 40x40 touch targets for navigation icons.
+  * Floating tooltips on hover (`opacity-0 group-hover:opacity-100 transition-opacity z-50`) displaying route label and badges.
+  * Active route indicator maintains distinct border and background highlight (`bg-[#141414] text-[#F2F2F2] border border-[#2B2B2B]`).
+  * Bottom user profile transitions gracefully into an initialed avatar button with hover tooltip displaying full operator name and email.
+* **Responsive Layout & Space Reclamation**:
+  * Main content wrapper uses `flex-1 min-w-0 overflow-hidden` to automatically reclaim horizontal space when collapsed without page shift.
+  * Mobile/tablet breakpoints preserve drawer behavior (`w-[280px]` overlay with backdrop blur) without forcing horizontal overflow.
+* **State Persistence & Hydration Safety**:
+  * Preference persisted in `localStorage` (`netvigil_sidebar_collapsed`).
+  * Initialized safely via `isMounted` hook pattern to eliminate Next.js/React SSR/CSR hydration mismatches.
+* **Functional Safety & Verification**:
+  * Zero route, API, auth, compliance, scoring, or remediation changes.
+  * Verified: 100% web tests passed (`npm test`), TypeScript passed (`npm run typecheck`), production build succeeded across all 34 routes (`npm run build`).
+
 
