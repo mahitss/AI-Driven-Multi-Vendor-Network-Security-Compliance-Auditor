@@ -42,8 +42,12 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
     firestore_status = "connected" if (os.environ.get("GOOGLE_CLOUD_PROJECT") or AgentMemoryManager._firestore_client) else "local_memory_fallback"
     cloud_run_env = "active" if os.environ.get("K_SERVICE") else "local_development"
 
+    is_healthy = db_status == "connected"
+    if settings.ENVIRONMENT.lower() == "production" and not settings.is_persistent_database:
+        is_healthy = False
+
     return SystemHealthResponse(
-        status="healthy" if db_status == "connected" else "degraded",
+        status="healthy" if is_healthy else "degraded",
         service=settings.PROJECT_NAME,
         version=settings.VERSION,
         environment=settings.ENVIRONMENT,

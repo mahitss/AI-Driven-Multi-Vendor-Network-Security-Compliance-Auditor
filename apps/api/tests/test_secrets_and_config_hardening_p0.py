@@ -72,6 +72,7 @@ def test_c_debug_defaults_to_false_and_production_override():
         SECRET_KEY="a" * 32,
         ALLOWED_HOSTS=["api.netvigil.com"],
         CORS_ORIGINS=["https://app.netvigil.com"],
+        DATABASE_URL="postgresql://postgres:pass@db.example.com:5432/netvigil",
     )
     assert s_prod.DEBUG is False
 

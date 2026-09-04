@@ -157,13 +157,30 @@ class Settings(BaseSettings):
             val = val.replace("sslmode=", "ssl=")
         return val
 
+    @field_validator("DATABASE_URL", mode="after")
+    @classmethod
+    def validate_production_database_url(cls, v: str, info) -> str:
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        if env == "production":
+            url_lower = str(v).lower() if v else ""
+            if not v or "sqlite" in url_lower or not ("postgresql" in url_lower or "postgres" in url_lower):
+                raise ValueError(
+                    "CRITICAL CONFIGURATION ERROR: Production DATABASE_URL must be configured with persistent PostgreSQL. "
+                    "Silent fallback to ephemeral SQLite is strictly prohibited in production mode. "
+                    "Please configure DATABASE_URL (or SUPABASE_DB_URL / POSTGRES_URL) with a persistent PostgreSQL connection string "
+                    "(e.g., postgresql+asyncpg://postgres:[PASSWORD]@[HOST]:[PORT]/[DB] or Supabase / Render PostgreSQL)."
+                )
+        return v
+
     @field_validator("SYNC_DATABASE_URL", mode="before")
     @classmethod
     def assemble_sync_database_url(cls, v: str, info=None) -> str:
         async_url = info.data.get("DATABASE_URL", "") if (info is not None and getattr(info, "data", None)) else ""
-        if not v and async_url:
-            if "postgresql" in async_url:
+        if (not v or v == "sqlite:///./netvigil.db") and async_url:
+            if "postgresql" in async_url or "postgres" in async_url:
                 sync_candidate = async_url.replace("postgresql+asyncpg://", "postgresql://")
+                if sync_candidate.startswith("postgres://"):
+                    sync_candidate = sync_candidate.replace("postgres://", "postgresql://", 1)
                 if "ssl=" in sync_candidate and "sslmode=" not in sync_candidate:
                     sync_candidate = sync_candidate.replace("ssl=", "sslmode=")
                 return sync_candidate
@@ -187,6 +204,28 @@ class Settings(BaseSettings):
         if "postgresql://" in val and "ssl=" in val and "sslmode=" not in val:
             val = val.replace("ssl=", "sslmode=")
         return val
+
+    @field_validator("SYNC_DATABASE_URL", mode="after")
+    @classmethod
+    def validate_production_sync_database_url(cls, v: str, info) -> str:
+        async_url = info.data.get("DATABASE_URL", "") if (info is not None and getattr(info, "data", None)) else ""
+        if ("sqlite" in str(v).lower() or not v) and async_url and ("postgresql" in str(async_url).lower() or "postgres" in str(async_url).lower()):
+            sync_candidate = str(async_url).replace("postgresql+asyncpg://", "postgresql://")
+            if sync_candidate.startswith("postgres://"):
+                sync_candidate = sync_candidate.replace("postgres://", "postgresql://", 1)
+            if "ssl=" in sync_candidate and "sslmode=" not in sync_candidate:
+                sync_candidate = sync_candidate.replace("ssl=", "sslmode=")
+            v = sync_candidate
+
+        env = info.data.get("ENVIRONMENT", "development").lower() if info.data else "development"
+        if env == "production":
+            url_lower = str(v).lower() if v else ""
+            if not v or "sqlite" in url_lower or not ("postgresql" in url_lower or "postgres" in url_lower):
+                raise ValueError(
+                    "CRITICAL CONFIGURATION ERROR: Production SYNC_DATABASE_URL must be configured with persistent PostgreSQL. "
+                    "Silent fallback to ephemeral SQLite is strictly prohibited in production mode."
+                )
+        return v
 
     @field_validator("DEBUG", mode="before")
     @classmethod
@@ -306,12 +345,14 @@ class Settings(BaseSettings):
 
     @property
     def is_persistent_database(self) -> bool:
-        """Indicates whether DATABASE_URL is configured for a durable database engine (PostgreSQL or persistent disk SQLite)."""
+        """Indicates whether DATABASE_URL is configured for a durable database engine (PostgreSQL required in production)."""
         url = str(self.DATABASE_URL).lower()
         if "postgresql" in url or "postgres" in url:
             return True
-        if "sqlite" in url and any(p in url for p in ["/var/data", "/data", "/app/storage", "/mnt/data"]):
-            return True
+        # In non-production environments only, persistent disk mounts count as persistent
+        if self.ENVIRONMENT.lower() != "production":
+            if "sqlite" in url and any(p in url for p in ["/var/data", "/data", "/app/storage", "/mnt/data"]):
+                return True
         return False
 
     @property
@@ -320,7 +361,7 @@ class Settings(BaseSettings):
         url = str(self.DATABASE_URL).lower()
         if "postgresql" in url or "postgres" in url:
             return "persistent_postgresql"
-        if "sqlite" in url and any(p in url for p in ["/var/data", "/data", "/app/storage", "/mnt/data"]):
+        if self.ENVIRONMENT.lower() != "production" and "sqlite" in url and any(p in url for p in ["/var/data", "/data", "/app/storage", "/mnt/data"]):
             return "persistent_disk_sqlite"
         return "ephemeral_container_sqlite"
 

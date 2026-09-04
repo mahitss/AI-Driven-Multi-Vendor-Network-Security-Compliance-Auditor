@@ -98,6 +98,7 @@ def test_production_secret_key_required():
         ALLOWED_HOSTS=["api.netvigil.ai"],
         CORS_ORIGINS=["https://netvigil.ai"],
         SUPABASE_URL="https://test.supabase.co",
+        DATABASE_URL="postgresql://postgres:pass@db.example.com:5432/netvigil",
     )
     assert s.SECRET_KEY == valid_prod_key
 
@@ -137,6 +138,7 @@ def test_production_debug_forced_false():
         ALLOWED_HOSTS=["api.netvigil.ai"],
         CORS_ORIGINS=["https://netvigil.ai"],
         SUPABASE_URL="https://test.supabase.co",
+        DATABASE_URL="postgresql://postgres:pass@db.example.com:5432/netvigil",
     )
     assert s.DEBUG is False
 

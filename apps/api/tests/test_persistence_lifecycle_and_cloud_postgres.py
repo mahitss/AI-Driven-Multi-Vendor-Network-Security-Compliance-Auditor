@@ -221,3 +221,55 @@ async def test_cross_tenant_isolation_persisted(db_session: AsyncSession):
     b_telemetry = await TelemetryAggregationService.get_complete_telemetry(db_session, user_id=user_b)
     assert b_telemetry["summary"]["total_audits"] == 0
     assert b_telemetry["summary"]["total_configurations"] == 0
+
+
+def test_production_mode_rejects_missing_or_sqlite_database_url():
+    """Verify that production mode strictly rejects missing or SQLite database URLs (P0 persistence invariant)."""
+    from pydantic import ValidationError
+
+    # 1. Missing DATABASE_URL in production -> must raise ValidationError
+    with pytest.raises(ValidationError) as exc1:
+        Settings(
+            ENVIRONMENT="production",
+            SECRET_KEY="a" * 32,
+            ALLOWED_HOSTS=["api.netvigil.app"],
+            DATABASE_URL="",
+        )
+    assert "CRITICAL CONFIGURATION ERROR" in str(exc1.value)
+    assert "Production DATABASE_URL must be configured with persistent PostgreSQL" in str(exc1.value)
+
+    # 2. SQLite DATABASE_URL in production -> must raise ValidationError
+    with pytest.raises(ValidationError) as exc2:
+        Settings(
+            ENVIRONMENT="production",
+            SECRET_KEY="a" * 32,
+            ALLOWED_HOSTS=["api.netvigil.app"],
+            DATABASE_URL="sqlite+aiosqlite:///./netvigil.db",
+        )
+    assert "CRITICAL CONFIGURATION ERROR" in str(exc2.value)
+    assert "Silent fallback to ephemeral SQLite is strictly prohibited in production mode" in str(exc2.value)
+
+
+def test_production_mode_accepts_valid_postgresql_url():
+    """Verify that production mode accepts valid PostgreSQL connection strings and reports persistent=True."""
+    s = Settings(
+        ENVIRONMENT="production",
+        SECRET_KEY="a" * 32,
+        ALLOWED_HOSTS=["api.netvigil.app"],
+        DATABASE_URL="postgresql://postgres:secretpassword@db.cveymgeivgnjnwnxfveu.supabase.co:5432/postgres?sslmode=require",
+    )
+    assert s.is_persistent_database is True
+    assert s.storage_architecture_mode == "persistent_postgresql"
+    assert s.DATABASE_URL.startswith("postgresql+asyncpg://")
+    assert "ssl=require" in s.DATABASE_URL
+
+
+def test_development_mode_allows_sqlite_database():
+    """Verify that development/test mode cleanly allows SQLite database engines."""
+    s = Settings(
+        ENVIRONMENT="development",
+        DATABASE_URL="sqlite+aiosqlite:///./netvigil.db",
+    )
+    assert s.DATABASE_URL == "sqlite+aiosqlite:///./netvigil.db"
+    assert s.storage_architecture_mode == "ephemeral_container_sqlite"
+

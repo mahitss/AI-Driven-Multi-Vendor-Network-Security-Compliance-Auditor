@@ -74,6 +74,13 @@ async def lifespan(app: FastAPI):
             raise RuntimeError("CRITICAL SECURITY CONFIGURATION ERROR: Wildcard '*' in CORS_ORIGINS is strictly prohibited in production mode.")
         if settings.AUTH_ENABLED and not settings.SUPABASE_URL:
             raise RuntimeError("CRITICAL SECURITY CONFIGURATION ERROR: SUPABASE_URL must be configured in production mode when AUTH_ENABLED=True.")
+        if not settings.is_persistent_database or settings.DATABASE_URL.startswith("sqlite"):
+            raise RuntimeError(
+                "CRITICAL CONFIGURATION ERROR: Production backend requires persistent PostgreSQL. "
+                "Silent fallback to ephemeral SQLite is strictly prohibited in production mode. "
+                f"Active storage mode is '{settings.storage_architecture_mode}'. "
+                "Configure DATABASE_URL (or SUPABASE_DB_URL / POSTGRES_URL) with persistent PostgreSQL (e.g., Supabase or Render PostgreSQL)."
+            )
 
     # Create tables if not present (supports SQLite and initial Postgres setup)
     try:
@@ -93,14 +100,7 @@ async def lifespan(app: FastAPI):
     if settings.is_persistent_database:
         logger.info("Database Storage Mode: PERSISTENT EXTERNAL POSTGRESQL (All user data will survive restarts/redeploys)")
     else:
-        if settings.ENVIRONMENT.lower() == "production":
-            logger.warning(
-                "PERSISTENCE ADVISORY: Production backend is currently configured with local SQLite storage. "
-                "Container restarts on ephemeral cloud platforms will reset user data. "
-                "Configure DATABASE_URL to point to persistent PostgreSQL (e.g., Supabase or Render PostgreSQL)."
-            )
-        else:
-            logger.info("Database Storage Mode: Local SQLite Development/Evaluation Engine")
+        logger.info("Database Storage Mode: Local SQLite Development/Evaluation Engine")
 
     # Lifecycle hooks (controlled via explicit env flags)
     try:

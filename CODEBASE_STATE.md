@@ -322,3 +322,18 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
     * Verified on `02_CISCO_HARDENED.cfg` (15 rules, 60 findings, 5 PASS, 7 FAIL, 3 NA, 41.7%).
     * Verified on `04_JUNIPER_CRITICAL.set` (11 rules, 44 findings, 0 PASS, 10 FAIL, 1 NA, 0.0%).
     * Added automated regression test `test_benchmark_configs_framework_independence_and_legitimate_symmetry` to `apps/api/tests/test_framework_summary_api_consistency.py`.
+
+### P0 — Elimination of Silent Production SQLite Fallback & PostgreSQL Enforcement (September 2026)
+* **Root Cause Verification**:
+  * Live Render container diagnostic probe confirmed that the production instance ran on `ephemeral_container_sqlite` (`/app/apps/api/netvigil.db`) with `is_persistent: false` because `DATABASE_URL` was unset in Render's environment dashboard.
+  * Render destroys the container on every redeployment, wiping all audits, configurations, and findings while external Supabase Auth persisted.
+* **Production-Safe Invariant Fixes**:
+  * **Strict Production Fail-Fast (`config.py`)**: Added `validate_production_database_url` and `validate_production_sync_database_url`. When `ENVIRONMENT=production` and `DATABASE_URL` is missing or resolves to SQLite, the backend immediately raises a clear configuration exception:
+    `"CRITICAL CONFIGURATION ERROR: Production DATABASE_URL must be configured with persistent PostgreSQL. Silent fallback to ephemeral SQLite is strictly prohibited in production mode."`
+  * **Lifespan Startup Assertion (`main.py`)**: Lifespan explicitly checks `if settings.ENVIRONMENT == "production" and not settings.is_persistent_database: raise RuntimeError(...)`.
+  * **Health Check Degraded State (`health.py`)**: `/api/v1/health` marks `status="degraded"` if production is ever detected running on non-persistent storage.
+  * **Development & Test Preservation**: SQLite engines (`sqlite+aiosqlite`) remain fully supported and active when `ENVIRONMENT in ["development", "test"]`.
+  * **Automatic Sync URL Derivation**: `SYNC_DATABASE_URL` automatically derives a valid PostgreSQL sync connection string from `DATABASE_URL` for Alembic/synchronous operations.
+  * **Durable Raw Content**: Database-backed `Configuration.raw_content` remains the 100% durable source of truth for AST parsing, evidence citations, and diffs across container restarts.
+  * **Regression Suite**: Added fail-fast and persistence invariant tests to `apps/api/tests/test_persistence_lifecycle_and_cloud_postgres.py`. All tests pass (`100%`).
+
