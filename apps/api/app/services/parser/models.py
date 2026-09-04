@@ -20,7 +20,7 @@ T = TypeVar("T")
 class SecurityFact(BaseModel, Generic[T]):
     """Generic container encapsulating a security property with provenance evidence."""
 
-    value: T
+    value: Optional[T] = None
     evidence: List[str] = Field(default_factory=list, description="Verbatim raw configuration text lines")
     source_lines: List[int] = Field(default_factory=list, description="1-indexed line numbers in raw configuration")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Extraction confidence rating")

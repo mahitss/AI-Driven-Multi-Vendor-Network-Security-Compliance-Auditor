@@ -74,3 +74,63 @@ def test_fortinet_block_ast_parsing():
 
     # Unknown item captured
     assert profile.unknown_items_count >= 1
+
+
+def test_fortinet_sparse_config_validation_and_audit():
+    """
+    Regression test for 02_FORTINET_TELNET_DISABLED.conf:
+    Ensures sparse configurations with unknown/unconfigured facts (value=None)
+    serialize to JSON and deserialize via NormalizedSecurityProfile.model_validate
+    without Pydantic ValidationError or HTTP 500 exceptions.
+    """
+    from pathlib import Path
+    from app.services.parser.models import NormalizedSecurityProfile
+    from app.services.compliance.catalog import compliance_catalog
+    from app.services.compliance.evaluator import RuleEvaluator
+    from app.services.compliance.scorer import ComplianceScoringEngine
+
+    config_path = Path("data/sample-configs/benchmarks/02_FORTINET_TELNET_DISABLED.conf")
+    content = config_path.read_text(encoding="utf-8")
+
+    parser = FortinetParser()
+    profile = parser.parse(content, filename="02_FORTINET_TELNET_DISABLED.conf")
+
+    # Facts with missing directives should have value=None and status="unknown"
+    assert profile.remote_access.ssh_ciphers_secure.value is None
+    assert profile.remote_access.ssh_ciphers_secure.status == "unknown"
+    assert profile.authentication.password_encryption_enabled.value is None
+    assert profile.access_control.default_drop_inbound.value is None
+
+    # Serialization and validation cycle (must not raise ValidationError)
+    dumped = profile.model_dump(mode="json")
+    validated = NormalizedSecurityProfile.model_validate(dumped)
+    assert validated.remote_access.ssh_ciphers_secure.value is None
+
+    # Full rule evaluation cycle across standard frameworks
+    rules = compliance_catalog.get_rules_for_audit(
+        frameworks=["CIS", "NIST", "STIG", "ISO"],
+        vendor=validated.vendor,
+    )
+    assert len(rules) > 0
+
+    results = []
+    for rule in rules:
+        for fw in ["CIS", "NIST", "STIG", "ISO"]:
+            if fw in rule.framework_mappings:
+                res = RuleEvaluator.evaluate_rule(rule=rule, profile=validated, framework=fw)
+                results.append(res)
+    assert len(results) > 0
+
+    # Telnet should be evaluated as disabled / pass
+    telnet_results = [r for r in results if r.control_id == "CIS-1.2.2"]
+    assert len(telnet_results) == 1
+    assert telnet_results[0].status.value == "PASS"
+
+    # Score calculation
+    summary = ComplianceScoringEngine.calculate_scores(
+        audit_id="audit-sparse-fortinet-01",
+        configuration_id="cfg-sparse-01",
+        results=results,
+    )
+    assert summary.overall_score >= 0.0
+
