@@ -243,6 +243,40 @@ async def ingest_configuration_for_analysis(
     )
 
 
+async def _resolve_analysis_entities(
+    analysis_id: str,
+    db: DatabaseDep,
+    user_id: str,
+) -> tuple[Configuration, Optional[Audit]]:
+    """
+    Authoritatively resolves configuration and audit records whether analysis_id is a
+    Configuration.id or an Audit.id. Scoped strictly to authenticated user_id.
+    """
+    # 1. Check if analysis_id is directly an Audit.id
+    audit_stmt = select(Audit).where(Audit.id == analysis_id, Audit.user_id == user_id)
+    audit = (await db.execute(audit_stmt)).scalars().first()
+    if audit:
+        cfg_stmt = select(Configuration).where(Configuration.id == audit.configuration_id, Configuration.user_id == user_id)
+        cfg = (await db.execute(cfg_stmt)).scalars().first()
+        if cfg:
+            return cfg, audit
+
+    # 2. Check if analysis_id is a Configuration.id
+    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == user_id)
+    cfg = (await db.execute(stmt)).scalars().first()
+    if cfg:
+        latest_audit_stmt = (
+            select(Audit)
+            .where(Audit.configuration_id == cfg.id, Audit.user_id == user_id)
+            .order_by(desc(Audit.created_at))
+            .limit(1)
+        )
+        audit = (await db.execute(latest_audit_stmt)).scalars().first()
+        return cfg, audit
+
+    raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
+
+
 @router.get(
     "/{analysis_id}",
     response_model=AnalysisStatusResponse,
@@ -254,20 +288,7 @@ async def get_analysis_status(
     current_user: CurrentUserDep,
 ) -> AnalysisStatusResponse:
     """Fetch complete analysis execution state, compliance metrics, and derived risk for current user."""
-    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
-    cfg = (await db.execute(stmt)).scalars().first()
-    if not cfg:
-        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
-
-    # Fetch latest audit for this configuration
-    audit_stmt = (
-        select(Audit)
-        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
-        .order_by(desc(Audit.created_at))
-        .limit(1)
-    )
-    audit_res = await db.execute(audit_stmt)
-    audit = audit_res.scalars().first()
+    cfg, audit = await _resolve_analysis_entities(analysis_id, db, current_user.id)
 
     pass_count = 0
     fail_count = 0
@@ -343,7 +364,7 @@ async def get_analysis_status(
     else:
         ver_stmt = (
             select(Audit)
-            .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
+            .where(Audit.configuration_id == cfg.id, Audit.user_id == current_user.id)
             .order_by(desc(Audit.created_at))
         )
         all_audits = (await db.execute(ver_stmt)).scalars().all()
@@ -398,19 +419,7 @@ async def get_analysis_findings(
     status_filter: Optional[str] = Query(None, description="Filter by status (FAIL, PASS, UNKNOWN)"),
 ) -> List[FindingItem]:
     """Retrieves all evaluated control findings, evidence lines, and remediation proposals for current user."""
-    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
-    cfg = (await db.execute(stmt)).scalars().first()
-    if not cfg:
-        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
-
-    audit_stmt = (
-        select(Audit)
-        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
-        .order_by(desc(Audit.created_at))
-        .limit(1)
-    )
-    audit_res = await db.execute(audit_stmt)
-    audit = audit_res.scalars().first()
+    cfg, audit = await _resolve_analysis_entities(analysis_id, db, current_user.id)
 
     if not audit:
         return []
@@ -519,10 +528,7 @@ async def get_analysis_evidence(
     current_user: CurrentUserDep,
 ) -> List[EvidenceItem]:
     """Returns every cited configuration line mapped to its Universal Security property for current user."""
-    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
-    cfg = (await db.execute(stmt)).scalars().first()
-    if not cfg:
-        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
+    cfg, _ = await _resolve_analysis_entities(analysis_id, db, current_user.id)
 
     if not cfg.normalized_profile:
         return []
@@ -589,19 +595,7 @@ async def get_analysis_risk(
     current_user: CurrentUserDep,
 ) -> RiskAnalysisResponse:
     """Calculates deterministic risk score derived solely from active failed findings for current user."""
-    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
-    cfg = (await db.execute(stmt)).scalars().first()
-    if not cfg:
-        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
-
-    audit_stmt = (
-        select(Audit)
-        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
-        .order_by(desc(Audit.created_at))
-        .limit(1)
-    )
-    audit_res = await db.execute(audit_stmt)
-    audit = audit_res.scalars().first()
+    cfg, audit = await _resolve_analysis_entities(analysis_id, db, current_user.id)
 
     if not audit:
         return RiskAnalysisResponse(
@@ -712,18 +706,7 @@ async def generate_analysis_remediation(
     - Synthesizes safe remediated configuration text artifact
     - Zero remote device connection or automated deployment
     """
-    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
-    cfg = (await db.execute(stmt)).scalars().first()
-    if not cfg:
-        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
-
-    audit_stmt = (
-        select(Audit)
-        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
-        .order_by(desc(Audit.created_at))
-        .limit(1)
-    )
-    audit = (await db.execute(audit_stmt)).scalars().first()
+    cfg, audit = await _resolve_analysis_entities(analysis_id, db, current_user.id)
     if not audit:
         raise ResourceNotFoundError(resource="Audit for Analysis", identifier=analysis_id)
 
@@ -800,20 +783,7 @@ async def reanalyze_modified_configuration(
     - Re-evaluates controls deterministically
     - Records before-and-after finding transitions, evidence, and verification status
     """
-    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
-    cfg = (await db.execute(stmt)).scalars().first()
-    if not cfg:
-        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
-
-    # 1. Fetch previous audit stats for delta
-    prev_audit_stmt = (
-        select(Audit)
-        .where(Audit.configuration_id == analysis_id, Audit.user_id == current_user.id)
-        .order_by(desc(Audit.created_at))
-        .limit(1)
-    )
-    prev_res = await db.execute(prev_audit_stmt)
-    prev_audit = prev_res.scalars().first()
+    cfg, prev_audit = await _resolve_analysis_entities(analysis_id, db, current_user.id)
 
     new_content = (payload.modified_content or "").strip()
     if not new_content:
@@ -982,10 +952,7 @@ async def get_analysis_configuration(
     current_user: CurrentUserDep,
 ) -> Dict[str, Any]:
     """Fetches raw configuration content with line numbers for evidence inspection for current user."""
-    stmt = select(Configuration).where(Configuration.id == analysis_id, Configuration.user_id == current_user.id)
-    cfg = (await db.execute(stmt)).scalars().first()
-    if not cfg:
-        raise ResourceNotFoundError(resource="Analysis", identifier=analysis_id)
+    cfg, _ = await _resolve_analysis_entities(analysis_id, db, current_user.id)
 
     lines = (cfg.raw_content or "").splitlines()
     numbered_lines = [{"line": i + 1, "text": line} for i, line in enumerate(lines)]

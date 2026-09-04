@@ -357,6 +357,7 @@ export interface AllowlistProperty {
 
 export interface OverviewStats {
   total_configurations: number;
+  managed_assets?: number;
   total_devices: number;
   total_audits: number;
   total_findings: number;
@@ -365,6 +366,14 @@ export interface OverviewStats {
   compliance_score: number;
   risk_score: number;
   score_delta: number | null;
+  latest_audit?: {
+    id: string;
+    configuration_id?: string;
+    filename: string;
+    score: number;
+    status?: string;
+    timestamp?: string | null;
+  } | null;
   severity_breakdown: {
     critical: number;
     high: number;

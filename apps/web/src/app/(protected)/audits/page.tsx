@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShieldCheck,
@@ -51,6 +51,7 @@ import {
 } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { resolveAuthoritativeAuditId, persistActiveAuditId } from "@/lib/audit-session";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -63,6 +64,8 @@ interface ChatMessage {
 function AuditsPageContent() {
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryAuditId = searchParams.get("audit_id") || searchParams.get("auditId");
   const queryConfigId = searchParams.get("configuration_id") || searchParams.get("configurationId") || searchParams.get("configId");
@@ -114,38 +117,39 @@ function AuditsPageContent() {
     enabled: !authLoading && !!user,
   });
 
-  // Authoritative audit selection prioritizing URL query parameters (Requirement Bug 3 & 7)
+  const handleSelectAudit = (auditId: string) => {
+    setSelectedAuditId(auditId);
+    persistActiveAuditId(auditId);
+    setFindingExplanation(null);
+    setInspectingFinding(null);
+    try {
+      router.replace(`${pathname}?audit_id=${encodeURIComponent(auditId)}`, { scroll: false });
+    } catch {
+      // Fallback
+    }
+  };
+
+  // Authoritative audit selection prioritizing URL params -> localStorage -> newest audit (Bug 1, 3, 7)
   useEffect(() => {
     if (audits.length === 0) return;
 
-    // 1. Explicit auditId requested via URL
-    if (queryAuditId && audits.some((a) => a.id === queryAuditId)) {
-      if (selectedAuditId !== queryAuditId) {
-        setSelectedAuditId(queryAuditId);
-        setInspectingFinding(null);
-        setFindingExplanation(null);
-      }
-      return;
-    }
-
-    // 2. Configuration requested via URL: pick audit matching that configuration
-    if (queryConfigId) {
-      const match = audits.find((a) => a.configuration_id === queryConfigId);
-      if (match && selectedAuditId !== match.id) {
-        setSelectedAuditId(match.id);
-        setInspectingFinding(null);
-        setFindingExplanation(null);
-        return;
-      }
-    }
-
-    // 3. Fallback: first audit in list if none currently selected or current selection is invalid
-    if (!selectedAuditId || !audits.some((a) => a.id === selectedAuditId)) {
-      setSelectedAuditId(audits[0].id);
+    const authoritativeId = resolveAuthoritativeAuditId(audits, queryAuditId, queryConfigId);
+    if (authoritativeId && authoritativeId !== selectedAuditId) {
+      setSelectedAuditId(authoritativeId);
+      persistActiveAuditId(authoritativeId);
       setInspectingFinding(null);
       setFindingExplanation(null);
+
+      // Keep URL parameter synchronized
+      try {
+        if (queryAuditId !== authoritativeId) {
+          router.replace(`${pathname}?audit_id=${encodeURIComponent(authoritativeId)}`, { scroll: false });
+        }
+      } catch {
+        // Ignore
+      }
     }
-  }, [audits, queryAuditId, queryConfigId, selectedAuditId]);
+  }, [audits, queryAuditId, queryConfigId, selectedAuditId, pathname, router]);
 
   // Reset dependent finding inspector state atomically when selected audit changes (Bug 2, 7)
   useEffect(() => {
@@ -167,7 +171,10 @@ function AuditsPageContent() {
       setIsLaunchModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ["audits"] });
       queryClient.invalidateQueries({ queryKey: ["overview-stats"] });
-      setSelectedAuditId(data.audit_id);
+      queryClient.invalidateQueries({ queryKey: ["dashboard-overview-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-security-telemetry"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-active-findings"] });
+      handleSelectAudit(data.audit_id);
     },
   });
 
@@ -383,11 +390,7 @@ function AuditsPageContent() {
                   return (
                     <button
                       key={a.id}
-                      onClick={() => {
-                        setSelectedAuditId(a.id);
-                        setFindingExplanation(null);
-                        setInspectingFinding(null);
-                      }}
+                      onClick={() => handleSelectAudit(a.id)}
                       className={cn(
                         "px-3 py-1.5 rounded-md text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-2",
                         isSelected

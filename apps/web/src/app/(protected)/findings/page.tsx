@@ -62,7 +62,7 @@ function FindingsContent() {
   const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const queryParamFindingId = searchParams.get("findingId") || searchParams.get("finding");
-  const queryParamAnalysisId = searchParams.get("analysisId") || searchParams.get("analysis");
+  const queryParamAnalysisId = searchParams.get("analysisId") || searchParams.get("analysis") || searchParams.get("audit_id") || searchParams.get("auditId");
 
   const queryClient = useQueryClient();
   const evidenceContainerRef = useRef<HTMLDivElement>(null);

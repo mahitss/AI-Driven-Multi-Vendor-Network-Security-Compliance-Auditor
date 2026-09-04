@@ -166,3 +166,22 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
 * **Backend Provenance & Isolation**:
   * Added `apps/api/tests/test_evidence_provenance_ui_regression.py` validating line citation fidelity and configuration switching isolation.
   * Added `apps/web/tests/findings-audit-consistency.test.ts` with 10/10 automated regression tests.
+
+### P0 — Persistence + Security Posture Data Flow Fix (September 2026)
+* **Bug 1 (Audit Session / Selected Audit Persistence Failure)**:
+  * **Root Cause**: `audits/page.tsx` was using `window.history.replaceState` which does not update Next.js App Router `useSearchParams()`. Re-renders triggered by selection state changes re-evaluated the stale query parameter and immediately overwrote `selectedAuditId` back to the old audit.
+  * **Fix**: Integrated `useRouter()` and `usePathname()`, replacing `replaceState` with `router.replace(`${pathname}?audit_id=${id}`, { scroll: false })` to keep state and URL in complete lockstep.
+  * **Lifecycle Resolution**: Implemented `resolveAuthoritativeAuditId`: (1) Explicit URL `audit_id` -> (2) Explicit URL `configuration_id` -> (3) Non-sensitive UUID string in `localStorage` (`netvigil_active_audit_id`) -> (4) Fallback to newest valid audit (`audits[0].id`).
+  * Cross-route navigation (`/audits` -> `/findings` -> `/dashboard` -> `/audits`) and F5 refresh reliably restore the active session.
+* **Bug 2 (Security Posture Dashboard Zero / Empty Telemetry)**:
+  * **Root Cause**: Dashboard queries had `enabled: !authLoading` which fired before Supabase attached JWT headers, querying as unauthenticated/default user and caching empty metrics under `["dashboard-overview-stats"]`. Furthermore, creating audits in `/audits` only invalidated `["overview-stats"]`, leaving the dashboard cache permanently stale.
+  * **Fix**: Gated all queries with `enabled: !authLoading && !!user`, added audit query reconciliation (`hasCompletedAudits = total_audits > 0 || managed_assets > 0 || audits.length > 0`), and cross-invalidated `["dashboard-overview-stats"]`, `["dashboard-security-telemetry"]`, and `["dashboard-active-findings"]` on audit mutations.
+  * Replaced blanket `"NO TELEMETRY DATA"` with `"AUDIT TELEMETRY UNAVAILABLE"` when completed audits exist but historical time-series points have not yet accumulated.
+* **Backend Asset Deduplication & Posture Hardening**:
+  * In `apps/api/app/db/helpers.py`: Canonicalized asset identity hierarchy (`audit.device_id` -> `cfg.device_id` -> `cfg.original_filename` -> `cfg.id`) and made completion status checks case-insensitive.
+  * In `apps/api/app/api/routes/overview.py`: Canonicalized `managed_assets` to count distinct assets evaluated by completed audits, excluded `PASS` and `NOT_APPLICABLE` from `open_findings` and `critical_findings`, and added `latest_audit` metadata to cleanly separate Latest Audit from Fleet Posture.
+  * In `apps/api/app/api/routes/analysis.py`: Added `_resolve_analysis_entities` helper so all `/analysis/{analysis_id}/*` endpoints seamlessly accept either an `Audit.id` or a `Configuration.id`.
+* **Regression Verification**:
+  * Added `apps/api/tests/test_audit_persistence_and_posture_flow.py` with 8 automated pytest cases (all passing).
+  * Extended `apps/web/tests/findings-audit-consistency.test.ts` to 15/15 automated regression tests (all passing).
+

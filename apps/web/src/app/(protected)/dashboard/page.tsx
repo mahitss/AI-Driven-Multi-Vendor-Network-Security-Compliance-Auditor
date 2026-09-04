@@ -21,6 +21,7 @@ import {
   fetchOverviewStats,
   fetchFindings,
   fetchSecurityTelemetry,
+  fetchAudits,
   Finding,
 } from "@/lib/api-client";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -64,6 +65,14 @@ export default function SecurityPostureDashboard() {
   } = useQuery({
     queryKey: ["dashboard-security-telemetry", user?.id],
     queryFn: fetchSecurityTelemetry,
+    enabled: !authLoading && !!user,
+    staleTime: 15000,
+  });
+
+  // 4. Completed Audits (authoritative fleet presence)
+  const { data: audits = [] } = useQuery({
+    queryKey: ["audits", user?.id],
+    queryFn: () => fetchAudits(),
     enabled: !authLoading && !!user,
     staleTime: 15000,
   });
@@ -155,11 +164,12 @@ export default function SecurityPostureDashboard() {
     1
   );
 
+  const hasCompletedAudits = (stats?.total_audits ?? 0) > 0 || (stats?.managed_assets ?? 0) > 0 || (stats?.total_configurations ?? 0) > 0 || audits.length > 0;
   const hasTelemetryData = !!telemetry?.audit_trends && telemetry.audit_trends.length > 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 select-none font-sans">
-      {/* 1. Clean Header */}
+      {/* 1. Clean Header with Fleet vs Latest Audit Distinction */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2638] pb-3.5 bg-[#090B0F]">
         <div>
           <div className="flex items-center gap-2.5">
@@ -182,9 +192,33 @@ export default function SecurityPostureDashboard() {
             Continuous compliance evaluation, risk scoring, and security posture across evaluated assets.
           </p>
         </div>
+
+        {/* Latest Audit vs Fleet Posture indicator */}
+        {(stats as any)?.latest_audit && (
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-[10px] font-mono px-2.5 py-1 rounded-md bg-[#161B22] text-[#94A3B8] border border-[#30363D] flex items-center gap-2 shadow-sm">
+              <span className="text-[#3B82F6] font-semibold tracking-wider">LATEST AUDIT:</span>
+              <span className="text-[#F3F4F6] font-medium truncate max-w-[140px]">
+                {(stats as any).latest_audit.filename}
+              </span>
+              <span
+                className={cn(
+                  "font-bold px-1.5 py-0.5 rounded text-[10px]",
+                  (stats as any).latest_audit.score >= 80
+                    ? "bg-[#10B981]/15 text-[#10B981]"
+                    : (stats as any).latest_audit.score >= 60
+                    ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                    : "bg-[#EF4444]/15 text-[#EF4444]"
+                )}
+              >
+                {(stats as any).latest_audit.score.toFixed(1)}%
+              </span>
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* 2. Core Metrics (5 KPI Cards) */}
+      {/* 2. Core Metrics (5 KPI Cards - Fleet Posture Aggregate) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Metric 1: Fleet Compliance */}
         <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
@@ -195,11 +229,11 @@ export default function SecurityPostureDashboard() {
           <div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-[#F3F4F6] font-mono tracking-tight">
-                {isStatsError || !stats || stats.total_configurations === 0
+                {isStatsError || !stats || !hasCompletedAudits || typeof stats.compliance_score !== "number"
                   ? "—"
                   : `${stats.compliance_score.toFixed(1)}%`}
               </span>
-              {!isStatsError && stats && stats.total_configurations > 0 && stats.score_delta !== null && stats.score_delta !== undefined ? (
+              {!isStatsError && stats && hasCompletedAudits && stats.score_delta !== null && stats.score_delta !== undefined ? (
                 <span
                   className={cn(
                     "text-[10px] font-mono font-medium flex items-center gap-0.5",
@@ -213,16 +247,16 @@ export default function SecurityPostureDashboard() {
                   )}
                   {Math.abs(stats.score_delta).toFixed(1)}%
                 </span>
-              ) : !isStatsError && stats && stats.total_configurations > 0 ? (
-                <span className="text-[10px] text-[#64748B] font-mono">Baseline</span>
+              ) : !isStatsError && stats && hasCompletedAudits ? (
+                <span className="text-[10px] text-[#64748B] font-mono">Fleet Avg</span>
               ) : null}
             </div>
             <p className="text-[10px] text-[#64748B] mt-1 font-sans">
               {isStatsError
                 ? "Evaluations unavailable"
-                : stats?.total_configurations
-                ? `Evaluated on ${stats.total_configurations} config(s)`
-                : "No configurations evaluated"}
+                : hasCompletedAudits
+                ? `Fleet aggregate across ${(stats as any)?.managed_assets ?? stats?.total_configurations ?? 1} asset(s)`
+                : "No completed audits"}
             </p>
           </div>
         </div>
@@ -236,7 +270,7 @@ export default function SecurityPostureDashboard() {
           <div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold text-[#F3F4F6] font-mono tracking-tight">
-                {isStatsError || !stats || stats.total_configurations === 0 || stats.open_findings === 0
+                {isStatsError || !stats || !hasCompletedAudits || typeof stats.risk_score !== "number"
                   ? "—"
                   : Math.round(stats.risk_score)}
               </span>
@@ -245,9 +279,9 @@ export default function SecurityPostureDashboard() {
             <p className="text-[10px] text-[#64748B] mt-1 font-sans">
               {isStatsError
                 ? "Risk model unavailable"
-                : stats?.open_findings
-                ? `Weighted from ${stats.open_findings} finding(s)`
-                : "0 active findings"}
+                : (stats?.open_findings ?? 0) > 0
+                ? `Weighted across ${stats?.open_findings} open finding(s)`
+                : "0 active exposure"}
             </p>
           </div>
         </div>
@@ -294,10 +328,10 @@ export default function SecurityPostureDashboard() {
           </div>
           <div>
             <div className="text-2xl font-bold text-[#F3F4F6] font-mono tracking-tight">
-              {isStatsError ? "—" : stats?.total_configurations ?? 0}
+              {isStatsError ? "—" : (stats as any)?.managed_assets ?? stats?.total_configurations ?? 0}
             </div>
             <p className="text-[10px] text-[#64748B] mt-1 font-sans">
-              Evaluated configurations
+              Evaluated configuration assets
             </p>
           </div>
         </div>
@@ -321,16 +355,20 @@ export default function SecurityPostureDashboard() {
         ) : (
           <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs space-y-2.5">
             <Info className="w-6 h-6 text-[#64748B] mx-auto" />
-            <div className="text-sm font-bold text-[#F3F4F6]">NO TELEMETRY DATA</div>
+            <div className="text-sm font-bold text-[#F3F4F6]">
+              {hasCompletedAudits ? "AUDIT TELEMETRY UNAVAILABLE" : "NO TELEMETRY DATA"}
+            </div>
             <p className="text-[11px] text-[#64748B] max-w-sm mx-auto font-sans">
-              No audit execution records found. Ingest device configurations and run compliance audits to generate time-series telemetry.
+              {hasCompletedAudits
+                ? "Time-series trend records are syncing or unavailable for completed audit sessions."
+                : "No audit execution records found. Ingest device configurations and run compliance audits to generate time-series telemetry."}
             </p>
             <div className="pt-1">
               <Link
-                href="/configurations?mode=ingest"
+                href={hasCompletedAudits ? "/audits" : "/configurations?mode=ingest"}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141A24] hover:bg-[#1A2230] text-[#F3F4F6] border border-[#1E2638] hover:border-[#28354A] text-xs font-semibold transition-colors"
               >
-                <span>Ingest Configurations</span>
+                <span>{hasCompletedAudits ? "View Security Audits" : "Ingest Configurations"}</span>
                 <ChevronRight className="w-3 h-3 text-[#94A3B8]" />
               </Link>
             </div>

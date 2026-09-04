@@ -19,6 +19,7 @@ from app.services.compliance.catalog import compliance_catalog
 from app.services.remediation.catalog import REMEDIATION_CATALOG
 from app.services.agent.memory import AgentMemoryManager
 from app.services.telemetry.service import TelemetryAggregationService
+from app.services.risk.scoring import calculate_risk_score
 from app.db.helpers import get_latest_audits, get_latest_audit_ids
 from app.api.routes.reports import GENERATED_REPORTS
 
@@ -123,25 +124,29 @@ async def get_system_overview_stats(
     total_audits = (await db.execute(select(func.count(Audit.id)).where(Audit.user_id == current_user.id))).scalar() or 0
     total_findings_lifetime = (await db.execute(select(func.count(Finding.id)).where(Finding.user_id == current_user.id))).scalar() or 0
 
-    # Retrieve the latest audit for each unique configuration for the current user
+    # Retrieve the latest completed audit for each unique configuration for the current user
     latest_audits = await get_latest_audits(db, user_id=current_user.id)
     latest_audit_ids = [a.id for a in latest_audits if a.id]
 
-    # Active Compliance Score (Fleet average of latest audits)
+    # Posture Contract: MANAGED ASSETS = distinct evaluated configuration assets represented by completed audits
+    managed_assets = len(latest_audits)
+    effective_configs = max(total_configs, managed_assets)
+
+    # Active Compliance Score (Fleet average of latest completed audits)
     valid_scores = [a.score for a in latest_audits if a.score is not None]
     compliance_score = round(sum(valid_scores) / len(valid_scores), 1) if valid_scores else 0.0
 
-    # Active Findings & Severity breakdown
+    # Active Findings & Severity breakdown (Strictly FAIL / PARTIAL; PASS and NOT_APPLICABLE excluded)
     if latest_audit_ids:
         findings_stmt = (
             select(
                 func.count(Finding.id).label("total"),
-                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]), 1), else_=0)).label("open"),
-                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "CRITICAL"), 1), else_=0)).label("critical"),
-                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "HIGH"), 1), else_=0)).label("high"),
-                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "MEDIUM"), 1), else_=0)).label("medium"),
-                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "LOW"), 1), else_=0)).label("low"),
-                func.sum(case((Finding.status.in_(["FAIL", "PARTIAL"]) & (Finding.severity == "INFO"), 1), else_=0)).label("info"),
+                func.sum(case((func.upper(Finding.status).in_(["FAIL", "PARTIAL"]), 1), else_=0)).label("open"),
+                func.sum(case((func.upper(Finding.status).in_(["FAIL", "PARTIAL"]) & (func.upper(Finding.severity) == "CRITICAL"), 1), else_=0)).label("critical"),
+                func.sum(case((func.upper(Finding.status).in_(["FAIL", "PARTIAL"]) & (func.upper(Finding.severity) == "HIGH"), 1), else_=0)).label("high"),
+                func.sum(case((func.upper(Finding.status).in_(["FAIL", "PARTIAL"]) & (func.upper(Finding.severity) == "MEDIUM"), 1), else_=0)).label("medium"),
+                func.sum(case((func.upper(Finding.status).in_(["FAIL", "PARTIAL"]) & (func.upper(Finding.severity) == "LOW"), 1), else_=0)).label("low"),
+                func.sum(case((func.upper(Finding.status).in_(["FAIL", "PARTIAL"]) & (func.upper(Finding.severity) == "INFO"), 1), else_=0)).label("info"),
             )
             .where(Finding.audit_id.in_(latest_audit_ids))
             .where(Finding.user_id == current_user.id)
@@ -156,10 +161,22 @@ async def get_system_overview_stats(
         # Canonical identity: open_findings must strictly equal sum of severity buckets
         open_findings = crit_count + high_count + med_count + low_count + info_count
 
-        # Active Risk Score (Fleet average across latest audits)
+        # Active Risk Score (Fleet average across latest audits with deterministic fallback)
         avg_risk_stmt = select(func.avg(RiskItem.risk_score)).where(RiskItem.audit_id.in_(latest_audit_ids), RiskItem.user_id == current_user.id)
         avg_risk = (await db.execute(avg_risk_stmt)).scalar()
-        risk_score = round(float(avg_risk), 1) if avg_risk is not None else 0.0
+        if avg_risk is not None:
+            risk_score = round(float(avg_risk), 1)
+        elif open_findings > 0:
+            dom_s = "CRITICAL" if crit_count > 0 else ("HIGH" if high_count > 0 else "MEDIUM")
+            r_calc, _, _ = calculate_risk_score(
+                severity=dom_s,
+                exposure="MANAGEMENT_PLANE",
+                impact="HIGH" if dom_s in ["CRITICAL", "HIGH"] else "MEDIUM",
+                finding_count=open_findings,
+            )
+            risk_score = round(float(r_calc), 1)
+        else:
+            risk_score = 0.0
     else:
         active_total_findings = 0
         open_findings = 0
@@ -177,10 +194,18 @@ async def get_system_overview_stats(
     vendor_dist = (await db.execute(vendor_dist_stmt)).all()
     vendor_counts = {vendor: count for vendor, count in vendor_dist}
 
-    # Framework scores aggregated across latest audits
+    # Framework scores aggregated across latest completed audits
     framework_scores = {"CIS": 0.0, "NIST": 0.0, "STIG": 0.0, "ISO": 0.0}
-    latest_audits_obj_stmt = select(Audit).where(Audit.user_id == current_user.id).order_by(desc(Audit.created_at)).limit(10)
-    audits_res = await db.execute(latest_audits_obj_stmt)
+    recent_audits_stmt = (
+        select(Audit)
+        .where(
+            Audit.user_id == current_user.id,
+            or_(func.upper(Audit.status) == "COMPLETED", Audit.score.is_not(None)),
+        )
+        .order_by(desc(Audit.created_at))
+        .limit(10)
+    )
+    audits_res = await db.execute(recent_audits_stmt)
     recent_audits = list(audits_res.scalars().all())
 
     fw_accum: Dict[str, List[float]] = {"CIS": [], "NIST": [], "STIG": [], "ISO": []}
@@ -196,18 +221,29 @@ async def get_system_overview_stats(
         elif compliance_score > 0:
             framework_scores[fw] = compliance_score
 
-    # Harmonize displayed fleet compliance score with individual framework averages (equal-weight average)
-    if all(framework_scores[k] > 0 for k in ["CIS", "NIST", "STIG", "ISO"]):
-        compliance_score = round(sum(framework_scores[k] for k in ["CIS", "NIST", "STIG", "ISO"]) / 4.0, 1)
-
     # Score trend delta compared to previous audit
     score_delta = None
     if len(recent_audits) >= 2 and recent_audits[0].score is not None and recent_audits[1].score is not None:
         score_delta = round(recent_audits[0].score - recent_audits[1].score, 1)
 
+    # Latest Audit Metadata for clear UI distinction (Latest Audit vs Fleet Posture)
+    latest_completed_audit = recent_audits[0] if recent_audits else (latest_audits[0] if latest_audits else None)
+    latest_audit_data = None
+    if latest_completed_audit:
+        cfg_obj = await db.get(Configuration, latest_completed_audit.configuration_id) if latest_completed_audit.configuration_id else None
+        latest_audit_data = {
+            "id": latest_completed_audit.id,
+            "configuration_id": latest_completed_audit.configuration_id,
+            "filename": cfg_obj.original_filename if cfg_obj else (latest_completed_audit.device_id or f"Audit #{latest_completed_audit.id[:8]}"),
+            "score": round(float(latest_completed_audit.score), 1) if latest_completed_audit.score is not None else 0.0,
+            "status": latest_completed_audit.status,
+            "timestamp": (latest_completed_audit.completed_at or latest_completed_audit.created_at).isoformat() if (latest_completed_audit.completed_at or latest_completed_audit.created_at) else None,
+        }
+
     return {
-        "total_configurations": total_configs,
-        "total_devices": max(total_devices, total_configs),  # Ingested configs map to evaluated devices
+        "total_configurations": effective_configs,
+        "managed_assets": managed_assets,
+        "total_devices": max(total_devices, effective_configs),
         "total_audits": total_audits,
         "total_findings": active_total_findings,
         "open_findings": open_findings,
@@ -215,6 +251,7 @@ async def get_system_overview_stats(
         "compliance_score": compliance_score,
         "risk_score": risk_score,
         "score_delta": score_delta,
+        "latest_audit": latest_audit_data,
         "severity_breakdown": {
             "critical": crit_count,
             "high": high_count,
@@ -225,7 +262,6 @@ async def get_system_overview_stats(
         "framework_scores": framework_scores,
         "vendor_breakdown": vendor_counts,
         "supported_vendors": ["cisco", "juniper", "fortinet"],
-        "supported_frameworks": ["CIS", "NIST", "STIG", "ISO"],
     }
 
 

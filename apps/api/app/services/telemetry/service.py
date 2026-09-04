@@ -38,8 +38,10 @@ class TelemetryAggregationService:
             latest_audits = await get_latest_audits(db, user_id=user_id)
             latest_audit_ids = [a.id for a in latest_audits if a.id]
 
-            # 2. Time-Series Audit History Trends (Chronological ASC)
-            all_audits_stmt = select(Audit)
+            # 2. Time-Series Audit History Trends (Chronological ASC for completed audits)
+            all_audits_stmt = select(Audit).where(
+                or_(func.upper(Audit.status) == "COMPLETED", Audit.score.is_not(None))
+            )
             if user_id:
                 all_audits_stmt = all_audits_stmt.where(Audit.user_id == user_id)
             all_audits_stmt = all_audits_stmt.order_by(Audit.created_at.asc())
@@ -52,6 +54,14 @@ class TelemetryAggregationService:
                 all_configs_stmt = all_configs_stmt.where(Configuration.user_id == user_id)
             all_configs_res = await db.execute(all_configs_stmt)
             all_configs = {c.id: c for c in all_configs_res.scalars().all()}
+
+            # Resolve any configuration references belonging to the tenant's audits
+            needed_cfg_ids = {a.configuration_id for a in all_audits if a.configuration_id and a.configuration_id not in all_configs}
+            if needed_cfg_ids:
+                missing_cfgs_stmt = select(Configuration).where(Configuration.id.in_(needed_cfg_ids))
+                missing_cfgs_res = await db.execute(missing_cfgs_stmt)
+                for c in missing_cfgs_res.scalars().all():
+                    all_configs[c.id] = c
 
             # Load risk items lookup by audit_id
             all_risks_stmt = select(RiskItem)
@@ -432,7 +442,8 @@ class TelemetryAggregationService:
                 "remediation_distribution": remediation_distribution,
                 "summary": {
                     "total_audits": len(all_audits),
-                    "total_configurations": len(all_configs),
+                    "total_configurations": max(len(all_configs), len(latest_audits)),
+                    "managed_assets": len(latest_audits),
                     "active_open_findings": total_open_findings,
                 },
             }
