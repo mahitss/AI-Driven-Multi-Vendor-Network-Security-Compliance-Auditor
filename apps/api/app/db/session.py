@@ -15,12 +15,26 @@ from app.core.config import settings
 # Determine DB parameters
 is_sqlite = settings.DATABASE_URL.startswith("sqlite")
 
+# Common pool arguments for resilient connection management
+async_engine_kwargs: dict = {
+    "echo": settings.DB_ECHO,
+    "future": True,
+    "pool_pre_ping": True,
+}
+
+if is_sqlite:
+    async_engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    # Production PostgreSQL resilience (Supabase / Render / Cloud Run)
+    # Recycles connections every 300s to avoid firewall/NAT idle disconnects
+    async_engine_kwargs["pool_recycle"] = 300
+    async_engine_kwargs["pool_size"] = 10
+    async_engine_kwargs["max_overflow"] = 20
+
 # Async Engine for FastAPI Request Handlers
 async_engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DB_ECHO,
-    future=True,
-    connect_args={"check_same_thread": False} if is_sqlite else {},
+    **async_engine_kwargs,
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -31,11 +45,22 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
+sync_engine_kwargs: dict = {
+    "echo": settings.DB_ECHO,
+    "pool_pre_ping": True,
+}
+
+if "sqlite" in settings.SYNC_DATABASE_URL:
+    sync_engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    sync_engine_kwargs["pool_recycle"] = 300
+    sync_engine_kwargs["pool_size"] = 10
+    sync_engine_kwargs["max_overflow"] = 20
+
 # Sync Engine for Alembic & synchronous initialization
 sync_engine = create_engine(
     settings.SYNC_DATABASE_URL,
-    echo=settings.DB_ECHO,
-    connect_args={"check_same_thread": False} if "sqlite" in settings.SYNC_DATABASE_URL else {},
+    **sync_engine_kwargs,
 )
 
 SyncSessionLocal = sessionmaker(

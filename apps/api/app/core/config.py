@@ -132,27 +132,36 @@ class Settings(BaseSettings):
             return "sqlite+aiosqlite:///./netvigil.db"
         val = str(v).strip()
         if val.startswith("postgres://"):
-            return val.replace("postgres://", "postgresql+asyncpg://", 1)
-        if val.startswith("postgresql://") and not val.startswith("postgresql+asyncpg://"):
-            return val.replace("postgresql://", "postgresql+asyncpg://", 1)
+            val = val.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif val.startswith("postgresql://") and not val.startswith("postgresql+asyncpg://"):
+            val = val.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        # asyncpg requires ssl= parameter instead of libpq's sslmode=
+        if "postgresql+asyncpg://" in val and "sslmode=" in val:
+            val = val.replace("sslmode=", "ssl=")
         return val
 
     @field_validator("SYNC_DATABASE_URL", mode="before")
     @classmethod
-    def assemble_sync_database_url(cls, v: str, info) -> str:
-        async_url = info.data.get("DATABASE_URL", "") if info.data else ""
+    def assemble_sync_database_url(cls, v: str, info=None) -> str:
+        async_url = info.data.get("DATABASE_URL", "") if (info is not None and getattr(info, "data", None)) else ""
         if not v and async_url:
             if "postgresql" in async_url:
-                return async_url.replace("postgresql+asyncpg://", "postgresql://")
+                sync_candidate = async_url.replace("postgresql+asyncpg://", "postgresql://")
+                if "ssl=" in sync_candidate and "sslmode=" not in sync_candidate:
+                    sync_candidate = sync_candidate.replace("ssl=", "sslmode=")
+                return sync_candidate
             if "sqlite" in async_url:
                 return async_url.replace("sqlite+aiosqlite:///", "sqlite:///")
         if not v:
             return "sqlite:///./netvigil.db"
         val = str(v).strip()
         if val.startswith("postgres://"):
-            return val.replace("postgres://", "postgresql://", 1)
-        if val.startswith("postgresql+asyncpg://"):
-            return val.replace("postgresql+asyncpg://", "postgresql://", 1)
+            val = val.replace("postgres://", "postgresql://", 1)
+        elif val.startswith("postgresql+asyncpg://"):
+            val = val.replace("postgresql+asyncpg://", "postgresql://", 1)
+        if "postgresql://" in val and "ssl=" in val and "sslmode=" not in val:
+            val = val.replace("ssl=", "sslmode=")
         return val
 
     @field_validator("DEBUG", mode="before")
@@ -260,6 +269,12 @@ class Settings(BaseSettings):
 
         resolved.mkdir(parents=True, exist_ok=True)
         return resolved
+
+    @property
+    def is_persistent_database(self) -> bool:
+        """Indicates whether DATABASE_URL is configured for a durable external database engine (PostgreSQL)."""
+        url = str(self.DATABASE_URL).lower()
+        return "postgresql" in url or "postgres" in url
 
 
 settings = Settings()

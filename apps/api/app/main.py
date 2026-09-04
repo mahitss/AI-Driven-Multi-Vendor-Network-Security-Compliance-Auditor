@@ -89,6 +89,19 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Database schema initialization notice: {e}")
 
+    # Database Persistence Mode Verification
+    if settings.is_persistent_database:
+        logger.info("Database Storage Mode: PERSISTENT EXTERNAL POSTGRESQL (All user data will survive restarts/redeploys)")
+    else:
+        if settings.ENVIRONMENT.lower() == "production":
+            logger.warning(
+                "PERSISTENCE ADVISORY: Production backend is currently configured with local SQLite storage. "
+                "Container restarts on ephemeral cloud platforms will reset user data. "
+                "Configure DATABASE_URL to point to persistent PostgreSQL (e.g., Supabase or Render PostgreSQL)."
+            )
+        else:
+            logger.info("Database Storage Mode: Local SQLite Development/Evaluation Engine")
+
     # Lifecycle hooks (controlled via explicit env flags)
     try:
         import os

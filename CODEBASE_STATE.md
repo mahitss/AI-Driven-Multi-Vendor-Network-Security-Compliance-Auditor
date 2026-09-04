@@ -207,4 +207,20 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * Added `test_multi_framework_score_and_audit_consistency` to `apps/api/tests/test_audit_state_and_summary_consistency.py` validating 41.7% (5/12) for Cisco and 50.0% (6/12) for Fortinet.
   * Extended `apps/web/tests/findings-audit-consistency.test.ts` to 22/22 automated regression tests covering audit switching, stale detail rejection, framework card isolation, and framework denominators.
 
+### P0 — Durable User Data Persistence Across Redeploy / Restart (September 2026)
+* **Forensic Root Cause Identification**:
+  * Render web services execute inside Docker containers with ephemeral filesystems. In production, `DATABASE_URL` was falling back to local SQLite at `./netvigil.db`.
+  * On every container restart, redeployment, or idle spin-down, the container filesystem was wiped, destroying `/app/netvigil.db`.
+  * Supabase Auth retained the persistent user session, but the newly spawned SQLite database had zero records for the user, resetting the UI to a blank account.
+* **Database & Storage Resilience Hardening**:
+  * **Cloud PostgreSQL SSL & Protocol Adaptation**: In `apps/api/app/core/config.py`, updated `assemble_async_database_url` to automatically convert `postgres://` or `postgresql://` to `postgresql+asyncpg://` and translate libpq `sslmode=require` query parameters into asyncpg-compatible `ssl=require`. Updated `assemble_sync_database_url` to mirror PostgreSQL sync formats with `sslmode=require`. Added `is_persistent_database` property.
+  * **Connection Pool Resilience**: In `apps/api/app/db/session.py`, enabled `pool_pre_ping=True` and `pool_recycle=300` on both async and sync SQLAlchemy engines with `pool_size=10, max_overflow=20` to eliminate connection drops and stale connections from cloud database poolers (Supabase / Render).
+  * **Startup Schema & Persistence Verification**: In `apps/api/app/main.py`, added startup logging reporting active database engine and storage mode, plus a production persistence advisory if running on ephemeral SQLite.
+  * **Durable In-DB File Storage Fallback**: In `apps/api/app/services/ingestion/config_ingestion.py`, hardened file writing with directory creation and non-fatal fallback, guaranteeing that `raw_content` stored in PostgreSQL/SQLite remains the 100% durable source of truth.
+  * **Configuration Documentation**: Updated `.env.example` with exact production connection strings for Supabase Direct, Supabase Pooler, and Render PostgreSQL.
+* **Regression Verification**:
+  * Added `apps/api/tests/test_persistence_lifecycle_and_cloud_postgres.py` with 6 automated tests covering cloud URL assembly, SSL parameter conversion, disk write fallback, cross-tenant isolation, and engine restart persistence simulation (all passing).
+  * All 49 targeted backend tests passed.
+  * All 22 web regression tests passed; `tsc --noEmit` clean with 0 errors.
+
 

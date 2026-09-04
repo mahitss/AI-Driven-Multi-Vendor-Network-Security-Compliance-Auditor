@@ -75,13 +75,12 @@ class ConfigurationIngestionService:
 
         # Write to disk safely
         try:
+            target_path.parent.mkdir(parents=True, exist_ok=True)
             with open(target_path, "wb") as f:
                 f.write(content_bytes)
         except Exception as e:
-            logger.error(f"Failed to persist configuration file to disk: {e}")
-            raise ConfigurationUploadError(
-                message="Failed to securely store configuration file on server.",
-                details={"filename": sanitized_filename},
+            logger.warning(
+                f"Local storage disk write notice: {e}. Raw content will be durably persisted to database."
             )
 
         # Step 4: Execute Deterministic Vendor Detection
