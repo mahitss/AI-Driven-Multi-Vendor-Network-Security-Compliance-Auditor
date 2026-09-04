@@ -10,6 +10,8 @@ class DatabaseHealth(BaseModel):
     status: str = Field(..., description="Database connection status: 'connected' or 'disconnected'")
     latency_ms: Optional[float] = Field(default=None, description="Database ping round-trip latency in ms")
     engine: str = Field(..., description="Database driver/dialect in use")
+    is_persistent: bool = Field(default=False, description="True if database storage survives container restarts/redeploys")
+    storage_mode: str = Field(default="ephemeral_container_sqlite", description="Storage architecture mode")
 
 
 class SystemHealthResponse(BaseModel):

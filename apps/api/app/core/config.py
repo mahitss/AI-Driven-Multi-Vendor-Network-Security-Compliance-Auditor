@@ -129,6 +129,14 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_async_database_url(cls, v: str) -> str:
         if not v:
+            for persistent_candidate in ["/var/data", "/data", "/app/storage"]:
+                cand_path = Path(persistent_candidate)
+                try:
+                    if cand_path.exists() and cand_path.is_dir():
+                        cand_db = cand_path / "netvigil.db"
+                        return f"sqlite+aiosqlite:///{cand_db.as_posix()}"
+                except Exception:
+                    pass
             return "sqlite+aiosqlite:///./netvigil.db"
         val = str(v).strip()
         if val.startswith("postgres://"):
@@ -154,6 +162,14 @@ class Settings(BaseSettings):
             if "sqlite" in async_url:
                 return async_url.replace("sqlite+aiosqlite:///", "sqlite:///")
         if not v:
+            for persistent_candidate in ["/var/data", "/data", "/app/storage"]:
+                cand_path = Path(persistent_candidate)
+                try:
+                    if cand_path.exists() and cand_path.is_dir():
+                        cand_db = cand_path / "netvigil.db"
+                        return f"sqlite:///{cand_db.as_posix()}"
+                except Exception:
+                    pass
             return "sqlite:///./netvigil.db"
         val = str(v).strip()
         if val.startswith("postgres://"):
@@ -257,6 +273,16 @@ class Settings(BaseSettings):
         if raw_str.startswith(("/etc", "/bin", "/sbin", "/usr", "/var/run", "/root", "c:/windows", "c:/program files")):
             raise ValueError(f"STORAGE_PATH cannot be located inside sensitive system directory: {self.STORAGE_PATH}")
 
+        # Check for persistent volume mounts on container platforms
+        for candidate in ["/app/storage/uploads", "/var/data/uploads", "/data/uploads"]:
+            cand = Path(candidate)
+            try:
+                if cand.parent.exists() and cand.parent.is_dir():
+                    cand.mkdir(parents=True, exist_ok=True)
+                    return cand
+            except Exception:
+                pass
+
         raw_path = Path(self.STORAGE_PATH)
         if raw_path.is_absolute():
             resolved = raw_path.resolve()
@@ -272,9 +298,23 @@ class Settings(BaseSettings):
 
     @property
     def is_persistent_database(self) -> bool:
-        """Indicates whether DATABASE_URL is configured for a durable external database engine (PostgreSQL)."""
+        """Indicates whether DATABASE_URL is configured for a durable database engine (PostgreSQL or persistent disk SQLite)."""
         url = str(self.DATABASE_URL).lower()
-        return "postgresql" in url or "postgres" in url
+        if "postgresql" in url or "postgres" in url:
+            return True
+        if "sqlite" in url and any(p in url for p in ["/var/data", "/data", "/app/storage", "/mnt/data"]):
+            return True
+        return False
+
+    @property
+    def storage_architecture_mode(self) -> str:
+        """Human-readable description of the storage architecture."""
+        url = str(self.DATABASE_URL).lower()
+        if "postgresql" in url or "postgres" in url:
+            return "persistent_postgresql"
+        if "sqlite" in url and any(p in url for p in ["/var/data", "/data", "/app/storage", "/mnt/data"]):
+            return "persistent_disk_sqlite"
+        return "ephemeral_container_sqlite"
 
 
 settings = Settings()

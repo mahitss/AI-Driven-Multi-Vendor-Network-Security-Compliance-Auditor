@@ -237,5 +237,29 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * All web regression tests passed (`npm test`); TypeScript clean with 0 errors (`npm run typecheck`).
   * All 35 targeted backend tests passed (`pytest`).
 
-
-
+### P0 — Production Data Disappears After Every Redeploy — Fix & Verification (September 2026)
+* **Forensic Root Cause Analysis**:
+  * Live Render Health Probe (`https://ai-driven-multi-vendor-network-security.onrender.com/api/v1/health`) confirmed:
+    * `engine`: `"sqlite"`
+    * `database`: `"/app/apps/api/netvigil.db"`
+    * `storage_path`: `"/app/storage/uploads"`
+    * `is_persistent`: `false` (ephemeral container filesystem)
+  * Render's container filesystem is completely wiped and recreated on every deployment or restart.
+  * In the Render environment dashboard, `DATABASE_URL` was unset or missing, causing backend `config.py` to default to `sqlite+aiosqlite:///./netvigil.db`.
+  * Ingested configurations, raw config content, audit runs, findings, and risk items were written to the ephemeral container SQLite database.
+  * Supabase Auth runs externally and retains JWT tokens across deployments, which created the symptom: user remains logged in, but all NetVigil application data is gone.
+* **Architecture Hardening & Persistent Storage Blueprint**:
+  * **Render Blueprint (`render.yaml`)**: Added Infrastructure-as-Code blueprint defining:
+    * Managed PostgreSQL instance `netvigil-postgres` (persistent across redeploys).
+    * `DATABASE_URL` automatically injected from `netvigil-postgres` via `fromDatabase: name: netvigil-postgres, property: connectionString`.
+    * 1GB persistent disk `netvigil-storage` mounted at `/app/storage` ensuring uploaded configuration files survive redeployment.
+  * **Automatic Persistent Disk Auto-Detection**: In `apps/api/app/core/config.py`, enhanced both `assemble_async_database_url` and `assemble_sync_database_url` to inspect `/var/data`, `/data`, and `/app/storage`. When a persistent disk is mounted without an external PostgreSQL database, NetVigil automatically stores SQLite at `<mount>/netvigil.db` instead of the ephemeral container root.
+  * **Observability & Health Contract**: Exposed `is_persistent: bool` and `storage_mode: str` in `HealthResponse` schema and `/api/v1/health` route, allowing real-time forensic monitoring of production database durability.
+* **Regression & Lifecycle Verification**:
+  * Added `apps/api/tests/test_production_persistence_simulation.py`:
+    * Simulates exact 4-phase redeployment lifecycle with `02_CISCO_HARDENED.cfg`.
+    * Phase 1: Ingests config, executes compliance audit (60 findings, 41.7% score), correlates risks (13 risks).
+    * Phase 2: Destroys all in-memory connection pools, sessions, and process engines, simulating container shutdown and cold restart with idempotent table initialization.
+    * Phase 3: Spawns new engine and proves configuration record, analysis ID, SHA-256 hash (`c83b540d...`), compliance score (41.7%), findings count (60), risk count (13), and exact evidence citations survive intact.
+    * Phase 4: Proves strict tenant isolation across redeploy (User B sees 0 audits, 0 configs, 0 findings).
+  * 100% backend and frontend test suites passing (`npm test` in `apps/web`, `pytest` across all test suites).

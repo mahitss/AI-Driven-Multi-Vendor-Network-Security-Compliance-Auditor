@@ -52,6 +52,8 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
             status=db_status,
             latency_ms=latency_ms,
             engine=db_engine_name,
+            is_persistent=settings.is_persistent_database,
+            storage_mode=settings.storage_architecture_mode,
         ),
         components={
             "vendor_detector": "operational",
