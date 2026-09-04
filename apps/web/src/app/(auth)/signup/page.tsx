@@ -130,8 +130,8 @@ function SignupContent() {
 
   if (authLoading) {
     return (
-      <div className="flex flex-col justify-center items-center p-8 font-mono text-[#A7B0C0]">
-        <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0D121C] border border-[#1D2939] text-xs text-[#3B82F6]">
+      <div className="flex flex-col justify-center items-center p-8 font-mono text-[#8E8E93]">
+        <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-xs text-[#3B82F6]">
           <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
           <span>VERIFYING SOC SESSION BOUNDARY...</span>
         </div>
@@ -140,24 +140,24 @@ function SignupContent() {
   }
 
   return (
-    <div className="w-full max-w-[460px] mx-auto bg-[#0D121C] border border-[#1D2939] rounded-xl p-5 sm:p-7 shadow-2xl space-y-4">
+    <div className="w-full max-w-[460px] mx-auto bg-[#0B0B0B] border border-[#1F1F1F] rounded-xl p-5 sm:p-7 shadow-2xl space-y-4">
       {/* Header & SOC Branding */}
       <div className="text-center space-y-1.5">
         <Link
           href="/"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#111827] border border-[#3B82F6]/30 text-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:border-[#3B82F6] transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#141414] border border-[#3B82F6]/30 text-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:border-[#3B82F6] transition-colors"
         >
           <Shield className="w-5 h-5" />
         </Link>
 
         <div className="space-y-0.5 pt-1">
           <div className="flex items-center justify-center gap-2">
-            <h1 className="font-mono text-lg sm:text-xl font-bold tracking-wider text-[#F3F4F6]">NETVIGIL</h1>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#111827] text-[#3B82F6] font-mono font-semibold border border-[#3B82F6]/20">
+            <h1 className="font-mono text-lg sm:text-xl font-bold tracking-wider text-[#F2F2F2]">NETVIGIL</h1>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#141414] text-[#3B82F6] font-mono font-semibold border border-[#3B82F6]/20">
               OPERATOR REGISTRATION
             </span>
           </div>
-          <p className="text-xs text-[#A7B0C0] font-sans">
+          <p className="text-xs text-[#8E8E93] font-sans">
             Create an authorized account to access deterministic compliance auditing
           </p>
         </div>
@@ -203,12 +203,12 @@ function SignupContent() {
         <div className="space-y-1">
           <label
             htmlFor="signup-username-input"
-            className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold"
+            className="block text-[11px] text-[#8E8E93] uppercase tracking-wider font-semibold"
           >
             Username (Callsign)
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#636366]">
               <User className="w-4 h-4" />
             </div>
             <input
@@ -220,7 +220,7 @@ function SignupContent() {
               required
               autoFocus
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
             />
           </div>
         </div>
@@ -229,12 +229,12 @@ function SignupContent() {
         <div className="space-y-1">
           <label
             htmlFor="signup-email-input"
-            className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold"
+            className="block text-[11px] text-[#8E8E93] uppercase tracking-wider font-semibold"
           >
             Email Address
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#636366]">
               <Mail className="w-4 h-4" />
             </div>
             <input
@@ -245,7 +245,7 @@ function SignupContent() {
               placeholder="operator@enterprise.mil"
               required
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-sans"
+              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-sans"
             />
           </div>
         </div>
@@ -254,12 +254,12 @@ function SignupContent() {
         <div className="space-y-1">
           <label
             htmlFor="signup-password-input"
-            className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold"
+            className="block text-[11px] text-[#8E8E93] uppercase tracking-wider font-semibold"
           >
             Password (min. 6 characters)
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#636366]">
               <Lock className="w-4 h-4" />
             </div>
             <input
@@ -270,12 +270,12 @@ function SignupContent() {
               placeholder="••••••••••••"
               required
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#667085] hover:text-[#A7B0C0] transition-colors"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#636366] hover:text-[#8E8E93] transition-colors"
               tabIndex={-1}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
@@ -288,12 +288,12 @@ function SignupContent() {
         <div className="space-y-1">
           <label
             htmlFor="signup-confirm-password-input"
-            className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold"
+            className="block text-[11px] text-[#8E8E93] uppercase tracking-wider font-semibold"
           >
             Confirm Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#636366]">
               <Lock className="w-4 h-4" />
             </div>
             <input
@@ -304,7 +304,7 @@ function SignupContent() {
               placeholder="••••••••••••"
               required
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
             />
           </div>
         </div>
@@ -332,8 +332,8 @@ function SignupContent() {
 
       {/* Divider */}
       <div className="relative flex items-center justify-center !my-3">
-        <div className="border-t border-[#1D2939] w-full" />
-        <span className="bg-[#0D121C] px-3 text-[10px] font-mono text-[#667085] uppercase tracking-widest absolute">
+        <div className="border-t border-[#1F1F1F] w-full" />
+        <span className="bg-[#0B0B0B] px-3 text-[10px] font-mono text-[#636366] uppercase tracking-widest absolute">
           OR
         </span>
       </div>
@@ -345,7 +345,7 @@ function SignupContent() {
           id="google-signup-btn"
           onClick={handleGoogleLogin}
           disabled={isSubmitting || isGoogleSubmitting || authLoading}
-          className="w-full h-9 sm:h-10 px-4 rounded-lg bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] hover:border-[#3B82F6]/50 text-[#F3F4F6] text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed group shadow-sm active:scale-[0.99]"
+          className="w-full h-9 sm:h-10 px-4 rounded-lg bg-[#141414] hover:bg-[#151E2D] border border-[#1F1F1F] hover:border-[#3B82F6]/50 text-[#F2F2F2] text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed group shadow-sm active:scale-[0.99]"
         >
           {isGoogleSubmitting ? (
             <>
@@ -373,14 +373,14 @@ function SignupContent() {
                 />
               </svg>
               <span>CONTINUE WITH GOOGLE</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#667085] group-hover:text-[#3B82F6] transition-colors" />
+              <ArrowRight className="w-3.5 h-3.5 text-[#636366] group-hover:text-[#3B82F6] transition-colors" />
             </>
           )}
         </button>
       </div>
 
       {/* Signin Switcher - Clean inline link without awkward wrap */}
-      <div className="text-center text-xs font-mono text-[#A7B0C0] !my-2">
+      <div className="text-center text-xs font-mono text-[#8E8E93] !my-2">
         Already have an operator account?{" "}
         <Link
           href={`/login${rawRedirect ? `?redirectTo=${encodeURIComponent(rawRedirect)}` : ""}`}
@@ -392,12 +392,12 @@ function SignupContent() {
       </div>
 
       {/* Security Guardrails Inside-Card Footer */}
-      <div className="pt-3 border-t border-[#1D2939] flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] font-mono text-[#667085]">
+      <div className="pt-3 border-t border-[#1F1F1F] flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] font-mono text-[#636366]">
         <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
           <span>TLS 1.3 ENCRYPTED</span>
         </div>
-        <Link href="/" className="hover:text-[#A7B0C0] transition-colors">
+        <Link href="/" className="hover:text-[#8E8E93] transition-colors">
           ← Return to Landing Page
         </Link>
       </div>
@@ -409,7 +409,7 @@ export default function SignupPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex justify-center items-center p-8 font-mono text-[#A7B0C0]">
+        <div className="flex justify-center items-center p-8 font-mono text-[#8E8E93]">
           <RefreshCw className="w-5 h-5 animate-spin text-[#3B82F6]" />
         </div>
       }

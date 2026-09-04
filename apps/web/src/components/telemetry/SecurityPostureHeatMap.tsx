@@ -21,7 +21,7 @@ export default function SecurityPostureHeatMap({
 
   if (isLoading) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
+      <div className="p-8 rounded-xl bg-[#0B0B0B] border border-[#141414] text-center font-mono text-xs text-[#8E8E93] space-y-2">
         <div className="animate-pulse flex items-center justify-center gap-2">
           <div className="w-2 h-2 rounded-full bg-[#3B82F6] animate-ping" />
           <span>LOADING SECURITY HEAT MAP MATRIX...</span>
@@ -32,10 +32,10 @@ export default function SecurityPostureHeatMap({
 
   if (!matrix || matrix.length === 0) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
-        <Info className="w-6 h-6 text-[#64748B] mx-auto" />
-        <div className="text-sm font-bold text-[#F3F4F6]">Security Heat Map Unavailable</div>
-        <p className="text-[11px] text-[#64748B] max-w-sm mx-auto font-sans">
+      <div className="p-8 rounded-xl bg-[#0B0B0B] border border-[#141414] text-center font-mono text-xs text-[#8E8E93] space-y-2">
+        <Info className="w-6 h-6 text-[#636366] mx-auto" />
+        <div className="text-sm font-bold text-[#F2F2F2]">Security Heat Map Unavailable</div>
+        <p className="text-[11px] text-[#636366] max-w-sm mx-auto font-sans">
           No active network configurations evaluated yet. Upload configurations to generate the multi-vendor heat map.
         </p>
       </div>
@@ -47,7 +47,7 @@ export default function SecurityPostureHeatMap({
     { key: "HIGH", label: "High (P1)", color: "#F59E0B" },
     { key: "MEDIUM", label: "Medium (P2)", color: "#38BDF8" },
     { key: "LOW", label: "Low (P3)", color: "#10B981" },
-    { key: "INFO", label: "Info", color: "#94A3B8" },
+    { key: "INFO", label: "Info", color: "#8E8E93" },
   ] as const;
 
   const frameworkCols = [
@@ -58,12 +58,12 @@ export default function SecurityPostureHeatMap({
   ] as const;
 
   const getSeverityCellBg = (count: number, tier: string) => {
-    if (count === 0) return "bg-[#090B0F] text-[#64748B] border-[#1E2638]";
+    if (count === 0) return "bg-[#080808] text-[#636366] border-[#141414]";
     if (tier === "CRITICAL") return "bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/40 font-bold";
     if (tier === "HIGH") return "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40 font-bold";
-    if (tier === "MEDIUM") return "bg-[#141A24] text-[#93C5FD] border-[#28354A] font-semibold";
+    if (tier === "MEDIUM") return "bg-[#141414] text-[#93C5FD] border-[#2C2C2E] font-semibold";
     if (tier === "LOW") return "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30";
-    return "bg-[#111620] text-[#94A3B8] border-[#1E2638]";
+    return "bg-[#111620] text-[#8E8E93] border-[#141414]";
   };
 
   const getFrameworkCellBg = (score: number, failed: number) => {
@@ -73,30 +73,30 @@ export default function SecurityPostureHeatMap({
   };
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors space-y-4 font-mono">
+    <div className="p-4 sm:p-5 rounded-xl bg-[#0B0B0B] border border-[#141414] hover:border-[#2C2C2E] transition-colors space-y-4 font-mono">
       {/* Header & View Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2638] pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#141414] pb-3.5">
         <div>
           <div className="flex items-center gap-2">
-            <Grid className="w-4 h-4 text-[#94A3B8]" />
-            <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
+            <Grid className="w-4 h-4 text-[#8E8E93]" />
+            <span className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">
               ENTERPRISE SECURITY POSTURE HEAT MAP
             </span>
           </div>
-          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+          <p className="text-[11px] text-[#8E8E93] font-sans mt-0.5">
             Two-dimensional risk matrix mapping evaluated fleet assets against severity tiers and governance baselines.
           </p>
         </div>
 
         {/* Matrix Mode Toggle */}
-        <div className="flex items-center gap-1 bg-[#090B0F] p-1 rounded-lg border border-[#1E2638]">
+        <div className="flex items-center gap-1 bg-[#080808] p-1 rounded-lg border border-[#141414]">
           <button
             onClick={() => setMode("severity")}
             className={cn(
               "px-2.5 py-1 rounded text-[10px] font-semibold transition-all",
               mode === "severity"
-                ? "bg-[#141A24] text-[#F3F4F6] border border-[#28354A]"
-                : "text-[#94A3B8] hover:text-[#F3F4F6]"
+                ? "bg-[#141414] text-[#F2F2F2] border border-[#2C2C2E]"
+                : "text-[#8E8E93] hover:text-[#F2F2F2]"
             )}
           >
             By Severity Tier
@@ -106,8 +106,8 @@ export default function SecurityPostureHeatMap({
             className={cn(
               "px-2.5 py-1 rounded text-[10px] font-semibold transition-all",
               mode === "framework"
-                ? "bg-[#141A24] text-[#F3F4F6] border border-[#28354A]"
-                : "text-[#94A3B8] hover:text-[#F3F4F6]"
+                ? "bg-[#141414] text-[#F2F2F2] border border-[#2C2C2E]"
+                : "text-[#8E8E93] hover:text-[#F2F2F2]"
             )}
           >
             By Framework Compliance
@@ -119,7 +119,7 @@ export default function SecurityPostureHeatMap({
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-[#1E2638] text-[10px] text-[#64748B]">
+            <tr className="border-b border-[#141414] text-[10px] text-[#636366]">
               <th className="py-2 px-3 font-semibold uppercase tracking-wider min-w-[200px]">Asset &amp; Vendor</th>
               <th className="py-2 px-3 font-semibold uppercase tracking-wider text-center">Score</th>
               {mode === "severity"
@@ -135,15 +135,15 @@ export default function SecurityPostureHeatMap({
                   ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1E2638]">
+          <tbody className="divide-y divide-[#141414]">
             {matrix.map((row) => (
-              <tr key={row.configuration_id || row.hostname} className="hover:bg-[#090B0F]/50 transition-colors">
+              <tr key={row.configuration_id || row.hostname} className="hover:bg-[#080808]/50 transition-colors">
                 <td className="py-2.5 px-3">
                   <div className="flex items-center gap-2">
-                    <Server className="w-3.5 h-3.5 text-[#64748B]" />
+                    <Server className="w-3.5 h-3.5 text-[#636366]" />
                     <div>
-                      <div className="font-bold text-[#F3F4F6]">{row.hostname}</div>
-                      <div className="text-[10px] text-[#64748B] uppercase">{row.vendor}</div>
+                      <div className="font-bold text-[#F2F2F2]">{row.hostname}</div>
+                      <div className="text-[10px] text-[#636366] uppercase">{row.vendor}</div>
                     </div>
                   </div>
                 </td>

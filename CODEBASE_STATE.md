@@ -263,3 +263,36 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
     * Phase 3: Spawns new engine and proves configuration record, analysis ID, SHA-256 hash (`c83b540d...`), compliance score (41.7%), findings count (60), risk count (13), and exact evidence citations survive intact.
     * Phase 4: Proves strict tenant isolation across redeploy (User B sees 0 audits, 0 configs, 0 findings).
   * 100% backend and frontend test suites passing (`npm test` in `apps/web`, `pytest` across all test suites).
+
+### Premium UI Redesign — Matte-Black SOC Theme & Left Navbar Overhaul (September 2026)
+* **Design Philosophy & Visual Language**:
+  * Unified enterprise SOC cybersecurity aesthetic: calm, minimal, technical, professional, matte-black surfaces throughout.
+  * **Primary Palette**:
+    * Global Background: `#050505` / `#070707`
+    * Sidebar / Chrome: `#080808` / `#090909`
+    * Card Surfaces: `#0B0B0B` / `#0D0D0D`
+    * Elevated Surfaces & Modals: `#111111` / `#121212` / `#141414`
+    * Subtle Borders: `#1F1F1F` (primary), `#2C2C2E` (elevated/interactive)
+    * Typography: Primary `#F2F2F2`, Secondary `#8E8E93`, Tertiary `#636366`
+  * **Restrained Semantic Accents**:
+    * Success / Hardened: Subtle green (`#10B981`)
+    * Warning / High Risk: Subtle amber (`#F59E0B`)
+    * Critical / Fail: Restrained red (`#EF4444`)
+    * Info / Selected states: Restrained technical blue (`#3B82F6`)
+    * AI Features: Controlled violet (`#8B5CF6`)
+* **Left Navbar Overhaul (`AppShell.tsx`)**:
+  * Brand Header: `NETVIGIL` + `SOC` badge + `Security Console` subline with shield icon and health indicator dot.
+  * Information Architecture Sections:
+    * `OVERVIEW`: Security Posture (`/dashboard`)
+    * `INVESTIGATE`: Security Audits (`/audits`), Findings (`/findings`), Assets & Inventory (`/devices`)
+    * `REMEDIATION`: Remediation Center (`/remediation`)
+    * `OBSERVABILITY`: Security Time Machine (`/security-time-machine`), Audit Operations (`/operations`)
+    * `INTELLIGENCE`: Multi-Vendor Engine (`/multi-vendor`), Security Briefing (`/ai-security-briefing`)
+    * Settings (`/settings`)
+  * Integrated User Profile Area: Bottom-left compact user identity card (avatar initial, full name, email, logout action).
+  * Top App Header: Minimal breadcrumb (`NETVIGIL / <SECTION>`), search shortcut (`Ctrl K`), `INGEST` CTA, and `● OPERATIONAL` health pill.
+* **Component-Wide Retheming**:
+  * Purged all legacy navy/slate hexes across all 34 routes and 30 components.
+  * Refined `SecurityAuditsPage`, `FindingsPage`, `ConfigurationsPage`, `DashboardPage`, `DevicesPage`, and `RemediationPage`.
+  * Preserved 100% of data bindings, API contracts, evidence citation logic, deterministic risk formulas, and parser invariants.
+  * Verified: 100% Next.js routes compiled with zero errors (`npm run build`), 100% frontend regression tests passed (`npm test`), and zero backend regressions.

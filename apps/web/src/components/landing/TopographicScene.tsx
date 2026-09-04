@@ -454,7 +454,7 @@ export default function TopographicScene() {
 
           // Chip Text
           if (pn.node.isFail) {
-            ctx.fillStyle = "#A7B0C0";
+            ctx.fillStyle = "#8E8E93";
             ctx.fillText("CIS-1.2.1 / ", rectX + 8, rectY + fontSize + 1);
             const prefixW = ctx.measureText("CIS-1.2.1 / ").width;
             ctx.fillStyle = "#EF4444";

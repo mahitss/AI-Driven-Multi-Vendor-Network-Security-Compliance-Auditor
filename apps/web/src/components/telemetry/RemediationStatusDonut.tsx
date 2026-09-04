@@ -22,7 +22,7 @@ export default function RemediationStatusDonut({
 }: RemediationStatusDonutProps) {
   if (isLoading) {
     return (
-      <div className="p-6 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
+      <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#141414] text-center font-mono text-xs text-[#8E8E93] space-y-2">
         <div className="animate-pulse flex items-center justify-center gap-2">
           <div className="w-2 h-2 rounded-full bg-[#3B82F6] animate-ping" />
           <span>LOADING REMEDIATION TELEMETRY...</span>
@@ -35,10 +35,10 @@ export default function RemediationStatusDonut({
 
   if (total === 0 && applied === 0) {
     return (
-      <div className="p-6 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
-        <Info className="w-5 h-5 text-[#64748B] mx-auto" />
-        <div className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">NO REMEDIATION ACTIVITY</div>
-        <p className="text-[11px] text-[#64748B] max-w-xs mx-auto font-sans">
+      <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#141414] text-center font-mono text-xs text-[#8E8E93] space-y-2">
+        <Info className="w-5 h-5 text-[#636366] mx-auto" />
+        <div className="text-xs font-semibold text-[#F2F2F2] uppercase tracking-wider">NO REMEDIATION ACTIVITY</div>
+        <p className="text-[11px] text-[#636366] max-w-xs mx-auto font-sans">
           No remediation workflows have been generated.
         </p>
       </div>
@@ -55,17 +55,17 @@ export default function RemediationStatusDonut({
   const totalActionable = Math.max(total, applied, 1);
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors space-y-4 font-mono">
+    <div className="p-4 sm:p-5 rounded-xl bg-[#0B0B0B] border border-[#141414] hover:border-[#2C2C2E] transition-colors space-y-4 font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#1E2638] pb-3">
+      <div className="flex items-center justify-between border-b border-[#141414] pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <Wrench className="w-3.5 h-3.5 text-[#94A3B8]" />
-            <span className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+            <Wrench className="w-3.5 h-3.5 text-[#8E8E93]" />
+            <span className="text-xs font-semibold text-[#F2F2F2] uppercase tracking-wider">
               REMEDIATION &amp; PATCH LIFECYCLE
             </span>
           </div>
-          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+          <p className="text-[11px] text-[#8E8E93] font-sans mt-0.5">
             Allowlisted CLI hardening proposals and verification status.
           </p>
         </div>
@@ -84,15 +84,15 @@ export default function RemediationStatusDonut({
         {segments.map((seg) => {
           const pct = Math.round((seg.count / totalActionable) * 100);
           return (
-            <div key={seg.label} className="p-2.5 rounded-lg bg-[#090B0F] border border-[#1E2638] space-y-1.5">
+            <div key={seg.label} className="p-2.5 rounded-lg bg-[#080808] border border-[#141414] space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: seg.color }} />
-                  <span className="font-bold text-[#F3F4F6]">{seg.label}</span>
+                  <span className="font-bold text-[#F2F2F2]">{seg.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-white">{seg.count}</span>
-                  <span className="text-[10px] text-[#64748B]">({pct}%)</span>
+                  <span className="text-[10px] text-[#636366]">({pct}%)</span>
                 </div>
               </div>
 

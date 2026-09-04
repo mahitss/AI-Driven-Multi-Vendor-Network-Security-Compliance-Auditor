@@ -50,7 +50,7 @@ export async function GET(request: Request) {
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #080B12;
+      background-color: #050505;
       color: #A7B0C0;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       display: flex;
@@ -60,8 +60,8 @@ export async function GET(request: Request) {
       padding: 1rem;
     }
     .card {
-      background-color: #0D121C;
-      border: 1px solid #1D2939;
+      background-color: #0B0B0B;
+      border: 1px solid #1F1F1F;
       border-radius: 0.75rem;
       padding: 2rem;
       max-width: 26rem;
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
       gap: 0.75rem;
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid #1D2939;
+      border-bottom: 1px solid #1F1F1F;
     }
     .badge {
       font-size: 0.65rem;
@@ -103,8 +103,8 @@ export async function GET(request: Request) {
       justify-content: space-between;
       font-size: 0.75rem;
       padding: 0.5rem 0.75rem;
-      background: #080B12;
-      border: 1px solid #1D2939;
+      background: #050505;
+      border: 1px solid #1F1F1F;
       border-radius: 0.375rem;
     }
     .label { color: #667085; letter-spacing: 0.05em; }
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
     .progress-bar {
       height: 2px;
       width: 100%;
-      background: #1D2939;
+      background: #1F1F1F;
       border-radius: 2px;
       overflow: hidden;
       position: relative;

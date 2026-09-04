@@ -5,15 +5,15 @@ import { Server, ArrowRight, ShieldAlert, CheckCircle2, Layers } from "lucide-re
 
 export default function HeterogeneousProblemSection() {
   return (
-    <section id="problem" className="py-20 px-4 sm:px-6 max-w-7xl mx-auto border-t border-[#1D2939] font-sans">
+    <section id="problem" className="py-20 px-4 sm:px-6 max-w-7xl mx-auto border-t border-[#1F1F1F] font-sans">
       <div className="space-y-4 text-center max-w-3xl mx-auto mb-16">
         <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#3B82F6]">
           THE CORE DILEMMA
         </div>
-        <h2 className="text-2xl sm:text-4xl font-extrabold text-[#F3F4F6] tracking-tight">
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-[#F2F2F2] tracking-tight">
           THE NETWORK IS HETEROGENEOUS. COMPLIANCE MUST BE DETERMINISTIC.
         </h2>
-        <p className="text-xs sm:text-sm text-[#A7B0C0] leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#8E8E93] leading-relaxed">
           Critical infrastructure perimeters combine disparate proprietary syntax models.
           Raw LLMs hallucinate non-existent controls, while manual spreadsheet audits take weeks.
         </p>
@@ -23,78 +23,78 @@ export default function HeterogeneousProblemSection() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
         {/* Disparate Vendor Inputs */}
         <div className="space-y-3 font-mono">
-          <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1">
-            <div className="flex items-center justify-between text-xs font-bold text-[#F3F4F6]">
+          <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-1">
+            <div className="flex items-center justify-between text-xs font-bold text-[#F2F2F2]">
               <span className="text-[#3B82F6]">Cisco IOS-XE</span>
-              <span className="text-[10px] text-[#667085]">Indented Blocks</span>
+              <span className="text-[10px] text-[#636366]">Indented Blocks</span>
             </div>
-            <div className="text-[11px] text-[#A7B0C0] font-mono truncate">
+            <div className="text-[11px] text-[#8E8E93] font-mono truncate">
               line vty 0 4 / transport input telnet
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1">
-            <div className="flex items-center justify-between text-xs font-bold text-[#F3F4F6]">
+          <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-1">
+            <div className="flex items-center justify-between text-xs font-bold text-[#F2F2F2]">
               <span className="text-[#8B5CF6]">Juniper JunOS</span>
-              <span className="text-[10px] text-[#667085]">Hierarchical / Set</span>
+              <span className="text-[10px] text-[#636366]">Hierarchical / Set</span>
             </div>
-            <div className="text-[11px] text-[#A7B0C0] font-mono truncate">
+            <div className="text-[11px] text-[#8E8E93] font-mono truncate">
               set system services ssh protocol-version v2
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1">
-            <div className="flex items-center justify-between text-xs font-bold text-[#F3F4F6]">
+          <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-1">
+            <div className="flex items-center justify-between text-xs font-bold text-[#F2F2F2]">
               <span className="text-[#F59E0B]">Fortinet FortiOS</span>
-              <span className="text-[10px] text-[#667085]">Edit / Stanzas</span>
+              <span className="text-[10px] text-[#636366]">Edit / Stanzas</span>
             </div>
-            <div className="text-[11px] text-[#A7B0C0] font-mono truncate">
+            <div className="text-[11px] text-[#8E8E93] font-mono truncate">
               config system admin / set password ENC ...
             </div>
           </div>
         </div>
 
         {/* Normalization Engine (Center) */}
-        <div className="p-6 rounded-2xl bg-[#0D121C] border border-[#3B82F6]/30 text-center space-y-4 font-mono shadow-sm">
-          <div className="w-12 h-12 rounded-xl bg-[#111827] border border-[#3B82F6]/50 flex items-center justify-center text-[#3B82F6] mx-auto">
+        <div className="p-6 rounded-2xl bg-[#0B0B0B] border border-[#3B82F6]/30 text-center space-y-4 font-mono shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-[#141414] border border-[#3B82F6]/50 flex items-center justify-center text-[#3B82F6] mx-auto">
             <Layers className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[#F3F4F6] uppercase">
+            <h3 className="text-sm font-bold text-[#F2F2F2] uppercase">
               Universal Security Normalizer
             </h3>
-            <p className="text-[11px] text-[#A7B0C0] mt-1 font-sans">
+            <p className="text-[11px] text-[#8E8E93] mt-1 font-sans">
               Extracts and maps proprietary syntax into 8 canonical security domains.
             </p>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#111827] text-[10px] text-[#3B82F6] border border-[#3B82F6]/20">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#141414] text-[10px] text-[#3B82F6] border border-[#3B82F6]/20">
             <span>100% Deterministic AST Lexing</span>
           </div>
         </div>
 
         {/* Unified Security Baseline */}
-        <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3 font-mono">
+        <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-3 font-mono">
           <div className="flex items-center gap-2 text-xs font-bold text-[#10B981]">
             <CheckCircle2 className="w-4 h-4" />
             <span>ONE UNIFIED SECURITY BASELINE</span>
           </div>
-          <p className="text-xs text-[#A7B0C0] font-sans leading-relaxed">
+          <p className="text-xs text-[#8E8E93] font-sans leading-relaxed">
             Every vendor profile evaluates against identical catalog rules with exact source line citations:
           </p>
-          <div className="space-y-1.5 text-[11px] text-[#A7B0C0]">
-            <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] flex justify-between">
+          <div className="space-y-1.5 text-[11px] text-[#8E8E93]">
+            <div className="p-2 rounded bg-[#080808] border border-[#1F1F1F] flex justify-between">
               <span>CIS Benchmarks v2.0</span>
               <span className="text-[#3B82F6]">15 Controls</span>
             </div>
-            <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] flex justify-between">
+            <div className="p-2 rounded bg-[#080808] border border-[#1F1F1F] flex justify-between">
               <span>NIST SP 800-53 r5</span>
               <span className="text-[#8B5CF6]">15 Controls</span>
             </div>
-            <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] flex justify-between">
+            <div className="p-2 rounded bg-[#080808] border border-[#1F1F1F] flex justify-between">
               <span>DISA STIG v2r1</span>
               <span className="text-[#F59E0B]">15 Controls</span>
             </div>
-            <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] flex justify-between">
+            <div className="p-2 rounded bg-[#080808] border border-[#1F1F1F] flex justify-between">
               <span>ISO/IEC 27001:2022</span>
               <span className="text-[#10B981]">15 Controls</span>
             </div>

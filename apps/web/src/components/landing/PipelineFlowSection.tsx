@@ -71,15 +71,15 @@ const PIPELINE_STAGES = [
 
 export default function PipelineFlowSection() {
   return (
-    <section id="pipeline" className="py-20 px-4 sm:px-6 max-w-7xl mx-auto border-t border-[#1D2939] font-sans">
+    <section id="pipeline" className="py-20 px-4 sm:px-6 max-w-7xl mx-auto border-t border-[#1F1F1F] font-sans">
       <div className="space-y-3 text-center max-w-2xl mx-auto mb-16">
         <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#3B82F6]">
           END-TO-END EXECUTION
         </div>
-        <h2 className="text-2xl sm:text-4xl font-extrabold text-[#F3F4F6] tracking-tight font-sans">
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-[#F2F2F2] tracking-tight font-sans">
           HOW NETVIGIL WORKS
         </h2>
-        <p className="text-xs sm:text-sm text-[#A7B0C0]">
+        <p className="text-xs sm:text-sm text-[#8E8E93]">
           Every configuration passes through 9 deterministic stages in under 200 milliseconds.
         </p>
       </div>
@@ -90,21 +90,21 @@ export default function PipelineFlowSection() {
           return (
             <div
               key={stage.step}
-              className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-all space-y-3 relative group"
+              className="p-5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2C2C2E] transition-all space-y-3 relative group"
             >
               <div className="flex items-center justify-between">
-                <div className="w-8 h-8 rounded-lg bg-[#111827] border border-[#1D2939] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#141414] border border-[#1F1F1F] flex items-center justify-center">
                   <Icon className={`w-4 h-4 ${stage.color}`} />
                 </div>
-                <span className="text-[11px] font-bold text-[#667085] group-hover:text-[#A7B0C0] transition-colors">
+                <span className="text-[11px] font-bold text-[#636366] group-hover:text-[#8E8E93] transition-colors">
                   STAGE {stage.step}
                 </span>
               </div>
               <div>
-                <h3 className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wide">
+                <h3 className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wide">
                   {stage.title}
                 </h3>
-                <p className="text-[11px] text-[#A7B0C0] mt-1 font-sans leading-relaxed">
+                <p className="text-[11px] text-[#8E8E93] mt-1 font-sans leading-relaxed">
                   {stage.desc}
                 </p>
               </div>

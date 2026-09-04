@@ -258,59 +258,59 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
       aria-label="NetVigil Command Center"
     >
       <div
-        className="bg-[#0D121C] border border-[#1D2939] rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden font-mono text-xs flex flex-col max-h-[82vh] relative"
+        className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg w-full max-w-2xl shadow-2xl overflow-hidden font-mono text-xs flex flex-col max-h-[82vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Header Input */}
-        <div className="p-3.5 border-b border-[#1D2939] flex items-center gap-3 bg-[#080B12]">
-          <Search className="w-4 h-4 text-[#667085] shrink-0" />
+        <div className="p-3.5 border-b border-[#1F1F1F] flex items-center gap-3 bg-[#080808]">
+          <Search className="w-4 h-4 text-[#666666] shrink-0" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Search NetVigil (audits, findings, controls, configs, remediations)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none font-mono"
+            className="flex-1 bg-transparent text-[#F2F2F2] text-xs placeholder-[#555555] focus:outline-none font-mono"
           />
-          {isLoading && <RefreshCw className="w-3.5 h-3.5 text-[#3B82F6] animate-spin shrink-0" />}
+          {isLoading && <RefreshCw className="w-3.5 h-3.5 text-[#888888] animate-spin shrink-0" />}
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="text-[#667085] hover:text-[#F3F4F6] transition-colors"
+              className="text-[#666666] hover:text-[#F2F2F2] transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
-          <div className="flex items-center gap-1.5 pl-2 border-l border-[#1D2939]">
-            <kbd className="px-1.5 py-0.5 rounded bg-[#111827] text-[#667085] text-[10px] border border-[#1D2939]">
+          <div className="flex items-center gap-1.5 pl-2 border-l border-[#1F1F1F]">
+            <kbd className="px-1.5 py-0.5 rounded bg-[#141414] text-[#666666] text-[10px] border border-[#242424]">
               ESC
             </kbd>
           </div>
         </div>
 
         {/* Search Content Body */}
-        <div ref={resultsContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0D121C]">
+        <div ref={resultsContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0B0B0B]">
           {/* Query Empty State: Quick Commands & Recent Searches */}
           {!query.trim() ? (
             <div className="space-y-4">
               {/* Active Context Banner */}
               {contextAuditId && (
-                <div className="bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-lg p-3 flex items-center justify-between text-xs">
+                <div className="bg-[#121212] border border-[#242424] rounded-lg p-3 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-[#3B82F6]" />
-                    <span className="text-[#A7B0C0]">
-                      Active Inspection Context: <strong className="text-[#3B82F6]">Audit {contextAuditId.substring(0, 8)}...</strong>
+                    <Sparkles className="h-4 w-4 text-[#888888]" />
+                    <span className="text-[#A0A0A0]">
+                      Active Inspection Context: <strong className="text-[#F2F2F2]">Audit {contextAuditId.substring(0, 8)}...</strong>
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#667085] uppercase font-mono">Auto-Prioritized</span>
+                  <span className="text-[10px] text-[#555555] uppercase font-mono">Auto-Prioritized</span>
                 </div>
               )}
 
               {/* Recent Searches */}
               {recentSearches.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-[#667085] uppercase font-semibold flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-[#667085]" />
+                  <div className="text-[10px] text-[#555555] uppercase font-semibold flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-[#555555]" />
                     <span>Recent Searches</span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -318,7 +318,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                       <button
                         key={idx}
                         onClick={() => setQuery(s)}
-                        className="px-2.5 py-1 rounded bg-[#111827] hover:bg-[#151E2D] border border-[#1D2939] text-xs text-[#A7B0C0] hover:text-[#F3F4F6] transition-colors"
+                        className="px-2.5 py-1 rounded bg-[#121212] hover:bg-[#181818] border border-[#1F1F1F] text-xs text-[#A0A0A0] hover:text-[#F2F2F2] transition-colors"
                       >
                         {s}
                       </button>
@@ -329,8 +329,8 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
               {/* Navigation & System Commands */}
               <div className="space-y-2">
-                <div className="text-[10px] text-[#667085] uppercase font-semibold flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-[#3B82F6]" />
+                <div className="text-[10px] text-[#555555] uppercase font-semibold flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-[#888888]" />
                   <span>Navigation & SOC Operations</span>
                 </div>
                 <div className="grid grid-cols-1 gap-1.5">
@@ -344,8 +344,8 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939] text-[#A7B0C0]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F] text-[#A0A0A0]"
                         )}
                       >
                         <div className="flex items-center gap-3">
@@ -353,22 +353,22 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                             className={cn(
                               "p-1.5 rounded border",
                               isSelected
-                                ? "bg-[#3B82F6]/20 border-[#3B82F6]/50 text-[#3B82F6]"
-                                : "bg-[#111827] border-[#1D2939] text-[#667085]"
+                                ? "bg-[#181818] border-[#333333] text-[#F2F2F2]"
+                                : "bg-[#121212] border-[#1F1F1F] text-[#666666]"
                             )}
                           >
                             <IconComponent className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="text-[#F3F4F6] font-semibold">{action.title}</div>
-                            <div className="text-[10px] text-[#667085]">{action.subtitle}</div>
+                            <div className="text-[#F2F2F2] font-semibold">{action.title}</div>
+                            <div className="text-[10px] text-[#555555]">{action.subtitle}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-1.5 py-0.5 rounded bg-[#111827] text-[#3B82F6] border border-[#3B82F6]/30 text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-[#141414] text-[#888888] border border-[#242424] text-[10px]">
                             {action.badge}
                           </span>
-                          {isSelected && <CornerDownLeft className="w-3.5 h-3.5 text-[#3B82F6]" />}
+                          {isSelected && <CornerDownLeft className="w-3.5 h-3.5 text-[#F2F2F2]" />}
                         </div>
                       </button>
                     );
@@ -378,10 +378,10 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
             </div>
           ) : flattenedResults.length === 0 && !isLoading ? (
             /* Empty Results */
-            <div className="py-12 text-center text-[#667085] space-y-2">
-              <Search className="w-8 h-8 text-[#667085] mx-auto" />
-              <p className="text-[#A7B0C0]">No matching security records found for &quot;{query}&quot;.</p>
-              <p className="text-[11px] text-[#667085]">
+            <div className="py-12 text-center text-[#666666] space-y-2">
+              <Search className="w-8 h-8 text-[#555555] mx-auto" />
+              <p className="text-[#A0A0A0]">No matching security records found for &quot;{query}&quot;.</p>
+              <p className="text-[11px] text-[#555555]">
                 Try searching by Control ID (e.g. CIS-1.2.1), protocol (SSH, Telnet), vendor (Cisco, Juniper), or risk priority.
               </p>
             </div>
@@ -396,7 +396,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                       <AlertTriangle className="w-3.5 h-3.5" />
                       Findings ({results.categories.findings.length})
                     </span>
-                    <span className="text-[#667085] text-[9px]">Line-Level AST Proof</span>
+                    <span className="text-[#555555] text-[9px]">Line-Level AST Proof</span>
                   </div>
                   {results.categories.findings.map((item) => {
                     const globalIdx = flattenedResults.findIndex((r) => r.id === item.id);
@@ -409,14 +409,14 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div className="space-y-1 pr-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-[#3B82F6] font-bold">{item.control_id || item.title.split("—")[0]}</span>
-                            <span className="text-[#F3F4F6] font-semibold truncate max-w-sm">
+                            <span className="text-[#A0A0A0] font-bold">{item.control_id || item.title.split("—")[0]}</span>
+                            <span className="text-[#F2F2F2] font-semibold truncate max-w-sm">
                               {item.title.includes("—") ? item.title.split("—")[1] : item.title}
                             </span>
                           </div>
@@ -434,7 +434,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                                 item.severity === "CRITICAL" && "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30",
                                 item.severity === "HIGH" && "bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30",
                                 item.severity === "MEDIUM" && "bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20",
-                                item.severity === "LOW" && "bg-[#3B82F6]/15 text-[#60A5FA] border border-[#3B82F6]/30"
+                                item.severity === "LOW" && "bg-[#141414] text-[#A0A0A0] border border-[#242424]"
                               )}
                             >
                               {item.severity}
@@ -458,7 +458,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {/* Governance Controls */}
               {results.categories.controls?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-[#3B82F6] uppercase font-semibold flex items-center gap-1.5">
+                  <div className="text-[10px] text-[#888888] uppercase font-semibold flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5" />
                     <span>Governance Benchmark Controls ({results.categories.controls.length})</span>
                   </div>
@@ -473,15 +473,15 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div>
-                          <div className="text-[#F3F4F6] font-semibold">{item.title}</div>
-                          <div className="text-[10px] text-[#667085]">{item.subtitle}</div>
+                          <div className="text-[#F2F2F2] font-semibold">{item.title}</div>
+                          <div className="text-[10px] text-[#555555]">{item.subtitle}</div>
                         </div>
-                        <span className="px-2 py-0.5 rounded bg-[#111827] text-[#3B82F6] border border-[#3B82F6]/30 text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#A0A0A0] border border-[#242424] text-[10px]">
                           {item.badge}
                         </span>
                       </button>
@@ -508,13 +508,13 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div>
-                          <div className="text-[#F3F4F6] font-semibold">{item.title}</div>
-                          <div className="text-[10px] text-[#667085]">{item.subtitle}</div>
+                          <div className="text-[#F2F2F2] font-semibold">{item.title}</div>
+                          <div className="text-[10px] text-[#555555]">{item.subtitle}</div>
                         </div>
                         <span className="px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 text-[10px]">
                           {item.badge}
@@ -528,7 +528,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {/* Audits */}
               {results.categories.audits?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-[#60A5FA] uppercase font-semibold flex items-center gap-1.5">
+                  <div className="text-[10px] text-[#888888] uppercase font-semibold flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5" />
                     <span>Compliance Audits ({results.categories.audits.length})</span>
                   </div>
@@ -543,15 +543,15 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div>
-                          <div className="text-[#F3F4F6] font-semibold">{item.title}</div>
-                          <div className="text-[10px] text-[#667085]">{item.subtitle}</div>
+                          <div className="text-[#F2F2F2] font-semibold">{item.title}</div>
+                          <div className="text-[10px] text-[#555555]">{item.subtitle}</div>
                         </div>
-                        <span className="px-2 py-0.5 rounded bg-[#111827] text-[#60A5FA] border border-[#3B82F6]/30 text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#A0A0A0] border border-[#242424] text-[10px]">
                           Score: {item.badge}
                         </span>
                       </button>
@@ -578,13 +578,13 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div>
-                          <div className="text-[#F3F4F6] font-semibold">{item.title}</div>
-                          <div className="text-[10px] text-[#667085]">{item.subtitle}</div>
+                          <div className="text-[#F2F2F2] font-semibold">{item.title}</div>
+                          <div className="text-[10px] text-[#555555]">{item.subtitle}</div>
                         </div>
                         <span
                           className={cn(
@@ -620,13 +620,13 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div>
-                          <div className="text-[#F3F4F6] font-semibold">{item.title}</div>
-                          <div className="text-[10px] text-[#667085]">{item.subtitle}</div>
+                          <div className="text-[#F2F2F2] font-semibold">{item.title}</div>
+                          <div className="text-[10px] text-[#555555]">{item.subtitle}</div>
                         </div>
                         <span className="px-2 py-0.5 rounded bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/40 text-[10px]">
                           {item.badge}
@@ -655,13 +655,13 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div>
-                          <div className="text-[#F3F4F6] font-semibold">{item.title}</div>
-                          <div className="text-[10px] text-[#667085]">{item.subtitle}</div>
+                          <div className="text-[#F2F2F2] font-semibold">{item.title}</div>
+                          <div className="text-[10px] text-[#555555]">{item.subtitle}</div>
                         </div>
                         <span className="px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/40 text-[10px]">
                           {item.badge}
@@ -675,8 +675,8 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
               {/* Navigation Shortcuts */}
               {results.categories.navigation?.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[10px] text-[#667085] uppercase font-semibold flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#3B82F6]" />
+                  <div className="text-[10px] text-[#555555] uppercase font-semibold flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#888888]" />
                     <span>Navigation ({results.categories.navigation.length})</span>
                   </div>
                   {results.categories.navigation.map((item) => {
@@ -690,15 +690,15 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                         className={cn(
                           "w-full text-left p-2.5 rounded-lg border flex items-center justify-between transition-colors",
                           isSelected
-                            ? "bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[#F3F4F6]"
-                            : "bg-[#0A0F18] hover:bg-[#111827] border-[#1D2939]"
+                            ? "bg-[#141414] border-[#2A2A2A] text-[#F2F2F2]"
+                            : "bg-[#0D0D0D] hover:bg-[#121212] border-[#1F1F1F]"
                         )}
                       >
                         <div>
-                          <div className="text-[#F3F4F6] font-semibold">{item.title}</div>
-                          <div className="text-[10px] text-[#667085]">{item.subtitle}</div>
+                          <div className="text-[#F2F2F2] font-semibold">{item.title}</div>
+                          <div className="text-[10px] text-[#555555]">{item.subtitle}</div>
                         </div>
-                        <span className="px-2 py-0.5 rounded bg-[#111827] text-[#3B82F6] border border-[#3B82F6]/30 text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-[#141414] text-[#A0A0A0] border border-[#242424] text-[10px]">
                           {item.badge}
                         </span>
                       </button>
@@ -711,23 +711,23 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
         </div>
 
         {/* Command Palette Footer */}
-        <div className="p-3 border-t border-[#1D2939] bg-[#080B12] text-[10px] text-[#667085] flex items-center justify-between font-mono">
+        <div className="p-3 border-t border-[#1F1F1F] bg-[#080808] text-[10px] text-[#555555] flex items-center justify-between font-mono">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.2 rounded bg-[#111827] border border-[#1D2939] text-[#A7B0C0]">↑</kbd>
-              <kbd className="px-1 py-0.2 rounded bg-[#111827] border border-[#1D2939] text-[#A7B0C0]">↓</kbd>
+              <kbd className="px-1 py-0.2 rounded bg-[#141414] border border-[#242424] text-[#888888]">↑</kbd>
+              <kbd className="px-1 py-0.2 rounded bg-[#141414] border border-[#242424] text-[#888888]">↓</kbd>
               <span>Navigate</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.2 rounded bg-[#111827] border border-[#1D2939] text-[#A7B0C0]">↵</kbd>
+              <kbd className="px-1.5 py-0.2 rounded bg-[#141414] border border-[#242424] text-[#888888]">↵</kbd>
               <span>Select</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.2 rounded bg-[#111827] border border-[#1D2939] text-[#A7B0C0]">ESC</kbd>
+              <kbd className="px-1.5 py-0.2 rounded bg-[#141414] border border-[#242424] text-[#888888]">ESC</kbd>
               <span>Close</span>
             </span>
           </div>
-          <span className="text-[#667085]">NetVigil Global Command Center</span>
+          <span className="text-[#555555]">NetVigil Global Command Center</span>
         </div>
       </div>
     </div>

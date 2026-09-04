@@ -47,23 +47,23 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="w-full max-w-[460px] mx-auto bg-[#0D121C] border border-[#1D2939] rounded-xl p-5 sm:p-7 shadow-2xl space-y-4">
+    <div className="w-full max-w-[460px] mx-auto bg-[#0B0B0B] border border-[#1F1F1F] rounded-xl p-5 sm:p-7 shadow-2xl space-y-4">
       <div className="text-center space-y-1.5">
         <Link
           href="/"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#111827] border border-[#3B82F6]/30 text-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:border-[#3B82F6] transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#141414] border border-[#3B82F6]/30 text-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:border-[#3B82F6] transition-colors"
         >
           <Shield className="w-5 h-5" />
         </Link>
 
         <div className="space-y-0.5 pt-1">
           <div className="flex items-center justify-center gap-2">
-            <h1 className="font-mono text-lg sm:text-xl font-bold tracking-wider text-[#F3F4F6]">NETVIGIL</h1>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#111827] text-[#3B82F6] font-mono font-semibold border border-[#3B82F6]/20">
+            <h1 className="font-mono text-lg sm:text-xl font-bold tracking-wider text-[#F2F2F2]">NETVIGIL</h1>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#141414] text-[#3B82F6] font-mono font-semibold border border-[#3B82F6]/20">
               CREDENTIAL UPDATE
             </span>
           </div>
-          <p className="text-xs text-[#A7B0C0] font-sans">
+          <p className="text-xs text-[#8E8E93] font-sans">
             Set a new secure access password for your operator account
           </p>
         </div>
@@ -93,11 +93,11 @@ function ResetPasswordContent() {
 
           <form onSubmit={handleSubmit} className="space-y-3 font-mono text-xs">
             <div className="space-y-1">
-              <label className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold">
+              <label className="block text-[11px] text-[#8E8E93] uppercase tracking-wider font-semibold">
                 New Password (min. 6 chars)
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#636366]">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -108,12 +108,12 @@ function ResetPasswordContent() {
                   required
                   autoFocus
                   disabled={isSubmitting}
-                  className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+                  className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#667085] hover:text-[#A7B0C0] transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#636366] hover:text-[#8E8E93] transition-colors"
                   tabIndex={-1}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
@@ -123,11 +123,11 @@ function ResetPasswordContent() {
             </div>
 
             <div className="space-y-1">
-              <label className="block text-[11px] text-[#A7B0C0] uppercase tracking-wider font-semibold">
+              <label className="block text-[11px] text-[#8E8E93] uppercase tracking-wider font-semibold">
                 Confirm New Password
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#667085]">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#636366]">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -137,7 +137,7 @@ function ResetPasswordContent() {
                   placeholder="••••••••••••"
                   required
                   disabled={isSubmitting}
-                  className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080B12] border border-[#1D2939] focus:border-[#3B82F6] text-[#F3F4F6] text-xs placeholder-[#667085] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+                  className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
                 />
               </div>
             </div>
@@ -160,18 +160,18 @@ function ResetPasswordContent() {
         </>
       )}
 
-      <div className="text-center text-xs font-mono text-[#A7B0C0] !my-2">
+      <div className="text-center text-xs font-mono text-[#8E8E93] !my-2">
         <Link href="/login" className="text-[#3B82F6] hover:underline">
           ← Return to Sign In
         </Link>
       </div>
 
-      <div className="pt-3 border-t border-[#1D2939] flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] font-mono text-[#667085]">
+      <div className="pt-3 border-t border-[#1F1F1F] flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] font-mono text-[#636366]">
         <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
           <span>AUTHENTICATED RECOVERY FLOW</span>
         </div>
-        <Link href="/" className="hover:text-[#A7B0C0] transition-colors">
+        <Link href="/" className="hover:text-[#8E8E93] transition-colors">
           ← Return to Landing Page
         </Link>
       </div>
@@ -183,7 +183,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex justify-center items-center p-8 font-mono text-[#A7B0C0]">
+        <div className="flex justify-center items-center p-8 font-mono text-[#8E8E93]">
           <RefreshCw className="w-5 h-5 animate-spin text-[#3B82F6]" />
         </div>
       }

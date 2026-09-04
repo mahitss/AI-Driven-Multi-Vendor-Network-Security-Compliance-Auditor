@@ -83,13 +83,13 @@ export default function GoldenDemoPresenterPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
       {/* Header Banner */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
         <div>
           <div className="flex items-center gap-2 mb-1.5 font-mono">
-            <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#080B12] text-[#3B82F6] border border-[#3B82F6]/30">
+            <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#050505] text-[#3B82F6] border border-[#3B82F6]/30">
               SECURITY INTELLIGENCE
             </span>
-            <span className="px-2.5 py-0.5 rounded text-[11px] bg-[#080B12] text-[#10B981] border border-[#10B981]/30">
+            <span className="px-2.5 py-0.5 rounded text-[11px] bg-[#050505] text-[#10B981] border border-[#10B981]/30">
               PIPELINE INSPECTOR
             </span>
           </div>
@@ -105,7 +105,7 @@ export default function GoldenDemoPresenterPage() {
         <div className="flex items-center gap-2 font-mono">
           <Link
             href="/demo/multi-vendor"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#080B12] hover:bg-[#111827] text-[#A7B0C0] hover:text-white border border-[#1D2939] text-xs font-semibold transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#050505] hover:bg-[#111827] text-[#A7B0C0] hover:text-white border border-[#1F1F1F] text-xs font-semibold transition-all"
           >
             <Layers className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>Multi-Vendor Engine →</span>
@@ -131,7 +131,7 @@ export default function GoldenDemoPresenterPage() {
               setAfterLearningScore(null);
               setActiveStep(1);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#080B12] hover:bg-[#111827] text-[#A7B0C0] hover:text-white text-xs font-medium border border-[#1D2939]"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#050505] hover:bg-[#111827] text-[#A7B0C0] hover:text-white text-xs font-medium border border-[#1F1F1F]"
             title="Reset demo state"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -143,37 +143,37 @@ export default function GoldenDemoPresenterPage() {
       {/* Latency & Diagnostics Benchmarks */}
       {demoState && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-mono">
-          <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+          <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F]">
             <div className="text-[10px] text-[#667085] uppercase">Ingestion & Hash</div>
             <div className="text-base font-bold text-[#3B82F6] mt-0.5">
               {demoState.pipeline_latency.ingestion_ms} ms
             </div>
           </div>
-          <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+          <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F]">
             <div className="text-[10px] text-[#667085] uppercase">AST & Normalizer</div>
             <div className="text-base font-bold text-[#8B5CF6] mt-0.5">
               {demoState.pipeline_latency.parsing_and_normalization_ms} ms
             </div>
           </div>
-          <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+          <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F]">
             <div className="text-[10px] text-[#667085] uppercase">Compliance (60 Rules)</div>
             <div className="text-base font-bold text-[#10B981] mt-0.5">
               {demoState.pipeline_latency.compliance_evaluation_ms} ms
             </div>
           </div>
-          <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+          <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F]">
             <div className="text-[10px] text-[#667085] uppercase">Risk Correlator</div>
             <div className="text-base font-bold text-[#F59E0B] mt-0.5">
               {demoState.pipeline_latency.risk_scoring_ms} ms
             </div>
           </div>
-          <div className="p-3 rounded-lg bg-[#0D121C] border border-[#1D2939]">
+          <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F]">
             <div className="text-[10px] text-[#667085] uppercase">Remediation Diffs</div>
             <div className="text-base font-bold text-[#8B5CF6] mt-0.5">
               {demoState.pipeline_latency.remediation_diff_ms} ms
             </div>
           </div>
-          <div className="p-3 rounded-lg bg-[#0D121C] border border-[#3B82F6]/40">
+          <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#3B82F6]/40">
             <div className="text-[10px] text-[#3B82F6] font-semibold uppercase">Total Pipeline</div>
             <div className="text-base font-bold text-[#F3F4F6] mt-0.5">
               {demoState.pipeline_latency.total_ms} ms
@@ -183,7 +183,7 @@ export default function GoldenDemoPresenterPage() {
       )}
 
       {/* Stepper Navigation */}
-      <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+      <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
         <div className="text-xs font-semibold uppercase tracking-wider text-[#667085] mb-3 flex items-center justify-between font-mono">
           <span>Demo Lifecycle Stages</span>
           <span className="text-[#3B82F6]">Stage {activeStep} of 10</span>
@@ -200,8 +200,8 @@ export default function GoldenDemoPresenterPage() {
                   isCurrent
                     ? "bg-[#111827] border-[#3B82F6] text-white"
                     : isCompleted
-                    ? "bg-[#080B12] border-[#10B981]/40 text-[#A7B0C0]"
-                    : "bg-[#080B12] border-[#1D2939] text-[#667085] hover:text-white"
+                    ? "bg-[#050505] border-[#10B981]/40 text-[#A7B0C0]"
+                    : "bg-[#050505] border-[#1F1F1F] text-[#667085] hover:text-white"
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
@@ -219,8 +219,8 @@ export default function GoldenDemoPresenterPage() {
 
       {/* Main Interactive Stage Presentation */}
       {!demoState ? (
-        <div className="p-12 text-center rounded-xl bg-[#0D121C] border border-dashed border-[#1D2939] space-y-4 font-mono">
-          <div className="w-16 h-16 rounded-xl bg-[#080B12] border border-[#1D2939] text-[#3B82F6] flex items-center justify-center mx-auto">
+        <div className="p-12 text-center rounded-xl bg-[#0B0B0B] border border-dashed border-[#1F1F1F] space-y-4 font-mono">
+          <div className="w-16 h-16 rounded-xl bg-[#050505] border border-[#1F1F1F] text-[#3B82F6] flex items-center justify-center mx-auto">
             <Play className="w-8 h-8 fill-[#3B82F6] text-[#3B82F6]" />
           </div>
           <div>
@@ -242,8 +242,8 @@ export default function GoldenDemoPresenterPage() {
           {/* Left 2 Columns: Active Stage Card */}
           <div className="lg:col-span-2 space-y-6">
             {/* Active Stage Detail */}
-            <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-6">
-              <div className="flex items-center justify-between border-b border-[#1D2939] pb-4">
+            <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-6">
+              <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-4">
                 <div>
                   <span className="text-xs font-mono text-[#3B82F6] uppercase">Stage 0{activeStep}</span>
                   <h2 className="text-xl font-bold text-[#F3F4F6] mt-0.5 font-sans">
@@ -254,7 +254,7 @@ export default function GoldenDemoPresenterPage() {
                   <button
                     disabled={activeStep <= 1}
                     onClick={() => setActiveStep((p) => Math.max(1, p - 1))}
-                    className="px-3 py-1.5 rounded bg-[#080B12] hover:bg-[#111827] text-xs font-medium text-[#A7B0C0] border border-[#1D2939] disabled:opacity-30"
+                    className="px-3 py-1.5 rounded bg-[#050505] hover:bg-[#111827] text-xs font-medium text-[#A7B0C0] border border-[#1F1F1F] disabled:opacity-30"
                   >
                     Previous
                   </button>
@@ -274,7 +274,7 @@ export default function GoldenDemoPresenterPage() {
                   <p className="text-sm text-[#A7B0C0]">
                     NetVigil securely ingests the raw configuration file <code className="text-[#3B82F6] font-mono">cisco-core-router.cfg</code>, sanitizes against path-traversal attacks, and calculates cryptographic SHA-256 digest in isolated disk storage.
                   </p>
-                  <div className="p-4 rounded-lg bg-[#080B12] font-mono text-xs text-[#A7B0C0] border border-[#1D2939] space-y-1">
+                  <div className="p-4 rounded-lg bg-[#050505] font-mono text-xs text-[#A7B0C0] border border-[#1F1F1F] space-y-1">
                     <div className="text-[#3B82F6]"># Ingestion Metadata</div>
                     <div>Device: <span className="text-[#F3F4F6] font-bold">{demoState.device_name}</span></div>
                     <div>Detected Vendor: <span className="text-[#10B981] font-bold">{demoState.vendor.toUpperCase()}</span></div>
@@ -290,15 +290,15 @@ export default function GoldenDemoPresenterPage() {
                     Deterministic signature engine matches Cisco IOS directives (<code className="text-[#3B82F6] font-mono">service password-encryption</code>, <code className="text-[#3B82F6] font-mono">line vty</code>, <code className="text-[#3B82F6] font-mono">aaa new-model</code>) with 99% confidence in &lt;2 milliseconds.
                   </p>
                   <div className="grid grid-cols-3 gap-3 font-mono">
-                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#10B981]/40">
+                    <div className="p-3 rounded-lg bg-[#050505] border border-[#10B981]/40">
                       <div className="text-xs text-[#10B981] font-semibold">Cisco IOS</div>
                       <div className="text-lg font-bold text-[#F3F4F6]">99% Match</div>
                     </div>
-                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                    <div className="p-3 rounded-lg bg-[#050505] border border-[#1F1F1F]">
                       <div className="text-xs text-[#667085] font-semibold">Juniper JunOS</div>
                       <div className="text-lg font-bold text-[#667085]">0%</div>
                     </div>
-                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                    <div className="p-3 rounded-lg bg-[#050505] border border-[#1F1F1F]">
                       <div className="text-xs text-[#667085] font-semibold">Fortinet FortiOS</div>
                       <div className="text-lg font-bold text-[#667085]">0%</div>
                     </div>
@@ -312,13 +312,13 @@ export default function GoldenDemoPresenterPage() {
                     The AST parser translates proprietary vendor syntax into our canonical 8-domain Universal Security Model.
                   </p>
                   <div className="grid grid-cols-2 gap-4 font-mono text-xs">
-                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#EF4444]/40 space-y-1">
+                    <div className="p-3 rounded-lg bg-[#050505] border border-[#EF4444]/40 space-y-1">
                       <div className="text-[#EF4444] font-bold">Raw Cisco CLI</div>
                       <div className="text-[#A7B0C0]">ip ssh version 1</div>
                       <div className="text-[#A7B0C0]">transport input telnet ssh</div>
                       <div className="text-[#A7B0C0]">no service password-encryption</div>
                     </div>
-                    <div className="p-3 rounded-lg bg-[#080B12] border border-[#10B981]/40 space-y-1">
+                    <div className="p-3 rounded-lg bg-[#050505] border border-[#10B981]/40 space-y-1">
                       <div className="text-[#10B981] font-bold">Universal Security Model</div>
                       <div className="text-[#A7B0C0]">remote_access.ssh_version = 1</div>
                       <div className="text-[#A7B0C0]">remote_access.telnet_enabled = true</div>
@@ -335,7 +335,7 @@ export default function GoldenDemoPresenterPage() {
                   </p>
                   <div className="grid grid-cols-4 gap-3 font-mono">
                     {Object.entries(demoState.framework_scores).map(([fw, score]) => (
-                      <div key={fw} className="p-3 rounded-lg bg-[#080B12] border border-[#1D2939] text-center">
+                      <div key={fw} className="p-3 rounded-lg bg-[#050505] border border-[#1F1F1F] text-center">
                         <div className="text-xs text-[#667085] font-semibold">{fw}</div>
                         <div className="text-xl font-bold text-[#F3F4F6] mt-1">{score}%</div>
                       </div>
@@ -349,7 +349,7 @@ export default function GoldenDemoPresenterPage() {
                   <p className="text-sm text-[#A7B0C0]">
                     NetVigil provides verbatim line citations and observed vs expected values for every finding.
                   </p>
-                  <div className="p-4 rounded-lg bg-[#080B12] border border-[#EF4444]/40 space-y-2">
+                  <div className="p-4 rounded-lg bg-[#050505] border border-[#EF4444]/40 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-[#EF4444] flex items-center gap-1.5">
                         <ShieldAlert className="w-4 h-4" /> CIS-1.1.2: Insecure Telnet Service Enabled
@@ -358,7 +358,7 @@ export default function GoldenDemoPresenterPage() {
                         CRITICAL ●
                       </span>
                     </div>
-                    <div className="font-mono text-xs text-[#A7B0C0] p-2.5 rounded bg-[#0D121C] border border-[#1D2939]">
+                    <div className="font-mono text-xs text-[#A7B0C0] p-2.5 rounded bg-[#0B0B0B] border border-[#1F1F1F]">
                       <span className="text-[#667085]">Line 28: </span>transport input telnet ssh
                     </div>
                     <div className="text-xs text-[#A7B0C0] flex items-center justify-between font-mono">
@@ -374,7 +374,7 @@ export default function GoldenDemoPresenterPage() {
                   <p className="text-sm text-[#A7B0C0]">
                     The Risk Intelligence Engine aggregates individual findings into correlated, prioritized risks (P0 to P3).
                   </p>
-                  <div className="p-4 rounded-lg bg-[#080B12] border border-[#F59E0B]/40 space-y-2">
+                  <div className="p-4 rounded-lg bg-[#050505] border border-[#F59E0B]/40 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-bold text-[#F3F4F6]">Unencrypted Administrative Access Exposure</span>
                       <span className="px-2.5 py-0.5 rounded text-xs bg-[#111827] text-[#EF4444] border border-[#EF4444]/40 font-bold font-mono">
@@ -396,7 +396,7 @@ export default function GoldenDemoPresenterPage() {
                   <p className="text-sm text-[#A7B0C0]">
                     Vendor-specific remediation with visual diffs and strict **Zero Automated Execution Policy**.
                   </p>
-                  <div className="p-4 rounded-lg bg-[#080B12] border border-[#8B5CF6]/40 space-y-2 font-mono text-xs">
+                  <div className="p-4 rounded-lg bg-[#050505] border border-[#8B5CF6]/40 space-y-2 font-mono text-xs">
                     <div className="text-[#8B5CF6] font-bold">Allowlisted Remediation CLI (Cisco IOS)</div>
                     <div className="text-[#EF4444]">- transport input telnet ssh</div>
                     <div className="text-[#10B981]">+ transport input ssh</div>
@@ -410,7 +410,7 @@ export default function GoldenDemoPresenterPage() {
                   <p className="text-sm text-[#A7B0C0]">
                     AI Audit Co-Pilot provides evidence-grounded explanations without altering compliance scores.
                   </p>
-                  <div className="p-4 rounded-lg bg-[#080B12] border border-[#8B5CF6]/40 space-y-2">
+                  <div className="p-4 rounded-lg bg-[#050505] border border-[#8B5CF6]/40 space-y-2">
                     <div className="flex items-center gap-2 text-xs font-bold text-[#8B5CF6] font-mono">
                       <Bot className="w-4 h-4" /> AI ADVISORY (Grounded in Verified Lines)
                     </div>
@@ -426,7 +426,7 @@ export default function GoldenDemoPresenterPage() {
                   <p className="text-sm text-[#A7B0C0]">
                     Hero Feature: Learning unseen vendor directives with Human-in-the-Loop approval and property allowlists.
                   </p>
-                  <div className="p-4 rounded-lg bg-[#080B12] border border-[#10B981]/40 space-y-3 font-mono text-xs">
+                  <div className="p-4 rounded-lg bg-[#050505] border border-[#10B981]/40 space-y-3 font-mono text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-[#F59E0B]">Unknown Directive: control-plane policing policy-map COPP_MGMT_POLICY</span>
                       <span className="px-2 py-0.5 rounded text-[10px] bg-[#111827] text-[#F59E0B] border border-[#F59E0B]/30">Pending Review</span>
@@ -437,7 +437,7 @@ export default function GoldenDemoPresenterPage() {
                     <button
                       onClick={handleSimulateAdaptiveLearning}
                       disabled={isSimulatingLearning || learningApplied}
-                      className="px-4 py-2 rounded-lg bg-[#0D121C] border border-[#10B981]/50 hover:border-[#10B981] hover:bg-[#111827] text-[#10B981] font-semibold text-xs transition-all flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 rounded-lg bg-[#0B0B0B] border border-[#10B981]/50 hover:border-[#10B981] hover:bg-[#111827] text-[#10B981] font-semibold text-xs transition-all flex items-center gap-2 disabled:opacity-50"
                     >
                       <GraduationCap className="w-4 h-4" />
                       {learningApplied ? "Knowledge Mapping Approved & Re-Analyzed" : "Approve Mapping & Re-Analyze"}
@@ -451,7 +451,7 @@ export default function GoldenDemoPresenterPage() {
                   <p className="text-sm text-[#A7B0C0]">
                     Official Executive Compliance Reports with NTRO header seal, executive metrics, and PDF export.
                   </p>
-                  <div className="p-4 rounded-lg bg-[#080B12] border border-[#1D2939] flex items-center justify-between">
+                  <div className="p-4 rounded-lg bg-[#050505] border border-[#1F1F1F] flex items-center justify-between">
                     <div>
                       <div className="text-sm font-bold text-[#F3F4F6]">Executive Audit Summary — CORE-RTR-01</div>
                       <div className="text-xs text-[#667085]">Includes CIS, NIST, DISA STIG, and ISO 27001 findings</div>
@@ -468,21 +468,21 @@ export default function GoldenDemoPresenterPage() {
             </div>
 
             {/* Hero Before / After Adaptive Learning Posture Card */}
-            <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4">
+            <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-[#8B5CF6]" />
                   <h3 className="text-base font-bold text-[#F3F4F6] font-sans">Adaptive Learning Impact Evaluation</h3>
                 </div>
                 {learningApplied && (
-                  <span className="px-2.5 py-0.5 rounded text-xs font-semibold font-mono bg-[#080B12] text-[#10B981] border border-[#10B981]/40">
+                  <span className="px-2.5 py-0.5 rounded text-xs font-semibold font-mono bg-[#050505] text-[#10B981] border border-[#10B981]/40">
                     KNOWLEDGE EXPANDED (+{((afterLearningScore || 0) - demoState.compliance_score).toFixed(1)}%)
                   </span>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-2 font-mono">
+                <div className="p-4 rounded-lg bg-[#050505] border border-[#1F1F1F] space-y-2 font-mono">
                   <div className="text-xs font-semibold text-[#667085] uppercase">Before Learning</div>
                   <div className="text-2xl font-bold text-[#EF4444]">{demoState.compliance_score}%</div>
                   <div className="text-xs text-[#667085]">Unknown Directives: <strong className="text-[#F59E0B]">1 (CoPP)</strong></div>
@@ -491,8 +491,8 @@ export default function GoldenDemoPresenterPage() {
 
                 <div className={`p-4 rounded-lg border space-y-2 transition-all font-mono ${
                   learningApplied
-                    ? "bg-[#080B12] border-[#10B981]/40"
-                    : "bg-[#080B12] border-[#1D2939] opacity-50"
+                    ? "bg-[#050505] border-[#10B981]/40"
+                    : "bg-[#050505] border-[#1F1F1F] opacity-50"
                 }`}>
                   <div className="text-xs font-semibold text-[#10B981] uppercase">After Learning & Re-Audit</div>
                   <div className="text-2xl font-bold text-[#10B981]">
@@ -508,7 +508,7 @@ export default function GoldenDemoPresenterPage() {
           {/* Right Column: Deep Navigation & Device State */}
           <div className="space-y-6">
             {/* Quick Deep Navigation */}
-            <div className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3">
+            <div className="p-5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-3">
               <h3 className="text-sm font-bold text-[#F3F4F6] flex items-center gap-2 font-sans">
                 <Layers className="w-4 h-4 text-[#3B82F6]" /> Live Application Workspaces
               </h3>
@@ -518,7 +518,7 @@ export default function GoldenDemoPresenterPage() {
               <div className="space-y-1.5 pt-2">
                 <Link
                   href="/audits"
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1D2939] transition-all"
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#050505] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1F1F1F] transition-all"
                 >
                   <span className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-[#3B82F6]" /> Audit Workspace
@@ -527,7 +527,7 @@ export default function GoldenDemoPresenterPage() {
                 </Link>
                 <Link
                   href="/risk"
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1D2939] transition-all"
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#050505] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1F1F1F] transition-all"
                 >
                   <span className="flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 text-[#F59E0B]" /> Risk Intelligence Graph
@@ -536,7 +536,7 @@ export default function GoldenDemoPresenterPage() {
                 </Link>
                 <Link
                   href="/remediation"
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1D2939] transition-all"
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#050505] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1F1F1F] transition-all"
                 >
                   <span className="flex items-center gap-2">
                     <FileCode className="w-4 h-4 text-[#8B5CF6]" /> Remediation Center
@@ -545,7 +545,7 @@ export default function GoldenDemoPresenterPage() {
                 </Link>
                 <Link
                   href="/ai-assistant"
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1D2939] transition-all"
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#050505] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1F1F1F] transition-all"
                 >
                   <span className="flex items-center gap-2">
                     <Bot className="w-4 h-4 text-[#8B5CF6]" /> AI Co-Pilot Assistant
@@ -554,7 +554,7 @@ export default function GoldenDemoPresenterPage() {
                 </Link>
                 <Link
                   href="/adaptive-training"
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1D2939] transition-all"
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#050505] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1F1F1F] transition-all"
                 >
                   <span className="flex items-center gap-2">
                     <GraduationCap className="w-4 h-4 text-[#10B981]" /> Adaptive Training System
@@ -563,7 +563,7 @@ export default function GoldenDemoPresenterPage() {
                 </Link>
                 <Link
                   href="/reports"
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1D2939] transition-all"
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-[#050505] hover:bg-[#111827] text-xs font-medium text-[#F3F4F6] border border-[#1F1F1F] transition-all"
                 >
                   <span className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-white" /> Compliance Reports
@@ -574,7 +574,7 @@ export default function GoldenDemoPresenterPage() {
             </div>
 
             {/* Why NetVigil Differentiators Card */}
-            <div className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3">
+            <div className="p-5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-3">
               <h3 className="text-sm font-bold text-[#F3F4F6] flex items-center gap-2 font-sans">
                 <Zap className="w-4 h-4 text-[#F59E0B]" /> Technical Differentiators
               </h3>

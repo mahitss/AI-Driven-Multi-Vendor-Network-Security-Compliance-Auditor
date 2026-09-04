@@ -43,10 +43,10 @@ export default function SecurityTelemetrySection() {
 
   if (isLoading && !telemetry) {
     return (
-      <div className="p-8 rounded-lg bg-[#0D1117] border border-[#1E2638] text-center font-mono space-y-2">
-        <RefreshCw className="w-5 h-5 animate-spin text-[#94A3B8] mx-auto" />
-        <div className="text-xs font-semibold text-[#F3F4F6]">INITIALIZING SECURITY TELEMETRY...</div>
-        <p className="text-[11px] text-[#64748B] font-sans">
+      <div className="p-8 rounded-lg bg-[#0B0B0B] border border-[#141414] text-center font-mono space-y-2">
+        <RefreshCw className="w-5 h-5 animate-spin text-[#8E8E93] mx-auto" />
+        <div className="text-xs font-semibold text-[#F2F2F2]">INITIALIZING SECURITY TELEMETRY...</div>
+        <p className="text-[11px] text-[#636366] font-sans">
           Evaluating deterministic compliance benchmarks, heat maps, and fleet topology graph.
         </p>
       </div>
@@ -55,10 +55,10 @@ export default function SecurityTelemetrySection() {
 
   if (isError) {
     return (
-      <div className="p-6 rounded-lg bg-[#0D1117] border border-[#EF4444]/30 text-center font-mono space-y-3">
+      <div className="p-6 rounded-lg bg-[#0B0B0B] border border-[#EF4444]/30 text-center font-mono space-y-3">
         <AlertCircle className="w-6 h-6 text-[#EF4444] mx-auto" />
-        <div className="text-xs font-bold text-[#F3F4F6]">TELEMETRY UNAVAILABLE</div>
-        <p className="text-[11px] text-[#94A3B8] font-sans max-w-lg mx-auto">
+        <div className="text-xs font-bold text-[#F2F2F2]">TELEMETRY UNAVAILABLE</div>
+        <p className="text-[11px] text-[#8E8E93] font-sans max-w-lg mx-auto">
           {error instanceof Error ? error.message : "Unable to retrieve real-time security telemetry from the backend pipeline."}
         </p>
         <button
@@ -76,27 +76,27 @@ export default function SecurityTelemetrySection() {
   return (
     <div className="space-y-3 font-mono">
       {/* Visual Analytics Navigation Subheader */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2638] pb-2.5 bg-[#090B0F]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#141414] pb-2.5 bg-[#080808]">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-[#94A3B8]" />
-          <h2 className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+          <Activity className="w-4 h-4 text-[#8E8E93]" />
+          <h2 className="text-xs font-semibold text-[#F2F2F2] uppercase tracking-wider">
             VISUAL SECURITY TELEMETRY
           </h2>
         </div>
 
         {/* View Mode Tabs */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex items-center gap-1 bg-[#0D1117] p-0.5 rounded-lg border border-[#1E2638]">
+          <div className="flex items-center gap-1 bg-[#0B0B0B] p-0.5 rounded-lg border border-[#141414]">
             <button
               onClick={() => setActiveTab("analytics")}
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "analytics"
-                  ? "bg-[#141A24] text-[#F3F4F6] border border-[#28354A]"
-                  : "text-[#94A3B8] hover:text-[#F3F4F6]"
+                  ? "bg-[#141414] text-[#F2F2F2] border border-[#2C2C2E]"
+                  : "text-[#8E8E93] hover:text-[#F2F2F2]"
               )}
             >
-              <TrendingUp className="w-3.5 h-3.5 text-[#94A3B8]" />
+              <TrendingUp className="w-3.5 h-3.5 text-[#8E8E93]" />
               <span>Trends &amp; Distributions</span>
             </button>
 
@@ -105,11 +105,11 @@ export default function SecurityTelemetrySection() {
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "heatmap"
-                  ? "bg-[#141A24] text-[#F3F4F6] border border-[#28354A]"
-                  : "text-[#94A3B8] hover:text-[#F3F4F6]"
+                  ? "bg-[#141414] text-[#F2F2F2] border border-[#2C2C2E]"
+                  : "text-[#8E8E93] hover:text-[#F2F2F2]"
               )}
             >
-              <Grid className="w-3.5 h-3.5 text-[#94A3B8]" />
+              <Grid className="w-3.5 h-3.5 text-[#8E8E93]" />
               <span>Heat Map</span>
             </button>
 
@@ -118,11 +118,11 @@ export default function SecurityTelemetrySection() {
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "topology"
-                  ? "bg-[#141A24] text-[#F3F4F6] border border-[#28354A]"
-                  : "text-[#94A3B8] hover:text-[#F3F4F6]"
+                  ? "bg-[#141414] text-[#F2F2F2] border border-[#2C2C2E]"
+                  : "text-[#8E8E93] hover:text-[#F2F2F2]"
               )}
             >
-              <Network className="w-3.5 h-3.5 text-[#94A3B8]" />
+              <Network className="w-3.5 h-3.5 text-[#8E8E93]" />
               <span>Topology</span>
             </button>
 
@@ -131,11 +131,11 @@ export default function SecurityTelemetrySection() {
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all",
                 activeTab === "timeline"
-                  ? "bg-[#141A24] text-[#F3F4F6] border border-[#28354A]"
-                  : "text-[#94A3B8] hover:text-[#F3F4F6]"
+                  ? "bg-[#141414] text-[#F2F2F2] border border-[#2C2C2E]"
+                  : "text-[#8E8E93] hover:text-[#F2F2F2]"
               )}
             >
-              <Clock className="w-3.5 h-3.5 text-[#94A3B8]" />
+              <Clock className="w-3.5 h-3.5 text-[#8E8E93]" />
               <span>Audit Timeline</span>
             </button>
           </div>
@@ -143,10 +143,10 @@ export default function SecurityTelemetrySection() {
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="p-1.5 rounded-lg bg-[#0D1117] hover:bg-[#141A24] border border-[#1E2638] text-[#94A3B8] hover:text-[#F3F4F6] transition-colors"
+            className="p-1.5 rounded-lg bg-[#0B0B0B] hover:bg-[#141414] border border-[#141414] text-[#8E8E93] hover:text-[#F2F2F2] transition-colors"
             title="Refresh Telemetry Data"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5 text-[#94A3B8]", isRefetching && "animate-spin")} />
+            <RefreshCw className={cn("w-3.5 h-3.5 text-[#8E8E93]", isRefetching && "animate-spin")} />
           </button>
         </div>
       </div>

@@ -149,20 +149,20 @@ export default function MultiVendorSecurityPage() {
   return (
     <div className="space-y-10 max-w-[1440px] mx-auto pb-16 font-sans">
       {/* 1. Header & Identity */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1D2939] pb-5 font-mono">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1F1F1F] pb-5 font-mono">
         <div>
           <div className="flex items-center gap-2 mb-1.5 text-xs">
             <span className="flex items-center gap-1.5 text-[#3B82F6]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
               <span>UNIVERSAL SECURITY MODEL</span>
             </span>
-            <span className="text-[#667085]">•</span>
-            <span className="text-[#667085]">CROSS-VENDOR NORMALIZATION</span>
+            <span className="text-[#636366]">•</span>
+            <span className="text-[#636366]">CROSS-VENDOR NORMALIZATION</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#F3F4F6] tracking-tight font-sans">
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#F2F2F2] tracking-tight font-sans">
             MULTI-VENDOR SECURITY MATRIX
           </h1>
-          <p className="text-xs sm:text-sm text-[#A7B0C0] mt-1 max-w-3xl font-sans leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#8E8E93] mt-1 max-w-3xl font-sans leading-relaxed">
             Deterministic AST normalization across Cisco IOS, Juniper JunOS, and Fortinet FortiOS. Compliance rules evaluate identically regardless of underlying vendor syntax.
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function MultiVendorSecurityPage() {
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="flex items-center gap-2 px-3.5 py-1.5 bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-xs text-[#A7B0C0] hover:text-white rounded-lg transition-colors font-semibold shadow-sm active:scale-[0.98]"
+            className="flex items-center gap-2 px-3.5 py-1.5 bg-[#0B0B0B] hover:bg-[#151E2D] border border-[#1F1F1F] text-xs text-[#8E8E93] hover:text-white rounded-lg transition-colors font-semibold shadow-sm active:scale-[0.98]"
           >
             <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin text-[#3B82F6]")} />
             <span>Refresh Telemetry</span>
@@ -181,15 +181,15 @@ export default function MultiVendorSecurityPage() {
 
       {/* 2. Empty State (Honest Representation) */}
       {!isLoading && configurations.length === 0 && (
-        <div className="p-12 rounded-2xl bg-[#0D121C] border border-[#1D2939] text-center space-y-4 font-mono">
+        <div className="p-12 rounded-2xl bg-[#0B0B0B] border border-[#1F1F1F] text-center space-y-4 font-mono">
           <div className="w-12 h-12 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] mx-auto">
             <Layers className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#F3F4F6] uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-[#F2F2F2] uppercase tracking-wider">
               NO EVALUATED CONFIGURATIONS AVAILABLE
             </h2>
-            <p className="text-xs text-[#667085] mt-1.5 max-w-md mx-auto font-sans leading-relaxed">
+            <p className="text-xs text-[#636366] mt-1.5 max-w-md mx-auto font-sans leading-relaxed">
               No network device configurations have been ingested in this account. Ingest and audit real configuration files (Cisco IOS, Juniper JunOS, Fortinet FortiOS) to activate the multi-vendor security matrix.
             </p>
           </div>
@@ -211,7 +211,7 @@ export default function MultiVendorSecurityPage() {
           {/* Vendor Fleet Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 font-mono">
             {/* CISCO IOS */}
-            <div className="p-5 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-4 flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-4 flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#3B82F6] flex items-center gap-2">
@@ -223,31 +223,31 @@ export default function MultiVendorSecurityPage() {
                       "text-[10px] px-2 py-0.5 rounded border uppercase font-bold",
                       vendorBreakdown.cisco.evaluated
                         ? "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
-                        : "bg-[#667085]/15 text-[#667085] border-[#667085]/30"
+                        : "bg-[#636366]/15 text-[#636366] border-[#636366]/30"
                     )}
                   >
                     {vendorBreakdown.cisco.evaluated ? "EVALUATED" : "NOT INGESTED"}
                   </span>
                 </div>
-                <div className="text-2xl font-extrabold text-[#F3F4F6]">
+                <div className="text-2xl font-extrabold text-[#F2F2F2]">
                   {vendorBreakdown.cisco.avgScore !== null
                     ? `${vendorBreakdown.cisco.avgScore.toFixed(1)}%`
                     : "—"}
                 </div>
-                <div className="text-xs text-[#667085]">
+                <div className="text-xs text-[#636366]">
                   {vendorBreakdown.cisco.configs.length} Configuration(s) •{" "}
                   {vendorBreakdown.cisco.failedCount} Violation(s)
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#1D2939] text-xs space-y-1">
-                <div className="flex items-center justify-between text-[#A7B0C0]">
+              <div className="pt-3 border-t border-[#1F1F1F] text-xs space-y-1">
+                <div className="flex items-center justify-between text-[#8E8E93]">
                   <span>Critical (P0):</span>
                   <span className="text-[#EF4444] font-bold">
                     {vendorBreakdown.cisco.criticalCount}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[#A7B0C0]">
+                <div className="flex items-center justify-between text-[#8E8E93]">
                   <span>Grammar Parser:</span>
                   <span className="text-white">CiscoIOSParser v1.0.0</span>
                 </div>
@@ -255,7 +255,7 @@ export default function MultiVendorSecurityPage() {
             </div>
 
             {/* JUNIPER JUNOS */}
-            <div className="p-5 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-4 flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-4 flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#10B981] flex items-center gap-2">
@@ -267,31 +267,31 @@ export default function MultiVendorSecurityPage() {
                       "text-[10px] px-2 py-0.5 rounded border uppercase font-bold",
                       vendorBreakdown.juniper.evaluated
                         ? "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
-                        : "bg-[#667085]/15 text-[#667085] border-[#667085]/30"
+                        : "bg-[#636366]/15 text-[#636366] border-[#636366]/30"
                     )}
                   >
                     {vendorBreakdown.juniper.evaluated ? "EVALUATED" : "NOT INGESTED"}
                   </span>
                 </div>
-                <div className="text-2xl font-extrabold text-[#F3F4F6]">
+                <div className="text-2xl font-extrabold text-[#F2F2F2]">
                   {vendorBreakdown.juniper.avgScore !== null
                     ? `${vendorBreakdown.juniper.avgScore.toFixed(1)}%`
                     : "—"}
                 </div>
-                <div className="text-xs text-[#667085]">
+                <div className="text-xs text-[#636366]">
                   {vendorBreakdown.juniper.configs.length} Configuration(s) •{" "}
                   {vendorBreakdown.juniper.failedCount} Violation(s)
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#1D2939] text-xs space-y-1">
-                <div className="flex items-center justify-between text-[#A7B0C0]">
+              <div className="pt-3 border-t border-[#1F1F1F] text-xs space-y-1">
+                <div className="flex items-center justify-between text-[#8E8E93]">
                   <span>Critical (P0):</span>
                   <span className="text-[#EF4444] font-bold">
                     {vendorBreakdown.juniper.criticalCount}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[#A7B0C0]">
+                <div className="flex items-center justify-between text-[#8E8E93]">
                   <span>Grammar Parser:</span>
                   <span className="text-white">JunOSParser v1.0.0</span>
                 </div>
@@ -299,7 +299,7 @@ export default function MultiVendorSecurityPage() {
             </div>
 
             {/* FORTINET FORTIOS */}
-            <div className="p-5 rounded-2xl bg-[#0D121C] border border-[#1D2939] space-y-4 flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-4 flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#F59E0B] flex items-center gap-2">
@@ -311,31 +311,31 @@ export default function MultiVendorSecurityPage() {
                       "text-[10px] px-2 py-0.5 rounded border uppercase font-bold",
                       vendorBreakdown.fortinet.evaluated
                         ? "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
-                        : "bg-[#667085]/15 text-[#667085] border-[#667085]/30"
+                        : "bg-[#636366]/15 text-[#636366] border-[#636366]/30"
                     )}
                   >
                     {vendorBreakdown.fortinet.evaluated ? "EVALUATED" : "NOT INGESTED"}
                   </span>
                 </div>
-                <div className="text-2xl font-extrabold text-[#F3F4F6]">
+                <div className="text-2xl font-extrabold text-[#F2F2F2]">
                   {vendorBreakdown.fortinet.avgScore !== null
                     ? `${vendorBreakdown.fortinet.avgScore.toFixed(1)}%`
                     : "—"}
                 </div>
-                <div className="text-xs text-[#667085]">
+                <div className="text-xs text-[#636366]">
                   {vendorBreakdown.fortinet.configs.length} Configuration(s) •{" "}
                   {vendorBreakdown.fortinet.failedCount} Violation(s)
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#1D2939] text-xs space-y-1">
-                <div className="flex items-center justify-between text-[#A7B0C0]">
+              <div className="pt-3 border-t border-[#1F1F1F] text-xs space-y-1">
+                <div className="flex items-center justify-between text-[#8E8E93]">
                   <span>Critical (P0):</span>
                   <span className="text-[#EF4444] font-bold">
                     {vendorBreakdown.fortinet.criticalCount}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[#A7B0C0]">
+                <div className="flex items-center justify-between text-[#8E8E93]">
                   <span>Grammar Parser:</span>
                   <span className="text-white">FortiOSParser v1.0.0</span>
                 </div>
@@ -346,7 +346,7 @@ export default function MultiVendorSecurityPage() {
           {/* 4. Cross-Vendor Findings Table */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
-              <div className="text-xs font-bold text-[#667085] uppercase tracking-wider flex items-center gap-2">
+              <div className="text-xs font-bold text-[#636366] uppercase tracking-wider flex items-center gap-2">
                 <Terminal className="w-3.5 h-3.5 text-[#3B82F6]" />
                 <span>CROSS-VENDOR COMPLIANCE FINDINGS ({filteredFindings.length})</span>
               </div>
@@ -356,7 +356,7 @@ export default function MultiVendorSecurityPage() {
                 <select
                   value={selectedVendor}
                   onChange={(e) => setSelectedVendor(e.target.value as any)}
-                  className="bg-[#0D121C] border border-[#1D2939] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#3B82F6]"
+                  className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#3B82F6]"
                 >
                   <option value="ALL">All Vendors</option>
                   <option value="cisco">Cisco IOS</option>
@@ -368,7 +368,7 @@ export default function MultiVendorSecurityPage() {
                 <select
                   value={selectedFramework}
                   onChange={(e) => setSelectedFramework(e.target.value)}
-                  className="bg-[#0D121C] border border-[#1D2939] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#3B82F6]"
+                  className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#3B82F6]"
                 >
                   <option value="ALL">All Frameworks</option>
                   <option value="CIS">CIS</option>
@@ -380,10 +380,10 @@ export default function MultiVendorSecurityPage() {
             </div>
 
             {filteredFindings.length > 0 ? (
-              <div className="rounded-2xl border border-[#1D2939] bg-[#0D121C] overflow-hidden">
+              <div className="rounded-2xl border border-[#1F1F1F] bg-[#0B0B0B] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-[#080B12] border-b border-[#1D2939] text-[#667085]">
+                    <thead className="bg-[#080808] border-b border-[#1F1F1F] text-[#636366]">
                       <tr>
                         <th className="py-3 px-4">CONTROL</th>
                         <th className="py-3 px-4">VENDOR</th>
@@ -393,15 +393,15 @@ export default function MultiVendorSecurityPage() {
                         <th className="py-3 px-4">EVIDENCE</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#1D2939]">
+                    <tbody className="divide-y divide-[#1F1F1F]">
                       {filteredFindings.slice(0, 50).map((f) => {
                         const item = f as any;
                         const vendor = item.vendor || "network";
                         return (
-                          <tr key={f.id} className="hover:bg-[#111827]/50 transition-colors">
+                          <tr key={f.id} className="hover:bg-[#141414]/50 transition-colors">
                             <td className="py-3 px-4 font-bold text-white">{f.control_id}</td>
                             <td className="py-3 px-4 uppercase text-[#3B82F6]">{vendor}</td>
-                            <td className="py-3 px-4 text-[#A7B0C0] truncate max-w-[150px]">
+                            <td className="py-3 px-4 text-[#8E8E93] truncate max-w-[150px]">
                               {item.device_name || "—"}
                             </td>
                             <td className="py-3 px-4">
@@ -430,7 +430,7 @@ export default function MultiVendorSecurityPage() {
                                 {f.status}
                               </span>
                             </td>
-                            <td className="py-3 px-4 font-mono text-[11px] text-[#A7B0C0] truncate max-w-[280px]">
+                            <td className="py-3 px-4 font-mono text-[11px] text-[#8E8E93] truncate max-w-[280px]">
                               {f.evidence || "AST rule match"}
                             </td>
                           </tr>
@@ -441,7 +441,7 @@ export default function MultiVendorSecurityPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-8 rounded-xl bg-[#0D121C] border border-[#1D2939] text-center text-xs font-mono text-[#667085]">
+              <div className="p-8 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] text-center text-xs font-mono text-[#636366]">
                 No findings matching the selected filters.
               </div>
             )}

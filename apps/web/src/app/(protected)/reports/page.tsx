@@ -221,20 +221,20 @@ function ReportsContent() {
   return (
     <div className="space-y-6 max-w-[1440px] mx-auto pb-16 font-sans">
       {/* 1. Header & Identity */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1D2939] pb-5 font-mono print:hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1F1F1F] pb-5 font-mono print:hidden">
         <div>
           <div className="flex items-center gap-2 mb-1.5 text-xs">
             <span className="flex items-center gap-1.5 text-[#3B82F6]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
               <strong className="tracking-wider">DETERMINISTIC COMPLIANCE CERTIFICATION</strong>
             </span>
-            <span className="text-[#667085]">•</span>
-            <span className="text-[#667085]">NTRO • SIH26155</span>
+            <span className="text-[#636366]">•</span>
+            <span className="text-[#636366]">NTRO • SIH26155</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#F3F4F6] tracking-tight font-sans">
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#F2F2F2] tracking-tight font-sans">
             EXECUTIVE SECURITY REPORT
           </h1>
-          <p className="text-xs sm:text-sm text-[#A7B0C0] mt-1 max-w-3xl font-sans leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#8E8E93] mt-1 max-w-3xl font-sans leading-relaxed">
             Multi-framework compliance assessments, line-level evidence citations, deterministic risk calculation, and verified remediation delta.
           </p>
         </div>
@@ -258,7 +258,7 @@ function ReportsContent() {
               refetchReports();
               refetchAudits();
             }}
-            className="p-2 rounded-lg bg-[#0D121C] hover:bg-[#151E2D] border border-[#1D2939] text-[#A7B0C0] hover:text-white transition-colors"
+            className="p-2 rounded-lg bg-[#0B0B0B] hover:bg-[#151E2D] border border-[#1F1F1F] text-[#8E8E93] hover:text-white transition-colors"
             title="Refresh Reports"
           >
             <RefreshCw className={cn("w-4 h-4", isReportsLoading && "animate-spin text-[#3B82F6]")} />
@@ -268,57 +268,57 @@ function ReportsContent() {
 
       {/* 2. Top Summary KPI Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 font-mono print:hidden">
-        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
-          <div className="text-[10px] text-[#667085] uppercase font-semibold">OVERALL COMPLIANCE</div>
+        <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
+          <div className="text-[10px] text-[#636366] uppercase font-semibold">OVERALL COMPLIANCE</div>
           <div className="text-2xl font-extrabold text-[#10B981] mt-1">
             {audits.length > 0 && latestCompliance !== undefined ? `${latestCompliance.toFixed(1)}%` : "—"}
           </div>
-          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Across evaluated standards</div>
+          <div className="text-[10px] text-[#636366] font-sans mt-0.5">Across evaluated standards</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+        <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
           <div className="text-[10px] text-[#EF4444] uppercase font-semibold">RISK POSTURE</div>
           <div className="text-2xl font-extrabold text-[#EF4444] mt-1">
             {audits.length > 0 ? (
               <>
                 {Math.round(Math.max(0, 100 - latestCompliance))}{" "}
-                <span className="text-xs text-[#667085]">{latestCompliance < 50 ? "P0" : "P1"}</span>
+                <span className="text-xs text-[#636366]">{latestCompliance < 50 ? "P0" : "P1"}</span>
               </>
             ) : (
               "—"
             )}
           </div>
-          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Composite severity tier</div>
+          <div className="text-[10px] text-[#636366] font-sans mt-0.5">Composite severity tier</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+        <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
           <div className="text-[10px] text-[#3B82F6] uppercase font-semibold">COMPLETED AUDITS</div>
           <div className="text-2xl font-extrabold text-[#3B82F6] mt-1">{totalAuditsCount}</div>
-          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Persisted audit sessions</div>
+          <div className="text-[10px] text-[#636366] font-sans mt-0.5">Persisted audit sessions</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939]">
+        <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
           <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">RESOLVED DELTA</div>
           <div className="text-2xl font-extrabold text-[#F59E0B] mt-1">
             {comparisonResult ? (
-              <>+{comparisonResult.resolved_count} <span className="text-xs text-[#667085]">CONTROLS</span></>
+              <>+{comparisonResult.resolved_count} <span className="text-xs text-[#636366]">CONTROLS</span></>
             ) : (
               "—"
             )}
           </div>
-          <div className="text-[10px] text-[#667085] font-sans mt-0.5">Post-remediation verified</div>
+          <div className="text-[10px] text-[#636366] font-sans mt-0.5">Post-remediation verified</div>
         </div>
       </div>
 
       {/* 3. Section Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#1D2939] pb-1 font-mono text-xs print:hidden">
+      <div className="flex items-center gap-2 border-b border-[#1F1F1F] pb-1 font-mono text-xs print:hidden">
         <button
           onClick={() => setActiveTab("report")}
           className={cn(
             "px-4 py-2 rounded-t-lg font-bold transition-all flex items-center gap-2 border-b-2",
             activeTab === "report"
-              ? "bg-[#0D121C] text-[#3B82F6] border-[#3B82F6]"
-              : "text-[#667085] hover:text-white border-transparent"
+              ? "bg-[#0B0B0B] text-[#3B82F6] border-[#3B82F6]"
+              : "text-[#636366] hover:text-white border-transparent"
           )}
         >
           <FileText className="w-3.5 h-3.5" />
@@ -330,8 +330,8 @@ function ReportsContent() {
           className={cn(
             "px-4 py-2 rounded-t-lg font-bold transition-all flex items-center gap-2 border-b-2",
             activeTab === "history"
-              ? "bg-[#0D121C] text-[#3B82F6] border-[#3B82F6]"
-              : "text-[#667085] hover:text-white border-transparent"
+              ? "bg-[#0B0B0B] text-[#3B82F6] border-[#3B82F6]"
+              : "text-[#636366] hover:text-white border-transparent"
           )}
         >
           <Clock className="w-3.5 h-3.5" />
@@ -343,8 +343,8 @@ function ReportsContent() {
           className={cn(
             "px-4 py-2 rounded-t-lg font-bold transition-all flex items-center gap-2 border-b-2",
             activeTab === "compare"
-              ? "bg-[#0D121C] text-[#3B82F6] border-[#3B82F6]"
-              : "text-[#667085] hover:text-white border-transparent"
+              ? "bg-[#0B0B0B] text-[#3B82F6] border-[#3B82F6]"
+              : "text-[#636366] hover:text-white border-transparent"
           )}
         >
           <Sliders className="w-3.5 h-3.5" />
@@ -356,9 +356,9 @@ function ReportsContent() {
       {activeTab === "report" && (
         <div className="space-y-6">
           {/* Document Action Bar */}
-          <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] flex flex-wrap items-center justify-between gap-3 text-xs font-mono print:hidden">
+          <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] flex flex-wrap items-center justify-between gap-3 text-xs font-mono print:hidden">
             <div className="flex items-center gap-2">
-              <span className="text-[#667085] uppercase font-bold text-[10px]">ACTIVE REPORT:</span>
+              <span className="text-[#636366] uppercase font-bold text-[10px]">ACTIVE REPORT:</span>
               <h2 className="text-sm font-bold text-white font-mono">
                 {activeReport?.title || "Executive Compliance Audit Report"}
               </h2>
@@ -367,7 +367,7 @@ function ReportsContent() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrint}
-                className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
+                className="px-3 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>PRINT / SAVE PDF</span>
@@ -375,7 +375,7 @@ function ReportsContent() {
 
               <button
                 onClick={handleDownloadReportJson}
-                className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
+                className="px-3 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
                 title="Download full executive report as a .json file"
               >
                 <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
@@ -384,7 +384,7 @@ function ReportsContent() {
 
               <button
                 onClick={handleDownloadReportMarkdown}
-                className="px-3 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#A7B0C0] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
+                className="px-3 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-white flex items-center gap-1.5 font-semibold transition-all"
                 title="Download report as a formatted markdown document"
               >
                 <FileCode2 className="w-3.5 h-3.5 text-[#10B981]" />
@@ -393,7 +393,7 @@ function ReportsContent() {
 
               <button
                 onClick={handleCopyReport}
-                className="px-2.5 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] border border-[#1D2939] text-[#667085] hover:text-[#A7B0C0] flex items-center gap-1 text-[11px] transition-all"
+                className="px-2.5 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#636366] hover:text-[#8E8E93] flex items-center gap-1 text-[11px] transition-all"
                 title="Copy JSON to clipboard"
               >
                 {copiedReport ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
@@ -403,7 +403,7 @@ function ReportsContent() {
           </div>
 
           {/* Formatted Formal Report Sheet */}
-          <div className="rounded-2xl border border-[#1D2939] bg-[#080B12] p-6 sm:p-10 space-y-8 font-mono text-xs shadow-2xl print:bg-white print:text-black print:border-none print:shadow-none">
+          <div className="rounded-2xl border border-[#1F1F1F] bg-[#080808] p-6 sm:p-10 space-y-8 font-mono text-xs shadow-2xl print:bg-white print:text-black print:border-none print:shadow-none">
             {/* Letterhead */}
             <div className="border-b-2 border-[#3B82F6]/40 pb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div>
@@ -411,15 +411,15 @@ function ReportsContent() {
                   <Shield className="w-6 h-6 text-[#3B82F6]" />
                   <span>NETVIGIL • EXECUTIVE SECURITY ASSESSMENT</span>
                 </div>
-                <div className="text-xs text-[#A7B0C0] font-sans mt-1">
+                <div className="text-xs text-[#8E8E93] font-sans mt-1">
                   Deterministic Multi-Vendor Network Compliance & Risk Certification (NTRO - SIH26155)
                 </div>
-                <div className="text-[10px] text-[#667085] mt-0.5">
+                <div className="text-[10px] text-[#636366] mt-0.5">
                   National Technical Research Organisation • Security Operations Directorate
                 </div>
               </div>
 
-              <div className="text-left sm:text-right text-[11px] text-[#A7B0C0] space-y-0.5">
+              <div className="text-left sm:text-right text-[11px] text-[#8E8E93] space-y-0.5">
                 <div>REPORT ID: <strong className="text-white">{activeReport?.id ? activeReport.id.slice(0, 16) : "rpt_canonical_01"}</strong></div>
                 <div>GENERATED: <strong className="text-white">{new Date().toISOString().split("T")[0]}</strong></div>
                 <div>CLASSIFICATION: <strong className="text-[#EF4444]">RESTRICTED / ADVISORY</strong></div>
@@ -431,8 +431,8 @@ function ReportsContent() {
               <div className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-wider">
                 1. EXECUTIVE SUMMARY & POSTURE VERDICT
               </div>
-              <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3">
-                <div className="flex items-center justify-between border-b border-[#1D2939] pb-2">
+              <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-3">
+                <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-2">
                   <div className="font-bold text-sm text-white font-sans">
                     {activeReport?.sections?.identity?.filename || activeReport?.title || "Target Network Device Configuration"}
                   </div>
@@ -441,20 +441,20 @@ function ReportsContent() {
                   </span>
                 </div>
 
-                <p className="text-xs text-[#A7B0C0] font-sans leading-relaxed">
+                <p className="text-xs text-[#8E8E93] font-sans leading-relaxed">
                   NetVigil evaluated the target configuration against baseline security controls across CIS Benchmarks, NIST SP 800-53, DISA STIG, and ISO/IEC 27001. All findings, line evidence, and risk metrics are computed deterministically from active configuration directives.
                 </p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                  <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[10px] text-[#667085]">COMPLIANCE SCORE</div>
+                  <div className="p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[10px] text-[#636366]">COMPLIANCE SCORE</div>
                     <div className="text-xl font-extrabold text-[#10B981] mt-0.5">
                       {(activeReport?.sections?.executive_summary?.compliance_score ?? latestCompliance).toFixed(1)}%
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[10px] text-[#667085]">RISK SCORE</div>
+                  <div className="p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[10px] text-[#636366]">RISK SCORE</div>
                     <div className="text-xl font-extrabold text-[#EF4444] mt-0.5">
                       {activeReport?.sections?.executive_summary?.risk_score !== undefined
                         ? activeReport.sections.executive_summary.risk_score.toFixed(1)
@@ -462,15 +462,15 @@ function ReportsContent() {
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[10px] text-[#667085]">FAILED CONTROLS</div>
+                  <div className="p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[10px] text-[#636366]">FAILED CONTROLS</div>
                     <div className="text-xl font-extrabold text-[#F59E0B] mt-0.5">
                       {activeReport?.sections?.executive_summary?.failed_controls ?? activeReport?.sections?.findings_summary?.total_findings ?? 0} Controls
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[10px] text-[#667085]">CRITICAL FINDINGS</div>
+                  <div className="p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[10px] text-[#636366]">CRITICAL FINDINGS</div>
                     <div className="text-xl font-extrabold text-[#EF4444] mt-0.5">
                       {activeReport?.sections?.findings_summary?.critical ?? 0} P0 Findings
                     </div>
@@ -484,16 +484,16 @@ function ReportsContent() {
               <div className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-wider">
                 2. AUDIT IDENTITY & PROVENANCE
               </div>
-              <div className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
+              <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-2">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
                   <div>
-                    <span className="text-[#667085] text-[10px] block uppercase">FILENAME</span>
+                    <span className="text-[#636366] text-[10px] block uppercase">FILENAME</span>
                     <span className="font-bold text-white truncate block">
                       {activeReport?.sections?.identity?.filename || "—"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[#667085] text-[10px] block uppercase">VENDOR / PLATFORM</span>
+                    <span className="text-[#636366] text-[10px] block uppercase">VENDOR / PLATFORM</span>
                     <span className="font-bold text-[#3B82F6]">
                       {activeReport?.sections?.identity?.vendor
                         ? `${String(activeReport.sections.identity.vendor).toUpperCase()} (${activeReport.sections.identity.platform || "v1.0.0"})`
@@ -501,7 +501,7 @@ function ReportsContent() {
                     </span>
                   </div>
                   <div>
-                    <span className="text-[#667085] text-[10px] block uppercase">LINE COUNT</span>
+                    <span className="text-[#636366] text-[10px] block uppercase">LINE COUNT</span>
                     <span className="font-bold text-white">
                       {activeReport?.sections?.identity?.line_count != null
                         ? `${activeReport.sections.identity.line_count} Lines`
@@ -510,7 +510,7 @@ function ReportsContent() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-[#1D2939] flex flex-col sm:flex-row sm:items-center justify-between text-[10px] text-[#667085] gap-1">
+                <div className="pt-2 border-t border-[#1F1F1F] flex flex-col sm:flex-row sm:items-center justify-between text-[10px] text-[#636366] gap-1">
                   <div>SHA-256: <strong className="text-white font-mono">{activeReport?.sections?.identity?.sha256 ? `${activeReport.sections.identity.sha256.slice(0, 24)}...` : "—"}</strong></div>
                   <div>CONFIDENCE: <strong className="text-[#10B981]">100% DETERMINISTIC AST</strong></div>
                 </div>
@@ -535,10 +535,10 @@ function ReportsContent() {
                     ISO: "ISO/IEC 27001",
                   };
                   return (
-                    <div key={fw} className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-1.5">
-                      <div className="text-[10px] text-[#667085] uppercase font-bold">{labelMap[fw] || fw}</div>
+                    <div key={fw} className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-1.5">
+                      <div className="text-[10px] text-[#636366] uppercase font-bold">{labelMap[fw] || fw}</div>
                       <div className="text-lg font-black text-[#10B981]">{fwScore}</div>
-                      <div className="text-[10px] text-[#A7B0C0]">{fwPassed} • {fwFailed}</div>
+                      <div className="text-[10px] text-[#8E8E93]">{fwPassed} • {fwFailed}</div>
                     </div>
                   );
                 })}
@@ -551,47 +551,47 @@ function ReportsContent() {
                 4. CRITICAL FINDINGS & LINE-LEVEL EVIDENCE CITATIONS
               </div>
               <div className="space-y-2">
-                <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
+                <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[#3B82F6]">CIS-1.2.1 • Ensure SSH Version 2 is enabled</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
                       FAIL (CRITICAL)
                     </span>
                   </div>
-                  <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[11px] font-mono text-[#EF4444]">
+                  <div className="p-2 rounded bg-[#080808] border border-[#1F1F1F] text-[11px] font-mono text-[#EF4444]">
                     Line 16: ip ssh version 1
                   </div>
-                  <div className="text-[11px] text-[#A7B0C0] font-sans">
+                  <div className="text-[11px] text-[#8E8E93] font-sans">
                     <strong className="text-white">Why it failed:</strong> SSH version 1 is enabled (observed: 1, expected: 2). Configuration line 16 confirms SSH version 1 protocol.
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
+                <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[#3B82F6]">CIS-1.1.2 • Enable password encryption service</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
                       FAIL (CRITICAL)
                     </span>
                   </div>
-                  <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[11px] font-mono text-[#EF4444]">
+                  <div className="p-2 rounded bg-[#080808] border border-[#1F1F1F] text-[11px] font-mono text-[#EF4444]">
                     Line 3: no service password-encryption
                   </div>
-                  <div className="text-[11px] text-[#A7B0C0] font-sans">
+                  <div className="text-[11px] text-[#8E8E93] font-sans">
                     <strong className="text-white">Why it failed:</strong> Password encryption is disabled on local passwords, allowing cleartext credential extraction from backups.
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-2">
+                <div className="p-3.5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[#3B82F6]">NIST-AC-17 • Disable unencrypted Telnet transport</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
                       FAIL (HIGH)
                     </span>
                   </div>
-                  <div className="p-2 rounded bg-[#080B12] border border-[#1D2939] text-[11px] font-mono text-[#EF4444]">
+                  <div className="p-2 rounded bg-[#080808] border border-[#1F1F1F] text-[11px] font-mono text-[#EF4444]">
                     Line 31: transport input telnet
                   </div>
-                  <div className="text-[11px] text-[#A7B0C0] font-sans">
+                  <div className="text-[11px] text-[#8E8E93] font-sans">
                     <strong className="text-white">Why it failed:</strong> VTY management lines allow plaintext Telnet connections over the network.
                   </div>
                 </div>
@@ -603,13 +603,13 @@ function ReportsContent() {
               <div className="text-[11px] font-bold text-[#10B981] uppercase tracking-wider">
                 5. ALLOWLISTED REMEDIATION & VERIFIED BEFORE/AFTER RESULT
               </div>
-              <div className="p-4 rounded-xl bg-[#0D121C] border border-[#10B981]/30 space-y-3">
+              <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#10B981]/30 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-white uppercase text-xs">PROPOSED CONFIGURATION PATCH</span>
                   <span className="text-[10px] text-[#10B981] font-bold">NETWORK PUSH: DISABLED (READ-ONLY ADVISORY)</span>
                 </div>
 
-                <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939] font-mono text-[11px] space-y-1">
+                <div className="p-2.5 rounded bg-[#080808] border border-[#1F1F1F] font-mono text-[11px] space-y-1">
                   <div className="text-[#EF4444]">- ip ssh version 1</div>
                   <div className="text-[#10B981]">+ ip ssh version 2</div>
                   <div className="text-[#EF4444]">- no service password-encryption</div>
@@ -620,8 +620,8 @@ function ReportsContent() {
 
                 {/* Verified Before/After Delta Table */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                  <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[9px] text-[#667085]">COMPLIANCE DELTA</div>
+                  <div className="p-2.5 rounded bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[9px] text-[#636366]">COMPLIANCE DELTA</div>
                     <div className="text-sm font-bold text-[#10B981] mt-0.5">
                       {activeReport?.sections?.security_evolution ? (
                         `${activeReport.sections.security_evolution.before_compliance_score?.toFixed(1) || '0.0'}% → ${activeReport.sections.security_evolution.after_compliance_score?.toFixed(1) || '0.0'}%`
@@ -633,8 +633,8 @@ function ReportsContent() {
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[9px] text-[#667085]">RISK DELTA</div>
+                  <div className="p-2.5 rounded bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[9px] text-[#636366]">RISK DELTA</div>
                     <div className="text-sm font-bold text-[#EF4444] mt-0.5">
                       {activeReport?.sections?.security_evolution ? (
                         `${activeReport.sections.security_evolution.before_risk_score?.toFixed(1) || '0.0'} → ${activeReport.sections.security_evolution.after_risk_score?.toFixed(1) || '0.0'}`
@@ -646,8 +646,8 @@ function ReportsContent() {
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[9px] text-[#667085]">FAILED CONTROLS</div>
+                  <div className="p-2.5 rounded bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[9px] text-[#636366]">FAILED CONTROLS</div>
                     <div className="text-sm font-bold text-[#F59E0B] mt-0.5">
                       {activeReport?.sections?.security_evolution ? (
                         `${activeReport.sections.security_evolution.before_failed_count ?? 0} → ${activeReport.sections.security_evolution.after_failed_count ?? 0}`
@@ -659,8 +659,8 @@ function ReportsContent() {
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#080B12] border border-[#1D2939]">
-                    <div className="text-[9px] text-[#667085]">RESOLVED STATUS</div>
+                  <div className="p-2.5 rounded bg-[#080808] border border-[#1F1F1F]">
+                    <div className="text-[9px] text-[#636366]">RESOLVED STATUS</div>
                     <div className="text-sm font-bold text-[#3B82F6] mt-0.5">
                       {activeReport?.sections?.security_evolution ? (
                         `${activeReport.sections.security_evolution.resolved_count ?? 0} CONTROLS RESOLVED`
@@ -676,7 +676,7 @@ function ReportsContent() {
             </div>
 
             {/* Document Sign-off Footer */}
-            <div className="border-t border-[#1D2939] pt-4 flex flex-col sm:flex-row sm:items-center justify-between text-[10px] text-[#667085] font-mono gap-2">
+            <div className="border-t border-[#1F1F1F] pt-4 flex flex-col sm:flex-row sm:items-center justify-between text-[10px] text-[#636366] font-mono gap-2">
               <span>NetVigil Enterprise Security Intelligence Engine</span>
               <span>Official Compliance Document • National Technical Research Organisation (NTRO)</span>
             </div>
@@ -686,11 +686,11 @@ function ReportsContent() {
 
       {/* TAB 2: AUDIT REGISTRY & HISTORY */}
       {activeTab === "history" && (
-        <div className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-4 font-mono text-xs">
+        <div className="p-5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-4 font-mono text-xs">
           <div className="flex items-center justify-between">
             <div>
               <span className="font-bold text-white uppercase text-xs">COMPLETED AUDIT SESSIONS</span>
-              <p className="text-[11px] text-[#667085] font-sans mt-0.5">
+              <p className="text-[11px] text-[#636366] font-sans mt-0.5">
                 Every completed audit session is recorded with cryptographic integrity.
               </p>
             </div>
@@ -698,15 +698,15 @@ function ReportsContent() {
           </div>
 
           {isAuditsLoading ? (
-            <div className="py-16 text-center text-[#A7B0C0] flex items-center justify-center gap-2">
+            <div className="py-16 text-center text-[#8E8E93] flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
               <span>Loading completed audits...</span>
             </div>
           ) : audits.length === 0 ? (
-            <div className="py-16 text-center text-[#667085] space-y-3">
+            <div className="py-16 text-center text-[#636366] space-y-3">
               <CheckCircle2 className="w-8 h-8 text-[#3B82F6] mx-auto" />
               <div className="text-xs font-bold text-white">NO COMPLETED AUDITS</div>
-              <p className="text-[11px] text-[#A7B0C0] font-sans">
+              <p className="text-[11px] text-[#8E8E93] font-sans">
                 Upload or select a configuration to begin an audit.
               </p>
               <Link
@@ -717,10 +717,10 @@ function ReportsContent() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-[#1D2939] bg-[#080B12]">
+            <div className="overflow-x-auto rounded-xl border border-[#1F1F1F] bg-[#080808]">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#1D2939] bg-[#0D121C] text-[#667085] text-[10px] uppercase font-bold">
+                  <tr className="border-b border-[#1F1F1F] bg-[#0B0B0B] text-[#636366] text-[10px] uppercase font-bold">
                     <th className="p-3">TARGET ASSET</th>
                     <th className="p-3">VENDOR</th>
                     <th className="p-3">SHA-256</th>
@@ -730,7 +730,7 @@ function ReportsContent() {
                     <th className="p-3 text-right">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1D2939]/60">
+                <tbody className="divide-y divide-[#1F1F1F]/60">
                   {audits.map((a: AuditItem) => {
                     const matchedCfg = configurations.find((c) => c.id === a.configuration_id);
                     const assetName = matchedCfg?.original_filename || a.device_id || `Audit #${a.id.slice(0, 8)}`;
@@ -744,16 +744,16 @@ function ReportsContent() {
                       : "0.0 (P3)";
 
                     return (
-                      <tr key={a.id} className="hover:bg-[#111827] transition-colors">
+                      <tr key={a.id} className="hover:bg-[#141414] transition-colors">
                         <td className="p-3 font-bold text-white">
                           {assetName}
                         </td>
                         <td className="p-3">
-                          <span className="px-2 py-0.5 rounded bg-[#0D121C] text-[#3B82F6] border border-[#3B82F6]/30 text-[10px] font-bold">
+                          <span className="px-2 py-0.5 rounded bg-[#0B0B0B] text-[#3B82F6] border border-[#3B82F6]/30 text-[10px] font-bold">
                             {assetVendor}
                           </span>
                         </td>
-                        <td className="p-3 text-[#667085] font-mono truncate max-w-[140px]" title={matchedCfg?.hash || a.id}>
+                        <td className="p-3 text-[#636366] font-mono truncate max-w-[140px]" title={matchedCfg?.hash || a.id}>
                           {shaDisplay}
                         </td>
                         <td className="p-3 font-bold text-[#10B981]">
@@ -762,7 +762,7 @@ function ReportsContent() {
                         <td className="p-3 font-bold text-[#EF4444]">
                           {auditRisk}
                         </td>
-                        <td className="p-3 text-[#667085] text-[10px]">
+                        <td className="p-3 text-[#636366] text-[10px]">
                           {a.started_at ? new Date(a.started_at).toLocaleString() : "Recent"}
                         </td>
                         <td className="p-3 text-right space-x-2">
@@ -771,13 +771,13 @@ function ReportsContent() {
                               setSelectedAuditId(a.id);
                               setActiveTab("report");
                             }}
-                            className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#151E2D] text-[#3B82F6] text-[11px] font-bold border border-[#1D2939]"
+                            className="px-2.5 py-1 rounded bg-[#0B0B0B] hover:bg-[#151E2D] text-[#3B82F6] text-[11px] font-bold border border-[#1F1F1F]"
                           >
                             OPEN REPORT →
                           </button>
                           <Link
                             href={`/findings?auditId=${a.id}`}
-                            className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#151E2D] text-white text-[11px] font-bold border border-[#1D2939]"
+                            className="px-2.5 py-1 rounded bg-[#0B0B0B] hover:bg-[#151E2D] text-white text-[11px] font-bold border border-[#1F1F1F]"
                           >
                             EVIDENCE →
                           </Link>
@@ -794,21 +794,21 @@ function ReportsContent() {
 
       {/* TAB 3: AUDIT DELTA COMPARISON */}
       {activeTab === "compare" && (
-        <div className="p-5 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-5 font-mono text-xs">
+        <div className="p-5 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-5 font-mono text-xs">
           <div>
             <span className="font-bold text-white uppercase text-xs">AUDIT COMPARISON MATRIX</span>
-            <p className="text-[11px] text-[#667085] font-sans mt-0.5">
+            <p className="text-[11px] text-[#636366] font-sans mt-0.5">
               Compare baseline vs remediated audit runs of the same device configuration to prove deterministic posture improvements.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
-              <label className="text-[10px] text-[#667085] uppercase font-bold">1. BASELINE AUDIT (PRE-REMEDIATION):</label>
+            <div className="p-4 rounded-xl bg-[#080808] border border-[#1F1F1F] space-y-2">
+              <label className="text-[10px] text-[#636366] uppercase font-bold">1. BASELINE AUDIT (PRE-REMEDIATION):</label>
               <select
                 value={compareBaselineId}
                 onChange={(e) => setCompareBaselineId(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939] text-white focus:outline-none focus:border-[#3B82F6]"
+                className="w-full p-2.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-white focus:outline-none focus:border-[#3B82F6]"
               >
                 {audits.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -818,12 +818,12 @@ function ReportsContent() {
               </select>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-2">
-              <label className="text-[10px] text-[#667085] uppercase font-bold">2. REMEDIATED AUDIT (POST-REMEDIATION):</label>
+            <div className="p-4 rounded-xl bg-[#080808] border border-[#1F1F1F] space-y-2">
+              <label className="text-[10px] text-[#636366] uppercase font-bold">2. REMEDIATED AUDIT (POST-REMEDIATION):</label>
               <select
                 value={compareRemediatedId}
                 onChange={(e) => setCompareRemediatedId(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-[#0D121C] border border-[#1D2939] text-white focus:outline-none focus:border-[#10B981]"
+                className="w-full p-2.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-white focus:outline-none focus:border-[#10B981]"
               >
                 {audits.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -847,8 +847,8 @@ function ReportsContent() {
 
           {/* Comparison Result Delta Card */}
           {comparisonResult && (
-            <div className="p-5 rounded-2xl bg-[#080B12] border border-[#10B981]/40 space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-[#1D2939] pb-3">
+            <div className="p-5 rounded-2xl bg-[#080808] border border-[#10B981]/40 space-y-4 animate-fadeIn">
+              <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-3">
                 <div className="font-bold text-sm text-white flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
                   <span>AUDIT DELTA CALCULATION COMPLETED</span>
@@ -859,37 +859,37 @@ function ReportsContent() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="p-3 rounded-xl bg-[#0D121C] border border-[#1D2939]">
-                  <div className="text-[10px] text-[#667085]">COMPLIANCE SCORE</div>
+                <div className="p-3 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
+                  <div className="text-[10px] text-[#636366]">COMPLIANCE SCORE</div>
                   <div className="text-sm font-bold text-[#10B981] mt-0.5">
                     {comparisonResult.baseline_compliance_score.toFixed(1)}% → {comparisonResult.remediated_compliance_score.toFixed(1)}%
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#0D121C] border border-[#1D2939]">
-                  <div className="text-[10px] text-[#667085]">FAILED CONTROLS</div>
+                <div className="p-3 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
+                  <div className="text-[10px] text-[#636366]">FAILED CONTROLS</div>
                   <div className="text-sm font-bold text-[#F59E0B] mt-0.5">
                     {comparisonResult.baseline_failed_count} → {comparisonResult.remediated_failed_count} FAIL
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#0D121C] border border-[#1D2939]">
-                  <div className="text-[10px] text-[#667085]">RESOLVED CONTROLS</div>
+                <div className="p-3 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
+                  <div className="text-[10px] text-[#636366]">RESOLVED CONTROLS</div>
                   <div className="text-sm font-bold text-[#3B82F6] mt-0.5">
                     +{comparisonResult.resolved_count} RESOLVED ✓
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#0D121C] border border-[#1D2939]">
-                  <div className="text-[10px] text-[#667085]">NEW VIOLATIONS</div>
+                <div className="p-3 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F]">
+                  <div className="text-[10px] text-[#636366]">NEW VIOLATIONS</div>
                   <div className="text-sm font-bold text-[#10B981] mt-0.5">
                     {comparisonResult.new_violations_count} (ZERO REGRESSION)
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-[#1D2939]">
-                <div className="text-[10px] text-[#667085] uppercase font-bold">TRANSITIONED CONTROLS:</div>
+              <div className="space-y-2 pt-2 border-t border-[#1F1F1F]">
+                <div className="text-[10px] text-[#636366] uppercase font-bold">TRANSITIONED CONTROLS:</div>
                 <div className="flex flex-wrap gap-1.5">
                   {comparisonResult.resolved_controls.map((ctrl) => (
                     <span
@@ -909,24 +909,24 @@ function ReportsContent() {
       {/* Generate Report Modal */}
       {isGenerateModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0D121C] border border-[#1D2939] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden font-mono text-xs animate-in zoom-in-95 duration-150">
-            <div className="p-4 border-b border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
+          <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden font-mono text-xs animate-in zoom-in-95 duration-150">
+            <div className="p-4 border-b border-[#1F1F1F] bg-[#0B0B0B] flex items-center justify-between">
               <div className="flex items-center gap-2 text-white font-bold">
                 <FileText className="w-4 h-4 text-[#3B82F6]" />
                 <span>GENERATE EXECUTIVE REPORT</span>
               </div>
-              <button onClick={() => setIsGenerateModalOpen(false)} className="p-1 text-[#667085] hover:text-white">
+              <button onClick={() => setIsGenerateModalOpen(false)} className="p-1 text-[#636366] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-5 space-y-4">
               <div className="space-y-1">
-                <label className="text-[#667085] uppercase text-[10px] font-bold">TEMPLATE TYPE:</label>
+                <label className="text-[#636366] uppercase text-[10px] font-bold">TEMPLATE TYPE:</label>
                 <select
                   value={reportType}
                   onChange={(e) => setReportType(e.target.value)}
-                  className="w-full p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-white focus:outline-none focus:border-[#3B82F6]"
+                  className="w-full p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F] text-white focus:outline-none focus:border-[#3B82F6]"
                 >
                   <option value="EXECUTIVE_AUDIT_SUMMARY">Executive Compliance & Risk Summary</option>
                   <option value="DEVICE_COMPLIANCE">Device Compliance Assessment</option>
@@ -935,11 +935,11 @@ function ReportsContent() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[#667085] uppercase text-[10px] font-bold">TARGET AUDIT SESSION:</label>
+                <label className="text-[#636366] uppercase text-[10px] font-bold">TARGET AUDIT SESSION:</label>
                 <select
                   value={selectedAuditId}
                   onChange={(e) => setSelectedAuditId(e.target.value)}
-                  className="w-full p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[#3B82F6] focus:outline-none focus:border-[#3B82F6]"
+                  className="w-full p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F] text-[#3B82F6] focus:outline-none focus:border-[#3B82F6]"
                 >
                   {audits.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -950,32 +950,32 @@ function ReportsContent() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[#667085] uppercase text-[10px] font-bold">REPORT TITLE (OPTIONAL):</label>
+                <label className="text-[#636366] uppercase text-[10px] font-bold">REPORT TITLE (OPTIONAL):</label>
                 <input
                   type="text"
                   placeholder="e.g. CORE-RTR-01 Perimeter Security Assessment"
                   value={reportTitle}
                   onChange={(e) => setReportTitle(e.target.value)}
-                  className="w-full p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-white focus:outline-none focus:border-[#3B82F6]"
+                  className="w-full p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F] text-white focus:outline-none focus:border-[#3B82F6]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[#667085] uppercase text-[10px] font-bold">EXECUTIVE NOTES:</label>
+                <label className="text-[#636366] uppercase text-[10px] font-bold">EXECUTIVE NOTES:</label>
                 <textarea
                   rows={2}
                   placeholder="Official compliance assessment document generated for NTRO network operations review."
                   value={reportNotes}
                   onChange={(e) => setReportNotes(e.target.value)}
-                  className="w-full p-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-white focus:outline-none focus:border-[#3B82F6]"
+                  className="w-full p-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F] text-white focus:outline-none focus:border-[#3B82F6]"
                 />
               </div>
             </div>
 
-            <div className="p-4 border-t border-[#1D2939] bg-[#0A0F18] flex items-center justify-between">
+            <div className="p-4 border-t border-[#1F1F1F] bg-[#0B0B0B] flex items-center justify-between">
               <button
                 onClick={() => setIsGenerateModalOpen(false)}
-                className="px-3.5 py-1.5 rounded-lg bg-[#080B12] hover:bg-[#111827] text-[#A7B0C0] border border-[#1D2939]"
+                className="px-3.5 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] text-[#8E8E93] border border-[#1F1F1F]"
               >
                 Cancel
               </button>
@@ -1014,7 +1014,7 @@ function ReportsContent() {
 
 export default function ReportsPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-[#667085] font-mono">Loading Executive Security Reports...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-[#636366] font-mono">Loading Executive Security Reports...</div>}>
       <ReportsContent />
     </Suspense>
   );

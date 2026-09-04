@@ -13,7 +13,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 
 export default function NetVigilLandingPage() {
   return (
-    <div className="min-h-screen bg-[#080B12] text-[#F3F4F6] font-sans antialiased selection:bg-[#3B82F6]/20 selection:text-[#3B82F6]">
+    <div className="min-h-screen bg-[#050505] text-[#F3F4F6] font-sans antialiased selection:bg-[#3B82F6]/20 selection:text-[#3B82F6]">
       {/* 1. Technical Command Navbar */}
       <LandingNavbar />
 

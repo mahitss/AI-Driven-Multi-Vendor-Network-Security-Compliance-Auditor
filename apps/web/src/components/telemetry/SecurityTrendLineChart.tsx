@@ -348,12 +348,12 @@ export default function SecurityTrendLineChart({
   // 1. LOADING STATE
   if (isLoading) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-3">
+      <div className="p-8 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center font-mono text-xs text-[#8E8E93] space-y-3">
         <div className="flex items-center justify-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] animate-ping" />
-          <span className="font-semibold text-[#F3F4F6]">SYNCHRONIZING DETERMINISTIC TELEMETRY...</span>
+          <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping" />
+          <span className="font-semibold text-[#F2F2F2]">SYNCHRONIZING DETERMINISTIC TELEMETRY...</span>
         </div>
-        <p className="text-[11px] text-[#64748B] max-w-sm mx-auto font-sans">
+        <p className="text-[11px] text-[#666666] max-w-sm mx-auto font-sans">
           Extracting execution timestamps and evaluating compliance trajectories across active configurations.
         </p>
       </div>
@@ -363,10 +363,10 @@ export default function SecurityTrendLineChart({
   // 2. EMPTY STATE
   if (!trends || trends.length === 0) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2.5">
-        <Info className="w-6 h-6 text-[#64748B] mx-auto" />
-        <div className="text-sm font-bold text-[#F3F4F6]">NO TELEMETRY DATA</div>
-        <p className="text-[11px] text-[#64748B] max-w-sm mx-auto font-sans">
+      <div className="p-8 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center font-mono text-xs text-[#8E8E93] space-y-2.5">
+        <Info className="w-6 h-6 text-[#666666] mx-auto" />
+        <div className="text-sm font-bold text-[#F2F2F2]">NO TELEMETRY DATA</div>
+        <p className="text-[11px] text-[#666666] max-w-sm mx-auto font-sans">
           No audit execution records found in database. Ingest configurations and execute compliance audits to generate time-series streamgraph telemetry.
         </p>
       </div>
@@ -374,18 +374,18 @@ export default function SecurityTrendLineChart({
   }
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-all space-y-4 font-mono select-none">
+    <div className="p-4 sm:p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors space-y-4 font-mono select-none">
       {/* 1. Header Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1E2638] pb-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1F1F1F] pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5 text-[#94A3B8]" />
-            <span className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+            <Layers className="w-3.5 h-3.5 text-[#8E8E93]" />
+            <span className="text-xs font-semibold text-[#F2F2F2] uppercase tracking-wider">
               TIME-SERIES SECURITY STREAMGRAPH
             </span>
           </div>
-          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
-            Layered area progression across <span className="text-[#F3F4F6] font-mono">{trends.length}</span> execution point(s) from database.
+          <p className="text-[11px] text-[#8E8E93] font-sans mt-0.5">
+            Layered area progression across <span className="text-[#F2F2F2] font-mono">{trends.length}</span> execution point(s) from database.
           </p>
         </div>
 
@@ -401,10 +401,10 @@ export default function SecurityTrendLineChart({
                 onClick={() => toggleSeries(key)}
                 onDoubleClick={() => soloSeries(key)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono font-semibold transition-all border",
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-semibold transition-colors border",
                   isEnabled
-                    ? "bg-[#141A24] text-[#F3F4F6] border-[#28354A] shadow-sm"
-                    : "bg-[#090B0F] text-[#64748B] border-[#1E2638] opacity-60 hover:opacity-100"
+                    ? "bg-[#141414] text-[#F2F2F2] border-[#2A2A2A] shadow-xs"
+                    : "bg-[#070707] text-[#666666] border-[#1F1F1F] opacity-60 hover:opacity-100"
                 )}
                 title={`Click to toggle ${def.label}. Double click to solo.`}
               >
@@ -417,9 +417,9 @@ export default function SecurityTrendLineChart({
                 />
                 <span>{def.label}</span>
                 {isEnabled ? (
-                  <Eye className="w-2.5 h-2.5 text-[#64748B] ml-0.5" />
+                  <Eye className="w-2.5 h-2.5 text-[#636366] ml-0.5" />
                 ) : (
-                  <EyeOff className="w-2.5 h-2.5 text-[#64748B] ml-0.5" />
+                  <EyeOff className="w-2.5 h-2.5 text-[#636366] ml-0.5" />
                 )}
               </button>
             );
@@ -436,10 +436,10 @@ export default function SecurityTrendLineChart({
 
       {/* Zero Audit Points Notice */}
       {trends.length === 0 && (
-        <div className="p-6 rounded-lg bg-[#090B0F] border border-[#1E2638] text-center font-mono space-y-2">
-          <Info className="w-5 h-5 text-[#64748B] mx-auto" />
-          <div className="text-xs font-bold text-[#F3F4F6]">NO AUDIT TELEMETRY RECORDED</div>
-          <p className="text-[11px] text-[#94A3B8] font-sans max-w-md mx-auto">
+        <div className="p-6 rounded-lg bg-[#080808] border border-[#141414] text-center font-mono space-y-2">
+          <Info className="w-5 h-5 text-[#636366] mx-auto" />
+          <div className="text-xs font-bold text-[#F2F2F2]">NO AUDIT TELEMETRY RECORDED</div>
+          <p className="text-[11px] text-[#8E8E93] font-sans max-w-md mx-auto">
             Security telemetry streamgraph will populate automatically as configurations are ingested and evaluated against compliance frameworks.
           </p>
         </div>
@@ -447,16 +447,16 @@ export default function SecurityTrendLineChart({
 
       {/* Single Audit Point Notice */}
       {!hasSufficientHistory && trends.length === 1 && (
-        <div className="p-2.5 rounded-lg bg-[#090B0F] border border-[#1E2638] flex items-center gap-2 text-[11px] text-[#94A3B8]">
+        <div className="p-2.5 rounded-lg bg-[#080808] border border-[#141414] flex items-center gap-2 text-[11px] text-[#8E8E93]">
           <Info className="w-4 h-4 text-[#93C5FD] shrink-0" />
           <span>
-            <strong className="text-[#F3F4F6]">Single Audit Point:</strong> Historical trend slope unavailable — additional audit runs will plot continuous stream waves.
+            <strong className="text-[#F2F2F2]">Single Audit Point:</strong> Historical trend slope unavailable — additional audit runs will plot continuous stream waves.
           </span>
         </div>
       )}
 
       {/* 3. Main Streamgraph Canvas */}
-      <div className="relative w-full overflow-hidden rounded-lg bg-[#090B0F]/90 border border-[#1E2638] p-2">
+      <div className="relative w-full overflow-hidden rounded-lg bg-[#080808]/90 border border-[#141414] p-2">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
@@ -489,7 +489,7 @@ export default function SecurityTrendLineChart({
 
             {/* Subtle Grid Pattern */}
             <pattern id="grid-dots" width="20" height="20" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="0.75" fill="#182030" />
+              <circle cx="2" cy="2" r="0.75" fill="#1A1A1A" />
             </pattern>
           </defs>
 
@@ -516,7 +516,7 @@ export default function SecurityTrendLineChart({
                   y1={y}
                   x2={width - padRight}
                   y2={y}
-                  stroke="#182030"
+                  stroke="#1A1A1A"
                   strokeWidth="1"
                   strokeDasharray="4 4"
                 />
@@ -525,7 +525,7 @@ export default function SecurityTrendLineChart({
                   x={padLeft - 6}
                   y={y + 3.5}
                   textAnchor="end"
-                  fill="#64748B"
+                  fill="#555555"
                   fontSize="9"
                   fontFamily="monospace"
                 >
@@ -536,7 +536,7 @@ export default function SecurityTrendLineChart({
                   x={width - padRight + 6}
                   y={y + 3.5}
                   textAnchor="start"
-                  fill="#64748B"
+                  fill="#555555"
                   fontSize="9"
                   fontFamily="monospace"
                 >
@@ -554,7 +554,7 @@ export default function SecurityTrendLineChart({
                 y1={padTop}
                 x2={tick.x}
                 y2={bottomY}
-                stroke="#182030"
+                stroke="#1A1A1A"
                 strokeWidth="1"
                 strokeDasharray="3 3"
               />
@@ -562,7 +562,7 @@ export default function SecurityTrendLineChart({
                 x={tick.x}
                 y={bottomY + 18}
                 textAnchor="middle"
-                fill="#64748B"
+                fill="#636366"
                 fontSize="9"
                 fontFamily="monospace"
               >
@@ -577,7 +577,7 @@ export default function SecurityTrendLineChart({
             y1={bottomY}
             x2={width - padRight}
             y2={bottomY}
-            stroke="#1E2638"
+            stroke="#141414"
             strokeWidth="1.5"
           />
 
@@ -675,7 +675,7 @@ export default function SecurityTrendLineChart({
         {/* 7. Premium Enterprise Telemetry HUD Tooltip */}
         {activeHoverPoint && activeHoverX !== null && mouseCoord && (
           <div
-            className="absolute z-30 pointer-events-none p-3.5 rounded-xl bg-[#090B0F]/95 border border-[#28354A] shadow-2xl backdrop-blur-md text-xs space-y-2 font-mono min-w-[260px] max-w-[320px] transition-transform duration-75"
+            className="absolute z-30 pointer-events-none p-3.5 rounded-xl bg-[#080808]/95 border border-[#2C2C2E] shadow-2xl backdrop-blur-md text-xs space-y-2 font-mono min-w-[260px] max-w-[320px] transition-transform duration-75"
             style={{
               left: `${Math.min(Math.max((activeHoverX / width) * 100, 15), 82)}%`,
               top: "16px",
@@ -683,16 +683,16 @@ export default function SecurityTrendLineChart({
             }}
           >
             {/* Tooltip Header: Target Config & Timestamp */}
-            <div className="border-b border-[#1E2638] pb-2">
+            <div className="border-b border-[#141414] pb-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-[#F3F4F6] text-xs truncate max-w-[170px]">
+                <span className="font-bold text-[#F2F2F2] text-xs truncate max-w-[170px]">
                   {activeHoverPoint.device_name}
                 </span>
-                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#141A24] text-[#93C5FD] font-bold uppercase border border-[#28354A]">
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#141414] text-[#93C5FD] font-bold uppercase border border-[#2C2C2E]">
                   {activeHoverPoint.vendor}
                 </span>
               </div>
-              <div className="text-[10px] text-[#94A3B8] mt-0.5">
+              <div className="text-[10px] text-[#8E8E93] mt-0.5">
                 {new Date(activeHoverPoint.timestamp).toLocaleString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -708,7 +708,7 @@ export default function SecurityTrendLineChart({
             <div className="space-y-1.5 text-[11px]">
               {activeSeries.compliance_score && (
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[#94A3B8]">
+                  <span className="flex items-center gap-1.5 text-[#8E8E93]">
                     <span className="w-2 h-2 rounded-full bg-[#10B981]" />
                     <span>Fleet Compliance:</span>
                   </span>
@@ -720,7 +720,7 @@ export default function SecurityTrendLineChart({
 
               {activeSeries.risk_score && (
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[#94A3B8]">
+                  <span className="flex items-center gap-1.5 text-[#8E8E93]">
                     <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
                     <span>Risk Score:</span>
                   </span>
@@ -732,11 +732,11 @@ export default function SecurityTrendLineChart({
 
               {activeSeries.open_findings && (
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[#94A3B8]">
+                  <span className="flex items-center gap-1.5 text-[#8E8E93]">
                     <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
                     <span>Open Findings:</span>
                   </span>
-                  <span className="font-bold text-[#F3F4F6]">
+                  <span className="font-bold text-[#F2F2F2]">
                     {activeHoverPoint.open_findings} items
                   </span>
                 </div>
@@ -744,7 +744,7 @@ export default function SecurityTrendLineChart({
 
               {activeSeries.critical_findings && (
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-[#94A3B8]">
+                  <span className="flex items-center gap-1.5 text-[#8E8E93]">
                     <span className="w-2 h-2 rounded-full bg-[#EF4444]" />
                     <span>Critical (P0):</span>
                   </span>
@@ -756,7 +756,7 @@ export default function SecurityTrendLineChart({
             </div>
 
             {/* Source & Traceability Footer */}
-            <div className="pt-2 border-t border-[#1E2638] text-[9px] text-[#64748B] flex items-center justify-between">
+            <div className="pt-2 border-t border-[#141414] text-[9px] text-[#636366] flex items-center justify-between">
               <span>Source: Database audit #{activeHoverPoint.audit_id ? activeHoverPoint.audit_id.slice(0, 8) : "LOG"}</span>
               <span className="text-[#93C5FD] flex items-center gap-0.5">
                 <span>View</span>
@@ -768,7 +768,7 @@ export default function SecurityTrendLineChart({
       </div>
 
       {/* 8. Bottom Information Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#64748B] pt-2 border-t border-[#1E2638]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#636366] pt-2 border-t border-[#141414]">
         <div className="flex items-center gap-3">
           <span>Y-Axis (Left): 0–100% (Compliance &amp; Risk)</span>
           <span>•</span>

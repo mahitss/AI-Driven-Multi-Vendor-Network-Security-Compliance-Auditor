@@ -129,17 +129,17 @@ export default function AIAssistantPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#F3F4F6] tracking-tight flex items-center gap-2.5 font-mono">
+          <h1 className="text-xl font-bold text-[#F2F2F2] tracking-tight flex items-center gap-2.5 font-mono">
             <Bot className="w-5 h-5 text-[#8B5CF6]" />
             <span>NetVigil AI Intelligence Co-Pilot</span>
           </h1>
-          <p className="text-xs text-[#A7B0C0] mt-1 font-sans">
+          <p className="text-xs text-[#8E8E93] mt-1 font-sans">
             Grounded natural-language audit reasoning and unknown configuration semantic interpretation.
           </p>
         </div>
 
         {/* AI Provider Status Badge */}
-        <div className="flex items-center gap-2.5 font-mono text-[11px] px-3 py-1.5 rounded-lg bg-[#0D121C] border border-[#1D2939] text-[#A7B0C0]">
+        <div className="flex items-center gap-2.5 font-mono text-[11px] px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-[#8E8E93]">
           <Cpu className="w-3.5 h-3.5 text-[#8B5CF6]" />
           <span>
             AI Gateway: <strong className="text-white">OpenRouter</strong> (15 Models)
@@ -152,25 +152,25 @@ export default function AIAssistantPage() {
       </div>
 
       {/* Deterministic Guardrail Banner */}
-      <div className="p-4 rounded-xl bg-[#0D121C] border border-[#8B5CF6]/30 flex items-start gap-3">
+      <div className="p-4 rounded-xl bg-[#0B0B0B] border border-[#8B5CF6]/30 flex items-start gap-3">
         <ShieldAlert className="w-5 h-5 text-[#8B5CF6] flex-shrink-0 mt-0.5" />
         <div className="text-xs space-y-1">
           <div className="font-semibold text-white font-mono">AI ADVISORY • STRICT DETERMINISTIC BOUNDARY</div>
-          <p className="text-[#A7B0C0] leading-relaxed font-sans">
+          <p className="text-[#8E8E93] leading-relaxed font-sans">
             Compliance statuses (<code className="text-[#10B981]">PASS</code>, <code className="text-[#EF4444]">FAIL</code>, <code className="text-[#F59E0B]">UNKNOWN</code>) and scores are generated 100% deterministically by NetVigil AST parsers. The AI Co-pilot assists with explanation, prioritization, and semantic syntax translation without altering deterministic compliance scores.
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#1D2939] pb-2 text-xs font-mono">
+      <div className="flex items-center gap-2 border-b border-[#1F1F1F] pb-2 text-xs font-mono">
         <button
           onClick={() => setActiveTab("audit_assistant")}
           className={cn(
             "px-3.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1.5",
             activeTab === "audit_assistant"
-              ? "bg-[#0D121C] text-[#8B5CF6] border border-[#8B5CF6]/40"
-              : "text-[#667085] hover:text-white"
+              ? "bg-[#0B0B0B] text-[#8B5CF6] border border-[#8B5CF6]/40"
+              : "text-[#636366] hover:text-white"
           )}
         >
           <Bot className="w-4 h-4" />
@@ -182,8 +182,8 @@ export default function AIAssistantPage() {
           className={cn(
             "px-3.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1.5",
             activeTab === "syntax_interpreter"
-              ? "bg-[#0D121C] text-[#8B5CF6] border border-[#8B5CF6]/40"
-              : "text-[#667085] hover:text-white"
+              ? "bg-[#0B0B0B] text-[#8B5CF6] border border-[#8B5CF6]/40"
+              : "text-[#636366] hover:text-white"
           )}
         >
           <Terminal className="w-4 h-4" />
@@ -195,13 +195,13 @@ export default function AIAssistantPage() {
         /* Audit Assistant Tab */
         <div className="space-y-4 font-mono">
           {/* Audit Selector Bar */}
-          <div className="p-3 rounded-xl bg-[#0D121C] border border-[#1D2939] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="p-3 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-[#667085]">Target Audit Context:</span>
+              <span className="text-[#636366]">Target Audit Context:</span>
               <select
                 value={selectedAuditId}
                 onChange={(e) => setSelectedAuditId(e.target.value)}
-                className="px-3 py-1.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-[#3B82F6] font-semibold focus:outline-none focus:border-[#8B5CF6]"
+                className="px-3 py-1.5 rounded-lg bg-[#080808] border border-[#1F1F1F] text-[#3B82F6] font-semibold focus:outline-none focus:border-[#8B5CF6]"
               >
                 {audits.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -221,10 +221,10 @@ export default function AIAssistantPage() {
           </div>
 
           {/* Chat Container */}
-          <div className="rounded-xl bg-[#0D121C] border border-[#1D2939] flex flex-col h-[520px] overflow-hidden">
+          <div className="rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col h-[520px] overflow-hidden">
             {/* Quick Prompt Suggestions */}
-            <div className="p-2.5 bg-[#0A0F18] border-b border-[#1D2939] flex items-center gap-2 overflow-x-auto text-[11px]">
-              <span className="text-[#667085] text-[10px] whitespace-nowrap">Try asking:</span>
+            <div className="p-2.5 bg-[#0B0B0B] border-b border-[#1F1F1F] flex items-center gap-2 overflow-x-auto text-[11px]">
+              <span className="text-[#636366] text-[10px] whitespace-nowrap">Try asking:</span>
               {[
                 "What are my highest risk findings?",
                 "Why did this device fail CIS?",
@@ -234,7 +234,7 @@ export default function AIAssistantPage() {
                 <button
                   key={chip}
                   onClick={() => handleSendMessage(chip)}
-                  className="px-2.5 py-1 rounded bg-[#0D121C] hover:bg-[#111827] hover:text-[#8B5CF6] text-[#A7B0C0] border border-[#1D2939] whitespace-nowrap transition-colors"
+                  className="px-2.5 py-1 rounded bg-[#0B0B0B] hover:bg-[#141414] hover:text-[#8B5CF6] text-[#8E8E93] border border-[#1F1F1F] whitespace-nowrap transition-colors"
                 >
                   {chip}
                 </button>
@@ -248,7 +248,7 @@ export default function AIAssistantPage() {
                 return (
                   <div key={idx} className={cn("flex gap-3", isAssistant ? "items-start" : "items-end justify-end")}>
                     {isAssistant && (
-                      <div className="w-7 h-7 rounded-lg bg-[#080B12] border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] flex-shrink-0 mt-0.5">
+                      <div className="w-7 h-7 rounded-lg bg-[#080808] border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] flex-shrink-0 mt-0.5">
                         <Bot className="w-3.5 h-3.5" />
                       </div>
                     )}
@@ -257,15 +257,15 @@ export default function AIAssistantPage() {
                       className={cn(
                         "p-4 rounded-xl text-xs max-w-[85%] leading-relaxed",
                         isAssistant
-                          ? "bg-[#080B12] border border-[#1D2939] text-[#A7B0C0] font-sans"
-                          : "bg-[#111827] border border-[#8B5CF6]/40 text-[#F3F4F6] font-sans"
+                          ? "bg-[#080808] border border-[#1F1F1F] text-[#8E8E93] font-sans"
+                          : "bg-[#141414] border border-[#8B5CF6]/40 text-[#F2F2F2] font-sans"
                       )}
                     >
                       <div className="whitespace-pre-wrap">{msg.content}</div>
 
                       {/* Supporting Findings Badges */}
                       {msg.supporting_findings && msg.supporting_findings.length > 0 && (
-                        <div className="mt-3 pt-2.5 border-t border-[#1D2939] space-y-1.5">
+                        <div className="mt-3 pt-2.5 border-t border-[#1F1F1F] space-y-1.5">
                           <div className="text-[10px] font-mono text-[#8B5CF6] font-bold uppercase">
                             Supporting Finding Citations:
                           </div>
@@ -273,7 +273,7 @@ export default function AIAssistantPage() {
                             {msg.supporting_findings.map((fId) => (
                               <span
                                 key={fId}
-                                className="px-2 py-0.5 rounded bg-[#0D121C] text-[#8B5CF6] border border-[#8B5CF6]/30 text-[10px] font-mono font-semibold"
+                                className="px-2 py-0.5 rounded bg-[#0B0B0B] text-[#8B5CF6] border border-[#8B5CF6]/30 text-[10px] font-mono font-semibold"
                               >
                                 {fId}
                               </span>
@@ -282,14 +282,14 @@ export default function AIAssistantPage() {
                         </div>
                       )}
 
-                      <div className="text-[10px] font-mono text-[#667085] mt-2 text-right">{msg.timestamp}</div>
+                      <div className="text-[10px] font-mono text-[#636366] mt-2 text-right">{msg.timestamp}</div>
                     </div>
                   </div>
                 );
               })}
 
               {isLoading && (
-                <div className="flex gap-3 items-center text-[#A7B0C0] font-mono text-xs p-3 rounded-lg bg-[#080B12] border border-[#1D2939]">
+                <div className="flex gap-3 items-center text-[#8E8E93] font-mono text-xs p-3 rounded-lg bg-[#080808] border border-[#1F1F1F]">
                   <RefreshCw className="w-4 h-4 animate-spin text-[#8B5CF6]" />
                   <span>NetVigil AI is analyzing audit session findings...</span>
                 </div>
@@ -297,7 +297,7 @@ export default function AIAssistantPage() {
             </div>
 
             {/* Input Bar */}
-            <div className="p-3.5 border-t border-[#1D2939] bg-[#0A0F18]">
+            <div className="p-3.5 border-t border-[#1F1F1F] bg-[#0B0B0B]">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -310,12 +310,12 @@ export default function AIAssistantPage() {
                   placeholder="Ask a question about this audit (e.g. Which findings are Critical?)..."
                   value={inputQuery}
                   onChange={(e) => setInputQuery(e.target.value)}
-                  className="flex-1 px-3.5 py-2.5 rounded-lg bg-[#080B12] border border-[#1D2939] text-xs text-[#F3F4F6] placeholder-[#667085] focus:outline-none focus:border-[#8B5CF6] font-sans"
+                  className="flex-1 px-3.5 py-2.5 rounded-lg bg-[#080808] border border-[#1F1F1F] text-xs text-[#F2F2F2] placeholder-[#636366] focus:outline-none focus:border-[#8B5CF6] font-sans"
                 />
                 <button
                   type="submit"
                   disabled={!inputQuery.trim() || isLoading}
-                  className="px-4 py-2.5 rounded-lg bg-[#080B12] border border-[#8B5CF6]/50 hover:border-[#8B5CF6] hover:bg-[#111827] disabled:opacity-40 text-[#8B5CF6] text-xs font-semibold font-mono flex items-center gap-1.5 transition-colors"
+                  className="px-4 py-2.5 rounded-lg bg-[#080808] border border-[#8B5CF6]/50 hover:border-[#8B5CF6] hover:bg-[#141414] disabled:opacity-40 text-[#8B5CF6] text-xs font-semibold font-mono flex items-center gap-1.5 transition-colors"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Ask AI</span>
@@ -326,35 +326,35 @@ export default function AIAssistantPage() {
         </div>
       ) : (
         /* Unknown Syntax Classifier Tab */
-        <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-5">
+        <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-5">
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-[#F3F4F6] flex items-center gap-2 font-mono">
+            <h3 className="text-sm font-bold text-[#F2F2F2] flex items-center gap-2 font-mono">
               <Terminal className="w-4 h-4 text-[#3B82F6]" />
               <span>Unknown Configuration Semantic Interpreter</span>
             </h3>
-            <p className="text-xs text-[#A7B0C0] font-sans">
+            <p className="text-xs text-[#8E8E93] font-sans">
               Test how NetVigil's AI classifier maps unrecognized or proprietary vendor CLI statements to canonical security domains.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
             <div className="md:col-span-2 space-y-1.5">
-              <label className="text-[#667085]">Raw Vendor Configuration Command:</label>
+              <label className="text-[#636366]">Raw Vendor Configuration Command:</label>
               <input
                 type="text"
                 value={rawSyntaxInput}
                 onChange={(e) => setRawSyntaxInput(e.target.value)}
                 placeholder="e.g. ip ssh timeout 15, set system services web-management http disable..."
-                className="w-full px-3.5 py-2 rounded-lg bg-[#080B12] border border-[#1D2939] text-[#22D3EE] focus:outline-none focus:border-[#8B5CF6] text-xs font-mono"
+                className="w-full px-3.5 py-2 rounded-lg bg-[#080808] border border-[#1F1F1F] text-[#22D3EE] focus:outline-none focus:border-[#8B5CF6] text-xs font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[#667085]">Target Vendor:</label>
+              <label className="text-[#636366]">Target Vendor:</label>
               <select
                 value={syntaxVendor}
                 onChange={(e) => setSyntaxVendor(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-[#080B12] border border-[#1D2939] text-white focus:outline-none focus:border-[#8B5CF6] text-xs font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-[#080808] border border-[#1F1F1F] text-white focus:outline-none focus:border-[#8B5CF6] text-xs font-mono"
               >
                 <option value="cisco">Cisco IOS / IOS-XE</option>
                 <option value="juniper">Juniper JunOS</option>
@@ -367,7 +367,7 @@ export default function AIAssistantPage() {
             <button
               onClick={handleInterpretSyntax}
               disabled={isInterpreting || !rawSyntaxInput.trim()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#080B12] border border-[#8B5CF6]/50 hover:border-[#8B5CF6] hover:bg-[#111827] disabled:opacity-50 text-[#8B5CF6] text-xs font-semibold font-mono transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#080808] border border-[#8B5CF6]/50 hover:border-[#8B5CF6] hover:bg-[#141414] disabled:opacity-50 text-[#8B5CF6] text-xs font-semibold font-mono transition-colors"
             >
               {isInterpreting ? (
                 <>
@@ -385,10 +385,10 @@ export default function AIAssistantPage() {
 
           {/* Syntax Interpretation Result */}
           {syntaxResult && (
-            <div className="p-4 rounded-xl bg-[#080B12] border border-[#1D2939] space-y-3 font-mono text-xs animate-in fade-in duration-150">
-              <div className="flex items-center justify-between pb-2 border-b border-[#1D2939]">
+            <div className="p-4 rounded-xl bg-[#080808] border border-[#1F1F1F] space-y-3 font-mono text-xs animate-in fade-in duration-150">
+              <div className="flex items-center justify-between pb-2 border-b border-[#1F1F1F]">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded bg-[#0D121C] text-[#8B5CF6] border border-[#8B5CF6]/30 font-bold uppercase">
+                  <span className="px-2 py-0.5 rounded bg-[#0B0B0B] text-[#8B5CF6] border border-[#8B5CF6]/30 font-bold uppercase">
                     {syntaxResult.status}
                   </span>
                   <span className="text-white font-bold">Category: {syntaxResult.normalized_category}</span>
@@ -398,10 +398,10 @@ export default function AIAssistantPage() {
                   className={cn(
                     "px-2 py-0.5 rounded font-bold uppercase text-[10px] border",
                     syntaxResult.confidence_tier === "high"
-                      ? "bg-[#0D121C] text-[#10B981] border-[#10B981]/40"
+                      ? "bg-[#0B0B0B] text-[#10B981] border-[#10B981]/40"
                       : syntaxResult.confidence_tier === "review"
-                      ? "bg-[#0D121C] text-[#F59E0B] border-[#F59E0B]/40"
-                      : "bg-[#0D121C] text-[#EF4444] border-[#EF4444]/40"
+                      ? "bg-[#0B0B0B] text-[#F59E0B] border-[#F59E0B]/40"
+                      : "bg-[#0B0B0B] text-[#EF4444] border-[#EF4444]/40"
                   )}
                 >
                   {(syntaxResult.confidence * 100).toFixed(0)}% Confidence ({syntaxResult.confidence_tier})
@@ -409,13 +409,13 @@ export default function AIAssistantPage() {
               </div>
 
               <div className="space-y-1 font-sans">
-                <div className="text-[10px] text-[#667085] font-mono uppercase">Semantic Meaning</div>
-                <p className="text-[#A7B0C0]">{syntaxResult.semantic_meaning}</p>
+                <div className="text-[10px] text-[#636366] font-mono uppercase">Semantic Meaning</div>
+                <p className="text-[#8E8E93]">{syntaxResult.semantic_meaning}</p>
               </div>
 
               {syntaxResult.candidate_property && (
-                <div className="p-2.5 rounded bg-[#0D121C] border border-[#1D2939] space-y-1">
-                  <div className="text-[10px] text-[#667085] uppercase">Candidate Normalized Mapping</div>
+                <div className="p-2.5 rounded bg-[#0B0B0B] border border-[#1F1F1F] space-y-1">
+                  <div className="text-[10px] text-[#636366] uppercase">Candidate Normalized Mapping</div>
                   <div className="text-[#22D3EE]">
                     <strong className="text-white">{syntaxResult.candidate_property}</strong> = {String(syntaxResult.candidate_value)}
                   </div>
@@ -423,8 +423,8 @@ export default function AIAssistantPage() {
               )}
 
               <div className="space-y-1 font-sans">
-                <div className="text-[10px] text-[#667085] font-mono uppercase">Reasoning Summary</div>
-                <p className="text-[#667085] text-[11px]">{syntaxResult.reasoning_summary}</p>
+                <div className="text-[10px] text-[#636366] font-mono uppercase">Reasoning Summary</div>
+                <p className="text-[#636366] text-[11px]">{syntaxResult.reasoning_summary}</p>
               </div>
             </div>
           )}

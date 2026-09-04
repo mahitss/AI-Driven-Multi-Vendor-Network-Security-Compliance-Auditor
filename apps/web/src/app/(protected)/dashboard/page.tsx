@@ -170,15 +170,15 @@ export default function SecurityPostureDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-4 select-none font-sans">
       {/* 1. Clean Header with Fleet vs Latest Audit Distinction */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2638] pb-3.5 bg-[#090B0F]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F1F1F] pb-3.5 bg-[#080808]">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-base sm:text-lg font-bold text-[#F3F4F6] tracking-tight font-mono">
+            <h1 className="text-base sm:text-lg font-bold text-[#F2F2F2] tracking-tight font-mono">
               SECURITY POSTURE
             </h1>
             <span
               className={cn(
-                "text-[10px] font-mono px-2 py-0.5 rounded border font-semibold flex items-center gap-1.5",
+                "text-[10px] font-mono px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1.5",
                 statusBadge.bg,
                 statusBadge.text,
                 statusBadge.border
@@ -188,7 +188,7 @@ export default function SecurityPostureDashboard() {
               <span>{statusBadge.label}</span>
             </span>
           </div>
-          <p className="text-xs text-[#94A3B8] mt-0.5 font-sans">
+          <p className="text-xs text-[#8E8E93] mt-0.5 font-sans">
             Continuous compliance evaluation, risk scoring, and security posture across evaluated assets.
           </p>
         </div>
@@ -196,9 +196,9 @@ export default function SecurityPostureDashboard() {
         {/* Latest Audit vs Fleet Posture indicator */}
         {(stats as any)?.latest_audit && (
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="text-[10px] font-mono px-2.5 py-1 rounded-md bg-[#161B22] text-[#94A3B8] border border-[#30363D] flex items-center gap-2 shadow-sm">
-              <span className="text-[#3B82F6] font-semibold tracking-wider">LATEST AUDIT:</span>
-              <span className="text-[#F3F4F6] font-medium truncate max-w-[140px]">
+            <span className="text-[10px] font-mono px-2.5 py-1 rounded-md bg-[#121212] text-[#8E8E93] border border-[#242424] flex items-center gap-2 shadow-xs">
+              <span className="text-[#A0A0A0] font-semibold tracking-wider">LATEST AUDIT:</span>
+              <span className="text-[#F2F2F2] font-medium truncate max-w-[140px]">
                 {(stats as any).latest_audit.filename}
               </span>
               <span
@@ -221,14 +221,14 @@ export default function SecurityPostureDashboard() {
       {/* 2. Core Metrics (5 KPI Cards - Fleet Posture Aggregate) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Metric 1: Fleet Compliance */}
-        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
+        <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#8E8E93] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Fleet Compliance</span>
             <ShieldCheck className="w-4 h-4 text-[#10B981]" />
           </div>
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-[#F3F4F6] font-mono tracking-tight">
+              <span className="text-2xl font-bold text-[#F2F2F2] font-mono tracking-tight">
                 {isStatsError || !stats || !hasCompletedAudits || typeof stats.compliance_score !== "number"
                   ? "—"
                   : `${stats.compliance_score.toFixed(1)}%`}
@@ -248,10 +248,10 @@ export default function SecurityPostureDashboard() {
                   {Math.abs(stats.score_delta).toFixed(1)}%
                 </span>
               ) : !isStatsError && stats && hasCompletedAudits ? (
-                <span className="text-[10px] text-[#64748B] font-mono">Fleet Avg</span>
+                <span className="text-[10px] text-[#666666] font-mono">Fleet Avg</span>
               ) : null}
             </div>
-            <p className="text-[10px] text-[#64748B] mt-1 font-sans">
+            <p className="text-[10px] text-[#666666] mt-1 font-sans">
               {isStatsError
                 ? "Evaluations unavailable"
                 : hasCompletedAudits
@@ -262,21 +262,21 @@ export default function SecurityPostureDashboard() {
         </div>
 
         {/* Metric 2: Risk Score */}
-        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
+        <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#8E8E93] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Risk Score</span>
             <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-[#F3F4F6] font-mono tracking-tight">
+              <span className="text-2xl font-bold text-[#F2F2F2] font-mono tracking-tight">
                 {isStatsError || !stats || !hasCompletedAudits || typeof stats.risk_score !== "number"
                   ? "—"
                   : Math.round(stats.risk_score)}
               </span>
-              <span className="text-xs text-[#64748B] font-mono">/ 100</span>
+              <span className="text-xs text-[#666666] font-mono">/ 100</span>
             </div>
-            <p className="text-[10px] text-[#64748B] mt-1 font-sans">
+            <p className="text-[10px] text-[#666666] mt-1 font-sans">
               {isStatsError
                 ? "Risk model unavailable"
                 : (stats?.open_findings ?? 0) > 0
@@ -287,10 +287,10 @@ export default function SecurityPostureDashboard() {
         </div>
 
         {/* Metric 3: Critical Findings */}
-        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
+        <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#8E8E93] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px] text-[#EF4444]">Critical Findings</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#EF4444]/10 text-[#EF4444] font-semibold border border-[#EF4444]/20 font-mono">
+            <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[#EF4444]/10 text-[#EF4444] font-semibold border border-[#EF4444]/20 font-mono">
               P0
             </span>
           </div>
@@ -298,39 +298,39 @@ export default function SecurityPostureDashboard() {
             <div className="text-2xl font-bold text-[#EF4444] font-mono tracking-tight">
               {isStatsError ? "—" : stats?.severity_breakdown?.critical ?? 0}
             </div>
-            <p className="text-[10px] text-[#64748B] mt-1 font-sans">
+            <p className="text-[10px] text-[#666666] mt-1 font-sans">
               High severity exposures
             </p>
           </div>
         </div>
 
         {/* Metric 4: Open Findings */}
-        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
+        <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#8E8E93] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Open Findings</span>
             <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-[#F3F4F6] font-mono tracking-tight">
+            <div className="text-2xl font-bold text-[#F2F2F2] font-mono tracking-tight">
               {isStatsError ? "—" : stats?.open_findings ?? 0}
             </div>
-            <p className="text-[10px] text-[#64748B] mt-1 font-sans">
+            <p className="text-[10px] text-[#666666] mt-1 font-sans">
               Rule violations across fleet
             </p>
           </div>
         </div>
 
         {/* Metric 5: Managed Assets */}
-        <div className="p-3.5 rounded-lg bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
+        <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex flex-col justify-between space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#8E8E93] font-mono">
             <span className="font-medium uppercase tracking-wider text-[11px]">Managed Assets</span>
-            <Server className="w-4 h-4 text-[#94A3B8]" />
+            <Server className="w-4 h-4 text-[#8E8E93]" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-[#F3F4F6] font-mono tracking-tight">
+            <div className="text-2xl font-bold text-[#F2F2F2] font-mono tracking-tight">
               {isStatsError ? "—" : (stats as any)?.managed_assets ?? stats?.total_configurations ?? 0}
             </div>
-            <p className="text-[10px] text-[#64748B] mt-1 font-sans">
+            <p className="text-[10px] text-[#666666] mt-1 font-sans">
               Evaluated configuration assets
             </p>
           </div>
@@ -340,9 +340,9 @@ export default function SecurityPostureDashboard() {
       {/* 3. Main Security Telemetry Activity */}
       <div className="space-y-2">
         {isTelemetryLoading ? (
-          <div className="p-8 rounded-lg bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
-            <div className="text-xs font-semibold text-[#F3F4F6]">SYNCING SECURITY TELEMETRY...</div>
-            <p className="text-[11px] text-[#64748B] font-sans">
+          <div className="p-8 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center font-mono text-xs text-[#8E8E93] space-y-2">
+            <div className="text-xs font-semibold text-[#F2F2F2]">SYNCING SECURITY TELEMETRY...</div>
+            <p className="text-[11px] text-[#666666] font-sans">
               Querying compliance trajectories and time-series execution points.
             </p>
           </div>
@@ -353,12 +353,12 @@ export default function SecurityPostureDashboard() {
             isLoading={isTelemetryLoading}
           />
         ) : (
-          <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs space-y-2.5">
-            <Info className="w-6 h-6 text-[#64748B] mx-auto" />
-            <div className="text-sm font-bold text-[#F3F4F6]">
+          <div className="p-8 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center font-mono text-xs space-y-2.5">
+            <Info className="w-6 h-6 text-[#666666] mx-auto" />
+            <div className="text-sm font-bold text-[#F2F2F2]">
               {hasCompletedAudits ? "AUDIT TELEMETRY UNAVAILABLE" : "NO TELEMETRY DATA"}
             </div>
-            <p className="text-[11px] text-[#64748B] max-w-sm mx-auto font-sans">
+            <p className="text-[11px] text-[#666666] max-w-sm mx-auto font-sans">
               {hasCompletedAudits
                 ? "Time-series trend records are syncing or unavailable for completed audit sessions."
                 : "No audit execution records found. Ingest device configurations and run compliance audits to generate time-series telemetry."}
@@ -366,10 +366,10 @@ export default function SecurityPostureDashboard() {
             <div className="pt-1">
               <Link
                 href={hasCompletedAudits ? "/audits" : "/configurations?mode=ingest"}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141A24] hover:bg-[#1A2230] text-[#F3F4F6] border border-[#1E2638] hover:border-[#28354A] text-xs font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#141414] hover:bg-[#1A1A1A] text-[#F2F2F2] border border-[#1F1F1F] hover:border-[#2A2A2A] text-xs font-semibold transition-colors"
               >
                 <span>{hasCompletedAudits ? "View Security Audits" : "Ingest Configurations"}</span>
-                <ChevronRight className="w-3 h-3 text-[#94A3B8]" />
+                <ChevronRight className="w-3 h-3 text-[#8E8E93]" />
               </Link>
             </div>
           </div>
@@ -380,24 +380,24 @@ export default function SecurityPostureDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
         {/* Left Column (7 Cols): Findings Summary */}
         <div className="lg:col-span-7 space-y-2.5">
-          <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors space-y-4 font-mono">
+          <div className="p-4 sm:p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors space-y-4 font-mono">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#1E2638] pb-3">
+            <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-3.5 h-3.5 text-[#94A3B8]" />
-                  <span className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#8E8E93]" />
+                  <span className="text-xs font-semibold text-[#F2F2F2] uppercase tracking-wider">
                     FINDINGS SUMMARY
                   </span>
                 </div>
-                <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+                <p className="text-[11px] text-[#8E8E93] font-sans mt-0.5">
                   Severity distribution and priority failed security controls.
                 </p>
               </div>
 
               <Link
                 href="/findings"
-                className="text-[#93C5FD] hover:underline text-xs flex items-center gap-1 font-semibold"
+                className="text-[#A0A0A0] hover:text-[#F2F2F2] text-xs flex items-center gap-1 font-semibold transition-colors"
               >
                 <span>All Findings</span>
                 <ChevronRight className="w-3 h-3" />
@@ -410,20 +410,20 @@ export default function SecurityPostureDashboard() {
                 const pct = Math.round((item.count / Math.max(stats?.open_findings || 1, 1)) * 100);
                 const barWidth = Math.max((item.count / maxSeverityVal) * 100, 2);
                 return (
-                  <div key={item.label} className="p-2 rounded-lg bg-[#090B0F] border border-[#1E2638] space-y-1">
+                  <div key={item.label} className="p-2 rounded-md bg-[#080808] border border-[#1F1F1F] space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="font-semibold text-[#F3F4F6] text-[11px]">{item.label}</span>
+                        <span className="font-semibold text-[#F2F2F2] text-[11px]">{item.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#F3F4F6] text-xs">{item.count}</span>
+                        <span className="font-bold text-[#F2F2F2] text-xs">{item.count}</span>
                         {stats && stats.open_findings > 0 && (
-                          <span className="text-[10px] text-[#64748B]">({pct}%)</span>
+                          <span className="text-[10px] text-[#666666]">({pct}%)</span>
                         )}
                       </div>
                     </div>
-                    <div className="w-full h-1 rounded-full bg-[#161D2A] overflow-hidden">
+                    <div className="w-full h-1 rounded-full bg-[#141414] overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${barWidth}%`, backgroundColor: item.color }}
@@ -435,16 +435,16 @@ export default function SecurityPostureDashboard() {
             </div>
 
             {/* Top Failed Controls List */}
-            <div className="pt-2 border-t border-[#1E2638] space-y-2">
-              <span className="text-[10px] text-[#64748B] uppercase tracking-wider font-semibold">
+            <div className="pt-2 border-t border-[#1F1F1F] space-y-2">
+              <span className="text-[10px] text-[#666666] uppercase tracking-wider font-semibold">
                 Priority Exposures
               </span>
 
               {topPriorityFindings.length === 0 ? (
-                <div className="p-4 text-center rounded-lg bg-[#090B0F] border border-[#1E2638] text-xs text-[#94A3B8] space-y-1">
+                <div className="p-4 text-center rounded-md bg-[#080808] border border-[#1F1F1F] text-xs text-[#8E8E93] space-y-1">
                   <CheckCircle2 className="w-4 h-4 mx-auto text-[#10B981]" />
-                  <div className="text-[#F3F4F6] font-medium text-xs">No active violations detected</div>
-                  <p className="text-[10px] text-[#64748B] font-sans">All evaluated controls comply with target standards.</p>
+                  <div className="text-[#F2F2F2] font-medium text-xs">No active violations detected</div>
+                  <p className="text-[10px] text-[#666666] font-sans">All evaluated controls comply with target standards.</p>
                 </div>
               ) : (
                 <div className="space-y-1.5">
@@ -452,31 +452,31 @@ export default function SecurityPostureDashboard() {
                     <Link
                       key={`finding_top_${f.id}_${idx}`}
                       href={`/findings?control=${f.control_id}`}
-                      className="p-2.5 rounded-lg bg-[#090B0F] hover:bg-[#141A24] border border-[#1E2638] hover:border-[#28354A] flex items-center justify-between gap-2 text-xs transition-colors"
+                      className="p-2.5 rounded-md bg-[#080808] hover:bg-[#121212] border border-[#1F1F1F] hover:border-[#2A2A2A] flex items-center justify-between gap-2 text-xs transition-colors"
                     >
                       <div className="space-y-0.5 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span
                             className={cn(
-                              "text-[9px] font-mono px-1 py-0.2 rounded font-semibold border",
+                              "text-[9px] font-mono px-1 py-0.2 rounded-md font-semibold border",
                               f.severity === "CRITICAL"
                                 ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25"
                                 : f.severity === "HIGH"
                                 ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25"
-                                : "bg-[#141A24] text-[#93C5FD] border-[#28354A]"
+                                : "bg-[#141414] text-[#A0A0A0] border-[#242424]"
                             )}
                           >
                             {f.severity}
                           </span>
-                          <span className="font-bold text-[#F3F4F6] text-xs truncate max-w-[260px]">
+                          <span className="font-bold text-[#F2F2F2] text-xs truncate max-w-[260px]">
                             {f.control_id}: {f.title}
                           </span>
                         </div>
-                        <div className="text-[10px] text-[#64748B]">
+                        <div className="text-[10px] text-[#666666]">
                           {f.device_name || "Asset"} • {f.framework || "CIS"}
                         </div>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <ChevronRight className="w-3.5 h-3.5 text-[#666666] shrink-0" />
                     </Link>
                   ))}
                 </div>
@@ -487,24 +487,24 @@ export default function SecurityPostureDashboard() {
 
         {/* Right Column (5 Cols): Remediation Summary */}
         <div className="lg:col-span-5 space-y-2.5">
-          <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors space-y-4 font-mono">
+          <div className="p-4 sm:p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors space-y-4 font-mono">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#1E2638] pb-3">
+            <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <Wrench className="w-3.5 h-3.5 text-[#94A3B8]" />
-                  <span className="text-xs font-semibold text-[#F3F4F6] uppercase tracking-wider">
+                  <Wrench className="w-3.5 h-3.5 text-[#8E8E93]" />
+                  <span className="text-xs font-semibold text-[#F2F2F2] uppercase tracking-wider">
                     REMEDIATION STATUS
                   </span>
                 </div>
-                <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+                <p className="text-[11px] text-[#8E8E93] font-sans mt-0.5">
                   Hardening patch proposals and verification status.
                 </p>
               </div>
 
               <Link
                 href="/remediation"
-                className="text-[#93C5FD] hover:underline text-xs flex items-center gap-1 font-semibold"
+                className="text-[#A0A0A0] hover:text-[#F2F2F2] text-xs flex items-center gap-1 font-semibold transition-colors"
               >
                 <span>Remediate</span>
                 <ChevronRight className="w-3 h-3" />
@@ -516,19 +516,19 @@ export default function SecurityPostureDashboard() {
               {remediationSegments.map((seg) => {
                 const pct = Math.round((seg.count / totalRemediationActionable) * 100);
                 return (
-                  <div key={seg.label} className="p-2 rounded-lg bg-[#090B0F] border border-[#1E2638] space-y-1">
+                  <div key={seg.label} className="p-2 rounded-md bg-[#080808] border border-[#1F1F1F] space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: seg.color }} />
-                        <span className="font-semibold text-[#F3F4F6] text-[11px]">{seg.label}</span>
+                        <span className="font-semibold text-[#F2F2F2] text-[11px]">{seg.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#F3F4F6] text-xs">{seg.count}</span>
-                        <span className="text-[10px] text-[#64748B]">({pct}%)</span>
+                        <span className="font-bold text-[#F2F2F2] text-xs">{seg.count}</span>
+                        <span className="text-[10px] text-[#666666]">({pct}%)</span>
                       </div>
                     </div>
 
-                    <div className="w-full h-1 rounded-full bg-[#161D2A] overflow-hidden">
+                    <div className="w-full h-1 rounded-full bg-[#141414] overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: seg.color }}
@@ -540,13 +540,13 @@ export default function SecurityPostureDashboard() {
             </div>
 
             {/* Action Banner */}
-            <div className="pt-2 border-t border-[#1E2638]">
+            <div className="pt-2 border-t border-[#1F1F1F]">
               <Link
                 href="/remediation"
-                className="w-full py-2 rounded-lg bg-[#141A24] hover:bg-[#1A2230] border border-[#1E2638] hover:border-[#28354A] text-[#F3F4F6] text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-2 rounded-md bg-[#141414] hover:bg-[#1A1A1A] border border-[#242424] hover:border-[#2A2A2A] text-[#F2F2F2] text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
               >
                 <span>OPEN REMEDIATION CENTER</span>
-                <ExternalLink className="w-3 h-3 text-[#93C5FD]" />
+                <ExternalLink className="w-3 h-3 text-[#A0A0A0]" />
               </Link>
             </div>
           </div>

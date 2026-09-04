@@ -12,7 +12,7 @@ export default function LandingHero() {
   const getStartedHref = !authLoading && user ? "/console" : "/login";
 
   return (
-    <section className="relative min-h-[780px] lg:h-[calc(100vh-56px)] xl:min-h-[840px] flex items-center pl-6 sm:pl-10 lg:pl-16 pr-4 sm:pr-8 lg:pr-8 pt-14 pb-8 overflow-hidden bg-[#080B12] text-[#F3F4F6]">
+    <section className="relative min-h-[780px] lg:h-[calc(100vh-56px)] xl:min-h-[840px] flex items-center pl-6 sm:pl-10 lg:pl-16 pr-4 sm:pr-8 lg:pr-8 pt-14 pb-8 overflow-hidden bg-[#080808] text-[#F2F2F2]">
       {/* 1. Atmospheric Ambient Peripheral Telemetry */}
       <TelemetryBackground />
 
@@ -25,15 +25,15 @@ export default function LandingHero() {
       <div className="relative z-20 w-full max-w-[480px] lg:max-w-[520px] flex flex-col items-start text-left">
 
         {/* Institutional Status Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0D121C] border border-[#1D2939] text-[11px] font-mono text-[#A7B0C0] shadow-sm mb-6">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0B0B0B] border border-[#1F1F1F] text-[11px] font-mono text-[#8E8E93] shadow-sm mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
           <span className="text-[#3B82F6] font-semibold tracking-wide">NETVIGIL SECURITY</span>
-          <span className="text-[#667085]">•</span>
-          <span className="text-[#A7B0C0] font-medium tracking-wide">DETERMINISTIC MULTI-VENDOR AUDITING</span>
+          <span className="text-[#636366]">•</span>
+          <span className="text-[#8E8E93] font-medium tracking-wide">DETERMINISTIC MULTI-VENDOR AUDITING</span>
         </div>
 
         {/* Scaled Editorial Headline (Bold & Clear) */}
-        <h1 className="flex flex-col tracking-[-0.04em] font-sans font-extrabold text-[#F3F4F6] mb-5">
+        <h1 className="flex flex-col tracking-[-0.04em] font-sans font-extrabold text-[#F2F2F2] mb-5">
           <span className="block text-4xl sm:text-5xl lg:text-[46px] xl:text-[52px] 2xl:text-[56px] leading-[1.02] whitespace-nowrap">
             UNDERSTAND EVERY
           </span>
@@ -46,7 +46,7 @@ export default function LandingHero() {
         </h1>
 
         {/* Supporting Architectural Copy */}
-        <p className="max-w-[480px] text-[14.5px] sm:text-[15.5px] xl:text-[16.5px] text-[#A7B0C0] leading-[1.6] font-sans font-normal mb-8">
+        <p className="max-w-[480px] text-[14.5px] sm:text-[15.5px] xl:text-[16.5px] text-[#8E8E93] leading-[1.6] font-sans font-normal mb-8">
           Turn network configurations into evidence-backed security decisions. NetVigil transforms Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations into one Universal Security Model, evaluates shared compliance frameworks, and delivers deterministic line-level proof.
         </p>
 
@@ -65,7 +65,7 @@ export default function LandingHero() {
           <Link
             href="/demo/multi-vendor"
             id="hero-explore-engine-cta"
-            className="inline-flex items-center justify-center gap-2 px-6 h-11 bg-[#0D121C] hover:bg-[#111827] border border-[#1D2939] hover:border-[#263B55] text-[#F3F4F6] font-semibold text-[12px] tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-2 px-6 h-11 bg-[#0B0B0B] hover:bg-[#141414] border border-[#1F1F1F] hover:border-[#2C2C2E] text-[#F2F2F2] font-semibold text-[12px] tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98]"
           >
             <span>EXPLORE SECURITY ENGINE →</span>
           </Link>
@@ -73,7 +73,7 @@ export default function LandingHero() {
       </div>
 
       {/* Floating Bottom-Left Corner Brand Node */}
-      <div className="hidden lg:flex absolute bottom-4 left-6 sm:left-10 z-20 items-center justify-center w-8 h-8 rounded-full bg-[#0D121C] border border-[#1D2939] text-[#667085] text-[11px] font-mono">
+      <div className="hidden lg:flex absolute bottom-4 left-6 sm:left-10 z-20 items-center justify-center w-8 h-8 rounded-full bg-[#0B0B0B] border border-[#1F1F1F] text-[#636366] text-[11px] font-mono">
         N
       </div>
     </section>

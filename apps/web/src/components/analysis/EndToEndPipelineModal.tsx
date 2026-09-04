@@ -192,37 +192,37 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 animate-in fade-in duration-200">
-      <div className="bg-[#0D121C] border border-[#1D2939] rounded-xl w-full max-w-6xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-xl w-full max-w-6xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#1D2939] flex items-center justify-between bg-[#080B12]">
+        <div className="px-6 py-4 border-b border-[#1F1F1F] flex items-center justify-between bg-[#080808]">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-[#111827] border border-[#1D2939] flex items-center justify-center text-[#3B82F6]">
+            <div className="h-9 w-9 rounded-lg bg-[#141414] border border-[#1F1F1F] flex items-center justify-center text-[#3B82F6]">
               <Zap className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-[#F3F4F6] tracking-wide font-mono">
+                <h2 className="text-base font-bold text-[#F2F2F2] tracking-wide font-mono">
                   REAL END-TO-END SECURITY ANALYSIS PIPELINE
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981]">
                   DETERMINISTIC AUTHORITATIVE
                 </span>
               </div>
-              <p className="text-xs text-[#A7B0C0]">
+              <p className="text-xs text-[#8E8E93]">
                 Live verification slice: Ingest Cisco IOS → AST Normalization → Deterministic Controls → Evidence → Derived Risk → Remediation → Re-Analysis
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#667085] hover:text-[#F3F4F6] hover:bg-[#111827] transition-colors"
+            className="p-1.5 rounded-lg text-[#636366] hover:text-[#F2F2F2] hover:bg-[#141414] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0D121C]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0B0B0B]">
           {errorMsg && (
             <div className="p-3.5 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg text-[#EF4444] text-xs flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -231,9 +231,9 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
           )}
 
           {/* Stepper Pipeline Bar */}
-          <div className="bg-[#0A0F18] border border-[#1D2939] rounded-lg p-4">
+          <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg p-4">
             <div className="flex items-center justify-between text-xs mb-3">
-              <span className="text-[#667085] font-mono">PIPELINE EXECUTION PROGRESSION</span>
+              <span className="text-[#636366] font-mono">PIPELINE EXECUTION PROGRESSION</span>
               {pipelineState === "idle" && (
                 <button
                   onClick={runPipeline}
@@ -257,7 +257,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                   </span>
                   <button
                     onClick={runPipeline}
-                    className="px-3 py-1 bg-[#111827] hover:bg-[#151E2D] text-[#A7B0C0] rounded text-xs flex items-center gap-1 border border-[#1D2939] transition-colors"
+                    className="px-3 py-1 bg-[#141414] hover:bg-[#151E2D] text-[#8E8E93] rounded text-xs flex items-center gap-1 border border-[#1F1F1F] transition-colors"
                   >
                     <RotateCcw className="h-3 w-3" />
                     Rerun
@@ -271,15 +271,15 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                 className={cn(
                   "p-3 rounded-lg border text-xs transition-all",
                   currentStep >= 1
-                    ? "bg-[#111827] border-[#3B82F6]/50 text-[#F3F4F6]"
-                    : "bg-[#080B12] border-[#1D2939] text-[#667085]"
+                    ? "bg-[#141414] border-[#3B82F6]/50 text-[#F2F2F2]"
+                    : "bg-[#080808] border-[#1F1F1F] text-[#636366]"
                 )}
               >
                 <div className="font-mono font-semibold flex items-center justify-between mb-1">
                   <span>1. INGESTION</span>
                   {currentStep >= 1 && <Check className="h-3.5 w-3.5 text-[#3B82F6]" />}
                 </div>
-                <div className="text-[11px] text-[#A7B0C0]">
+                <div className="text-[11px] text-[#8E8E93]">
                   {statusData ? `${statusData.vendor.toUpperCase()} IOS (46 lines)` : "Deterministic Parser Ingest"}
                 </div>
               </div>
@@ -288,15 +288,15 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                 className={cn(
                   "p-3 rounded-lg border text-xs transition-all",
                   currentStep >= 2
-                    ? "bg-[#111827] border-[#3B82F6]/50 text-[#F3F4F6]"
-                    : "bg-[#080B12] border-[#1D2939] text-[#667085]"
+                    ? "bg-[#141414] border-[#3B82F6]/50 text-[#F2F2F2]"
+                    : "bg-[#080808] border-[#1F1F1F] text-[#636366]"
                 )}
               >
                 <div className="font-mono font-semibold flex items-center justify-between mb-1">
                   <span>2. AST & FACTS</span>
                   {currentStep >= 2 && <Check className="h-3.5 w-3.5 text-[#3B82F6]" />}
                 </div>
-                <div className="text-[11px] text-[#A7B0C0]">
+                <div className="text-[11px] text-[#8E8E93]">
                   {statusData ? `${statusData.facts_extracted_count} Facts Normalized` : "Line-Preserving AST"}
                 </div>
               </div>
@@ -305,15 +305,15 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                 className={cn(
                   "p-3 rounded-lg border text-xs transition-all",
                   currentStep >= 3
-                    ? "bg-[#111827] border-[#3B82F6]/50 text-[#F3F4F6]"
-                    : "bg-[#080B12] border-[#1D2939] text-[#667085]"
+                    ? "bg-[#141414] border-[#3B82F6]/50 text-[#F2F2F2]"
+                    : "bg-[#080808] border-[#1F1F1F] text-[#636366]"
                 )}
               >
                 <div className="font-mono font-semibold flex items-center justify-between mb-1">
                   <span>3. CONTROLS</span>
                   {currentStep >= 3 && <Check className="h-3.5 w-3.5 text-[#3B82F6]" />}
                 </div>
-                <div className="text-[11px] text-[#A7B0C0]">
+                <div className="text-[11px] text-[#8E8E93]">
                   {statusData ? `${statusData.total_applicable_controls ?? statusData.controls_evaluated_count} Applicable Rules (CIS/NIST)` : "Zero-LLM Rule Evaluator"}
                 </div>
               </div>
@@ -322,15 +322,15 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                 className={cn(
                   "p-3 rounded-lg border text-xs transition-all",
                   currentStep >= 4
-                    ? "bg-[#111827] border-[#3B82F6]/50 text-[#F3F4F6]"
-                    : "bg-[#080B12] border-[#1D2939] text-[#667085]"
+                    ? "bg-[#141414] border-[#3B82F6]/50 text-[#F2F2F2]"
+                    : "bg-[#080808] border-[#1F1F1F] text-[#636366]"
                 )}
               >
                 <div className="font-mono font-semibold flex items-center justify-between mb-1">
                   <span>4. DERIVED RISK</span>
                   {currentStep >= 4 && <Check className="h-3.5 w-3.5 text-[#3B82F6]" />}
                 </div>
-                <div className="text-[11px] text-[#A7B0C0]">
+                <div className="text-[11px] text-[#8E8E93]">
                   {riskData ? `Score: ${riskData.risk_score} / 100 (${riskData.risk_level})` : "Formulaic Scoring"}
                 </div>
               </div>
@@ -342,8 +342,8 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
             <>
               {/* Summary Stats Strip */}
               <div className="grid grid-cols-4 gap-4">
-                <div className="bg-[#0A0F18] border border-[#1D2939] rounded-lg p-4">
-                  <div className="text-[11px] font-mono text-[#667085] mb-1">DERIVED RISK SCORE</div>
+                <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg p-4">
+                  <div className="text-[11px] font-mono text-[#636366] mb-1">DERIVED RISK SCORE</div>
                   <div className="flex items-baseline gap-2">
                     <span
                       className={cn(
@@ -357,54 +357,54 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                     >
                       {riskData?.risk_score != null ? riskData.risk_score : "--"}
                     </span>
-                    <span className="text-xs text-[#667085] font-mono">/ 100</span>
+                    <span className="text-xs text-[#636366] font-mono">/ 100</span>
                     {riskData?.risk_level && (
-                      <span className="ml-auto px-2 py-0.5 rounded text-[10px] font-mono bg-[#111827] border border-[#1D2939] text-[#A7B0C0]">
+                      <span className="ml-auto px-2 py-0.5 rounded text-[10px] font-mono bg-[#141414] border border-[#1F1F1F] text-[#8E8E93]">
                         {riskData.risk_level}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-[#667085] mt-2 line-clamp-2">
+                  <p className="text-[10px] text-[#636366] mt-2 line-clamp-2">
                     {riskData?.formula_breakdown}
                   </p>
                 </div>
 
-                <div className="bg-[#0A0F18] border border-[#1D2939] rounded-lg p-4">
-                  <div className="text-[11px] font-mono text-[#667085] mb-1">COMPLIANCE SCORE</div>
+                <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg p-4">
+                  <div className="text-[11px] font-mono text-[#636366] mb-1">COMPLIANCE SCORE</div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black font-mono text-[#F3F4F6]">
+                    <span className="text-3xl font-black font-mono text-[#F2F2F2]">
                       {statusData.compliance_score != null ? `${statusData.compliance_score.toFixed(1)}%` : "--"}
                     </span>
                   </div>
-                  <div className="text-[11px] text-[#667085] mt-2 flex gap-3">
+                  <div className="text-[11px] text-[#636366] mt-2 flex gap-3">
                     <span className="text-[#10B981]">✓ {statusData.pass_count} PASS</span>
                     <span className="text-[#EF4444]">✕ {statusData.fail_count} FAIL</span>
                   </div>
                 </div>
 
-                <div className="bg-[#0A0F18] border border-[#1D2939] rounded-lg p-4">
-                  <div className="text-[11px] font-mono text-[#667085] mb-1">EVIDENCE CITATIONS</div>
+                <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg p-4">
+                  <div className="text-[11px] font-mono text-[#636366] mb-1">EVIDENCE CITATIONS</div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black font-mono text-[#F3F4F6]">
+                    <span className="text-3xl font-black font-mono text-[#F2F2F2]">
                       {evidenceList.length}
                     </span>
-                    <span className="text-xs text-[#667085]">lines cited</span>
+                    <span className="text-xs text-[#636366]">lines cited</span>
                   </div>
-                  <p className="text-[10px] text-[#667085] mt-2">
+                  <p className="text-[10px] text-[#636366] mt-2">
                     All findings mapped to exact configuration line numbers.
                   </p>
                 </div>
 
-                <div className="bg-[#0A0F18] border border-[#1D2939] rounded-lg p-4 flex flex-col justify-between">
+                <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg p-4 flex flex-col justify-between">
                   <div>
-                    <div className="text-[11px] font-mono text-[#667085] mb-1">RE-ANALYSIS STATUS</div>
+                    <div className="text-[11px] font-mono text-[#636366] mb-1">RE-ANALYSIS STATUS</div>
                     {reanalyzeResult ? (
                       <div className="text-xs font-mono text-[#10B981] font-semibold flex items-center gap-1.5 mt-1">
                         <CheckCircle2 className="h-4 w-4" />
                         RE-ANALYSIS VERIFIED
                       </div>
                     ) : (
-                      <div className="text-xs font-mono text-[#667085] mt-1">Ready for remediation test</div>
+                      <div className="text-xs font-mono text-[#636366] mt-1">Ready for remediation test</div>
                     )}
                   </div>
                   <button
@@ -437,7 +437,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                       <CheckCircle2 className="h-4 w-4" />
                       RE-ANALYSIS VERIFIED: {reanalyzeResult.resolved_controls.length} CONTROLS RESOLVED
                     </span>
-                    <span className="text-xs font-mono text-[#667085]">
+                    <span className="text-xs font-mono text-[#636366]">
                       Score: {reanalyzeResult.previous_compliance_score.toFixed(1)}% →{" "}
                       <span className="text-[#10B981] font-bold">
                         {reanalyzeResult.new_compliance_score.toFixed(1)}%
@@ -450,10 +450,10 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                       .map((t) => (
                         <div
                           key={t.control_id}
-                          className="px-2.5 py-1 bg-[#0D121C] border border-[#10B981]/30 rounded text-[11px] font-mono flex items-center gap-2"
+                          className="px-2.5 py-1 bg-[#0B0B0B] border border-[#10B981]/30 rounded text-[11px] font-mono flex items-center gap-2"
                         >
-                          <span className="text-[#F3F4F6] font-bold">{t.control_id}</span>
-                          <span className="text-[#A7B0C0]">{t.title}</span>
+                          <span className="text-[#F2F2F2] font-bold">{t.control_id}</span>
+                          <span className="text-[#8E8E93]">{t.title}</span>
                           <span className="text-[#EF4444] line-through">FAIL</span>
                           <ArrowRight className="h-3 w-3 text-[#10B981]" />
                           <span className="text-[#10B981] font-bold">PASS</span>
@@ -466,9 +466,9 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
               {/* 2-Column Findings & Detail View */}
               <div className="grid grid-cols-12 gap-6 min-h-[420px]">
                 {/* Left: Findings List */}
-                <div className="col-span-5 bg-[#0A0F18] border border-[#1D2939] rounded-lg p-4 flex flex-col">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#1D2939] mb-3">
-                    <span className="text-xs font-mono font-semibold text-[#F3F4F6]">
+                <div className="col-span-5 bg-[#0B0B0B] border border-[#1F1F1F] rounded-lg p-4 flex flex-col">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] mb-3">
+                    <span className="text-xs font-mono font-semibold text-[#F2F2F2]">
                       EVALUATED FINDINGS ({findings.length})
                     </span>
                     <button
@@ -489,12 +489,12 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                           className={cn(
                             "p-3 rounded-lg border cursor-pointer transition-all text-xs",
                             isSelected
-                              ? "bg-[#111827] border-[#3B82F6] shadow-sm"
-                              : "bg-[#0D121C] border-[#1D2939] hover:border-[#263B55]"
+                              ? "bg-[#141414] border-[#3B82F6] shadow-sm"
+                              : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2C2C2E]"
                           )}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-mono font-bold text-[#F3F4F6]">{f.control_id}</span>
+                            <span className="font-mono font-bold text-[#F2F2F2]">{f.control_id}</span>
                             <span
                               className={cn(
                                 "px-1.5 py-0.5 rounded text-[10px] font-mono font-bold",
@@ -527,13 +527,13 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                   {selectedFinding ? (
                     <div className="space-y-4">
                       {/* Top Finding Header */}
-                      <div className="flex items-start justify-between pb-3 border-b border-[#1D2939]">
+                      <div className="flex items-start justify-between pb-3 border-b border-[#1F1F1F]">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-base font-bold text-[#F3F4F6] font-mono">
+                            <span className="text-base font-bold text-[#F2F2F2] font-mono">
                               {selectedFinding.control_id}
                             </span>
-                            <span className="text-xs px-2 py-0.5 rounded bg-[#111827] font-mono text-[#A7B0C0] border border-[#1D2939]">
+                            <span className="text-xs px-2 py-0.5 rounded bg-[#141414] font-mono text-[#8E8E93] border border-[#1F1F1F]">
                               {selectedFinding.framework}
                             </span>
                             <span
@@ -547,7 +547,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                               {selectedFinding.status}
                             </span>
                           </div>
-                          <h3 className="text-sm font-semibold text-[#F3F4F6] mt-1">
+                          <h3 className="text-sm font-semibold text-[#F2F2F2] mt-1">
                             {selectedFinding.title}
                           </h3>
                         </div>
@@ -559,7 +559,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                       {/* Why it Failed */}
                       {selectedFinding.why_it_failed && (
                         <div>
-                          <div className="text-[11px] font-mono text-[#667085] uppercase mb-1">
+                          <div className="text-[11px] font-mono text-[#636366] uppercase mb-1">
                             WHY IT FAILED
                           </div>
                           <div className="p-2.5 bg-[#EF4444]/5 border border-[#EF4444]/20 rounded-lg text-xs text-[#EF4444]">
@@ -570,23 +570,23 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
 
                       {/* Actual Configuration & Line Evidence */}
                       <div>
-                        <div className="text-[11px] font-mono text-[#667085] uppercase mb-1 flex items-center justify-between">
+                        <div className="text-[11px] font-mono text-[#636366] uppercase mb-1 flex items-center justify-between">
                           <span>ACTUAL CONFIGURATION (EVIDENCE)</span>
                           {selectedFinding.evidence_lines.length > 0 && selectedFinding.evidence_lines[0].line && selectedFinding.evidence_lines[0].line > 0 ? (
                             <span className="text-[#3B82F6] font-mono text-[10px]">
                               {(statusData?.vendor || "Device").toUpperCase()} Line {selectedFinding.evidence_lines[0].line}
                             </span>
                           ) : (
-                            <span className="text-[#667085] font-mono text-[10px]">
+                            <span className="text-[#636366] font-mono text-[10px]">
                               Unconfigured Directive (No Line Citation)
                             </span>
                           )}
                         </div>
-                        <div className="p-3 bg-[#080B12] border border-[#1D2939] rounded-lg font-mono text-xs text-[#F3F4F6] space-y-1">
+                        <div className="p-3 bg-[#080808] border border-[#1F1F1F] rounded-lg font-mono text-xs text-[#F2F2F2] space-y-1">
                           {selectedFinding.evidence_lines.length > 0 ? (
                             selectedFinding.evidence_lines.map((ev, idx) => (
                               <div key={idx} className="flex items-center gap-3">
-                                <span className="text-[#667085] select-none w-8 text-right">
+                                <span className="text-[#636366] select-none w-8 text-right">
                                   {ev.line && ev.line > 0 ? ev.line : "—"}
                                 </span>
                                 <span
@@ -601,7 +601,7 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                               </div>
                             ))
                           ) : (
-                            <div className="text-[#667085]">Direct parsed property fact</div>
+                            <div className="text-[#636366]">Direct parsed property fact</div>
                           )}
                         </div>
                       </div>
@@ -609,10 +609,10 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                       {/* Expected Value */}
                       {selectedFinding.expected_value && (
                         <div>
-                          <div className="text-[11px] font-mono text-[#667085] uppercase mb-1">
+                          <div className="text-[11px] font-mono text-[#636366] uppercase mb-1">
                             EXPECTED CONDITION
                           </div>
-                          <div className="p-2.5 bg-[#080B12] border border-[#1D2939] rounded-lg font-mono text-xs text-[#10B981]">
+                          <div className="p-2.5 bg-[#080808] border border-[#1F1F1F] rounded-lg font-mono text-xs text-[#10B981]">
                             {selectedFinding.expected_value}
                           </div>
                         </div>
@@ -621,22 +621,22 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                       {/* Deterministic Remediation Proposal */}
                       {selectedFinding.remediation_proposal && (
                         <div>
-                          <div className="text-[11px] font-mono text-[#667085] uppercase mb-1">
+                          <div className="text-[11px] font-mono text-[#636366] uppercase mb-1">
                             DETERMINISTIC REMEDIATION PROPOSAL
                           </div>
-                          <div className="p-3 bg-[#080B12] border border-[#3B82F6]/30 rounded-lg font-mono text-xs text-[#3B82F6]">
+                          <div className="p-3 bg-[#080808] border border-[#3B82F6]/30 rounded-lg font-mono text-xs text-[#3B82F6]">
                             {selectedFinding.remediation_proposal}
                           </div>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center text-xs text-[#667085] font-mono">
+                    <div className="flex-1 flex items-center justify-center text-xs text-[#636366] font-mono">
                       Select a finding to inspect deterministic AST evidence.
                     </div>
                   )}
 
-                  <div className="pt-4 border-t border-[#1D2939] flex items-center justify-between text-xs font-mono text-[#667085]">
+                  <div className="pt-4 border-t border-[#1F1F1F] flex items-center justify-between text-xs font-mono text-[#636366]">
                     <span>Vendor: Cisco IOS</span>
                     <span>Provenance: SHA-256 AST Grounded</span>
                   </div>
@@ -646,15 +646,15 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
           )}
 
           {pipelineState === "idle" && (
-            <div className="border border-dashed border-[#1D2939] rounded-xl p-12 text-center space-y-4 bg-[#0A0F18]">
-              <div className="h-12 w-12 rounded-xl bg-[#111827] border border-[#1D2939] flex items-center justify-center text-[#3B82F6] mx-auto">
+            <div className="border border-dashed border-[#1F1F1F] rounded-xl p-12 text-center space-y-4 bg-[#0B0B0B]">
+              <div className="h-12 w-12 rounded-xl bg-[#141414] border border-[#1F1F1F] flex items-center justify-center text-[#3B82F6] mx-auto">
                 <Terminal className="h-6 w-6" />
               </div>
               <div className="max-w-md mx-auto">
-                <h3 className="text-base font-bold text-[#F3F4F6] mb-1">
+                <h3 className="text-base font-bold text-[#F2F2F2] mb-1">
                   Ready to Run Real Security Analysis
                 </h3>
-                <p className="text-xs text-[#A7B0C0]">
+                <p className="text-xs text-[#8E8E93]">
                   Click the button below to ingest the canonical real Cisco IOS configuration and verify the deterministic AST normalization, evidence extraction, risk calculation, and re-analysis lifecycle.
                 </p>
               </div>
@@ -673,24 +673,24 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
       {/* Full Configuration Modal Viewer */}
       {showConfigViewer && configData && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 backdrop-blur-md p-6">
-          <div className="bg-[#0D121C] border border-[#1D2939] rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl">
-            <div className="px-6 py-4 border-b border-[#1D2939] flex items-center justify-between bg-[#080B12]">
+          <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl">
+            <div className="px-6 py-4 border-b border-[#1F1F1F] flex items-center justify-between bg-[#080808]">
               <div>
-                <h3 className="text-sm font-bold text-[#F3F4F6] font-mono">
+                <h3 className="text-sm font-bold text-[#F2F2F2] font-mono">
                   {configData.filename} ({configData.vendor.toUpperCase()})
                 </h3>
-                <span className="text-[11px] text-[#667085] font-mono">
+                <span className="text-[11px] text-[#636366] font-mono">
                   SHA-256: {configData.hash}
                 </span>
               </div>
               <button
                 onClick={() => setShowConfigViewer(false)}
-                className="p-1 rounded text-[#667085] hover:text-[#F3F4F6]"
+                className="p-1 rounded text-[#636366] hover:text-[#F2F2F2]"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 bg-[#080B12] font-mono text-xs text-[#A7B0C0] space-y-0.5">
+            <div className="flex-1 overflow-y-auto p-4 bg-[#080808] font-mono text-xs text-[#8E8E93] space-y-0.5">
               {configData.lines.map((ln) => {
                 const isLine17 = ln.line === 17;
                 return (
@@ -698,10 +698,10 @@ export function EndToEndPipelineModal({ isOpen, onClose }: EndToEndPipelineModal
                     key={ln.line}
                     className={cn(
                       "flex items-start gap-4 px-2 py-0.5 rounded",
-                      isLine17 ? "bg-[#EF4444]/20 text-[#EF4444] font-bold border border-[#EF4444]/40" : "hover:bg-[#111827]"
+                      isLine17 ? "bg-[#EF4444]/20 text-[#EF4444] font-bold border border-[#EF4444]/40" : "hover:bg-[#141414]"
                     )}
                   >
-                    <span className="text-[#667085] select-none w-8 text-right">{ln.line}</span>
+                    <span className="text-[#636366] select-none w-8 text-right">{ln.line}</span>
                     <span className="flex-1">{ln.text}</span>
                     {isLine17 && (
                       <span className="text-[10px] font-mono text-[#EF4444] bg-[#EF4444]/20 px-1.5 rounded">

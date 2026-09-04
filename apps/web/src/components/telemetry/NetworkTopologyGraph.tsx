@@ -24,7 +24,7 @@ export default function NetworkTopologyGraph({
 
   if (isLoading) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-2">
+      <div className="p-8 rounded-xl bg-[#0B0B0B] border border-[#141414] text-center font-mono text-xs text-[#8E8E93] space-y-2">
         <div className="animate-pulse flex items-center justify-center gap-2">
           <div className="w-2 h-2 rounded-full bg-[#3B82F6] animate-ping" />
           <span>INITIALIZING FLEET TOPOLOGY GRAPH...</span>
@@ -37,15 +37,15 @@ export default function NetworkTopologyGraph({
 
   if (!has_topology_data || nodes.length === 0) {
     return (
-      <div className="p-8 rounded-xl bg-[#0D1117] border border-[#1E2638] text-center font-mono text-xs text-[#94A3B8] space-y-3">
-        <Network className="w-8 h-8 text-[#64748B] mx-auto" />
-        <div className="text-sm font-bold text-[#F3F4F6]">Topology data unavailable</div>
-        <p className="text-[11px] text-[#64748B] max-w-md mx-auto font-sans">
+      <div className="p-8 rounded-xl bg-[#0B0B0B] border border-[#141414] text-center font-mono text-xs text-[#8E8E93] space-y-3">
+        <Network className="w-8 h-8 text-[#636366] mx-auto" />
+        <div className="text-sm font-bold text-[#F2F2F2]">Topology data unavailable</div>
+        <p className="text-[11px] text-[#636366] max-w-md mx-auto font-sans">
           Network relationships have not been ingested for the current fleet. Ingest device configurations with interface/routing telemetry to generate live topology maps.
         </p>
         <Link
           href="/configurations?mode=ingest"
-          className="inline-block px-3 py-1.5 rounded-lg bg-[#141A24] hover:bg-[#1A2230] text-[#F3F4F6] border border-[#1E2638] hover:border-[#28354A] text-xs font-semibold transition-colors"
+          className="inline-block px-3 py-1.5 rounded-lg bg-[#141414] hover:bg-[#1A2230] text-[#F2F2F2] border border-[#141414] hover:border-[#2C2C2E] text-xs font-semibold transition-colors"
         >
           Ingest Configurations →
         </Link>
@@ -81,17 +81,17 @@ export default function NetworkTopologyGraph({
   };
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl bg-[#0D1117] border border-[#1E2638] hover:border-[#28354A] transition-colors space-y-4 font-mono">
+    <div className="p-4 sm:p-5 rounded-xl bg-[#0B0B0B] border border-[#141414] hover:border-[#2C2C2E] transition-colors space-y-4 font-mono">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2638] pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#141414] pb-3.5">
         <div>
           <div className="flex items-center gap-2">
-            <Network className="w-4 h-4 text-[#94A3B8]" />
-            <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
+            <Network className="w-4 h-4 text-[#8E8E93]" />
+            <span className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">
               FLEET TOPOLOGY &amp; RELATIONSHIP GRAPH
             </span>
           </div>
-          <p className="text-[11px] text-[#94A3B8] font-sans mt-0.5">
+          <p className="text-[11px] text-[#8E8E93] font-sans mt-0.5">
             Inter-device interfaces, BGP peering, and deterministic attack path connectivity.
           </p>
         </div>
@@ -99,21 +99,21 @@ export default function NetworkTopologyGraph({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setZoomLevel((z) => Math.min(z + 0.2, 2))}
-            className="p-1 rounded bg-[#090B0F] border border-[#1E2638] text-[#94A3B8] hover:text-white"
+            className="p-1 rounded bg-[#080808] border border-[#141414] text-[#8E8E93] hover:text-white"
             title="Zoom In"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setZoomLevel((z) => Math.max(z - 0.2, 0.6))}
-            className="p-1 rounded bg-[#090B0F] border border-[#1E2638] text-[#94A3B8] hover:text-white"
+            className="p-1 rounded bg-[#080808] border border-[#141414] text-[#8E8E93] hover:text-white"
             title="Zoom Out"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setZoomLevel(1)}
-            className="p-1 rounded bg-[#090B0F] border border-[#1E2638] text-[#94A3B8] hover:text-white"
+            className="p-1 rounded bg-[#080808] border border-[#141414] text-[#8E8E93] hover:text-white"
             title="Reset Zoom"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -122,7 +122,7 @@ export default function NetworkTopologyGraph({
       </div>
 
       {/* SVG Interactive Canvas */}
-      <div className="relative w-full overflow-hidden rounded-lg bg-[#090B0F]/90 border border-[#1E2638] p-2 min-h-[360px] flex items-center justify-center">
+      <div className="relative w-full overflow-hidden rounded-lg bg-[#080808]/90 border border-[#141414] p-2 min-h-[360px] flex items-center justify-center">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           className="w-full h-auto max-h-[380px] cursor-grab select-none"
@@ -141,7 +141,7 @@ export default function NetworkTopologyGraph({
                   y1={src.y}
                   x2={tgt.x}
                   y2={tgt.y}
-                  stroke="#1E2638"
+                  stroke="#141414"
                   strokeWidth="2"
                   strokeDasharray={edge.relationship === "vpn" ? "4 4" : "none"}
                 />
@@ -166,7 +166,7 @@ export default function NetworkTopologyGraph({
                   cx={pos.x}
                   cy={pos.y}
                   r={isSelected ? 22 : 18}
-                  fill="#0D1117"
+                  fill="#0B0B0B"
                   stroke={isSelected ? "#93C5FD" : nodeColor}
                   strokeWidth={isSelected ? "3" : "2"}
                   className="transition-all duration-200"
@@ -182,7 +182,7 @@ export default function NetworkTopologyGraph({
                   x={pos.x}
                   y={pos.y + 32}
                   textAnchor="middle"
-                  fill="#F3F4F6"
+                  fill="#F2F2F2"
                   fontSize="10"
                   fontFamily="monospace"
                   fontWeight="bold"
@@ -193,7 +193,7 @@ export default function NetworkTopologyGraph({
                   x={pos.x}
                   y={pos.y + 44}
                   textAnchor="middle"
-                  fill="#64748B"
+                  fill="#636366"
                   fontSize="8"
                   fontFamily="monospace"
                   style={{ textTransform: "uppercase" }}

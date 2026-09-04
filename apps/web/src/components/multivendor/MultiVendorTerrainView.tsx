@@ -737,14 +737,14 @@ export default function MultiVendorTerrainView({
           ctx.fillStyle = isSelected
             ? "#FFFFFF"
             : isHovered
-            ? "#F8FAFC"
+            ? "#F2F2F2"
             : (node as any).isEvidence || (node as any).verdict === "FAIL"
             ? "#EF4444"
             : "#E2E8F0";
           ctx.fillText(node.title, chipX, chipY - 4);
 
           ctx.font = "8px monospace";
-          ctx.fillStyle = isSelected ? "#3B82F6" : isHovered ? "#60A5FA" : "#94A3B8";
+          ctx.fillStyle = isSelected ? "#3B82F6" : isHovered ? "#60A5FA" : "#8E8E93";
           ctx.fillText(node.subtitle, chipX, chipY + 9);
         } else {
           ctx.font = "bold 10px monospace";
@@ -771,7 +771,7 @@ export default function MultiVendorTerrainView({
   }, [selectedVendor, selectedFramework, onSelectVendor, onSelectFramework, onSelectNodeInfo, hoveredNodeId]);
 
   return (
-    <div className="relative w-full h-[540px] sm:h-[600px] lg:h-[660px] rounded-2xl bg-[#080B12] border border-[#1D2939] overflow-hidden select-none shadow-[0_0_40px_rgba(0,0,0,0.8)]">
+    <div className="relative w-full h-[540px] sm:h-[600px] lg:h-[660px] rounded-2xl bg-[#080808] border border-[#1F1F1F] overflow-hidden select-none shadow-[0_0_40px_rgba(0,0,0,0.8)]">
       {/* 3D Canvas Viewport */}
       <canvas ref={canvasRef} className="w-full h-full block cursor-grab active:cursor-grabbing" />
 
@@ -783,7 +783,7 @@ export default function MultiVendorTerrainView({
             3D SECURITY TERRAIN
           </span>
         </div>
-        <div className="text-[#667085] text-[10px]">
+        <div className="text-[#636366] text-[10px]">
           CLICK OR DRAG TO ROTATE • SCROLL TO ZOOM
         </div>
       </div>
@@ -791,7 +791,7 @@ export default function MultiVendorTerrainView({
       {/* Top Right Reset View Action */}
       <button
         onClick={resetCamera}
-        className="absolute top-4 right-4 px-3.5 py-1.5 rounded-lg bg-[#0D121C]/90 hover:bg-[#111827] border border-[#1D2939] hover:border-[#3B82F6]/50 text-[#3B82F6] text-xs font-mono font-bold transition-all shadow-lg active:scale-95 flex items-center gap-1.5"
+        className="absolute top-4 right-4 px-3.5 py-1.5 rounded-lg bg-[#0B0B0B]/90 hover:bg-[#141414] border border-[#1F1F1F] hover:border-[#3B82F6]/50 text-[#3B82F6] text-xs font-mono font-bold transition-all shadow-lg active:scale-95 flex items-center gap-1.5"
       >
         <span>Reset View</span>
         <span className="text-[10px]">↺</span>
@@ -800,38 +800,38 @@ export default function MultiVendorTerrainView({
       {/* Evidence Hover Tooltip Card (Line 17 AST Proof) */}
       {isEvidenceHovered && evidenceTooltipPos && (
         <div
-          className="absolute z-20 pointer-events-none p-3 rounded-xl bg-[#0D121C]/95 border border-[#EF4444]/60 shadow-[0_0_20px_rgba(239,68,68,0.25)] text-xs font-mono space-y-1.5 min-w-[230px] animate-fadeIn"
+          className="absolute z-20 pointer-events-none p-3 rounded-xl bg-[#0B0B0B]/95 border border-[#EF4444]/60 shadow-[0_0_20px_rgba(239,68,68,0.25)] text-xs font-mono space-y-1.5 min-w-[230px] animate-fadeIn"
           style={{
             left: Math.min(evidenceTooltipPos.x + 20, 480),
             top: Math.max(evidenceTooltipPos.y - 120, 20),
           }}
         >
-          <div className="flex items-center justify-between border-b border-[#1D2939] pb-1.5">
+          <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-1.5">
             <span className="text-[#EF4444] font-bold text-[10px]">EVIDENCE: LINE 17</span>
             <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#EF4444]/20 text-[#EF4444] font-extrabold">FAIL</span>
           </div>
           <div className="space-y-1 text-[11px]">
-            <div className="text-[#A7B0C0]">Vendor: <strong className="text-white">Cisco IOS</strong></div>
-            <div className="text-[#A7B0C0]">Raw Line: <span className="text-[#EF4444] font-bold">ip ssh version 1</span></div>
-            <div className="text-[#A7B0C0]">Normalized Fact: <span className="text-[#3B82F6]">remote_access.ssh_version = 1</span></div>
-            <div className="text-[#A7B0C0]">Control: <strong className="text-white">CIS-1.2.1 / NIST AC-17</strong></div>
+            <div className="text-[#8E8E93]">Vendor: <strong className="text-white">Cisco IOS</strong></div>
+            <div className="text-[#8E8E93]">Raw Line: <span className="text-[#EF4444] font-bold">ip ssh version 1</span></div>
+            <div className="text-[#8E8E93]">Normalized Fact: <span className="text-[#3B82F6]">remote_access.ssh_version = 1</span></div>
+            <div className="text-[#8E8E93]">Control: <strong className="text-white">CIS-1.2.1 / NIST AC-17</strong></div>
           </div>
-          <div className="text-[9px] text-[#667085] pt-0.5 border-t border-[#1D2939]">
+          <div className="text-[9px] text-[#636366] pt-0.5 border-t border-[#1F1F1F]">
             Deterministic SHA-256 AST Provenance
           </div>
         </div>
       )}
 
       {/* Bottom Architectural Readout (System Readout Bar) */}
-      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between font-mono text-[10px] text-[#667085] pointer-events-none border-t border-[#1D2939] pt-2">
+      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between font-mono text-[10px] text-[#636366] pointer-events-none border-t border-[#1F1F1F] pt-2">
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <span className="text-[#A7B0C0]">[3 VENDORS]</span>
+          <span className="text-[#8E8E93]">[3 VENDORS]</span>
           <span className="text-white/20">→</span>
-          <span className="text-[#A7B0C0]">[AST NORMALIZATION]</span>
+          <span className="text-[#8E8E93]">[AST NORMALIZATION]</span>
           <span className="text-white/20">→</span>
           <span className="text-[#3B82F6] font-bold">[UNIVERSAL SECURITY MODEL]</span>
           <span className="text-white/20">→</span>
-          <span className="text-[#A7B0C0]">[4 FRAMEWORKS]</span>
+          <span className="text-[#8E8E93]">[4 FRAMEWORKS]</span>
         </div>
         <div className="text-[#10B981] font-bold tracking-wider hidden sm:block">
           IMMUTABLE AST PROOF

@@ -23,11 +23,11 @@ export default function NISTCompliancePage() {
     <div className="space-y-6 max-w-7xl mx-auto font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#F3F4F6] tracking-tight flex items-center gap-2.5 font-mono">
+          <h1 className="text-xl font-bold text-[#F2F2F2] tracking-tight flex items-center gap-2.5 font-mono">
             <Layers className="w-5 h-5 text-[#3B82F6]" />
             <span>NIST SP 800-53 Rev 5 Control Catalog</span>
           </h1>
-          <p className="text-xs text-[#A7B0C0] mt-1 font-sans">
+          <p className="text-xs text-[#8E8E93] mt-1 font-sans">
             National Institute of Standards and Technology (NIST) federal network security baseline controls.
           </p>
         </div>
@@ -35,7 +35,7 @@ export default function NISTCompliancePage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => refetch()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D121C] border border-[#1D2939] text-[#A7B0C0] hover:text-white hover:border-[#263B55] text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-[#8E8E93] hover:text-white hover:border-[#2C2C2E] text-xs font-mono transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh</span>
@@ -52,7 +52,7 @@ export default function NISTCompliancePage() {
       </div>
 
       {isError ? (
-        <div className="p-8 rounded-xl bg-[#0D121C] border border-[#EF4444]/30 text-center space-y-3 font-mono">
+        <div className="p-8 rounded-xl bg-[#0B0B0B] border border-[#EF4444]/30 text-center space-y-3 font-mono">
           <div className="w-8 h-8 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto">
             <AlertTriangle className="w-4 h-4" />
           </div>
@@ -62,27 +62,27 @@ export default function NISTCompliancePage() {
           </div>
           <button
             onClick={() => refetch()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#080B12] text-[#3B82F6] border border-[#3B82F6]/40 text-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#080808] text-[#3B82F6] border border-[#3B82F6]/40 text-xs"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Retry Request</span>
           </button>
         </div>
       ) : isLoading ? (
-        <div className="py-16 text-center text-[#667085] font-mono text-xs flex items-center justify-center gap-2">
+        <div className="py-16 text-center text-[#636366] font-mono text-xs flex items-center justify-center gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
           <span>Loading NIST control catalog...</span>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono">
           {controls.map((ctrl) => (
-            <div key={ctrl.rule_id} className="p-4 rounded-xl bg-[#0D121C] border border-[#1D2939] space-y-3">
+            <div key={ctrl.rule_id} className="p-4 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#080B12] text-[#3B82F6] border border-[#3B82F6]/30 font-bold">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#080808] text-[#3B82F6] border border-[#3B82F6]/30 font-bold">
                     {ctrl.control_id}
                   </span>
-                  <h3 className="text-xs font-bold text-[#F3F4F6] mt-1.5 font-sans">{ctrl.title}</h3>
+                  <h3 className="text-xs font-bold text-[#F2F2F2] mt-1.5 font-sans">{ctrl.title}</h3>
                 </div>
                 <span
                   className={cn(
@@ -90,16 +90,16 @@ export default function NISTCompliancePage() {
                     ctrl.severity === "CRITICAL" && "text-[#EF4444]",
                     ctrl.severity === "HIGH" && "text-[#F59E0B]",
                     ctrl.severity === "MEDIUM" && "text-[#3B82F6]",
-                    ctrl.severity === "LOW" && "text-[#667085]"
+                    ctrl.severity === "LOW" && "text-[#636366]"
                   )}
                 >
                   {ctrl.severity}
                 </span>
               </div>
 
-              <p className="text-[11px] text-[#A7B0C0] leading-relaxed font-sans">{ctrl.description}</p>
+              <p className="text-[11px] text-[#8E8E93] leading-relaxed font-sans">{ctrl.description}</p>
 
-              <div className="pt-2 border-t border-[#1D2939] flex items-center justify-between text-[10px] text-[#667085]">
+              <div className="pt-2 border-t border-[#1F1F1F] flex items-center justify-between text-[10px] text-[#636366]">
                 <span className="flex items-center gap-1">
                   <BookOpen className="w-3 h-3 text-[#3B82F6]" />
                   <span>{ctrl.source?.document || "NIST SP 800-53"}</span>

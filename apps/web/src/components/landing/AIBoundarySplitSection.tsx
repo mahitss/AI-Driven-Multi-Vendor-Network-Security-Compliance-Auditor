@@ -11,10 +11,10 @@ export default function AIBoundarySplitSection() {
         <div className="text-xs font-mono text-[#10B981] font-semibold uppercase tracking-wider">
           GOVERNANCE & SAFETY INVARIANT
         </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F3F4F6] tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F2F2F2] tracking-tight">
           STRICT DETERMINISTIC & AI BOUNDARY
         </h2>
-        <p className="text-sm text-[#A7B0C0] font-mono">
+        <p className="text-sm text-[#8E8E93] font-mono">
           Deterministic logic decides compliance. AI interprets context.
         </p>
       </div>
@@ -22,11 +22,11 @@ export default function AIBoundarySplitSection() {
       {/* 50/50 Split Viewport Module */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono text-xs">
         {/* Left Column: Deterministic Verdict (Emerald) */}
-        <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors space-y-5 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1D2939]">
+        <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2C2C2E] transition-colors space-y-5 shadow-sm">
+          <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F]">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#10B981]" />
-              <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
+              <span className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">
                 DETERMINISTIC VERDICT
               </span>
             </div>
@@ -35,15 +35,15 @@ export default function AIBoundarySplitSection() {
             </span>
           </div>
 
-          <p className="text-xs text-[#A7B0C0] font-sans leading-relaxed">
+          <p className="text-xs text-[#8E8E93] font-sans leading-relaxed">
             Security findings, compliance scores, severity, and risk classification are computed purely through deterministic rule logic without generative hallucination.
           </p>
 
-          <div className="p-4 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-3">
+          <div className="p-4 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-[#667085]">CONTROL ID</span>
-                <div className="text-sm font-bold text-[#F3F4F6]">CIS-1.2.1 (SSH Version)</div>
+                <span className="text-[10px] text-[#636366]">CONTROL ID</span>
+                <div className="text-sm font-bold text-[#F2F2F2]">CIS-1.2.1 (SSH Version)</div>
               </div>
               <span className="px-2.5 py-1 rounded bg-[#EF4444]/10 text-[#EF4444] font-bold text-xs border border-[#EF4444]/30">
                 FAIL
@@ -51,10 +51,10 @@ export default function AIBoundarySplitSection() {
             </div>
 
             <div className="space-y-1 text-[11px]">
-              <div className="text-[10px] text-[#667085]">LINE-LEVEL EVIDENCE</div>
+              <div className="text-[10px] text-[#636366]">LINE-LEVEL EVIDENCE</div>
               <div className="p-2 rounded bg-black/40 border border-[#EF4444]/20 text-[#EF4444] font-mono flex items-center justify-between">
                 <span>[Line 17] ip ssh version 1</span>
-                <span className="text-[10px] text-[#667085]">Expected: 2</span>
+                <span className="text-[10px] text-[#636366]">Expected: 2</span>
               </div>
             </div>
 
@@ -70,11 +70,11 @@ export default function AIBoundarySplitSection() {
         </div>
 
         {/* Right Column: Grounded AI Advisory (Purple) */}
-        <div className="p-6 rounded-xl bg-[#0D121C] border border-[#1D2939] hover:border-[#263B55] transition-colors space-y-5 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1D2939]">
+        <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2C2C2E] transition-colors space-y-5 shadow-sm">
+          <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F]">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#8B5CF6]" />
-              <span className="text-xs font-bold text-[#F3F4F6] uppercase tracking-wider">
+              <span className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">
                 GROUNDED AI ADVISORY
               </span>
             </div>
@@ -83,17 +83,17 @@ export default function AIBoundarySplitSection() {
             </span>
           </div>
 
-          <p className="text-xs text-[#A7B0C0] font-sans leading-relaxed">
+          <p className="text-xs text-[#8E8E93] font-sans leading-relaxed">
             AI explains findings in plain language, calculates blast radius, and suggests remediation. The model operates under strict read-only constraints.
           </p>
 
-          <div className="p-4 rounded-lg bg-[#080B12] border border-[#1D2939] space-y-3">
+          <div className="p-4 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-3">
             <div className="flex items-center justify-between text-[10px]">
               <span className="text-[#8B5CF6] font-bold">WHY THIS MATTERS</span>
-              <span className="text-[#667085]">READ ONLY • EVIDENCE GROUNDED</span>
+              <span className="text-[#636366]">READ ONLY • EVIDENCE GROUNDED</span>
             </div>
 
-            <p className="text-[11px] text-[#A7B0C0] font-sans leading-relaxed bg-black/40 p-2.5 rounded border border-[#1D2939]">
+            <p className="text-[11px] text-[#8E8E93] font-sans leading-relaxed bg-black/40 p-2.5 rounded border border-[#1F1F1F]">
               "SSH Version 1 utilizes vulnerable CRC-32 compensation attacks and weak session key exchanges. An adversary intercepting traffic on the management network segment can decrypt credentials in transit."
             </p>
 
