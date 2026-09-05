@@ -121,10 +121,10 @@ function FormattedCopilotResponse({
           return (
             <div
               key={idx}
-              className="p-3 rounded-lg bg-[#080808] border border-[#1F1F1F] font-mono text-[13px] text-[#22D3EE] space-y-1 my-2"
+              className="p-3 rounded-lg bg-[#080808] border border-[#1F1F1F] font-mono text-[13px] text-[#F2F2F2] space-y-1 my-2"
             >
               <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-[#8E8E93]">
-                <Terminal className="w-3.5 h-3.5 text-[#22D3EE]" />
+                <Terminal className="w-3.5 h-3.5 text-[#8E8E93]" />
                 <span>AST EVIDENCE CITATION</span>
               </div>
               <p className="whitespace-pre-wrap">{sec.text}</p>
@@ -379,7 +379,7 @@ function AICopilotContent() {
         <div>
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-[#141414] border border-[#2B2B2B] text-[#F2F2F2]">
-              <Bot className="w-5 h-5 text-[#3B82F6]" />
+              <Bot className="w-5 h-5 text-[#F2F2F2]" />
             </div>
             <h1 className="text-2xl lg:text-[30px] font-bold tracking-tight text-[#F2F2F2] font-sans">
               AI COPILOT
@@ -418,7 +418,7 @@ function AICopilotContent() {
           {/* Target Audit Selector */}
           <div className="space-y-1 flex-1 min-w-[260px]">
             <label className="text-[11px] text-[#8E8E93] uppercase font-semibold flex items-center gap-1.5 font-mono">
-              <FileCode className="w-3.5 h-3.5 text-[#3B82F6]" />
+              <FileCode className="w-3.5 h-3.5 text-[#8E8E93]" />
               <span>Target Audit Session</span>
             </label>
             <select
@@ -434,7 +434,7 @@ function AICopilotContent() {
                 }
               }}
               disabled={isAuditsLoading || audits.length === 0}
-              className="w-full bg-[#080808] border border-[#1F1F1F] rounded-lg px-3 py-2 text-xs text-[#F2F2F2] focus:outline-none focus:border-[#3B82F6] disabled:opacity-50 font-mono"
+              className="w-full bg-[#080808] border border-[#1F1F1F] rounded-lg px-3 py-2 text-xs text-[#F2F2F2] focus:outline-none focus:border-[#444444] disabled:opacity-50 font-mono"
             >
               {audits.length === 0 ? (
                 <option value="">No completed audits available</option>
@@ -525,7 +525,7 @@ function AICopilotContent() {
                 href={selectedAuditId ? `/findings?audit_id=${selectedAuditId}` : "/findings"}
                 className="px-2.5 py-1 rounded bg-[#121212] hover:bg-[#181818] border border-[#242424] text-[#8E8E93] hover:text-[#F2F2F2] transition-colors flex items-center gap-1.5 text-[11px]"
               >
-                <Terminal className="w-3 h-3 text-[#22D3EE]" />
+                <Terminal className="w-3 h-3 text-[#8E8E93]" />
                 <span>Evidence Explorer</span>
               </Link>
               <Link
@@ -688,7 +688,7 @@ function AICopilotContent() {
                   }
                 }}
                 disabled={isSendingChat || !selectedAuditId}
-                className="flex-1 bg-[#0D0D0D] border border-[#222222] hover:border-[#2E2E2E] focus:border-[#3B82F6] rounded-xl px-4 py-3.5 text-[15px] text-[#F2F2F2] placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-sans"
+                className="flex-1 bg-[#0D0D0D] border border-[#222222] hover:border-[#2E2E2E] focus:border-[#444444] rounded-xl px-4 py-3.5 text-[15px] text-[#F2F2F2] placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-sans"
               />
               <button
                 onClick={() => handleSendChat()}
@@ -714,7 +714,7 @@ function AICopilotContent() {
           <div className="bg-[#0B0B0B] border border-[#1F1F1F] rounded-xl p-4.5 space-y-4 font-mono text-xs shadow-sm">
             <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-3">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#3B82F6]" />
+                <Shield className="w-4 h-4 text-[#8E8E93]" />
                 <span className="font-bold text-[#F2F2F2] uppercase tracking-wider text-[12px]">
                   SECURITY CONTEXT
                 </span>
@@ -853,7 +853,7 @@ function AICopilotContent() {
                 </div>
 
                 {focusedFinding.finding_metadata?.source_lines && (
-                  <div className="text-[11px] text-[#22D3EE] font-mono">
+                  <div className="text-[11px] text-[#8E8E93] font-mono">
                     Source Line: {focusedFinding.finding_metadata.source_lines.join(", ")}
                   </div>
                 )}
@@ -866,7 +866,7 @@ function AICopilotContent() {
                   href={`/findings?audit_id=${selectedAuditId}&control=${encodeURIComponent(
                     focusedFinding.control_id
                   )}`}
-                  className="inline-flex items-center gap-1.5 text-xs text-[#3B82F6] hover:underline font-sans mt-1"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#F2F2F2] hover:underline font-sans mt-1"
                 >
                   <span>Open in Evidence Explorer</span>
                   <ExternalLink className="w-3 h-3" />
@@ -894,7 +894,7 @@ function AICopilotContent() {
               className="w-full p-2.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#D4D4D8] hover:text-white flex items-center justify-between transition-colors font-sans text-xs"
             >
               <div className="flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-[#22D3EE]" />
+                <Terminal className="w-3.5 h-3.5 text-[#8E8E93]" />
                 <span>Findings Registry</span>
               </div>
               <ChevronRight className="w-3.5 h-3.5 text-[#636366]" />
@@ -937,7 +937,7 @@ function AICopilotContent() {
           >
             <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-3">
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-[#22D3EE]" />
+                <Terminal className="w-4 h-4 text-[#8E8E93]" />
                 <span className="text-white font-bold text-sm">
                   {activeCitation.control_id} Evidence Proof
                 </span>
@@ -957,7 +957,7 @@ function AICopilotContent() {
             {activeCitation.line_number && (
               <div className="space-y-1">
                 <div className="text-[10px] text-[#636366] uppercase">Configuration Line Citation:</div>
-                <div className="px-2.5 py-1 rounded bg-[#080808] text-[#22D3EE] inline-block font-bold">
+                <div className="px-2.5 py-1 rounded bg-[#080808] text-[#F2F2F2] inline-block font-bold border border-[#1F1F1F]">
                   Line {activeCitation.line_number}
                 </div>
               </div>
@@ -973,7 +973,7 @@ function AICopilotContent() {
             <div className="pt-3 border-t border-[#1F1F1F] flex items-center justify-between">
               <Link
                 href={`/findings?control=${encodeURIComponent(activeCitation.control_id)}`}
-                className="text-xs text-[#3B82F6] hover:underline flex items-center gap-1 font-sans"
+                className="text-xs text-[#F2F2F2] hover:underline flex items-center gap-1 font-sans"
                 onClick={() => setActiveCitation(null)}
               >
                 <span>Inspect in Evidence Explorer</span>

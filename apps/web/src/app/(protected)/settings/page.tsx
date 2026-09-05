@@ -704,6 +704,10 @@ function SettingsContent() {
                       <span className="text-[#666666] font-sans">Authentication Mode:</span>
                       <span className="text-[#10B981] font-mono">Bearer JWT (HMAC-SHA256 / EdDSA)</span>
                     </div>
+                    <div className="flex items-center justify-between p-3 bg-[#080808]">
+                      <span className="text-[#666666] font-sans">Background Worker Engine:</span>
+                      <span className="text-[#8E8E93] font-mono">Go Worker (v1, Optional / Standby)</span>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -769,6 +769,48 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * Linter: 0 errors (`npm run lint`).
   * Next.js build: 35/35 routes generated cleanly.
 
+---
+
+### Phase 3 — Go Worker + Enterprise Product Polish (September 2026)
+* **Objective**: Introduce an isolated, non-critical Go worker capability (`services/worker-go/`) for concurrent background jobs alongside targeted enterprise UX polish.
+* **Architecture Preservation & Invariants**:
+  * Python/FastAPI security engine remains 100% authoritative.
+  * Go worker does NOT own compliance scoring, risk formulas, finding generation, vendor parsers, remediation generation, authentication, or database schemas.
+  * Strict fail-safe: Zero user workflow depends exclusively on Go; Python automatically falls back to deterministic local operations if Go worker is offline, disabled, or unconfigured.
+* **Go Worker Service (`services/worker-go/`)**:
+  * **Module**: `github.com/mahitss/netvigil-worker-go` (Go 1.22+ standard library only; zero 3rd-party dependencies).
+  * **Endpoints**:
+    * `GET /health`, `GET /livez`: Health check returning service status, version, timestamp, environment (unauthenticated for probes).
+    * `GET /readyz`: Readiness probe.
+    * `POST /api/v1/jobs` (and `POST /jobs`): Deterministic job execution with strict versioned JSON contract.
+  * **Supported Job Types**:
+    * `ping`: Latency check / heartbeat.
+    * `config_preflight`: Computes SHA256 checksum, byte size, total/non-empty line count, UTF-8 validity, null-byte binary check, token estimation.
+    * `sanitize_text`: Fast regex redaction of passwords and secrets.
+    * `chunk_payload`: Deterministic line-based chunking for large configs.
+  * **Features**:
+    * Structured JSON logging via standard library `log/slog`.
+    * Graceful SIGTERM/SIGINT shutdown with context timeout (`10s`).
+    * Optional shared secret authentication via `X-Internal-Worker-Secret` or Bearer token.
+    * Multi-stage production `Dockerfile` based on `alpine:3.19` running as unprivileged non-root user (`appuser:10001`).
+* **FastAPI Fail-Safe Worker Client (`apps/api/app/services/worker/client.py`)**:
+  * Provides `WorkerClient` with `preflight_config`, `sanitize_text`, and `check_health`.
+  * If Go worker is disabled or unreachable, transparently falls back to local Python algorithms with zero exceptions or errors.
+  * Covered by `apps/api/tests/test_worker_client_fail_safe.py` (4/4 passed).
+* **Enterprise Product Polish**:
+  * `ai-copilot/page.tsx`: Purged all non-monochrome accents (cyan `#22D3EE` and blue `#3B82F6`) across headers, inputs, evidence citations, and modal dialogues to the locked matte monochrome palette (`#F2F2F2`, `#8E8E93`, `#444444`).
+  * `settings/page.tsx`: Added background worker status to system diagnostics specifications (`Go Worker v1, Optional / Standby`).
+* **Verification**:
+  * Go Unit Tests: 14/14 tests passing (`go test -v ./...` in `services/worker-go`).
+  * Go Vet: 0 issues (`go vet ./...`).
+  * Backend Pytest: 41/41 tests passing (100% pass across all 10 suites including `test_worker_client_fail_safe.py`).
+  * Frontend Tests: 38/38 tests passing (`npm test`).
+  * TypeScript: 0 errors (`npx tsc --noEmit`).
+  * Linter: 0 errors (`npm run lint`).
+  * Next.js Build: 35/35 routes generated cleanly (`npm run build`).
+  * Real-Data E2E Flow: 7/7 checks passing (`verify_real_data_flow.py`).
+
+
 
 
 
