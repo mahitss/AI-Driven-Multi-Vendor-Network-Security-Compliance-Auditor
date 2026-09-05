@@ -417,6 +417,28 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% Next.js production build passing across all 35 routes (`npm run build`).
   * 100% targeted backend pytest suites passing (`pytest`, 18/18 tests passing).
 
+### Dedicated AI Copilot Page Polish & Security Context Workspace (September 2026)
+* **Architecture & Separation of Concerns**:
+  * **AI Copilot Workspace (`ai-copilot/page.tsx`)**:
+    * Clean two-column desktop layout: ~72% Left Main Workspace and ~28% Right "SECURITY CONTEXT" panel (`lg:col-span-8 xl:col-span-9` + `lg:col-span-4 xl:col-span-3`).
+    * **Right Column ("SECURITY CONTEXT")**: Real-time telemetry displaying selected audit asset name, platform vendor, compliance score, algorithmic risk score, active failure count, critical (P0) count, framework scores (CIS, NIST, STIG, ISO), and interactive Evidence Provenance for clicked/cited controls.
+    * **Left Column (Main Workspace)**:
+      * Stream header with safety invariants (`AI ADVISORY ONLY`, `AST GROUNDED`, `AI has ZERO device-write capability`).
+      * Clean suggested investigation questions chips (`Why is this audit high risk?`, `Show me the most critical finding.`, `Why did CIS-1.2.1 fail?`, etc.).
+      * Spacious conversation stream with structured visual sections (Explanation, Evidence, Action, Risk).
+      * Interactive Evidence Citation chips opening AST line proof modal.
+      * Large, comfortable composer input (`text-[15px]`, `py-3.5`) with keyboard Enter shortcut and zero device-write safety disclaimer.
+  * **Security Briefing (`ai-security-briefing/page.tsx`)**:
+    * Replaced persistent chat panel with compact CTA card: `"Need deeper analysis?"` → `"Open AI Copilot →"`.
+  * **Aesthetics & Color System**:
+    * 100% locked NetVigil matte-black SOC palette (`#050505`, `#080808`, `#0B0B0B`, `#141414`, `#1F1F1F`).
+    * Clear typography hierarchy: Page title (28–30px), section titles (18–20px), body and conversation (15–16px), buttons (13–14px), metadata (11–12px).
+* **Validation**:
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% web regression tests passing (`npm test`, 38/38 tests).
+  * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
+
+
 
 
 

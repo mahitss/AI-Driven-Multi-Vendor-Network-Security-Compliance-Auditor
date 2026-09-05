@@ -665,16 +665,19 @@ ${briefing.recommended_investigation_order.map((s) => `${s.step_number}. ${s.con
 
               <div className="space-y-2">
                 {/* 1. Open in Dedicated AI Copilot */}
-                <Link
-                  href={`/ai-copilot?audit_id=${briefing.audit_id}`}
-                  className="w-full p-3 rounded-xl bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/30 flex items-center justify-between transition-all group font-sans text-xs font-semibold"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Bot className="w-4 h-4 text-[#8B5CF6]" />
-                    <span>Investigate in AI Copilot</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
+                <div className="p-3.5 rounded-xl bg-[#080808] border border-[#1F1F1F] space-y-2">
+                  <div className="text-[11px] text-[#8E8E93] font-sans">Need deeper analysis?</div>
+                  <Link
+                    href={`/ai-copilot?audit_id=${briefing.audit_id}`}
+                    className="w-full p-2.5 rounded-lg bg-[#141414] hover:bg-[#1E1E1E] text-white border border-[#2B2B2B] hover:border-[#383838] flex items-center justify-between transition-all group font-sans text-xs font-semibold"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-[#A0A0A0] group-hover:text-white transition-colors" />
+                      <span>Open AI Copilot →</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-[#636366] group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                </div>
 
                 {/* 2. View Findings in Evidence Explorer */}
                 <Link
