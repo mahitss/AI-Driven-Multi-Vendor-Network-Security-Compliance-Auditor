@@ -378,27 +378,26 @@ function AuditsPageContent() {
       (f.description && f.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFw && matchesSev && matchesStatus && matchesSearch;
   });
-
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto space-y-5 select-none font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1F1F1F] pb-4">
         <div>
-          <h1 className="text-xl font-bold text-[#F2F2F2] tracking-tight flex items-center gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-[#10B981]" />
-            <span>Multi-Framework Compliance Engine</span>
+          <h1 className="text-2xl sm:text-[28px] lg:text-[30px] font-bold text-[#F2F2F2] tracking-tight font-mono leading-none flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-[#10B981] shrink-0" />
+            <span>MULTI-FRAMEWORK COMPLIANCE ENGINE</span>
           </h1>
-          <p className="text-xs text-[#8E8E93] mt-1">
+          <p className="text-sm sm:text-[15px] text-[#8E8E93] mt-1.5 font-sans">
             Deterministic security baseline audits evaluating configurations against CIS, NIST SP 800-53, DISA STIG,
             and ISO/IEC 27001 with AI-grounded explanations.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto shrink-0">
           {/* Executive Report Button */}
           <Link
             href={`/reports?auditId=${selectedAuditId || ""}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0D0D0D] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-white text-xs font-mono font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#0D0D0D] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-white text-xs sm:text-[13px] font-mono font-medium transition-colors"
           >
             <FileText className="w-3.5 h-3.5 text-[#888888]" />
             <span>Executive Report</span>
@@ -407,7 +406,7 @@ function AuditsPageContent() {
           {/* AI Co-Pilot Button */}
           <button
             onClick={() => setIsAssistantOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#121212] border border-[#2A2A2A] text-[#A0A0A0] hover:text-white hover:bg-[#181818] text-xs font-mono font-medium transition-colors shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#121212] border border-[#2A2A2A] text-[#A0A0A0] hover:text-white hover:bg-[#181818] text-xs sm:text-[13px] font-mono font-medium transition-colors shadow-xs cursor-pointer"
           >
             <Bot className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span>AI Co-Pilot</span>
@@ -415,7 +414,7 @@ function AuditsPageContent() {
 
           <button
             onClick={() => refetchAudits()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0D0D0D] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-white text-xs font-mono transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#0D0D0D] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-white text-xs sm:text-[13px] font-mono transition-colors cursor-pointer"
           >
             <RefreshCw className={cn("w-3.5 h-3.5", isAuditsLoading && "animate-spin text-[#888888]")} />
             <span>Refresh</span>
@@ -428,7 +427,7 @@ function AuditsPageContent() {
               }
               setIsLaunchModalOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-[#161616] hover:bg-[#1F1F1F] border border-[#2E2E2E] hover:border-[#383838] text-[#F2F2F2] hover:text-white text-xs font-semibold shadow-xs transition-colors font-mono"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#161616] hover:bg-[#1F1F1F] border border-[#2E2E2E] hover:border-[#383838] text-[#F2F2F2] hover:text-white text-xs sm:text-[13px] font-semibold shadow-xs transition-colors font-mono cursor-pointer"
           >
             <Play className="w-3.5 h-3.5 fill-current text-[#10B981]" />
             <span>New Compliance Audit</span>
@@ -449,7 +448,7 @@ function AuditsPageContent() {
           </div>
           <button
             onClick={() => refetchAudits()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#141414] hover:bg-[#181818] text-[#F2F2F2] border border-[#2A2A2A] text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#141414] hover:bg-[#181818] text-[#F2F2F2] border border-[#2A2A2A] text-xs font-semibold font-mono"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Retry Request</span>
@@ -467,8 +466,8 @@ function AuditsPageContent() {
             <ShieldCheck className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-[#F2F2F2] font-sans">No Compliance Audits Executed</h3>
-            <p className="text-xs text-[#8E8E93] max-w-md mx-auto font-sans">
+            <h3 className="text-base font-semibold text-[#F2F2F2] font-sans">No Compliance Audits Executed</h3>
+            <p className="text-xs sm:text-sm text-[#8E8E93] max-w-md mx-auto font-sans">
               Run a deterministic compliance audit against an ingested configuration to evaluate CIS, NIST, DISA STIG,
               and ISO 27001 baseline checks.
             </p>
@@ -480,7 +479,7 @@ function AuditsPageContent() {
               }
               setIsLaunchModalOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#161616] hover:bg-[#1F1F1F] border border-[#2E2E2E] text-[#F2F2F2] hover:text-white text-xs font-semibold transition-colors font-mono shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#161616] hover:bg-[#1F1F1F] border border-[#2E2E2E] text-[#F2F2F2] hover:text-white text-xs font-semibold transition-colors font-mono shadow-xs cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current text-[#10B981]" />
             <span>Launch Initial Audit</span>
@@ -488,12 +487,14 @@ function AuditsPageContent() {
         </div>
       ) : (
         /* Main Audit Workspace */
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Audit Session Selector Bar */}
-          <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-              <span className="text-xs font-mono text-[#555555] whitespace-nowrap">Audit Session:</span>
-              <div className="flex items-center gap-1.5">
+          <div className="p-3 sm:p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col md:flex-row md:items-center justify-between gap-3.5 w-full overflow-hidden">
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 md:pb-0 scrollbar-thin scrollbar-thumb-[#1F1F1F] max-w-full">
+              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#666666] shrink-0">
+                AUDIT SESSIONS:
+              </span>
+              <div className="flex items-center gap-2 shrink-0">
                 {audits.map((a) => {
                   const cfg = configurations.find((c) => c.id === a.configuration_id);
                   const deviceLabel = cfg?.original_filename || (a as any).device_name || `Session ${a.id.slice(0, 8)}`;
@@ -508,19 +509,21 @@ function AuditsPageContent() {
                       onClick={() => handleSelectAudit(a.id)}
                       title={`Audit ID: ${a.id}\nAsset: ${deviceLabel}\nExecuted: ${a.started_at ? new Date(a.started_at).toLocaleString() : "Unknown"}\nScore: ${a.score !== null && a.score !== undefined ? `${a.score.toFixed(1)}%` : "N/A"}`}
                       className={cn(
-                        "px-3 py-1.5 rounded-md text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-2",
+                        "px-3 py-1.5 rounded-md text-xs font-mono transition-all whitespace-nowrap flex items-center gap-2 border cursor-pointer",
                         isSelected
-                          ? "bg-[#161616] text-[#F2F2F2] border border-[#2E2E2E] font-semibold shadow-xs"
-                          : "bg-[#080808] text-[#8E8E93] hover:text-[#F2F2F2] border border-[#1F1F1F]"
+                          ? "bg-[#141414] text-[#F2F2F2] border-[#383838] font-semibold shadow-xs ring-1 ring-[#383838]"
+                          : "bg-[#080808] text-[#8E8E93] hover:text-[#F2F2F2] border-[#1F1F1F] hover:border-[#2A2A2A] hover:bg-[#0E0E0E]"
                       )}
                     >
-                      <span className="font-sans font-medium text-[#F2F2F2]">{deviceLabel}</span>
-                      <span className="text-[10px] text-[#555555]">({a.id.slice(0, 8)}{executionTimeStr ? ` · ${executionTimeStr}` : ""})</span>
+                      <span className="font-sans font-semibold text-[#F2F2F2] text-xs">{deviceLabel}</span>
+                      <span className="text-[11px] text-[#666666] font-mono">
+                        ({a.id.slice(0, 8)}{executionTimeStr ? ` · ${executionTimeStr}` : ""})
+                      </span>
                       {a.score !== null && a.score !== undefined && (
                         <span
                           className={cn(
-                            "px-1.5 py-0.2 rounded text-[10px] font-bold",
-                            a.score >= 80 ? "text-[#10B981]" : a.score >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
+                            "px-1.5 py-0.5 rounded text-[11px] font-mono font-bold",
+                            a.score >= 80 ? "bg-[#10B981]/15 text-[#10B981]" : a.score >= 60 ? "bg-[#F59E0B]/15 text-[#F59E0B]" : "bg-[#EF4444]/15 text-[#EF4444]"
                           )}
                         >
                           {a.score.toFixed(1)}%
@@ -533,42 +536,45 @@ function AuditsPageContent() {
             </div>
 
             {(isDetailMatching ? auditDetail : activeAudit) && (
-              <div className="text-[11px] font-mono text-[#636366] flex items-center gap-3 self-end md:self-auto">
+              <div className="text-xs font-mono text-[#8E8E93] flex items-center gap-3 shrink-0 self-start md:self-auto">
                 <span>
                   Executed:{" "}
-                  <strong className="text-[#8E8E93]">
+                  <strong className="text-[#F2F2F2] font-semibold">
                     {new Date(
                       ((isDetailMatching && auditDetail?.started_at) || activeAudit?.started_at) || Date.now()
                     ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </strong>
                 </span>
-                <span>•</span>
-                <span className="text-[#10B981] font-semibold uppercase">
-                  {(isDetailMatching && auditDetail?.status) || activeAudit?.status || "COMPLETED"}
+                <span className="text-[#333333]">•</span>
+                <span className="inline-flex items-center gap-1.5 text-[#10B981] font-semibold uppercase text-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                  <span>{(isDetailMatching && auditDetail?.status) || activeAudit?.status || "COMPLETED"}</span>
                 </span>
               </div>
             )}
-          </div>          {/* Compliance Posture Overview Grid: 5 equal-width columns on desktop */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          </div>
+
+          {/* Compliance Posture Overview Grid: 5 equal-width columns on desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-stretch">
             {/* Overall Score Card */}
-            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col justify-between relative overflow-hidden h-full min-h-[140px]">
+            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col justify-between relative overflow-hidden h-full min-h-[145px]">
               <div className="space-y-1">
-                <div className="text-[11px] font-semibold text-[#555555] uppercase tracking-wider font-mono">
+                <div className="text-[13px] font-bold text-[#8E8E93] uppercase tracking-wider font-mono">
                   NetVigil Score
                 </div>
-                <div className="text-[10px] text-[#555555] font-mono truncate">Multi-Framework Average</div>
+                <div className="text-xs text-[#666666] font-mono truncate">Multi-Framework Average</div>
               </div>
 
               <div className="my-3 flex items-baseline gap-1.5 font-mono">
                 <span
                   className={cn(
-                    "text-3xl font-bold tracking-tight",
+                    "text-3xl sm:text-[34px] font-bold tracking-tight leading-none",
                     currentScore >= 80 ? "text-[#10B981]" : currentScore >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
                   )}
                 >
                   {currentScore.toFixed(1)}
                 </span>
-                <span className="text-[#555555] text-xs font-semibold">/ 100</span>
+                <span className="text-[#666666] text-xs font-semibold">/ 100</span>
               </div>
 
               <div className="w-full bg-[#141414] rounded-full h-1.5 overflow-hidden border border-[#1F1F1F]">
@@ -597,34 +603,34 @@ function AuditsPageContent() {
                   key={fw.key}
                   onClick={() => setActiveFrameworkFilter(activeFrameworkFilter === fw.key ? "ALL" : fw.key)}
                   className={cn(
-                    "p-4 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between h-full min-h-[140px]",
+                    "p-4 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between h-full min-h-[145px]",
                     activeFrameworkFilter === fw.key
-                      ? "bg-[#141414] border-[#333333] shadow-xs"
+                      ? "bg-[#141414] border-[#383838] ring-1 ring-[#383838] shadow-xs"
                       : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A] hover:bg-[#101010]"
                   )}
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#F2F2F2] font-mono">{fw.key}</span>
+                      <span className="text-sm font-bold text-[#F2F2F2] font-mono">{fw.key}</span>
                       {isEvaluated && fwData ? (
                         <span
-                          className="text-[10px] font-mono text-[#8E8E93]"
+                          className="text-xs font-mono text-[#8E8E93]"
                           title={`${fwData.passed_count} passed, ${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A (${fwData.total_applicable} applicable controls)`}
                         >
                           {fwData.passed_count}/{fwData.total_applicable} passed
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono text-[#555555]">Not Evaluated</span>
+                        <span className="text-xs font-mono text-[#555555]">Not Evaluated</span>
                       )}
                     </div>
-                    <div className="text-[11px] text-[#8E8E93] font-medium mt-0.5 truncate">{fw.label}</div>
+                    <div className="text-[13px] text-[#8E8E93] font-medium mt-1 truncate">{fw.label}</div>
                   </div>
 
                   <div className="mt-3">
-                    <div className="text-2xl font-bold font-mono text-[#F2F2F2]">
+                    <div className="text-2xl sm:text-[30px] font-bold font-mono text-[#F2F2F2] leading-none">
                       {isEvaluated ? `${scoreVal.toFixed(1)}%` : "—"}
                     </div>
-                    <div className="text-[10px] text-[#555555] font-mono mt-0.5 flex items-center justify-between gap-1">
+                    <div className="text-xs text-[#666666] font-mono mt-1.5 flex items-center justify-between gap-1">
                       <span className="truncate">{fw.sub}</span>
                       {isEvaluated && fwData && (
                         <span
@@ -642,47 +648,47 @@ function AuditsPageContent() {
           </div>
 
           {/* Severity Badges Bar: Equal 4-Column Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
-            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 font-mono items-stretch">
+            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
-                <div className="text-[10px] text-[#EF4444] uppercase font-semibold">Critical Findings</div>
-                <div className="text-lg font-bold text-[#EF4444] mt-0.5">{sevStats.critical}</div>
+                <div className="text-xs text-[#EF4444] uppercase font-semibold tracking-wider">Critical Findings</div>
+                <div className="text-2xl sm:text-[26px] font-bold text-[#EF4444] mt-1 leading-none">{sevStats.critical}</div>
               </div>
-              <ShieldAlert className="w-5 h-5 text-[#EF4444]" />
+              <ShieldAlert className="w-5 h-5 text-[#EF4444] shrink-0" />
             </div>
 
-            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
-                <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">High Findings</div>
-                <div className="text-lg font-bold text-[#F59E0B] mt-0.5">{sevStats.high}</div>
+                <div className="text-xs text-[#F59E0B] uppercase font-semibold tracking-wider">High Findings</div>
+                <div className="text-2xl sm:text-[26px] font-bold text-[#F59E0B] mt-1 leading-none">{sevStats.high}</div>
               </div>
-              <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
+              <AlertTriangle className="w-5 h-5 text-[#F59E0B] shrink-0" />
             </div>
 
-            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
-                <div className="text-[10px] text-[#8E8E93] uppercase font-semibold">Medium Findings</div>
-                <div className="text-lg font-bold text-[#F2F2F2] mt-0.5">{sevStats.medium}</div>
+                <div className="text-xs text-[#8E8E93] uppercase font-semibold tracking-wider">Medium Findings</div>
+                <div className="text-2xl sm:text-[26px] font-bold text-[#F2F2F2] mt-1 leading-none">{sevStats.medium}</div>
               </div>
-              <Info className="w-5 h-5 text-[#8E8E93]" />
+              <Info className="w-5 h-5 text-[#8E8E93] shrink-0" />
             </div>
 
-            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
-                <div className="text-[10px] text-[#555555] uppercase font-semibold">Low / Informational</div>
-                <div className="text-lg font-bold text-[#8E8E93] mt-0.5">{sevStats.low + sevStats.info}</div>
+                <div className="text-xs text-[#666666] uppercase font-semibold tracking-wider">Low / Informational</div>
+                <div className="text-2xl sm:text-[26px] font-bold text-[#8E8E93] mt-1 leading-none">{sevStats.low + sevStats.info}</div>
               </div>
-              <ShieldCheck className="w-5 h-5 text-[#555555]" />
+              <ShieldCheck className="w-5 h-5 text-[#666666] shrink-0" />
             </div>
           </div>
 
           {/* Findings Explorer */}
-          <div className="p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] space-y-4">
+          <div className="p-4 sm:p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] space-y-4 font-mono">
             {/* Filter Toolbar: Clean Two-Part Layout */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3.5 border-b border-[#1F1F1F]">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 pb-4 border-b border-[#1F1F1F]">
               {/* LEFT: Count badge + Framework filters + Status filters */}
               <div className="flex flex-wrap items-center gap-2.5 min-w-0">
-                <span className="text-xs font-semibold text-[#F2F2F2] font-mono flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded bg-[#080808] border border-[#1F1F1F]">
+                <span className="text-xs font-semibold text-[#F2F2F2] font-mono flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-md bg-[#080808] border border-[#1F1F1F]">
                   <Filter className="w-3.5 h-3.5 text-[#8E8E93]" />
                   <span>Findings ({filteredFindings.length})</span>
                 </span>
@@ -694,9 +700,9 @@ function AuditsPageContent() {
                       key={fw}
                       onClick={() => setActiveFrameworkFilter(fw)}
                       className={cn(
-                        "px-2.5 py-1 rounded text-[11px] font-semibold transition-colors whitespace-nowrap",
+                        "px-3 py-1 rounded text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer",
                         activeFrameworkFilter === fw
-                          ? "bg-[#161616] text-[#F2F2F2] border border-[#2E2E2E]"
+                          ? "bg-[#141414] text-[#F2F2F2] border border-[#2E2E2E] shadow-xs"
                           : "text-[#8E8E93] hover:text-white"
                       )}
                     >
@@ -712,7 +718,7 @@ function AuditsPageContent() {
                       key={st}
                       onClick={() => setActiveStatusFilter(st)}
                       className={cn(
-                        "px-2 py-1 rounded text-[10px] font-semibold uppercase transition-colors whitespace-nowrap",
+                        "px-2.5 py-1 rounded text-[11px] font-semibold uppercase transition-colors whitespace-nowrap cursor-pointer",
                         activeStatusFilter === st
                           ? st === "FAIL"
                             ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30"
@@ -731,14 +737,14 @@ function AuditsPageContent() {
               </div>
 
               {/* RIGHT: Search Field */}
-              <div className="relative shrink-0 w-full md:w-64">
-                <Search className="w-3.5 h-3.5 text-[#555555] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="relative shrink-0 w-full md:w-72">
+                <Search className="w-3.5 h-3.5 text-[#555555] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search finding or control..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 rounded-md bg-[#080808] border border-[#1F1F1F] text-xs text-[#F2F2F2] placeholder-[#555555] focus:outline-none focus:border-[#333333] w-full font-mono transition-colors"
+                  className="pl-9 pr-3 py-1.5 rounded-md bg-[#080808] border border-[#1F1F1F] text-xs text-[#F2F2F2] placeholder-[#555555] focus:outline-none focus:border-[#333333] w-full font-mono transition-colors"
                 />
               </div>
             </div>
@@ -753,24 +759,24 @@ function AuditsPageContent() {
               <div className="py-12 text-center text-[#666666] space-y-2">
                 <CheckCircle2 className="w-8 h-8 mx-auto text-[#10B981]/50" />
                 <div className="text-xs font-medium text-[#8E8E93]">No matching findings</div>
-                <p className="text-[11px] text-[#666666]">
+                <p className="text-[11px] text-[#666666] font-sans">
                   Try adjusting your framework, severity, or status filters.
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto w-full">
-                <table className="w-full min-w-[980px] text-left text-xs table-fixed">
+              <div className="overflow-x-auto w-full rounded-lg border border-[#1F1F1F]">
+                <table className="w-full min-w-[1040px] text-left text-xs table-fixed">
                   <thead>
-                    <tr className="border-b border-[#1F1F1F] text-[11px] font-mono text-[#555555] uppercase tracking-wider">
-                      <th className="py-2.5 px-3 w-[115px] shrink-0">Status</th>
-                      <th className="py-2.5 px-3 w-[100px] shrink-0">Severity</th>
-                      <th className="py-2.5 px-3 w-[170px] shrink-0">Framework & Control</th>
-                      <th className="py-2.5 px-3 min-w-[240px]">Title</th>
-                      <th className="py-2.5 px-3 w-[210px] shrink-0">Actual vs Expected</th>
-                      <th className="py-2.5 px-3 w-[185px] shrink-0 text-right">Actions</th>
+                    <tr className="border-b border-[#1F1F1F] text-xs font-mono text-[#8E8E93] uppercase tracking-wider bg-[#080808]">
+                      <th className="py-3 px-3.5 w-[120px] shrink-0">Status</th>
+                      <th className="py-3 px-3.5 w-[110px] shrink-0">Severity</th>
+                      <th className="py-3 px-3.5 w-[180px] shrink-0">Framework & Control</th>
+                      <th className="py-3 px-3.5 min-w-[260px]">Title</th>
+                      <th className="py-3 px-3.5 w-[220px] shrink-0">Actual vs Expected</th>
+                      <th className="py-3 px-3.5 w-[200px] shrink-0 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#181818]">
+                  <tbody className="divide-y divide-[#181818] bg-[#0B0B0B]">
                     {filteredFindings.map((f) => {
                       const isPass = f.status === "PASS";
                       const isFail = f.status === "FAIL";
@@ -786,28 +792,28 @@ function AuditsPageContent() {
                           }}
                           className="hover:bg-[#101010] transition-colors cursor-pointer group"
                         >
-                          <td className="py-3 px-3 w-[115px] shrink-0">
+                          <td className="py-3 px-3.5 w-[120px] shrink-0">
                             <span
                               className={cn(
-                                "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border whitespace-nowrap",
+                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono font-bold uppercase border whitespace-nowrap",
                                 isPass && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30",
                                 isFail && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30",
                                 isNA && "bg-[#141414] text-[#8E8E93] border-[#242424]",
                                 isUnknown && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                               )}
                             >
-                              {isPass && <CheckCircle2 className="w-3 h-3 shrink-0" />}
-                              {isFail && <XCircle className="w-3 h-3 shrink-0" />}
-                              {isNA && <ShieldCheck className="w-3 h-3 shrink-0" />}
-                              {isUnknown && <HelpCircle className="w-3 h-3 shrink-0" />}
+                              {isPass && <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}
+                              {isFail && <XCircle className="w-3.5 h-3.5 shrink-0" />}
+                              {isNA && <ShieldCheck className="w-3.5 h-3.5 shrink-0" />}
+                              {isUnknown && <HelpCircle className="w-3.5 h-3.5 shrink-0" />}
                               <span>{f.status}</span>
                             </span>
                           </td>
 
-                          <td className="py-3 px-3 w-[100px] shrink-0 font-mono">
+                          <td className="py-3 px-3.5 w-[110px] shrink-0 font-mono">
                             <span
                               className={cn(
-                                "text-[10px] font-bold uppercase whitespace-nowrap",
+                                "text-xs font-bold uppercase whitespace-nowrap",
                                 isNA && "text-[#555555]",
                                 !isNA && f.severity === "CRITICAL" && "text-[#EF4444]",
                                 !isNA && f.severity === "HIGH" && "text-[#F59E0B]",
@@ -820,43 +826,43 @@ function AuditsPageContent() {
                             </span>
                           </td>
 
-                          <td className="py-3 px-3 w-[170px] shrink-0 font-mono">
+                          <td className="py-3 px-3.5 w-[180px] shrink-0 font-mono">
                             <div className="flex items-center gap-1.5 whitespace-nowrap">
-                              <span className="px-1.5 py-0.2 rounded bg-[#080808] border border-[#1F1F1F] text-[#8E8E93] text-[10px] font-bold shrink-0">
+                              <span className="px-1.5 py-0.5 rounded bg-[#080808] border border-[#1F1F1F] text-[#8E8E93] text-[11px] font-bold shrink-0">
                                 {f.framework}
                               </span>
-                              <span className="text-[#F2F2F2] font-semibold truncate">{f.control_id}</span>
+                              <span className="text-[#F2F2F2] font-semibold text-xs truncate">{f.control_id}</span>
                             </div>
                             {f.category && (
-                              <div className="text-[10px] text-[#555555] mt-0.5 truncate">{f.category}</div>
+                              <div className="text-[11px] text-[#666666] mt-0.5 truncate">{f.category}</div>
                             )}
                           </td>
 
-                          <td className="py-3 px-3 min-w-[240px]">
-                            <div className="font-medium text-[#F2F2F2] group-hover:text-white transition-colors line-clamp-1">
+                          <td className="py-3 px-3.5 min-w-[260px]">
+                            <div className="font-semibold text-sm text-[#F2F2F2] group-hover:text-white transition-colors line-clamp-1">
                               {f.title}
                             </div>
-                            <div className="text-[10px] text-[#8E8E93] line-clamp-1 mt-0.5">
+                            <div className="text-xs text-[#8E8E93] line-clamp-1 mt-0.5 font-sans">
                               {f.description}
                             </div>
                           </td>
 
-                          <td className="py-3 px-3 w-[210px] shrink-0 font-mono text-[11px]">
+                          <td className="py-3 px-3.5 w-[220px] shrink-0 font-mono text-xs">
                             <div className="space-y-0.5">
-                              <div className="text-[#555555] truncate">
+                              <div className="text-[#666666] truncate">
                                 Actual: <span className={cn(
                                   "font-semibold",
                                   isPass ? "text-[#10B981]" : isNA ? "text-[#8E8E93]" : "text-[#EF4444]"
                                 )}>{f.actual_value || "—"}</span>
                               </div>
-                              <div className="text-[#555555] truncate">
+                              <div className="text-[#666666] truncate">
                                 Expected: <span className="text-[#8E8E93]">{f.expected_value || "—"}</span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="py-3 px-3 w-[185px] shrink-0 text-right">
-                            <div className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+                          <td className="py-3 px-3.5 w-[200px] shrink-0 text-right">
+                            <div className="inline-flex items-center justify-end gap-2 whitespace-nowrap">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -864,10 +870,10 @@ function AuditsPageContent() {
                                   setFindingExplanation(null);
                                   handleExplainFinding(f.id);
                                 }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#141414] hover:bg-[#1A1A1A] text-[#8E8E93] hover:text-[#F2F2F2] border border-[#242424] text-[11px] font-mono transition-colors shrink-0"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#141414] hover:bg-[#1C1C1C] text-[#8E8E93] hover:text-[#F2F2F2] border border-[#262626] text-xs font-mono transition-colors shrink-0 cursor-pointer"
                                 title="AI Explanation"
                               >
-                                <Sparkles className="w-3 h-3 text-[#8B5CF6] shrink-0" />
+                                <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6] shrink-0" />
                                 <span>AI Explain</span>
                               </button>
 
@@ -877,10 +883,10 @@ function AuditsPageContent() {
                                   setInspectingFinding(f);
                                   setFindingExplanation(null);
                                 }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#080808] hover:bg-[#141414] text-[#8E8E93] hover:text-white border border-[#1F1F1F] text-[11px] font-mono transition-colors shrink-0"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#080808] hover:bg-[#141414] text-[#8E8E93] hover:text-white border border-[#1F1F1F] text-xs font-mono transition-colors shrink-0 cursor-pointer"
                                 title="Inspect Finding Details"
                               >
-                                <Terminal className="w-3 h-3 text-[#888888] shrink-0" />
+                                <Terminal className="w-3.5 h-3.5 text-[#888888] shrink-0" />
                                 <span>Details</span>
                               </button>
                             </div>

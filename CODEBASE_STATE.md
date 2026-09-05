@@ -473,6 +473,39 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
   * Backend API & real metric verification passing with 100% integrity (Fleet Compliance 16.7%, Risk 70, Critical P0 16, Open Failed 124, Managed Assets 4).
 
+### Security Audits Page Final UI Polish (September 2026)
+* **Frontend UI Polish (`audits/page.tsx`)**:
+  * **Header & Action Toolbar**:
+    * Upgraded page title to `28-30px` (`text-2xl sm:text-[28px] lg:text-[30px] font-bold font-mono tracking-tight text-[#F2F2F2] leading-none`).
+    * Upgraded subtitle to `14-15px` (`text-sm sm:text-[15px] text-[#8E8E93] mt-1.5 font-sans`).
+    * Aligned action buttons (`Executive Report`, `AI Co-Pilot`, `Refresh`, `New Compliance Audit`) on a consistent horizontal baseline with `13px` font-mono typography and cursor pointer styles.
+  * **Audit Session Selector Bar**:
+    * Clearly separated audit executions horizontally inside an internal scrollable container (`overflow-x-auto`) to prevent page-level horizontal overflow.
+    * Transparently displays `filename`, `short audit ID`, `execution time`, and `score` (e.g. `05_JUNIPER_HARDENED.set (5e4d0799 · 12:40) 25.0%`).
+    * Distinct active selection state (`bg-[#141414] text-[#F2F2F2] border-[#383838] ring-1 ring-[#383838] shadow-xs`).
+    * Preserves separate historical executions without merging runs.
+  * **Compliance Posture Overview Grid (5 Columns)**:
+    * Equal-height cards (`h-full min-h-[145px]`) for `NetVigil Score`, `CIS`, `NIST`, `STIG`, and `ISO`.
+    * Standardized typography: NetVigil Score `34px`, Framework percentages `30px`, Titles `13px` font-mono, Supporting text `13px` font-sans.
+    * Real backend scores strictly preserved (Cisco 41.7%, Fortinet 41.7%, Juniper Hardened 25.0% vs 40.0%).
+  * **Severity Breakdown Cards (4 Columns)**:
+    * Standardized 4 equal-width cards with aligned titles, counts (`26px font-bold font-mono`), and status icons (`Critical`, `High`, `Medium`, `Low / Informational`).
+  * **Findings Registry & Table Alignment**:
+    * Clean two-part toolbar: Left (Findings count + Framework filter pills + Status filter pills) and Right (Search input with search icon).
+    * Enforced identical fixed column widths between header `<thead>` and body `<tbody>`:
+      * `STATUS`: `w-[120px] shrink-0`
+      * `SEVERITY`: `w-[110px] shrink-0`
+      * `FRAMEWORK & CONTROL`: `w-[180px] shrink-0`
+      * `TITLE`: `min-w-[260px]` (flexible with `line-clamp-1` and description)
+      * `ACTUAL VS EXPECTED`: `w-[220px] shrink-0`
+      * `ACTIONS`: `w-[200px] shrink-0 text-right` (generous width ensuring `AI Explain` and `Details` buttons are never clipped)
+    * Table wrapped in an internal horizontally scrollable container (`overflow-x-auto rounded-lg border border-[#1F1F1F]`), preventing any page-level horizontal overflow.
+* **Verification**:
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% web regression tests passing (`npm test`, 38/38 tests).
+  * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
+
+
 
 
 
