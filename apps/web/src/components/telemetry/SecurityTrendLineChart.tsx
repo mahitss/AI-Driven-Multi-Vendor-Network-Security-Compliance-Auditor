@@ -374,18 +374,18 @@ export default function SecurityTrendLineChart({
   }
 
   return (
-    <div className="p-4 sm:p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors space-y-4 font-mono select-none">
+    <div className="p-4 sm:p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors space-y-4 font-mono select-none w-full overflow-hidden">
       {/* 1. Header Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1F1F1F] pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5 text-[#8E8E93]" />
-            <span className="text-xs font-semibold text-[#F2F2F2] uppercase tracking-wider">
+            <Layers className="w-4 h-4 text-[#8E8E93]" />
+            <span className="text-sm sm:text-base font-semibold text-[#F2F2F2] uppercase tracking-wider font-mono">
               TIME-SERIES SECURITY STREAMGRAPH
             </span>
           </div>
-          <p className="text-[11px] text-[#8E8E93] font-sans mt-0.5">
-            Layered area progression across <span className="text-[#F2F2F2] font-mono">{trends.length}</span> execution point(s) from database.
+          <p className="text-[13px] text-[#8E8E93] font-sans mt-0.5">
+            Fleet security posture across completed audit executions.
           </p>
         </div>
 
@@ -401,7 +401,7 @@ export default function SecurityTrendLineChart({
                 onClick={() => toggleSeries(key)}
                 onDoubleClick={() => soloSeries(key)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-semibold transition-colors border",
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono font-semibold transition-colors border cursor-pointer",
                   isEnabled
                     ? "bg-[#141414] text-[#F2F2F2] border-[#2A2A2A] shadow-xs"
                     : "bg-[#070707] text-[#666666] border-[#1F1F1F] opacity-60 hover:opacity-100"
@@ -417,9 +417,9 @@ export default function SecurityTrendLineChart({
                 />
                 <span>{def.label}</span>
                 {isEnabled ? (
-                  <Eye className="w-2.5 h-2.5 text-[#636366] ml-0.5" />
+                  <Eye className="w-3 h-3 text-[#636366] ml-0.5" />
                 ) : (
-                  <EyeOff className="w-2.5 h-2.5 text-[#636366] ml-0.5" />
+                  <EyeOff className="w-3 h-3 text-[#636366] ml-0.5" />
                 )}
               </button>
             );
@@ -427,7 +427,8 @@ export default function SecurityTrendLineChart({
 
           <button
             onClick={showAllSeries}
-            className="text-[9px] text-[#93C5FD] hover:underline px-1 py-0.5 font-mono ml-1"
+            className="text-xs text-[#93C5FD] hover:underline px-1.5 py-1 font-mono font-semibold cursor-pointer"
+            title="Enable all metric series"
           >
             All
           </button>
@@ -525,8 +526,8 @@ export default function SecurityTrendLineChart({
                   x={padLeft - 6}
                   y={y + 3.5}
                   textAnchor="end"
-                  fill="#555555"
-                  fontSize="9"
+                  fill="#8E8E93"
+                  fontSize="10"
                   fontFamily="monospace"
                 >
                   {pctLabel}%
@@ -536,8 +537,8 @@ export default function SecurityTrendLineChart({
                   x={width - padRight + 6}
                   y={y + 3.5}
                   textAnchor="start"
-                  fill="#555555"
-                  fontSize="9"
+                  fill="#8E8E93"
+                  fontSize="10"
                   fontFamily="monospace"
                 >
                   {countLabel}
@@ -562,8 +563,8 @@ export default function SecurityTrendLineChart({
                 x={tick.x}
                 y={bottomY + 18}
                 textAnchor="middle"
-                fill="#636366"
-                fontSize="9"
+                fill="#8E8E93"
+                fontSize="10"
                 fontFamily="monospace"
               >
                 {formatTickDate(tick.timestamp)}
@@ -768,10 +769,10 @@ export default function SecurityTrendLineChart({
       </div>
 
       {/* 8. Bottom Information Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#636366] pt-2 border-t border-[#141414]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#8E8E93] pt-2.5 border-t border-[#141414] font-mono">
         <div className="flex items-center gap-3">
           <span>Y-Axis (Left): 0–100% (Compliance &amp; Risk)</span>
-          <span>•</span>
+          <span className="text-[#333333]">•</span>
           <span>Y-Axis (Right): 0–{maxCount} (Finding Counts)</span>
         </div>
         <Link
@@ -779,7 +780,7 @@ export default function SecurityTrendLineChart({
           className="text-[#93C5FD] hover:underline flex items-center gap-1 font-semibold"
         >
           <span>Open Full Audit Log</span>
-          <ExternalLink className="w-3 h-3" />
+          <ExternalLink className="w-3.5 h-3.5" />
         </Link>
       </div>
     </div>
