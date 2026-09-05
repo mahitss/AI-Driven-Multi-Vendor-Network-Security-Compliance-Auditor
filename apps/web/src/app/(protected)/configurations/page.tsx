@@ -282,7 +282,7 @@ function ConfigurationsPageContent() {
 
   // --- Real End-to-End Audit Execution ---
   const handleRunGoldenAudit = async () => {
-    if (!rawText.trim()) return;
+    if (!rawText.trim() || isAuditing) return;
     const currentVersion = ++executionVersionRef.current;
     try {
       setIsAuditing(true);

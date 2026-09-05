@@ -191,6 +191,7 @@ function AuditsPageContent() {
   });
 
   const handleLaunchAudit = () => {
+    if (createAuditMutation.isPending) return;
     if (!selectedConfigForAudit && configurations.length > 0) {
       createAuditMutation.mutate({
         configuration_id: configurations[0].id,
@@ -1340,6 +1341,12 @@ function AuditsPageContent() {
               <p className="text-[11px] text-[#666666] leading-relaxed pt-1">
                 Deterministic rules will evaluate the canonical Universal Security Model. Zero unverified LLM trust.
               </p>
+
+              {createAuditMutation.isError && (
+                <div className="p-2.5 rounded-lg bg-[#140808] border border-[#3A1414] text-[#E06C75] text-[11px] font-mono">
+                  Execution failed: {createAuditMutation.error instanceof Error ? createAuditMutation.error.message : "Failed to trigger audit. Please try again."}
+                </div>
+              )}
             </div>
 
             <div className="p-4 border-t border-[#1F1F1F] bg-[#080808] flex items-center justify-end gap-2">
