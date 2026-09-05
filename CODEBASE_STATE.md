@@ -660,6 +660,48 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% web regression tests passing (`npm test`, 38/38 tests).
   * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
 
+### AI Security Briefing Final UI Polish (September 2026)
+* **Frontend UI Polish (`ai-security-briefing/page.tsx`)**:
+  * **Header & Identity**:
+    * Upgraded page title to `28-30px` (`text-2xl sm:text-[28px] lg:text-[30px] font-bold text-[#F2F2F2] font-mono tracking-tight leading-tight`).
+    * Subtitle: `Security posture analysis for the selected audit session.` (`14-15px font-sans text-[#8E8E93]`).
+    * Badges: `AI ADVISORY ONLY`, `AST GROUNDED`, `ZERO NETWORK PUSH`.
+    * Clean horizontal alignment for `Open AI Copilot →` CTA and `Copy Briefing` button.
+  * **Persistent Copilot Panel Decoupled**:
+    * Full width and breathing room dedicated to executive intelligence and critical risk narratives.
+    * Replaced persistent chat panel with compact, elegant `Open AI Copilot →` action card linking to dedicated `/ai-copilot` route.
+  * **Audit Context Bar**:
+    * Displays `TARGET AUDIT SESSION` selector, optional `EVOLUTION BASELINE` selector, and `Generate Security Briefing` action.
+    * Target audit snapshot displaying configuration filename, vendor, audit session ID, execution timestamp, and compliance score.
+    * Instant state reset on audit change to prevent any display of stale briefing data.
+  * **Metric Grid (4 Columns)**:
+    * Standardized 4 equal-width, equal-height desktop grid cards (`min-h-[120px]`):
+      * `COMPLIANCE POSTURE`: `32-36px` font-bold score (`41.7%`), subtitle `device hostname • vendor`, badge `AUTHORITATIVE`.
+      * `ALGORITHMIC RISK`: `32-36px` font-bold red score (`63.6 / 100`), subtitle `Composite Topological Exposure`, badge `DETERMINISTIC`.
+      * `CRITICAL / P0 RISKS`: `32-36px` font-bold count (`0`), subtitle `10 High (P1) Exposures`, badge `PRIORITY`.
+      * `TOTAL FINDINGS`: `32-36px` font-bold count (`48`), subtitle `Evaluated Compliance Controls`, badge `ACTIVE AUDIT`.
+    * Derived 100% dynamically from backend `generateAISecurityBriefing` and `fetchAuditDetail`.
+  * **Executive Posture Summary**:
+    * Generous card layout with high-readability typography (`text-[15px] sm:text-[16px] text-[#D4D4D8] leading-[1.6] whitespace-pre-line`).
+    * Grounds all findings in verified AST facts.
+  * **Top Critical Risks**:
+    * Formatted prioritized risk cards with priority badge (`P0`, `P1`), control ID, title, severity, impact description (`why_it_matters`), interactive line evidence inspection, and allowlisted remediation guidance.
+    * Truthful zero state (`ZERO P0 CRITICAL EXPOSURES`) when no active P0 findings exist.
+  * **Recommended Investigation Order**:
+    * Deterministic priority sequence with step numbers, control IDs, target line citations, action summaries, and reasons.
+  * **Security Evolution (Time Machine Integration)**:
+    * Baseline vs remediated score comparison cards, posture delta, narrative, and resolved controls tags.
+  * **Audit Details & Quick Actions Panel**:
+    * Compact metadata card: Asset, Vendor, Configuration filename, Audit ID, Timestamp, Analysis Mode (`DETERMINISTIC AST EVALUATION`), and AI Gateway Model.
+    * Quick Actions: `Open AI Copilot →`, `View Findings & Evidence`, `Remediation Center`, `Security Time Machine`.
+  * **Grounded Evidence Inspection Modal**:
+    * Modal for line-level AST evidence verification with framework standard, configuration line number, verbatim evidence snippet, and deep link to Evidence Explorer.
+* **Verification**:
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% web regression tests passing (`npm test`, 38/38 tests).
+  * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
+
+
 
 
 
