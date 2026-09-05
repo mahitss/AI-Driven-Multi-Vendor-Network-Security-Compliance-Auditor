@@ -377,11 +377,28 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
 * **Header Content Boundary Alignment (`AppShell.tsx`)**:
   * Wrapped top application header inner content in `max-w-7xl mx-auto w-full flex items-center justify-between` to share the exact horizontal content boundary with all protected pages.
   * Breadcrumbs, global search, INGEST button, and OPERATIONAL indicator align precisely with page content headers across all desktop resolutions.
-* **Data Fidelity & Semantic Labeling**:
-  * Zero hardcoded dashboard counts; dynamic values (`totalFindingsCount`, `criticalCount`, `highCount`, `verifiedEvidenceCount`) trace strictly to backend query results.
-  * Preserved 88 total findings for authenticated user scope; updated presentation label to "TOTAL FINDINGS" ("Audited policy controls") to resolve ambiguity regarding compliant PASS controls.
-  * Maintained critical distinction where a CRITICAL control may legitimately be PASS with 0.0 risk contribution and "HARDENED / SECURED" status.
-  * Verified exact AST evidence line provenance (e.g. `05_JUNIPER_HARDENED.set` line 4 for telnet deletion).
+### Dedicated AI Copilot & AI Security Briefing Full-Width Redesign (September 2026)
+* **Architecture & Separation of Concerns**:
+  * **AI Security Briefing (`ai-security-briefing/page.tsx`)**:
+    * Removed the persistent right-side 5-column Copilot panel to convert the briefing into a spacious executive dashboard.
+    * 4 balanced hero metric cards with equal visual height (`COMPLIANCE POSTURE`, `ALGORITHMIC RISK`, `CRITICAL / P0 RISKS`, `POSTURE EVALUATION`).
+    * Large readable Executive Posture Summary with enhanced typography scale (`15–16px text-[#E0E0E0] leading-relaxed font-sans`).
+    * Full-width Top Critical Risks cards with priority badge (`P0`, `P1`), control ID, readable title, risk narrative, AST line citation, and allowlisted remediation action.
+    * Compact right column with `AUDIT DETAILS` and `QUICK ACTIONS` linking directly to `/ai-copilot`, `/findings`, `/remediation`, and `/security-time-machine`.
+  * **Dedicated AI Copilot (`ai-copilot/page.tsx`) [NEW ROUTE]**:
+    * Full-page SOC analyst workspace accessible directly from sidebar under `Intelligence` (`/ai-copilot` with `"NEW"` badge).
+    * Target audit session and optional baseline evolution dropdowns with deep-link query parameter support (`?audit_id=...`).
+    * Large conversation area with suggested security question chips, markdown-formatted AI responses, AST line evidence proof chips, and interactive evidence preview modal.
+    * Input bar with keyboard Enter shortcut and loading state indicators.
+  * **Sidebar & Navigation (`AppShell.tsx`)**:
+    * Added `AI Copilot` (`icon: Bot`, `badge: "NEW"`) directly above `Security Briefing` (`icon: Sparkles`) in the `Intelligence` group.
+    * Updated breadcrumb routing for `/ai-copilot` (`INTELLIGENCE / AI COPILOT`).
+* **Design & Invariant Enforcement**:
+  * Preserved 100% of real backend data, API contracts, evidence citations, and scoring formulas.
+  * Strict AI advisory boundary maintained: `AI ADVISORY ONLY`, `AST GROUNDED`, `ZERO WRITE ACCESS`.
+  * Typography scale: Page titles (28–32px), Headings (18–20px), Metric values (32–40px), Body (14–16px), Metadata (10–11px).
+  * Passed 100% frontend regression tests (`npm test`), TypeScript check (`npx tsc --noEmit`), and Next.js production build across all 35 routes (`npm run build`).
+
 
 
 

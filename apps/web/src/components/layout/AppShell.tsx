@@ -18,6 +18,7 @@ import {
   LogOut,
   History,
   Bot,
+  Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
   ChevronLeft,
@@ -70,7 +71,8 @@ const navigationGroups: NavGroup[] = [
     category: "Intelligence",
     items: [
       { label: "Multi-Vendor Engine", href: "/multi-vendor", icon: Layers },
-      { label: "Security Briefing", href: "/ai-security-briefing", icon: Bot },
+      { label: "AI Copilot", href: "/ai-copilot", icon: Bot, badge: "NEW" },
+      { label: "Security Briefing", href: "/ai-security-briefing", icon: Sparkles },
     ],
   },
 ];
@@ -131,6 +133,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (pathname === "/operations") return "OBSERVABILITY / AUDIT OPERATIONS";
     if (pathname === "/reports") return "INTELLIGENCE / SECURITY BRIEFING";
     if (pathname === "/multi-vendor" || pathname === "/demo/multi-vendor") return "INTELLIGENCE / MULTI-VENDOR ENGINE";
+    if (pathname === "/ai-copilot") return "INTELLIGENCE / AI COPILOT";
     if (pathname === "/ai-security-briefing") return "INTELLIGENCE / SECURITY BRIEFING";
     if (pathname === "/settings") return "SETTINGS";
     const segment = pathname.split("/")[1] || "Overview";
