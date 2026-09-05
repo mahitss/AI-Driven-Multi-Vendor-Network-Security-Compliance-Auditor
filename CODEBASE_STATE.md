@@ -579,6 +579,51 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% web regression tests passing (`npm test`, 38/38 tests).
   * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
 
+### Remediation Center Final UI Polish (September 2026)
+* **Frontend UI Polish (`remediation/page.tsx`)**:
+  * **Header & Identity**:
+    * Upgraded page title to `28-30px` (`text-2xl sm:text-[28px] lg:text-[30px] font-bold text-[#F2F2F2] font-mono tracking-tight leading-tight`).
+    * Upgraded subtitle to `14-15px` (`text-sm sm:text-[15px] text-[#8E8E93] mt-1 max-w-3xl font-sans leading-relaxed`).
+    * Badges aligned with title: `ALLOWLISTED CATALOG`, `ZERO NETWORK PUSH`, `READ-ONLY ADVISORY`.
+    * Controls: `AUDIT CONFIG` (`/configurations?mode=ingest`) and `Refresh` button cleanly aligned on horizontal baseline.
+  * **Summary Metric Cards (4 Columns)**:
+    * Standardized 4 equal-width, equal-height desktop grid cards (`min-h-[108px]`):
+      * `OPEN REMEDIATIONS`: `32-34px` font-bold count (`18`), subtitle `Catalog-supported fixes`.
+      * `CRITICAL (P0) FIXES`: `32-34px` font-bold red count (`28`), subtitle `Immediate intervention`.
+      * `HIGH TIER FIXES`: `32-34px` font-bold amber count (`112`), subtitle `Elevated risk vectors`.
+      * `ALLOWLISTED VALIDITY`: `32-34px` font-bold green score (`100%`), subtitle `Catalog-validated diffs`.
+    * Derived 100% dynamically from backend `stats` and `findings` without hardcoding.
+  * **Safety Operational Boundary Bar**:
+    * Visible, compact banner reinforcing `OPERATIONAL BOUNDARY: ZERO NETWORK PUSH • READ-ONLY ADVISORY MODE`.
+    * Explicit guarantee that NetVigil generates and verifies patches for manual deployment, with zero network writes or remote SSH execution.
+  * **5-Stage Workflow Visualization Sequence**:
+    * Visual workflow step tracker: `FINDING → PROPOSED FIX → ALLOWLIST VALIDATED (100%) → READY FOR REVIEW → SIMULATION VERIFY`.
+  * **Remediation Queue (Left Panel ~33%)**:
+    * Queue card structure with aligned severity pills (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`), vendor badge (`CISCO`, `JUNIPER`, `FORTINET`), control ID, title/recommendation, asset name, confidence score, and status (`REVIEWED ✓` vs `PROPOSED`).
+    * Active state with subtle ring highlight (`bg-[#141414] border-[#383838] ring-1 ring-[#383838]/60`).
+    * Controlled internal scrolling (`max-h-[740px] overflow-y-auto pr-1`).
+  * **Proposed Configuration Diff Viewer (Center Panel ~42%)**:
+    * Metadata provenance box: Catalog source (`REMEDIATION_CATALOG`), Template ID, Target vendor, Version, and 100% Validated status.
+    * 3-state Before / Proposed Patch / After visual diff viewer:
+      * 1. `BEFORE (OBSERVED DEFICIENT STATE)`: `-` prefix with red `#EF4444` highlight.
+      * 2. `PROPOSED ALLOWLISTED PATCH`: `Δ` prefix with neutral `#F2F2F2` highlight.
+      * 3. `AFTER (HARDENED TARGET STATE)`: `+` prefix with green `#10B981` highlight.
+    * Complete allowlisted CLI script in monospace typography (`13px font-mono select-text leading-relaxed`).
+    * Internal horizontal scrolling only (`overflow-x-auto whitespace-pre`), eliminating root page overflow.
+    * Aligned action buttons (`h-9` / `h-10`): `RE-ANALYZE PROPOSED CONFIGURATION`, `Copy Apply CLI`, `Download .cfg`, `View Finding`, and `Mark Reviewed`.
+  * **Safety Boundary & Context (Right Panel ~25%)**:
+    * Strict Execution Boundary: Lock icon, `Network Push: DISABLED`, `SSH / Telnet Push: ABSENT`.
+    * "Why This Change?" contextual justification with affected control, framework, and category.
+    * Rollback Capability card with rollback CLI commands in amber `#F59E0B` and `Copy Rollback CLI` button.
+    * AI Advisory (Read-Only) collapsible panel grounded in evidence.
+  * **Deterministic Re-Analysis Banner**:
+    * Interactive AST simulation results: Risk reduction, compliance improvement, failed controls delta, and resolved controls with `FAIL → PASS ✓`.
+* **Verification**:
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% web regression tests passing (`npm test`, 38/38 tests).
+  * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
+
+
 
 
 
