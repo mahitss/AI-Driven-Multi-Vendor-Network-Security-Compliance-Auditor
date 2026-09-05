@@ -728,6 +728,47 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% web regression tests passing (`npm test`, 38/38 tests).
   * 100% Next.js 16 production build passing across all 35 App Router routes with Edge Proxy active (`npm run build`).
 
+---
+
+### Phase 2 — Audit Result → Security Decision UX (September 2026)
+* **Objective**: Transform raw compliance lists into immediate, analyst-comprehensible security posture decisions (`POSTURE → WHAT FAILED → HOW SEVERE → WHERE IS EVIDENCE → WHAT SHOULD I DO → DID IT IMPROVE`).
+* **Key Enhancements**:
+  1. **Active Audit Context Banner**:
+     * Highlights target configuration filename, detected vendor pill (`CISCO`, `JUNIPER`, `FORTINET`), execution timestamp, evaluated frameworks (`CIS · NIST · STIG · ISO`), and status badge (`COMPLETED`).
+     * Prevents ambiguous "fleet vs single audit" confusion.
+  2. **Audit Score Card Scope Explicit**:
+     * Header titled `"SELECTED AUDIT SCORE"` with an explicit `"Audit Scope"` badge and multi-framework average subtitle.
+  3. **Framework Results Card Polish**:
+     * Independent CIS, NIST, STIG, ISO cards display score, passed controls count, and failed/NA controls directly visible without hover interactions.
+  4. **Severity Tiers with Active Exposure Badges**:
+     * Categorized into `P0 / CRITICAL`, `P1 / HIGH`, `P2 / MEDIUM`, and `P3 / LOW & INFO`.
+     * Added prominent `"ACTIVE EXPOSURE"` badge when unresolved critical/high vulnerabilities are present.
+  5. **Filter Toolbar & Quick Failures Filter**:
+     * Quick filter pills for `"Active Failures ({count})"`, `"Verified Pass"`, `"N/A"`, and `"Unknown"`.
+  6. **Zero Layout Shifts**:
+     * Replaced jumpy loading indicator with a 4-row skeleton table loader matching column widths.
+  7. **Deep Navigation to Findings**:
+     * Findings table rows now include direct deep navigation links (`/findings?analysisId={audit_id}&findingId={finding_id}`).
+     * Findings registry features an explicit `"AUDIT SCOPE: {filename}"` banner with a one-click `"Clear Audit Filter"` action.
+  8. **7-Step Finding Inspector Drawer**:
+     * Strict analyst hierarchy:
+       1. Control & Category (`f.framework` • `f.control_id`)
+       2. Status & Severity Tier (`EXPOSURE ACTIVE` vs `POLICY COMPLIANCE VERIFIED`; `P0 / CRITICAL`)
+       3. Why It Matters (`WHY THIS FAILED` vs `POLICY COMPLIANCE VERIFIED`)
+       4. Exact Evidence (deterministic AST citation or `"Unconfigured Directive (No Line Citation)"` + one-click copy button)
+       5. Value Comparison (Observed vs Hardened Baseline)
+       6. Posture Risk Contribution (`+25.0`, `+15.0`, `0.0`)
+       7. Allowlisted Remediation Handoff (CLI snippet with copy button + direct link to `/remediation` + read-only safety boundary)
+  9. **Locked Visual Palette**:
+     * Neutralized all residual purple/colored badges in AI explainers and Co-Pilot drawers to the authoritative matte monochrome palette (`#050505` - `#F2F2F2`).
+* **Verification**:
+  * 38/38 frontend tests passing (100% pass across all 4 suites).
+  * 37/37 backend tests passing (100% pass across all 9 targeted suites).
+  * 7/7 real-data E2E flow and multi-tenant isolation tests passing (100% pass).
+  * TypeScript: 0 errors (`npx tsc --noEmit`).
+  * Linter: 0 errors (`npm run lint`).
+  * Next.js build: 35/35 routes generated cleanly.
+
 
 
 

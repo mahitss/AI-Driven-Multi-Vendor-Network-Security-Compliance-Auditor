@@ -362,6 +362,20 @@ function FindingsContent() {
           <p className="text-sm sm:text-[15px] text-[#8E8E93] mt-1.5 font-sans leading-relaxed">
             Trace every security decision from configuration line to control, risk, and allowlisted remediation.
           </p>
+          {queryParamAnalysisId && (
+            <div className="flex flex-wrap items-center gap-2 mt-2.5 pt-2 border-t border-[#1F1F1F] text-xs font-mono">
+              <span className="text-[#666666] uppercase text-[10px] font-semibold">AUDIT SCOPE:</span>
+              <span className="px-2 py-0.5 rounded bg-[#141414] text-[#F2F2F2] border border-[#262626] font-semibold text-[11px]">
+                {configDetail?.original_filename || (selectedFinding as any)?.device_name || `Session ${queryParamAnalysisId.slice(0, 8)}`}
+              </span>
+              <Link
+                href="/findings"
+                className="text-[11px] text-[#8E8E93] hover:text-white underline ml-1"
+              >
+                Clear Audit Filter
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2.5 self-start md:self-center shrink-0">

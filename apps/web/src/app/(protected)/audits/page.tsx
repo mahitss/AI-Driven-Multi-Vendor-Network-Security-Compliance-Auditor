@@ -35,6 +35,7 @@ import {
   Wrench,
   FileText,
   UploadCloud,
+  Copy,
 } from "lucide-react";
 import {
   fetchAudits,
@@ -50,6 +51,7 @@ import {
   AuditAssistantResponse,
   ConfigurationItem,
 } from "@/lib/api-client";
+import { getFindingActiveEvidence } from "@/lib/evidence-utils";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { resolveAuthoritativeAuditId, persistActiveAuditId } from "@/lib/audit-session";
@@ -84,6 +86,8 @@ function AuditsPageContent() {
   const [inspectingFinding, setInspectingFinding] = useState<Finding | null>(null);
   const [findingExplanation, setFindingExplanation] = useState<FindingExplanation | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
+  const [copiedEvidence, setCopiedEvidence] = useState(false);
+  const [copiedRemediation, setCopiedRemediation] = useState(false);
 
   // AI Co-Pilot Assistant state
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
@@ -265,6 +269,9 @@ function AuditsPageContent() {
 
   // Authoritative active audit resolved directly from audit list cache
   const activeAudit = audits.find((a) => a.id === selectedAuditId);
+  const activeAuditConfig = configurations.find(
+    (c) => c.id === (auditDetail?.configuration_id || activeAudit?.configuration_id)
+  );
 
   // Strict identity verification: auditDetail MUST belong to currently selectedAuditId
   const isDetailMatching = Boolean(
@@ -369,6 +376,40 @@ function AuditsPageContent() {
     }
     return map;
   }, [findings, fwScores]);
+
+  const activeFailuresCount = useMemo(
+    () => findings.filter((f) => f.status === "FAIL").length,
+    [findings]
+  );
+
+  const inspectingEvidence = useMemo(() => {
+    return getFindingActiveEvidence(inspectingFinding);
+  }, [inspectingFinding]);
+
+  const inspectingFindingRiskContribution = useMemo(() => {
+    if (!inspectingFinding) return "0.0";
+    if (inspectingFinding.status === "PASS" || inspectingFinding.status === "NOT_APPLICABLE") return "0.0";
+    if (inspectingFinding.status === "UNKNOWN") return "+2.0";
+    if (inspectingFinding.severity === "CRITICAL") return "+25.0";
+    if (inspectingFinding.severity === "HIGH") return "+15.0";
+    if (inspectingFinding.severity === "MEDIUM") return "+8.0";
+    return "+3.0";
+  }, [inspectingFinding]);
+
+  const handleCopyEvidenceText = (text?: string | null) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedEvidence(true);
+    setTimeout(() => setCopiedEvidence(false), 2000);
+  };
+
+  const handleCopyRemediationText = (text?: string | null) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedRemediation(true);
+    setTimeout(() => setCopiedRemediation(false), 2000);
+  };
+
   const filteredFindings = findings.filter((f) => {
     const matchesFw = activeFrameworkFilter === "ALL" || f.framework === activeFrameworkFilter;
     const matchesSev = activeSeverityFilter === "ALL" || f.severity === activeSeverityFilter;
@@ -380,6 +421,7 @@ function AuditsPageContent() {
       (f.description && f.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFw && matchesSev && matchesStatus && matchesSearch;
   });
+
   return (
     <div className="w-full max-w-7xl mx-auto space-y-5 select-none font-sans">
       {/* Header */}
@@ -408,9 +450,9 @@ function AuditsPageContent() {
           {/* AI Co-Pilot Button */}
           <button
             onClick={() => setIsAssistantOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#121212] border border-[#2A2A2A] text-[#A0A0A0] hover:text-white hover:bg-[#181818] text-xs sm:text-[13px] font-mono font-medium transition-colors shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#121212] border border-[#2A2A2A] text-[#D4D4D8] hover:text-white hover:bg-[#181818] text-xs sm:text-[13px] font-mono font-medium transition-colors shadow-xs cursor-pointer"
           >
-            <Bot className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <Bot className="w-3.5 h-3.5 text-[#D4D4D8]" />
             <span>AI Co-Pilot</span>
           </button>
 
@@ -564,15 +606,71 @@ function AuditsPageContent() {
             )}
           </div>
 
+          {/* Active Audit Context Banner (Section 1: Audit Result Header) */}
+          {(isDetailMatching ? auditDetail : activeAudit) && (
+            <div className="p-3.5 sm:p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col md:flex-row md:items-center justify-between gap-3.5 font-mono text-xs">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[#666666] uppercase text-[11px] font-semibold">TARGET CONFIG:</span>
+                  <span className="font-bold text-[#F2F2F2] text-xs sm:text-[13px] font-sans">
+                    {activeAuditConfig?.original_filename || (activeAudit as any)?.device_name || `Session ${selectedAuditId?.slice(0, 8)}`}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[#666666] uppercase text-[11px] font-semibold">VENDOR:</span>
+                  <span className="px-2 py-0.5 rounded bg-[#141414] text-[#F2F2F2] border border-[#262626] font-bold text-[11px]">
+                    {(activeAuditConfig?.detected_vendor || (activeAudit as any)?.vendor || "CISCO").toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[#666666] uppercase text-[11px] font-semibold">EXECUTED:</span>
+                  <span className="text-[#D4D4D8]">
+                    {new Date(
+                      ((isDetailMatching && auditDetail?.started_at) || activeAudit?.started_at) || Date.now()
+                    ).toLocaleString([], {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[#666666] uppercase text-[11px] font-semibold">FRAMEWORKS:</span>
+                  <span className="text-[#8E8E93]">CIS · NIST · STIG · ISO</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 font-bold uppercase text-[11px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                  <span>{(isDetailMatching && auditDetail?.status) || activeAudit?.status || "COMPLETED"}</span>
+                </span>
+                <span className="text-[11px] text-[#8E8E93] border border-[#1F1F1F] px-2 py-1 rounded bg-[#080808]">
+                  ID: {selectedAuditId?.slice(0, 10)}...
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Compliance Posture Overview Grid: 5 equal-width columns on desktop */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-stretch">
             {/* Overall Score Card */}
             <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col justify-between relative overflow-hidden h-full min-h-[145px]">
               <div className="space-y-1">
-                <div className="text-[13px] font-bold text-[#8E8E93] uppercase tracking-wider font-mono">
-                  NetVigil Score
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#8E8E93] uppercase tracking-wider font-mono">
+                    SELECTED AUDIT SCORE
+                  </span>
+                  <span className="text-[10px] font-mono text-[#666666] px-1.5 py-0.2 rounded bg-[#141414] border border-[#1F1F1F]">
+                    Audit Scope
+                  </span>
                 </div>
-                <div className="text-xs text-[#666666] font-mono truncate">Multi-Framework Average</div>
+                <div className="text-xs text-[#666666] font-mono truncate">Multi-Framework Deterministic Average</div>
               </div>
 
               <div className="my-3 flex items-baseline gap-1.5 font-mono">
@@ -644,10 +742,15 @@ function AuditsPageContent() {
                       <span className="truncate">{fw.sub}</span>
                       {isEvaluated && fwData && (
                         <span
-                          className="text-[#8E8E93] shrink-0"
+                          className="text-[#8E8E93] shrink-0 font-medium"
                           title={`${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A`}
                         >
-                          {fwData.failed_count} fail{fwData.not_applicable_count > 0 ? ` · ${fwData.not_applicable_count} N/A` : ""}
+                          {fwData.failed_count > 0 ? (
+                            <span className="text-[#EF4444] font-semibold">{fwData.failed_count} fail</span>
+                          ) : (
+                            <span className="text-[#10B981] font-semibold">0 fail</span>
+                          )}
+                          {fwData.not_applicable_count > 0 ? ` · ${fwData.not_applicable_count} N/A` : ""}
                         </span>
                       )}
                     </div>
@@ -659,34 +762,84 @@ function AuditsPageContent() {
 
           {/* Severity Badges Bar: Equal 4-Column Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 font-mono items-stretch">
-            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+            <div
+              onClick={() => setActiveSeverityFilter(activeSeverityFilter === "CRITICAL" ? "ALL" : "CRITICAL")}
+              className={cn(
+                "p-4 rounded-lg border transition-colors flex items-center justify-between h-full cursor-pointer",
+                activeSeverityFilter === "CRITICAL"
+                  ? "bg-[#141414] border-[#EF4444]/50 ring-1 ring-[#EF4444]/30 shadow-xs"
+                  : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A]"
+              )}
+            >
               <div>
-                <div className="text-xs text-[#EF4444] uppercase font-semibold tracking-wider">Critical Findings</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#EF4444] uppercase font-bold tracking-wider">P0 / CRITICAL</span>
+                  {sevStats.critical > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
+                      ACTIVE EXPOSURE
+                    </span>
+                  )}
+                </div>
                 <div className="text-2xl sm:text-[26px] font-bold text-[#EF4444] mt-1 leading-none">{sevStats.critical}</div>
+                <div className="text-[11px] text-[#666666] mt-1">Direct compromise risk</div>
               </div>
               <ShieldAlert className="w-5 h-5 text-[#EF4444] shrink-0" />
             </div>
 
-            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+            <div
+              onClick={() => setActiveSeverityFilter(activeSeverityFilter === "HIGH" ? "ALL" : "HIGH")}
+              className={cn(
+                "p-4 rounded-lg border transition-colors flex items-center justify-between h-full cursor-pointer",
+                activeSeverityFilter === "HIGH"
+                  ? "bg-[#141414] border-[#F59E0B]/50 ring-1 ring-[#F59E0B]/30 shadow-xs"
+                  : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A]"
+              )}
+            >
               <div>
-                <div className="text-xs text-[#F59E0B] uppercase font-semibold tracking-wider">High Findings</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#F59E0B] uppercase font-bold tracking-wider">P1 / HIGH</span>
+                  {sevStats.high > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30">
+                      ACTIVE EXPOSURE
+                    </span>
+                  )}
+                </div>
                 <div className="text-2xl sm:text-[26px] font-bold text-[#F59E0B] mt-1 leading-none">{sevStats.high}</div>
+                <div className="text-[11px] text-[#666666] mt-1">Control plane violation</div>
               </div>
               <AlertTriangle className="w-5 h-5 text-[#F59E0B] shrink-0" />
             </div>
 
-            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+            <div
+              onClick={() => setActiveSeverityFilter(activeSeverityFilter === "MEDIUM" ? "ALL" : "MEDIUM")}
+              className={cn(
+                "p-4 rounded-lg border transition-colors flex items-center justify-between h-full cursor-pointer",
+                activeSeverityFilter === "MEDIUM"
+                  ? "bg-[#141414] border-[#383838] ring-1 ring-[#383838] shadow-xs"
+                  : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A]"
+              )}
+            >
               <div>
-                <div className="text-xs text-[#8E8E93] uppercase font-semibold tracking-wider">Medium Findings</div>
+                <div className="text-xs text-[#8E8E93] uppercase font-bold tracking-wider">P2 / MEDIUM</div>
                 <div className="text-2xl sm:text-[26px] font-bold text-[#F2F2F2] mt-1 leading-none">{sevStats.medium}</div>
+                <div className="text-[11px] text-[#666666] mt-1">Hardening deviation</div>
               </div>
               <Info className="w-5 h-5 text-[#8E8E93] shrink-0" />
             </div>
 
-            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
+            <div
+              onClick={() => setActiveSeverityFilter(activeSeverityFilter === "LOW" ? "ALL" : "LOW")}
+              className={cn(
+                "p-4 rounded-lg border transition-colors flex items-center justify-between h-full cursor-pointer",
+                activeSeverityFilter === "LOW"
+                  ? "bg-[#141414] border-[#383838] ring-1 ring-[#383838] shadow-xs"
+                  : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A]"
+              )}
+            >
               <div>
-                <div className="text-xs text-[#666666] uppercase font-semibold tracking-wider">Low / Informational</div>
+                <div className="text-xs text-[#666666] uppercase font-bold tracking-wider">P3 / LOW & INFO</div>
                 <div className="text-2xl sm:text-[26px] font-bold text-[#8E8E93] mt-1 leading-none">{sevStats.low + sevStats.info}</div>
+                <div className="text-[11px] text-[#666666] mt-1">Informational baseline</div>
               </div>
               <ShieldCheck className="w-5 h-5 text-[#666666] shrink-0" />
             </div>
@@ -723,24 +876,30 @@ function AuditsPageContent() {
 
                 {/* Status Filter */}
                 <div className="flex items-center gap-0.5 bg-[#080808] border border-[#1F1F1F] p-0.5 rounded-md text-xs font-mono shrink-0">
-                  {["ALL", "FAIL", "PASS", "NOT_APPLICABLE", "UNKNOWN"].map((st) => (
+                  {[
+                    { id: "ALL", label: "All" },
+                    { id: "FAIL", label: `Active Failures (${activeFailuresCount})` },
+                    { id: "PASS", label: "Verified Pass" },
+                    { id: "NOT_APPLICABLE", label: "N/A" },
+                    { id: "UNKNOWN", label: "Unknown" },
+                  ].map((st) => (
                     <button
-                      key={st}
-                      onClick={() => setActiveStatusFilter(st)}
+                      key={st.id}
+                      onClick={() => setActiveStatusFilter(st.id)}
                       className={cn(
                         "px-2.5 py-1 rounded text-[11px] font-semibold uppercase transition-colors whitespace-nowrap cursor-pointer",
-                        activeStatusFilter === st
-                          ? st === "FAIL"
-                            ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30"
-                            : st === "PASS"
-                            ? "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
-                            : st === "NOT_APPLICABLE"
+                        activeStatusFilter === st.id
+                          ? st.id === "FAIL"
+                            ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 font-bold"
+                            : st.id === "PASS"
+                            ? "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 font-bold"
+                            : st.id === "NOT_APPLICABLE"
                             ? "bg-[#141414] text-[#8E8E93] border border-[#242424]"
                             : "bg-[#161616] text-[#F2F2F2] border border-[#2E2E2E]"
                           : "text-[#8E8E93] hover:text-white"
                       )}
                     >
-                      {st === "NOT_APPLICABLE" ? "N/A" : st}
+                      {st.label}
                     </button>
                   ))}
                 </div>
@@ -761,9 +920,16 @@ function AuditsPageContent() {
 
             {/* Findings Table */}
             {isDetailLoading || (!isDetailMatching && activeAudit) ? (
-              <div className="py-16 text-center text-[#666666] font-mono text-xs flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-[#888888]" />
-                <span>Loading compliance findings...</span>
+              <div className="overflow-x-auto w-full rounded-lg border border-[#1F1F1F] p-4 space-y-3 bg-[#080808]">
+                <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] text-xs text-[#666666]">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#888888]" />
+                    <span>Loading session findings and deterministic evidence...</span>
+                  </div>
+                </div>
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-10 rounded bg-[#0E0E0E] animate-pulse border border-[#181818]" />
+                ))}
               </div>
             ) : filteredFindings.length === 0 ? (
               <div className="py-12 text-center text-[#666666] space-y-2">
@@ -783,7 +949,7 @@ function AuditsPageContent() {
                       <th className="py-3 px-3.5 w-[180px] shrink-0">Framework & Control</th>
                       <th className="py-3 px-3.5 min-w-[260px]">Title</th>
                       <th className="py-3 px-3.5 w-[220px] shrink-0">Actual vs Expected</th>
-                      <th className="py-3 px-3.5 w-[200px] shrink-0 text-right">Actions</th>
+                      <th className="py-3 px-3.5 w-[220px] shrink-0 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#181818] bg-[#0B0B0B]">
@@ -871,8 +1037,8 @@ function AuditsPageContent() {
                             </div>
                           </td>
 
-                          <td className="py-3 px-3.5 w-[200px] shrink-0 text-right">
-                            <div className="inline-flex items-center justify-end gap-2 whitespace-nowrap">
+                          <td className="py-3 px-3.5 w-[220px] shrink-0 text-right">
+                            <div className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -880,10 +1046,10 @@ function AuditsPageContent() {
                                   setFindingExplanation(null);
                                   handleExplainFinding(f.id);
                                 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#141414] hover:bg-[#1C1C1C] text-[#8E8E93] hover:text-[#F2F2F2] border border-[#262626] text-xs font-mono transition-colors shrink-0 cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[#141414] hover:bg-[#1C1C1C] text-[#8E8E93] hover:text-[#F2F2F2] border border-[#262626] text-xs font-mono transition-colors shrink-0 cursor-pointer"
                                 title="AI Explanation"
                               >
-                                <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6] shrink-0" />
+                                <Sparkles className="w-3.5 h-3.5 text-[#D4D4D8] shrink-0" />
                                 <span>AI Explain</span>
                               </button>
 
@@ -893,12 +1059,21 @@ function AuditsPageContent() {
                                   setInspectingFinding(f);
                                   setFindingExplanation(null);
                                 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#080808] hover:bg-[#141414] text-[#8E8E93] hover:text-white border border-[#1F1F1F] text-xs font-mono transition-colors shrink-0 cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[#080808] hover:bg-[#141414] text-[#8E8E93] hover:text-white border border-[#1F1F1F] text-xs font-mono transition-colors shrink-0 cursor-pointer"
                                 title="Inspect Finding Details"
                               >
                                 <Terminal className="w-3.5 h-3.5 text-[#888888] shrink-0" />
                                 <span>Details</span>
                               </button>
+
+                              <Link
+                                href={`/findings?analysisId=${encodeURIComponent(selectedAuditId || "")}&findingId=${encodeURIComponent(f.id)}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center p-1.5 rounded-md bg-[#080808] hover:bg-[#141414] text-[#666666] hover:text-[#F2F2F2] border border-[#1F1F1F] transition-colors shrink-0 cursor-pointer"
+                                title="Open in Deep Evidence Explorer"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </Link>
                             </div>
                           </td>
                         </tr>
@@ -916,26 +1091,37 @@ function AuditsPageContent() {
       {inspectingFinding && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
           <div className="bg-[#0B0B0B] border-l border-[#1F1F1F] w-full max-w-2xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
+            {/* Drawer Header: 1. CONTROL & STATUS */}
             <div className="p-5 border-b border-[#1F1F1F] bg-[#080808] flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <span
                     className={cn(
-                      "px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border",
-                      inspectingFinding.status === "PASS" && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/25",
-                      inspectingFinding.status === "FAIL" && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25",
-                      inspectingFinding.status === "NOT_APPLICABLE" && "bg-[#888888]/10 text-[#888888] border-[#888888]/25",
-                      inspectingFinding.status === "UNKNOWN" && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25"
+                      "px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase border",
+                      inspectingFinding.status === "PASS" && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30",
+                      inspectingFinding.status === "FAIL" && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30",
+                      inspectingFinding.status === "NOT_APPLICABLE" && "bg-[#141414] text-[#8E8E93] border-[#242424]",
+                      inspectingFinding.status === "UNKNOWN" && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                     )}
                   >
-                    {inspectingFinding.status}
+                    {inspectingFinding.status === "FAIL"
+                      ? "EXPOSURE ACTIVE"
+                      : inspectingFinding.status === "PASS"
+                      ? "POLICY COMPLIANCE VERIFIED"
+                      : inspectingFinding.status === "NOT_APPLICABLE"
+                      ? "NOT APPLICABLE"
+                      : "UNCERTAIN STATE"}
                   </span>
-                  <span className="text-xs font-mono font-bold text-[#D4D4D8]">
+                  <span className="text-xs font-mono font-bold text-[#F2F2F2]">
                     {inspectingFinding.framework} • {inspectingFinding.control_id}
                   </span>
+                  {inspectingFinding.category && (
+                    <span className="text-[11px] font-mono text-[#8E8E93]">
+                      ({inspectingFinding.category})
+                    </span>
+                  )}
                 </div>
-                <h3 className="text-sm font-bold text-[#F2F2F2]">{inspectingFinding.title}</h3>
+                <h3 className="text-sm font-bold text-[#F2F2F2] leading-snug">{inspectingFinding.title}</h3>
               </div>
 
               <button
@@ -943,35 +1129,227 @@ function AuditsPageContent() {
                   setInspectingFinding(null);
                   setFindingExplanation(null);
                 }}
-                className="p-1.5 rounded-lg text-[#888888] hover:text-white hover:bg-[#141414] transition-colors"
+                className="p-1.5 rounded-lg text-[#888888] hover:text-white hover:bg-[#141414] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs font-mono">
-              {/* AI Explanation Banner / Action */}
-              <div className="p-4 rounded-lg bg-[#0E0E11] border border-[#8B5CF6]/25 space-y-3">
+            {/* Drawer Body: 2. HIERARCHICAL SECURITY DECISION FLOW */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs font-mono">
+              {/* 2. STATUS & SEVERITY TIER */}
+              <div className="grid grid-cols-2 gap-3 font-mono">
+                <div className="p-3 rounded-lg bg-[#080808] border border-[#1F1F1F]">
+                  <div className="text-[10px] text-[#666666] uppercase font-semibold">SEVERITY CLASSIFICATION</div>
+                  <div
+                    className={cn(
+                      "text-xs font-bold mt-1 uppercase",
+                      inspectingFinding.status === "NOT_APPLICABLE" && "text-[#555555]",
+                      inspectingFinding.status !== "NOT_APPLICABLE" && inspectingFinding.severity === "CRITICAL" && "text-[#EF4444]",
+                      inspectingFinding.status !== "NOT_APPLICABLE" && inspectingFinding.severity === "HIGH" && "text-[#F59E0B]",
+                      inspectingFinding.status !== "NOT_APPLICABLE" && inspectingFinding.severity === "MEDIUM" && "text-[#F59E0B]/80",
+                      inspectingFinding.status !== "NOT_APPLICABLE" && inspectingFinding.severity === "LOW" && "text-[#888888]"
+                    )}
+                  >
+                    {inspectingFinding.status === "NOT_APPLICABLE"
+                      ? "N/A"
+                      : inspectingFinding.severity === "CRITICAL"
+                      ? "P0 / CRITICAL"
+                      : inspectingFinding.severity === "HIGH"
+                      ? "P1 / HIGH"
+                      : inspectingFinding.severity === "MEDIUM"
+                      ? "P2 / MEDIUM"
+                      : "P3 / LOW"}
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-[#080808] border border-[#1F1F1F]">
+                  <div className="text-[10px] text-[#666666] uppercase font-semibold">RISK POSTURE IMPACT</div>
+                  <div className={cn(
+                    "text-xs font-bold mt-1",
+                    inspectingFinding.status === "FAIL" ? "text-[#EF4444]" : inspectingFinding.status === "PASS" ? "text-[#10B981]" : "text-[#8E8E93]"
+                  )}>
+                    {inspectingFindingRiskContribution} {inspectingFinding.status === "FAIL" ? "Score Contribution" : "(Zero residual risk)"}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. WHY IT MATTERS */}
+              <div className="p-3.5 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-1.5">
+                <div className="text-[10px] text-[#666666] uppercase font-bold flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-[#888888]" />
+                  <span>
+                    {inspectingFinding.status === "FAIL"
+                      ? "WHY THIS FAILED (SECURITY RATIONALE)"
+                      : inspectingFinding.status === "PASS"
+                      ? "POLICY COMPLIANCE VERIFIED"
+                      : inspectingFinding.status === "NOT_APPLICABLE"
+                      ? "NOT APPLICABLE"
+                      : "INSUFFICIENT EVIDENCE / UNKNOWN"}
+                  </span>
+                </div>
+                <p className="text-[#A0A0A0] text-xs leading-relaxed font-sans">
+                  {inspectingFinding.status === "PASS"
+                    ? inspectingFinding.description || "Device configuration satisfies this security baseline control. Expected parameters are present and properly enforced."
+                    : inspectingFinding.status === "NOT_APPLICABLE"
+                    ? inspectingFinding.description || "This control is not applicable to this device type, software version, or operating mode."
+                    : inspectingFinding.description || "Insecure baseline parameter detected in device configuration."}
+                </p>
+              </div>
+
+              {/* 4. EXACT EVIDENCE (DETERMINISTIC & ZERO FAKE CITATIONS) */}
+              <div className="p-3.5 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-[#666666]">
+                  <span className="flex items-center gap-1 text-[#E0E0E0] font-semibold">
+                    <Terminal className="w-3.5 h-3.5 text-[#888888]" />
+                    <span>DETERMINISTIC CONFIGURATION EVIDENCE</span>
+                  </span>
+                  <span className={cn(
+                    "font-bold font-mono text-xs",
+                    inspectingEvidence.hasLineCitation
+                      ? inspectingFinding.status === "FAIL" ? "text-[#EF4444]" : "text-[#10B981]"
+                      : "text-[#8E8E93]"
+                  )}>
+                    {inspectingEvidence.hasLineCitation && inspectingEvidence.line
+                      ? `Line ${inspectingEvidence.line}`
+                      : inspectingEvidence.citationText}
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <pre className="p-3 rounded-md bg-[#050505] border border-[#1F1F1F] text-[11px] font-mono text-[#E5E5E5] overflow-x-auto leading-relaxed select-text">
+                    {inspectingFinding.evidence || "[Unconfigured Directive — control absent from device configuration]"}
+                  </pre>
+                  {inspectingFinding.evidence && (
+                    <button
+                      onClick={() => handleCopyEvidenceText(inspectingFinding.evidence)}
+                      className="absolute top-2 right-2 p-1.5 rounded bg-[#141414] hover:bg-[#1F1F1F] text-[#8E8E93] hover:text-white border border-[#242424] text-[10px] font-mono transition-colors"
+                      title="Copy Evidence Snippet"
+                    >
+                      {copiedEvidence ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  )}
+                </div>
+
+                {inspectingFinding.finding_metadata?.source && (
+                  <div className="pt-2 border-t border-[#181818] flex items-center justify-between text-[10px] text-[#666666]">
+                    <span>Source Standard: {inspectingFinding.finding_metadata.source.document}</span>
+                    <span>Ref: {inspectingFinding.finding_metadata.source.reference} (v{inspectingFinding.finding_metadata.source.version})</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 5. EXPECTED vs ACTUAL EVALUATION */}
+              <div className="p-3.5 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-2">
+                <div className="text-[10px] text-[#666666] uppercase font-bold">DETERMINISTIC VALUE COMPARISON</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 rounded bg-[#050505] border border-[#1F1F1F] space-y-1">
+                    <div className="text-[#666666] text-[10px] uppercase font-semibold">OBSERVED (ACTUAL):</div>
+                    <div className={cn(
+                      "font-bold font-mono text-xs break-all",
+                      inspectingFinding.status === "PASS"
+                        ? "text-[#10B981]"
+                        : inspectingFinding.status === "NOT_APPLICABLE"
+                        ? "text-[#8E8E93]"
+                        : "text-[#EF4444]"
+                    )}>
+                      {inspectingFinding.actual_value || "Unconfigured Directive"}
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded bg-[#050505] border border-[#1F1F1F] space-y-1">
+                    <div className="text-[#666666] text-[10px] uppercase font-semibold">EXPECTED (BASELINE):</div>
+                    <div className="text-[#10B981] font-bold font-mono text-xs break-all">
+                      {inspectingFinding.expected_value || "Hardened Standard"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. REMEDIATION HANDOFF & PROPOSED PATCH */}
+              <div className={cn(
+                "p-3.5 rounded-lg bg-[#080808] border space-y-2.5",
+                inspectingFinding.status === "FAIL" ? "border-[#10B981]/30" : "border-[#1F1F1F]"
+              )}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#A78BFA] font-semibold text-xs">
-                    <Sparkles className="w-4 h-4 text-[#A78BFA]" />
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#F2F2F2]">
+                    <Wrench className="w-3.5 h-3.5 text-[#10B981]" />
+                    <span>
+                      {inspectingFinding.status === "FAIL"
+                        ? "ALLOWLISTED REMEDIATION CLI"
+                        : inspectingFinding.status === "PASS"
+                        ? "BASELINE COMPLIANCE CONFIRMED"
+                        : "NOT APPLICABLE"}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-[#666666] font-mono uppercase">
+                    {inspectingFinding.status === "FAIL" ? "READ-ONLY PROPOSAL" : "NO ACTION REQUIRED"}
+                  </span>
+                </div>
+
+                {inspectingFinding.status === "FAIL" ? (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <pre className="p-3 rounded-md bg-[#050505] border border-[#10B981]/25 text-[11px] font-mono text-[#10B981] overflow-x-auto leading-relaxed select-text">
+                        {inspectingFinding.remediation || `configure terminal\n! Apply hardened parameter for ${inspectingFinding.control_id}\nend`}
+                      </pre>
+                      <button
+                        onClick={() => handleCopyRemediationText(inspectingFinding.remediation || "")}
+                        className="absolute top-2 right-2 p-1.5 rounded bg-[#141414] hover:bg-[#1F1F1F] text-[#8E8E93] hover:text-white border border-[#242424] text-[10px] font-mono transition-colors"
+                        title="Copy Remediation CLI Commands"
+                      >
+                        {copiedRemediation ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3 text-[#10B981]" />}
+                      </button>
+                    </div>
+
+                    <div className="p-2 rounded bg-[#0D0D0D] border border-[#1F1F1F] flex items-center justify-between text-[11px]">
+                      <span className="text-[#8E8E93]">Execution Boundary:</span>
+                      <span className="text-[#EF4444] font-semibold">Non-Destructive · Manual Review Required</span>
+                    </div>
+
+                    <div className="pt-1">
+                      <Link
+                        href={`/remediation?audit_id=${encodeURIComponent(selectedAuditId || "")}&finding_id=${encodeURIComponent(inspectingFinding.id)}`}
+                        className="w-full py-2 rounded-md bg-[#161616] hover:bg-[#202020] text-[#10B981] border border-[#10B981]/30 font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      >
+                        <Wrench className="w-3.5 h-3.5 text-[#10B981]" />
+                        <span>Open in Remediation Center →</span>
+                      </Link>
+                    </div>
+                  </div>
+                ) : inspectingFinding.status === "PASS" ? (
+                  <div className="p-2.5 rounded bg-[#050505] border border-[#10B981]/20 text-xs text-[#10B981] font-mono flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>Control is compliant with security baseline. Zero remediation patch required.</span>
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded bg-[#050505] border border-[#1F1F1F] text-xs text-[#8E8E93] font-mono">
+                    Control not applicable to this device profile. No remediation action needed.
+                  </div>
+                )}
+              </div>
+
+              {/* 7. EVIDENCE-GROUNDED AI EXPLANATION (MONOCHROME / NEUTRAL PALETTE) */}
+              <div className="p-4 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[#F2F2F2] font-semibold text-xs">
+                    <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
                     <span>Evidence-Grounded AI Analysis</span>
                   </div>
 
                   <button
                     onClick={() => handleExplainFinding(inspectingFinding.id)}
                     disabled={isExplaining}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#1A1829] hover:bg-[#25223D] text-[#C4B5FD] border border-[#8B5CF6]/40 text-[11px] font-mono font-semibold disabled:opacity-50 transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#141414] hover:bg-[#1E1E1E] text-[#F2F2F2] border border-[#2A2A2A] text-[11px] font-mono font-semibold disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
                   >
                     {isExplaining ? (
                       <>
-                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        <RefreshCw className="w-3 h-3 animate-spin text-[#888888]" />
                         <span>Generating...</span>
                       </>
                     ) : (
                       <>
-                        <Zap className="w-3 h-3 fill-current" />
+                        <Zap className="w-3 h-3 fill-current text-[#D4D4D8]" />
                         <span>{findingExplanation ? "Regenerate" : "Explain with AI"}</span>
                       </>
                     )}
@@ -979,24 +1357,24 @@ function AuditsPageContent() {
                 </div>
 
                 {findingExplanation && (
-                  <div className="space-y-3 pt-2 border-t border-[#8B5CF6]/20 font-sans text-xs">
+                  <div className="space-y-3 pt-2 border-t border-[#1F1F1F] font-sans text-xs">
                     <div className="space-y-1">
-                      <div className="text-[10px] font-mono text-[#A78BFA] uppercase font-bold">Executive Summary</div>
-                      <p className="text-[#E5E5E5] leading-relaxed bg-[#080808] p-2.5 rounded border border-[#1F1F1F]">
+                      <div className="text-[10px] font-mono text-[#8E8E93] uppercase font-bold">Executive Summary</div>
+                      <p className="text-[#E5E5E5] leading-relaxed bg-[#050505] p-2.5 rounded border border-[#1F1F1F]">
                         {findingExplanation.summary}
                       </p>
                     </div>
 
                     <div className="space-y-1">
-                      <div className="text-[10px] font-mono text-[#A78BFA] uppercase font-bold">Why It Matters & Risk Context</div>
-                      <p className="text-[#A0A0A0] leading-relaxed bg-[#080808] p-2.5 rounded border border-[#1F1F1F]">
+                      <div className="text-[10px] font-mono text-[#8E8E93] uppercase font-bold">Why It Matters & Risk Context</div>
+                      <p className="text-[#A0A0A0] leading-relaxed bg-[#050505] p-2.5 rounded border border-[#1F1F1F]">
                         {findingExplanation.why_it_matters} {findingExplanation.risk_context}
                       </p>
                     </div>
 
                     <div className="space-y-1">
                       <div className="text-[10px] font-mono text-[#10B981] uppercase font-bold">Recommended Remediation</div>
-                      <pre className="p-2.5 rounded bg-[#080808] border border-[#10B981]/25 text-[11px] font-mono text-[#10B981] overflow-x-auto">
+                      <pre className="p-2.5 rounded bg-[#050505] border border-[#10B981]/25 text-[11px] font-mono text-[#10B981] overflow-x-auto">
                         {findingExplanation.recommended_action}
                       </pre>
                     </div>
@@ -1008,106 +1386,17 @@ function AuditsPageContent() {
                   </div>
                 )}
               </div>
-
-              {/* Metadata Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-[#080808] border border-[#1F1F1F]">
-                  <div className="text-[10px] text-[#666666] uppercase">Severity Level</div>
-                  <div
-                    className={cn(
-                      "text-xs font-bold mt-1 uppercase",
-                      inspectingFinding.severity === "CRITICAL" && "text-[#EF4444]",
-                      inspectingFinding.severity === "HIGH" && "text-[#F59E0B]",
-                      inspectingFinding.severity === "MEDIUM" && "text-[#F59E0B]/80",
-                      inspectingFinding.severity === "LOW" && "text-[#888888]"
-                    )}
-                  >
-                    {inspectingFinding.severity}
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-lg bg-[#080808] border border-[#1F1F1F]">
-                  <div className="text-[10px] text-[#666666] uppercase">Category Domain</div>
-                  <div className="text-xs font-bold text-[#A0A0A0] mt-1">
-                    {inspectingFinding.category || "General"}
-                  </div>
-                </div>
-              </div>
-
-              {/* Verified Document Citation */}
-              {inspectingFinding.finding_metadata?.source && (
-                <div className="p-3.5 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[#E0E0E0] text-[11px] font-semibold">
-                    <BookOpen className="w-3.5 h-3.5 text-[#888888]" />
-                    <span>Verified Official Citation</span>
-                  </div>
-                  <div className="text-[#F2F2F2] text-[11px]">
-                    Document: <strong>{inspectingFinding.finding_metadata.source.document}</strong>
-                  </div>
-                  <div className="text-[#666666] text-[10px]">
-                    Reference: {inspectingFinding.finding_metadata.source.reference} (v
-                    {inspectingFinding.finding_metadata.source.version})
-                  </div>
-                </div>
-              )}
-
-              {/* Value Comparison */}
-              <div className="p-3.5 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-2">
-                <div className="text-[10px] text-[#666666] uppercase">Deterministic Value Evaluation</div>
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-2 rounded bg-[#0B0B0B] border border-[#1F1F1F]">
-                    <div className="text-[#666666] text-[10px]">Actual Extracted Value:</div>
-                    <div className="text-[#EF4444] font-bold mt-0.5">{inspectingFinding.actual_value}</div>
-                  </div>
-                  <div className="p-2 rounded bg-[#0B0B0B] border border-[#1F1F1F]">
-                    <div className="text-[#666666] text-[10px]">Expected Compliant Value:</div>
-                    <div className="text-[#10B981] font-bold mt-0.5">{inspectingFinding.expected_value}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Verbatim Configuration Evidence Box */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] text-[#666666]">
-                  <span className="flex items-center gap-1 text-[#E0E0E0] font-semibold">
-                    <Terminal className="w-3 h-3 text-[#888888]" />
-                    <span>Verbatim Configuration Evidence</span>
-                  </span>
-                  <span className="text-[#666666]">
-                    Line(s):{" "}
-                    <strong className="text-[#F2F2F2]">
-                      {(inspectingFinding.finding_metadata?.source_lines?.filter((l: number) => l > 0) || []).length > 0
-                        ? inspectingFinding.finding_metadata?.source_lines?.filter((l: number) => l > 0).join(", ")
-                        : "No direct evidence"}
-                    </strong>
-                  </span>
-                </div>
-
-                <pre className="p-3.5 rounded-lg bg-[#080808] border border-[#1F1F1F] text-[11px] font-mono text-[#E5E5E5] overflow-x-auto leading-relaxed select-text">
-                  {inspectingFinding.evidence || "[No direct line evidence — unconfigured directive]"}
-                </pre>
-              </div>
-
-              {/* Technical Risk Explanation */}
-              {inspectingFinding.description && (
-                <div className="space-y-1">
-                  <div className="text-[10px] text-[#666666] uppercase">Rule Specification</div>
-                  <p className="text-[#A0A0A0] text-xs leading-relaxed font-sans bg-[#080808] p-3 rounded-lg border border-[#1F1F1F]">
-                    {inspectingFinding.description}
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Drawer Footer */}
             <div className="p-4 border-t border-[#1F1F1F] bg-[#080808] flex items-center justify-between">
               {inspectingFinding.status === "FAIL" ? (
                 <Link
-                  href="/remediation"
-                  className="px-3.5 py-1.5 rounded-lg bg-[#121212] hover:bg-[#181818] text-[#10B981] border border-[#10B981]/30 text-xs font-mono font-semibold transition-colors flex items-center gap-1.5"
+                  href={`/remediation?audit_id=${encodeURIComponent(selectedAuditId || "")}&finding_id=${encodeURIComponent(inspectingFinding.id)}`}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#141414] hover:bg-[#1E1E1E] text-[#10B981] border border-[#10B981]/30 text-xs font-mono font-semibold transition-colors flex items-center gap-1.5"
                 >
                   <Wrench className="w-3.5 h-3.5 text-[#10B981]" />
-                  <span>View Remediation Fix</span>
+                  <span>View Remediation Center</span>
                 </Link>
               ) : (
                 <span className={cn(
@@ -1116,12 +1405,12 @@ function AuditsPageContent() {
                 )}>
                   {inspectingFinding.status === "PASS" ? (
                     <>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
                       <span>Control Verified Compliant</span>
                     </>
                   ) : (
                     <>
-                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#888888]" />
                       <span>Control Not Applicable</span>
                     </>
                   )}
@@ -1133,7 +1422,7 @@ function AuditsPageContent() {
                   setInspectingFinding(null);
                   setFindingExplanation(null);
                 }}
-                className="px-4 py-1.5 rounded-lg bg-[#121212] hover:bg-[#181818] border border-[#1F1F1F] text-[#F2F2F2] text-xs font-mono transition-colors"
+                className="px-4 py-1.5 rounded-lg bg-[#141414] hover:bg-[#1A1A1A] border border-[#242424] text-[#F2F2F2] text-xs font-mono transition-colors cursor-pointer"
               >
                 Close Inspector
               </button>
@@ -1142,20 +1431,20 @@ function AuditsPageContent() {
         </div>
       )}
 
-      {/* AI Co-Pilot Interactive Assistant Slide-Over Panel */}
+      {/* AI Co-Pilot Interactive Assistant Slide-Over Panel (Neutralized locked visual language) */}
       {isAssistantOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
           <div className="bg-[#0B0B0B] border-l border-[#1F1F1F] w-full max-w-xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
             {/* Assistant Header */}
             <div className="p-4 border-b border-[#1F1F1F] bg-[#080808] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#141418] border border-[#8B5CF6]/30 flex items-center justify-center text-[#A78BFA]">
+                <div className="w-8 h-8 rounded-lg bg-[#141414] border border-[#262626] flex items-center justify-center text-[#F2F2F2]">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-[#F2F2F2] flex items-center gap-2">
                     <span>NetVigil AI Audit Co-Pilot</span>
-                    <span className="text-[10px] font-mono font-normal px-1.5 py-0.2 rounded bg-[#8B5CF6]/10 text-[#A78BFA] border border-[#8B5CF6]/25">
+                    <span className="text-[10px] font-mono font-normal px-1.5 py-0.2 rounded bg-[#181818] text-[#D4D4D8] border border-[#282828]">
                       Read-Only Grounded
                     </span>
                   </h3>
@@ -1165,7 +1454,7 @@ function AuditsPageContent() {
 
               <button
                 onClick={() => setIsAssistantOpen(false)}
-                className="p-1.5 rounded-lg text-[#666666] hover:text-white hover:bg-[#141414] transition-colors"
+                className="p-1.5 rounded-lg text-[#666666] hover:text-white hover:bg-[#141414] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1183,7 +1472,7 @@ function AuditsPageContent() {
                 <button
                   key={chip}
                   onClick={() => handleSendAssistantQuery(chip)}
-                  className="px-2.5 py-1 rounded bg-[#0E0E0E] hover:bg-[#181818] hover:text-[#A78BFA] text-[#A0A0A0] border border-[#1F1F1F] whitespace-nowrap transition-colors"
+                  className="px-2.5 py-1 rounded bg-[#0E0E0E] hover:bg-[#181818] hover:text-white text-[#A0A0A0] border border-[#1F1F1F] whitespace-nowrap transition-colors cursor-pointer"
                 >
                   {chip}
                 </button>
@@ -1197,7 +1486,7 @@ function AuditsPageContent() {
                 return (
                   <div key={idx} className={cn("flex gap-3", isAssistant ? "items-start" : "items-end justify-end")}>
                     {isAssistant && (
-                      <div className="w-7 h-7 rounded-lg bg-[#141418] border border-[#8B5CF6]/30 flex items-center justify-center text-[#A78BFA] flex-shrink-0 mt-0.5">
+                      <div className="w-7 h-7 rounded-lg bg-[#141414] border border-[#262626] flex items-center justify-center text-[#F2F2F2] flex-shrink-0 mt-0.5">
                         <Bot className="w-3.5 h-3.5" />
                       </div>
                     )}
@@ -1215,7 +1504,7 @@ function AuditsPageContent() {
                       {/* Supporting Findings Badges */}
                       {msg.supporting_findings && msg.supporting_findings.length > 0 && (
                         <div className="mt-3 pt-2.5 border-t border-[#1F1F1F] space-y-1.5">
-                          <div className="text-[10px] font-mono text-[#A78BFA] font-bold uppercase">
+                          <div className="text-[10px] font-mono text-[#D4D4D8] font-bold uppercase">
                             Supporting Finding Citations ({msg.supporting_findings.length}):
                           </div>
                           <div className="flex flex-wrap gap-1">
@@ -1230,7 +1519,7 @@ function AuditsPageContent() {
                                     setInspectingFinding(match);
                                   }
                                 }}
-                                className="px-2 py-0.5 rounded bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 text-[#C4B5FD] border border-[#8B5CF6]/25 text-[10px] font-mono font-semibold transition-colors"
+                                className="px-2 py-0.5 rounded bg-[#181818] hover:bg-[#222222] text-[#F2F2F2] border border-[#2A2A2A] text-[10px] font-mono font-semibold transition-colors cursor-pointer"
                               >
                                 {findingRef}
                               </button>
@@ -1247,7 +1536,7 @@ function AuditsPageContent() {
 
               {isAssistantLoading && (
                 <div className="flex gap-3 items-center text-[#A0A0A0] font-mono text-xs p-3 rounded-lg bg-[#080808] border border-[#1F1F1F]">
-                  <RefreshCw className="w-4 h-4 animate-spin text-[#A78BFA]" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#888888]" />
                   <span>NetVigil AI is analyzing audit session findings...</span>
                 </div>
               )}
@@ -1272,7 +1561,7 @@ function AuditsPageContent() {
                 <button
                   type="submit"
                   disabled={!assistantInput.trim() || isAssistantLoading}
-                  className="p-2 rounded-lg bg-[#141414] hover:bg-[#1F1F1F] border border-[#242424] disabled:opacity-40 text-[#F2F2F2] transition-colors"
+                  className="p-2 rounded-lg bg-[#141414] hover:bg-[#1F1F1F] border border-[#242424] disabled:opacity-40 text-[#F2F2F2] transition-colors cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                 </button>
