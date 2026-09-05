@@ -545,6 +545,40 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% web regression tests passing (`npm test`, 38/38 tests).
   * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
 
+### Assets & Inventory Page Final UI Polish (September 2026)
+* **Frontend UI Polish (`devices/page.tsx`)**:
+  * **Header & Identity**:
+    * Upgraded page title to `28-30px` (`text-2xl sm:text-[28px] lg:text-[30px] font-bold text-[#F2F2F2] font-mono tracking-tight leading-none`).
+    * Upgraded subtitle to `14-15px` (`text-sm sm:text-[15px] text-[#8E8E93] mt-1.5 font-sans leading-relaxed`).
+    * Aligned Refresh button on horizontal baseline (`13px` font-mono).
+  * **Summary Metric Cards (4 Columns)**:
+    * Standardized 4 equal-width, equal-height desktop grid cards (`h-full min-h-[115px]`):
+      * `TOTAL ASSETS`: `32px` font-bold count (`4`), subtitle `Monitored network devices`.
+      * `ACTIVE`: `32px` font-bold green count (`4`), subtitle `Online & evaluated configurations`.
+      * `AVERAGE COMPLIANCE`: `32px` font-bold percentage (`16.7%`), subtitle `Mean across active baseline audits`.
+      * `AVERAGE RISK`: `32px` font-bold red score (`70.0`), subtitle `Mean fleet posture risk rating`.
+    * Derived 100% dynamically from backend devices without hardcoding.
+  * **Filter & Search Toolbar**:
+    * Clean `#0B0B0B` container with `#1F1F1F` border.
+    * Vendor filter pills (`ALL`, `cisco`, `juniper`, `fortinet`) with active borders and search input with clear button.
+  * **Stable Asset Table Column Grid**:
+    * Table wrapped in an internal horizontal scroll container (`overflow-x-auto rounded-lg border border-[#1F1F1F] bg-[#080808]`) to guarantee zero page-level horizontal overflow.
+    * Columns strictly match between `<thead>` and `<tbody>`:
+      * `DEVICE`: `min-w-[260px]` (hostname + platform, graceful truncation with tooltip)
+      * `VENDOR`: `w-[150px] shrink-0` (vendor pill vertically aligned)
+      * `COMPLIANCE`: `w-[140px] shrink-0` (clear percentage with status color coding)
+      * `RISK`: `w-[140px] shrink-0` (score badge: green <50, amber 50-74, red >=75)
+      * `STATUS`: `w-[150px] shrink-0` (consistent status badge with indicator dot)
+      * `LAST INGESTED`: `w-[140px] shrink-0` (formatted date, `12px` font-mono)
+      * `INSPECT`: `w-[110px] shrink-0 text-right` (action button: `Eye` icon + "Inspect", fully visible without clipping)
+    * Comfortable vertical padding: `py-3.5 px-4`.
+  * **Device Intelligence Drawer**:
+    * Polished slide-over drawer with telemetry, Security Profile, Timeline Events, and Unknown Syntax tabs.
+* **Verification**:
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% web regression tests passing (`npm test`, 38/38 tests).
+  * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
+
 
 
 
