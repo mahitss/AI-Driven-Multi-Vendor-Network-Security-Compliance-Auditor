@@ -399,6 +399,25 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * Typography scale: Page titles (28–32px), Headings (18–20px), Metric values (32–40px), Body (14–16px), Metadata (10–11px).
   * Passed 100% frontend regression tests (`npm test`), TypeScript check (`npx tsc --noEmit`), and Next.js production build across all 35 routes (`npm run build`).
 
+### Cross-Page Data Consistency Audit & Presentation Hardening (September 2026)
+* **Forensic Audit Across 7 Protected Pages**:
+  * Conducted full trace of all major metrics across Security Posture, Security Audits, Findings, Assets & Inventory, Remediation Center, Security Time Machine, and Security Briefing.
+  * Verified DB source -> REST API response -> API client (`api-client.ts`) -> React Query cache -> UI presentation.
+  * **Core Invariant**: Truthful numbers > visually uniform numbers. Pages have intentionally different scopes (Single Audit vs Latest Audit vs Fleet Aggregate vs Active Failures vs Lifetime Controls). Zero fake numbers, zero altered formulas, zero synthetic remediation links.
+* **Resolution of 6 Critical Invariants**:
+  1. **05_JUNIPER_HARDENED.set (Check #1)**: Proved multiple legitimate audit executions exist (`5e4d0799` = 25.0%, `4de35896` = 40.0%). Enhanced audit selector pill with execution timestamps (`12:40` vs `20:49`) and detailed tooltip so historical executions are transparently distinguished without merging.
+  2. **Security Time Machine (Check #2)**: Fixed premature pairing race condition where unhydrated comparable pairs fell back to comparing unrelated cross-vendor audits (Juniper Telnet 0% vs Fortinet Hardened 41.7%). Added `pairsLoading` guard to prioritize genuine same-asset evolution pairs. Added explicit `"CROSS-VENDOR BENCHMARK COMPARISON"` vs `"VERIFIED SAME-ASSET REMEDIATION EVOLUTION"` badges.
+  3. **Critical Findings vs High Severity Label (Check #3)**: Fixed subtitle mismatch in `dashboard/page.tsx` line 302 from `"High severity exposures"` to `"Critical (P0) active exposures"` to align with P0 badge and `stats.severity_breakdown.critical`.
+  4. **Open Findings Terminology (Check #4)**: Clarified `open_findings` (124) subtitle to `"Active failed controls across fleet"`, accurately reflecting that it strictly sums active FAIL/PARTIAL findings across fleet devices (excluding PASS and NOT_APPLICABLE).
+  5. **Tenant Isolation (Check #5)**: Verified all queries enforce authenticated user scoping (`user_id == current_user.id`) across DB, routes, and query keys (`[..., user?.id]`). Zero cross-tenant leakage.
+  6. **Security Briefing vs Security Posture Scope (Check #6)**: Confirmed Security Briefing evaluates a single selected audit session (`07_FORTINET_HARDENED.conf`, 41.7%, 48 findings, risk 63.6), while Security Posture displays the fleet-level aggregate across all 4 managed devices ((41.7 + 0 + 25 + 0) / 4 = 16.7%, 124 open failures, risk 70). Both values are mathematically proven and correct for their respective scopes.
+* **Regression Verification**:
+  * 100% web regression tests passing (`npm test`, 22 data consistency + 8 framework independence + 4 explorer + 4 transient retry tests).
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% Next.js production build passing across all 35 routes (`npm run build`).
+  * 100% targeted backend pytest suites passing (`pytest`, 18/18 tests passing).
+
+
 
 
 

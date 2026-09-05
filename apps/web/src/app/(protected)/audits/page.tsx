@@ -498,11 +498,15 @@ function AuditsPageContent() {
                   const cfg = configurations.find((c) => c.id === a.configuration_id);
                   const deviceLabel = cfg?.original_filename || (a as any).device_name || `Session ${a.id.slice(0, 8)}`;
                   const isSelected = selectedAuditId === a.id;
+                  const executionTimeStr = a.started_at
+                    ? new Date(a.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                    : null;
 
                   return (
                     <button
                       key={a.id}
                       onClick={() => handleSelectAudit(a.id)}
+                      title={`Audit ID: ${a.id}\nAsset: ${deviceLabel}\nExecuted: ${a.started_at ? new Date(a.started_at).toLocaleString() : "Unknown"}\nScore: ${a.score !== null && a.score !== undefined ? `${a.score.toFixed(1)}%` : "N/A"}`}
                       className={cn(
                         "px-3 py-1.5 rounded-md text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-2",
                         isSelected
@@ -511,7 +515,7 @@ function AuditsPageContent() {
                       )}
                     >
                       <span className="font-sans font-medium text-[#F2F2F2]">{deviceLabel}</span>
-                      <span className="text-[10px] text-[#555555]">({a.id.slice(0, 8)})</span>
+                      <span className="text-[10px] text-[#555555]">({a.id.slice(0, 8)}{executionTimeStr ? ` · ${executionTimeStr}` : ""})</span>
                       {a.score !== null && a.score !== undefined && (
                         <span
                           className={cn(

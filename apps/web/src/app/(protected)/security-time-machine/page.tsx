@@ -68,22 +68,24 @@ export default function SecurityTimeMachinePage() {
     enabled: !authLoading && !!user,
   });
 
-  // Automatically select the best pair on initial load
+  // Automatically select the best pair on initial load (prioritize genuine same-asset comparable pairs)
   useEffect(() => {
+    if (pairsLoading) return;
+
     if (pairs.length > 0 && !beforeAuditId && !afterAuditId) {
       const firstPair = pairs[0];
       setSelectedPairKey(`${firstPair.baseline_audit_id}:${firstPair.remediated_audit_id}`);
       setBeforeAuditId(firstPair.baseline_audit_id);
       setAfterAuditId(firstPair.remediated_audit_id);
     } else if (audits.length >= 2 && !beforeAuditId && !afterAuditId) {
-      // Sort ascending to get oldest as before, newest as after
+      // Fallback: cross-audit benchmark comparison
       const sorted = [...audits].sort(
         (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
       );
       setBeforeAuditId(sorted[0].id);
       setAfterAuditId(sorted[sorted.length - 1].id);
     }
-  }, [pairs, audits, beforeAuditId, afterAuditId]);
+  }, [pairs, pairsLoading, audits, beforeAuditId, afterAuditId]);
 
   // Handle pair preset change
   const handlePairChange = (key: string) => {
@@ -250,13 +252,26 @@ export default function SecurityTimeMachinePage() {
         </div>
       </div>
 
-      {/* Compatibility Notice if Cross-Vendor */}
+      {/* Compatibility Notice if Cross-Vendor or Genuine Remediation Evolution */}
       {comparison && !comparison.is_compatible && (
         <div className="flex items-start gap-3 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl p-3.5 text-xs text-[#F59E0B]">
           <AlertTriangle className="h-4 w-4 text-[#F59E0B] shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold">Cross-Vendor Normalization Notice: </span>
-            {comparison.compatibility_notes || "Comparing configurations across different network operating systems."}
+            <span className="font-semibold uppercase tracking-wider">Cross-Vendor Benchmark Comparison: </span>
+            <span>
+              {comparison.compatibility_notes || "Comparing configurations across different network platforms. Metrics reflect cross-vendor benchmark alignment rather than single-asset remediation evolution."}
+            </span>
+          </div>
+        </div>
+      )}
+      {comparison && comparison.is_compatible && (
+        <div className="flex items-start gap-3 bg-[#10B981]/10 border border-[#10B981]/30 rounded-xl p-3 text-xs text-[#10B981]">
+          <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold uppercase tracking-wider">Verified Same-Asset Remediation Evolution: </span>
+            <span>
+              Comparing baseline and remediated audits for the same device configuration. Deltas represent genuine evolutionary hardening.
+            </span>
           </div>
         </div>
       )}

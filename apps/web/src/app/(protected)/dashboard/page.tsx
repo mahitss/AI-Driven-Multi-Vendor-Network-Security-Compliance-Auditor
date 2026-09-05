@@ -299,7 +299,7 @@ export default function SecurityPostureDashboard() {
               {isStatsError ? "—" : stats?.severity_breakdown?.critical ?? 0}
             </div>
             <p className="text-[10px] text-[#666666] mt-1 font-sans">
-              High severity exposures
+              Critical (P0) active exposures
             </p>
           </div>
         </div>
@@ -315,7 +315,7 @@ export default function SecurityPostureDashboard() {
               {isStatsError ? "—" : stats?.open_findings ?? 0}
             </div>
             <p className="text-[10px] text-[#666666] mt-1 font-sans">
-              Rule violations across fleet
+              Active failed controls across fleet
             </p>
           </div>
         </div>
