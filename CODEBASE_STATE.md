@@ -505,6 +505,46 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% web regression tests passing (`npm test`, 38/38 tests).
   * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
 
+### Findings Registry / Evidence Explorer Final UI Polish (September 2026)
+* **Frontend UI Polish (`findings/page.tsx`)**:
+  * **Header & Identity**:
+    * Page title upgraded to `28-30px` (`text-2xl sm:text-[28px] lg:text-[30px] font-bold text-[#F2F2F2] font-mono leading-none`).
+    * Subtitle upgraded to `14-15px` (`text-sm sm:text-[15px] text-[#8E8E93] mt-1.5 font-sans`).
+    * Action buttons (`AUDIT CONFIGURATION`, `Refresh`) aligned on a clean horizontal baseline with `13px` font-mono typography and interactive cursor styles.
+  * **Summary Metric Cards (4 Columns)**:
+    * Standardized 4 equal-width, equal-height desktop grid cards (`h-full min-h-[115px]`):
+      * `TOTAL FINDINGS`: `32px` font-bold count with descriptive subtitle `Audited control inventory (PASS, FAIL, N/A)`.
+      * `CRITICAL (P0)`: `32px` font-bold red count with `ShieldAlert` icon and subtitle `Immediate intervention controls`.
+      * `HIGH TIER`: `32px` font-bold amber count with `AlertTriangle` icon and subtitle `Elevated risk posture controls`.
+      * `EVIDENCE PROVEN`: `32px` font-bold green count with `ShieldCheck` icon and subtitle `Deterministic AST line proof`.
+    * 100% real backend metric derivation preserved without hardcoding or changing semantics.
+  * **Filter & Search Toolbar**:
+    * Clean `#0B0B0B` container with `#1F1F1F` border.
+    * Unified search input with search icon, clear button, and `13px` font-mono dropdowns (`Severity`, `Framework`, `Status`) with smooth `#383838` focus borders.
+  * **3-Column SOC Investigation Workspace**:
+    * Desktop layout: `minmax(0, 31fr) minmax(0, 41fr) minmax(0, 28fr)` with uniform section headers (`12px` font-bold uppercase).
+    * **Left Panel (Findings Registry ~31%)**:
+      * Finding cards with `p-3.5 rounded-lg border space-y-2 block group cursor-pointer`.
+      * Clear active selection styling (`bg-[#141414] border-[#383838] ring-1 ring-[#383838] shadow-xs`).
+      * Consistent alignment: Severity pill, Control ID, Status badge, Title (`14px font-semibold min-h-[2.5rem] line-clamp-2`), and footer with Framework, Device Name, and Line Citation.
+      * Controlled internal scrolling (`max-h-[740px] overflow-y-auto pr-1.5`).
+    * **Center Panel (Evidence Viewer ~41%)**:
+      * Metadata box with Source Configuration filename, Detected Vendor, SHA-256 preview, and real cited line numbers.
+      * Code viewer text standardized to `13px` monospace (`text-[13px] font-mono leading-relaxed select-text`).
+      * Line numbers aligned with code (`w-12 min-w-12 text-right pr-3 font-mono text-xs`).
+      * Prominent line highlight with status pointer (`▲ CITATION FOR ...` or `▲ COMPLIANT CONFIGURATION FOR ...`).
+      * Horizontal scrolling strictly contained inside the code text box (`overflow-x-auto`), completely eliminating page-level horizontal overflow.
+    * **Right Panel (Security Context ~28%)**:
+      * Vertical stack with consistent padding and typography:
+        1. Context Card: Control ID, Status & Severity badge, Title, Observed vs Expected values, and Status-specific reasoning (Why this failed / Policy compliance verified / Not applicable).
+        2. Risk Contribution Card: Severity tier, Exposure status badge, Risk contribution value (`+25.0`, `0.0`, etc.), and Security Implication explanation.
+        3. Remediation & Verification Card: Proposed diff or compliance confirmation, Copy CLI commands button, and Re-Analyze Verification button with spinner.
+      * Controlled internal scrolling (`max-h-[740px] overflow-y-auto pr-1`).
+* **Verification**:
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% web regression tests passing (`npm test`, 38/38 tests).
+  * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
+
 
 
 
