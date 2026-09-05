@@ -344,7 +344,7 @@ function FindingsContent() {
   };
 
   return (
-    <div className="space-y-4 max-w-[1440px] mx-auto pb-12 font-sans">
+    <div className="space-y-4 max-w-7xl mx-auto w-full pb-12 font-sans overflow-x-hidden">
       {/* 1. Header & Identity */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#1F1F1F] pb-3.5 font-mono bg-[#080808] p-4 rounded-lg">
         <div>
@@ -386,12 +386,12 @@ function FindingsContent() {
       {/* 2. Top Summary KPI Row (Real Backend Metrics) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono">
         <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors">
-          <div className="text-[10px] text-[#666666] uppercase font-semibold">OPEN FINDINGS</div>
+          <div className="text-[10px] text-[#666666] uppercase font-semibold">TOTAL FINDINGS</div>
           <div className="text-xl font-bold text-[#F2F2F2] mt-0.5 font-mono">
             {totalFindingsCount > 0 ? totalFindingsCount : "—"}
           </div>
           <div className="text-[10px] text-[#8E8E93] font-sans mt-0.5">
-            {totalFindingsCount > 0 ? "Audited policy violations" : "No audits yet"}
+            {totalFindingsCount > 0 ? "Audited policy controls" : "No audits yet"}
           </div>
         </div>
 
@@ -539,10 +539,10 @@ function FindingsContent() {
         </div>
       </div>
 
-      {/* 5. Main 3-Column Layout: Left (Findings List) | Center (Evidence Viewer) | Right (Security Context & Remediation) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
-        {/* LEFT PANEL (4 Cols): Scrollable Findings List */}
-        <div className="lg:col-span-4 space-y-2 font-mono">
+      {/* 5. Main 3-Column Layout: Left ~31% (Findings List) | Center ~41% (Evidence Viewer) | Right ~28% (Security Context & Remediation) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,31fr)_minmax(0,41fr)_minmax(0,28fr)] gap-4 items-start w-full">
+        {/* LEFT PANEL: Scrollable Findings List */}
+        <div className="w-full min-w-0 space-y-2 font-mono">
           <div className="flex items-center justify-between px-1 border-b border-[#1F1F1F] pb-1.5">
             <span className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">
               FINDINGS REGISTRY ({filteredFindings.length})
@@ -596,7 +596,7 @@ function FindingsContent() {
 
           {/* Findings List */}
           {!isFindingsLoading && !isFindingsError && (
-            <div className="space-y-1.5 max-h-[700px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[720px] overflow-y-auto pr-1.5">
               {filteredFindings.map((f: Finding) => {
                 const isSelected = selectedFinding?.id === f.id;
                 const fEvidence = getFindingActiveEvidence(f);
@@ -606,16 +606,16 @@ function FindingsContent() {
                     key={f.id}
                     onClick={() => setSelectedFindingId(f.id)}
                     className={cn(
-                      "w-full text-left p-2.5 rounded-lg border transition-all space-y-1.5 block group relative",
+                      "w-full text-left p-3 rounded-lg border transition-all space-y-2 block group relative",
                       isSelected
                         ? "bg-[#141414] border-[#2E2E2E] shadow-sm"
                         : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A] hover:bg-[#121212]"
                     )}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <span className={cn(
-                          "px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border",
+                          "px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border shrink-0",
                           f.severity === "CRITICAL"
                             ? "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/25"
                             : f.severity === "HIGH"
@@ -624,39 +624,39 @@ function FindingsContent() {
                         )}>
                           {f.severity}
                         </span>
-                        <span className="text-[11px] font-mono font-bold text-[#E5E5E5]">
+                        <span className="text-[11px] font-mono font-bold text-[#E5E5E5] truncate">
                           {f.control_id}
                         </span>
                       </div>
                       <span className={cn(
-                        "text-[9px] font-mono font-bold",
+                        "text-[9px] font-mono font-bold shrink-0 px-1.5 py-0.5 rounded border",
                         f.status === "FAIL"
-                          ? "text-[#EF4444]"
+                          ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30"
                           : f.status === "PASS"
-                          ? "text-[#10B981]"
+                          ? "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30"
                           : f.status === "NOT_APPLICABLE"
-                          ? "text-[#888888]"
-                          : "text-[#F59E0B]"
+                          ? "bg-[#141414] text-[#888888] border-[#242424]"
+                          : "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                       )}>
                         {f.status}
                       </span>
                     </div>
 
-                    <div className="text-xs font-sans font-medium text-[#D4D4D8] group-hover:text-white transition-colors line-clamp-1">
+                    <div className="text-xs font-sans font-medium text-[#D4D4D8] group-hover:text-white transition-colors line-clamp-2 leading-snug h-[2.25rem] overflow-hidden">
                       {f.title}
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-[#666666] pt-1 border-t border-[#1F1F1F] font-mono">
-                      <span>{f.framework || "CIS"} • {(f as any).device_name || "—"}</span>
+                    <div className="flex items-center justify-between text-[10px] text-[#666666] pt-1.5 border-t border-[#1F1F1F] font-mono">
+                      <span className="truncate max-w-[170px]">{f.framework || "CIS"} • {(f as any).device_name || "—"}</span>
                       {fEvidence.hasLineCitation ? (
                         <span className={cn(
-                          "font-bold",
+                          "font-bold shrink-0",
                           f.status === "FAIL" ? "text-[#EF4444]" : f.status === "PASS" ? "text-[#10B981]" : "text-[#888888]"
                         )}>
                           LINE {fEvidence.line}
                         </span>
                       ) : (
-                        <span className="text-[#666666] font-medium">{fEvidence.citationText}</span>
+                        <span className="text-[#666666] font-medium shrink-0 truncate max-w-[130px]">{fEvidence.citationText}</span>
                       )}
                     </div>
                   </button>
@@ -666,8 +666,8 @@ function FindingsContent() {
           )}
         </div>
 
-        {/* CENTER PANEL (5 Cols): Evidence Configuration Viewer with Highlight */}
-        <div className="lg:col-span-5 space-y-2 font-mono">
+        {/* CENTER PANEL: Evidence Configuration Viewer with Highlight */}
+        <div className="w-full min-w-0 space-y-2 font-mono">
           <div className="flex items-center justify-between px-1 border-b border-[#1F1F1F] pb-1.5">
             <span className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">
               EVIDENCE VIEWER
@@ -730,8 +730,8 @@ function FindingsContent() {
           </div>
 
           {/* Configuration Code Text Viewer */}
-          <div className="rounded-lg border border-[#1F1F1F] bg-[#080808] overflow-hidden">
-            <div className="p-2 bg-[#0B0B0B] border-b border-[#1F1F1F] flex items-center justify-between text-[10px] text-[#666666] font-mono">
+          <div className="rounded-lg border border-[#1F1F1F] bg-[#080808] overflow-hidden flex flex-col">
+            <div className="p-2.5 bg-[#0B0B0B] border-b border-[#1F1F1F] flex items-center justify-between text-[11px] text-[#8E8E93] font-mono">
               <div className="flex items-center gap-2">
                 <FileCode2 className="w-3.5 h-3.5 text-[#888888]" />
                 <span className="text-[#F2F2F2] font-semibold">{configDetail?.original_filename || (selectedFinding as any)?.device_name || "—"}</span>
@@ -741,7 +741,7 @@ function FindingsContent() {
 
             <div
               ref={evidenceContainerRef}
-              className="max-h-[560px] overflow-y-auto p-2 text-[11px] leading-relaxed select-text font-mono bg-[#080808]"
+              className="max-h-[600px] overflow-y-auto overflow-x-auto p-2 text-[11px] leading-relaxed select-text font-mono bg-[#080808]"
             >
               {rawLines.length === 0 ? (
                 <div className="py-16 text-center text-[#666666] space-y-1 font-mono">
@@ -760,7 +760,7 @@ function FindingsContent() {
                     key={lineNum}
                     id={`evidence-line-${lineNum}`}
                     className={cn(
-                      "flex items-start rounded transition-colors group px-1 py-0.5 font-mono",
+                      "flex items-start rounded transition-colors group px-1 py-0.5 font-mono min-w-full w-fit",
                       isEvidenceLine
                         ? isPass
                           ? "bg-[#10B981]/15 border-l-2 border-[#10B981] text-[#F2F2F2] font-semibold"
@@ -770,7 +770,7 @@ function FindingsContent() {
                   >
                     <span
                       className={cn(
-                        "w-9 shrink-0 text-right pr-2.5 select-none text-[10px]",
+                        "w-10 min-w-10 select-none text-right pr-3 font-mono text-[#555555] shrink-0 text-[10px]",
                         isEvidenceLine
                           ? isPass
                             ? "text-[#10B981] font-bold"
@@ -781,7 +781,7 @@ function FindingsContent() {
                       {lineNum}
                     </span>
 
-                    <div className="flex-1 overflow-x-auto whitespace-pre font-mono">
+                    <div className="flex-1 whitespace-pre font-mono">
                       <span>{lineText || " "}</span>
                       {isEvidenceLine && (
                         <div className={cn(
@@ -803,8 +803,8 @@ function FindingsContent() {
           </div>
         </div>
 
-        {/* RIGHT PANEL (3 Cols): Security Context, Risk, Remediation & Re-Analysis */}
-        <div className="lg:col-span-3 space-y-2.5 font-mono">
+        {/* RIGHT PANEL: Security Context, Risk, Remediation & Re-Analysis */}
+        <div className="w-full min-w-0 space-y-2.5 font-mono max-h-[720px] overflow-y-auto pr-1">
           <div className="flex items-center justify-between px-1 border-b border-[#1F1F1F] pb-1.5">
             <span className="text-[10px] font-bold text-[#666666] uppercase tracking-wider">
               SECURITY CONTEXT

@@ -457,69 +457,71 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area - Automatically reclaims space when sidebar collapses */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top App Header */}
-        <header className="h-12 bg-[#080808] border-b border-[#1F1F1F] px-4 md:px-6 flex items-center justify-between z-10 select-none">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Open mobile navigation"
-              className="lg:hidden p-1.5 rounded-md text-[#8E8E93] hover:text-[#F2F2F2] hover:bg-[#121212] transition-colors"
-            >
-              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </button>
-
-            {/* Breadcrumb Title */}
-            <div className="flex items-center gap-2 text-xs text-[#8E8E93] font-mono truncate">
-              <span className="text-[#555555]">NETVIGIL</span>
-              <span className="text-[#2A2A2A]">/</span>
-              <span className="font-semibold text-[#F2F2F2] truncate">{getBreadcrumb()}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            {/* Global Search Launch Button */}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0D0D0D] border border-[#1F1F1F] hover:border-[#2A2A2A] text-xs text-[#666666] hover:text-[#A0A0A0] transition-colors"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Search controls, findings...</span>
-              <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[9px] font-mono rounded bg-[#141414] text-[#888888] border border-[#242424]">
-                Ctrl K
-              </kbd>
-            </button>
-
-            {/* Ingest Primary Action Button */}
-            <Link
-              href="/configurations?mode=ingest"
-              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#121212] hover:bg-[#181818] border border-[#262626] text-xs text-[#F2F2F2] hover:text-white transition-colors font-mono text-[11px] font-medium shadow-xs"
-            >
-              <Upload className="w-3.5 h-3.5 text-[#A0A0A0]" />
-              <span>INGEST</span>
-            </Link>
-
-            {/* Operational State Pill */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#0D0D0D] border border-[#1F1F1F] text-[10px] font-mono">
-              <span
-                className={cn(
-                  "w-1.5 h-1.5 rounded-full",
-                  isOnline && "bg-[#10B981]",
-                  isDegraded && "bg-[#F59E0B]",
-                  isConnecting && "bg-[#3B82F6] animate-pulse",
-                  isOffline && "bg-[#EF4444]"
-                )}
-              />
-              <span
-                className={cn(
-                  "font-medium tracking-wider",
-                  isOnline && "text-[#10B981]",
-                  isDegraded && "text-[#F59E0B]",
-                  isConnecting && "text-[#3B82F6]",
-                  isOffline && "text-[#EF4444]"
-                )}
+        <header className="h-12 bg-[#080808] border-b border-[#1F1F1F] px-4 md:px-6 flex items-center z-10 select-none">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Open mobile navigation"
+                className="lg:hidden p-1.5 rounded-md text-[#8E8E93] hover:text-[#F2F2F2] hover:bg-[#121212] transition-colors"
               >
-                {isOnline ? "OPERATIONAL" : isDegraded ? "DEGRADED" : isConnecting ? "CONNECTING" : "OFFLINE"}
-              </span>
+                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </button>
+
+              {/* Breadcrumb Title */}
+              <div className="flex items-center gap-2 text-xs text-[#8E8E93] font-mono truncate">
+                <span className="text-[#555555]">NETVIGIL</span>
+                <span className="text-[#2A2A2A]">/</span>
+                <span className="font-semibold text-[#F2F2F2] truncate">{getBreadcrumb()}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0">
+              {/* Global Search Launch Button */}
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0D0D0D] border border-[#1F1F1F] hover:border-[#2A2A2A] text-xs text-[#666666] hover:text-[#A0A0A0] transition-colors"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px]">Search controls, findings...</span>
+                <kbd className="hidden md:inline-block px-1.5 py-0.2 text-[9px] font-mono rounded bg-[#141414] text-[#888888] border border-[#242424]">
+                  Ctrl K
+                </kbd>
+              </button>
+
+              {/* Ingest Primary Action Button */}
+              <Link
+                href="/configurations?mode=ingest"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#121212] hover:bg-[#181818] border border-[#262626] text-xs text-[#F2F2F2] hover:text-white transition-colors font-mono text-[11px] font-medium shadow-xs"
+              >
+                <Upload className="w-3.5 h-3.5 text-[#A0A0A0]" />
+                <span>INGEST</span>
+              </Link>
+
+              {/* Operational State Pill */}
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#0D0D0D] border border-[#1F1F1F] text-[10px] font-mono">
+                <span
+                  className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    isOnline && "bg-[#10B981]",
+                    isDegraded && "bg-[#F59E0B]",
+                    isConnecting && "bg-[#3B82F6] animate-pulse",
+                    isOffline && "bg-[#EF4444]"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "font-medium tracking-wider",
+                    isOnline && "text-[#10B981]",
+                    isDegraded && "text-[#F59E0B]",
+                    isConnecting && "text-[#3B82F6]",
+                    isOffline && "text-[#EF4444]"
+                  )}
+                >
+                  {isOnline ? "OPERATIONAL" : isDegraded ? "DEGRADED" : isConnecting ? "CONNECTING" : "OFFLINE"}
+                </span>
+              </div>
             </div>
           </div>
         </header>

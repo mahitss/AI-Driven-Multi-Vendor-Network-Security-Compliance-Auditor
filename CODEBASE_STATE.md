@@ -355,11 +355,33 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
 * **Responsive Layout & Space Reclamation**:
   * Main content wrapper uses `flex-1 min-w-0 overflow-hidden` to automatically reclaim horizontal space when collapsed without page shift.
   * Mobile/tablet breakpoints preserve drawer behavior (`w-[280px]` overlay with backdrop blur) without forcing horizontal overflow.
-* **State Persistence & Hydration Safety**:
-  * Preference persisted in `localStorage` (`netvigil_sidebar_collapsed`).
-  * Initialized safely via `isMounted` hook pattern to eliminate Next.js/React SSR/CSR hydration mismatches.
-* **Functional Safety & Verification**:
-  * Zero route, API, auth, compliance, scoring, or remediation changes.
-  * Verified: 100% web tests passed (`npm test`), TypeScript passed (`npm run typecheck`), production build succeeded across all 34 routes (`npm run build`).
+### Frontend UI Hardening — Findings & Evidence Explorer Workspace (September 2026)
+* **Design & Aesthetic Invariants**:
+  * Adheres strictly to the NetVigil matte-black SOC console visual language (`#080808`, `#070707`, `#121212`, `#1F1F1F`, `#242424`).
+  * 100% preservation of parsers, vendor detection, compliance calculations, risk scoring formulas, remediation catalogs, database schemas, and authentication.
+* **Stable 3-Column Workspace (`findings/page.tsx`)**:
+  * Established a controlled fractional grid: `grid-cols-1 lg:grid-cols-[minmax(0,31fr)_minmax(0,41fr)_minmax(0,28fr)] gap-4 items-start w-full`.
+  * Guarantees 31% Left (Findings Registry), 41% Center (Evidence Viewer), 28% Right (Security Context) proportional distribution without gap overflow.
+  * Columns align at the top (`items-start`), maintain independent vertical scrolling (`max-h-[720px] overflow-y-auto` on Left, `max-h-[600px] overflow-y-auto` on Center, `max-h-[720px] overflow-y-auto` on Right), and eliminate dead whitespace.
+* **Findings Registry Card Uniformity**:
+  * Every finding card enforces uniform width (`w-full`), padding (`p-3`), border radius (`rounded-lg`), and vertical spacing (`space-y-2`).
+  * Severity badge (`px-1.5 py-0.5 text-[9px]`) and Status badge (`px-1.5 py-0.5 text-[9px]`) share predictable horizontal and vertical alignments.
+  * Finding title clamped to a fixed 2-line height (`h-[2.25rem] line-clamp-2 leading-snug overflow-hidden`), preventing unpredictable card height shifts.
+  * Card footer aligns Framework & Device on the left and exact `LINE {line}` indicator consistently pinned on the right.
+* **Evidence Code Viewer Vertical Structure & Overflow Isolation**:
+  * Viewer body constrained with internal `overflow-x-auto overflow-y-auto` at `max-h-[600px]`.
+  * Code lines styled with `flex items-start rounded px-1 py-0.5 font-mono min-w-full w-fit`, ensuring active evidence highlights (`bg-[#EF4444]/15` or `bg-[#10B981]/15`) span the full width of long lines without breaking monospace alignment.
+  * Eliminated nested line-level scrollbars; horizontal scrolling is isolated strictly inside the code viewer component without causing viewport-level horizontal overflow.
+* **Security Context Vertical Stack**:
+  * Right column structured into a clean vertical stack of uniform cards: Observed/Expected Box, Policy Compliance Explanation, Related Framework Controls, Risk Contribution, and Allowlisted Remediation with Re-Analysis Verification.
+* **Header Content Boundary Alignment (`AppShell.tsx`)**:
+  * Wrapped top application header inner content in `max-w-7xl mx-auto w-full flex items-center justify-between` to share the exact horizontal content boundary with all protected pages.
+  * Breadcrumbs, global search, INGEST button, and OPERATIONAL indicator align precisely with page content headers across all desktop resolutions.
+* **Data Fidelity & Semantic Labeling**:
+  * Zero hardcoded dashboard counts; dynamic values (`totalFindingsCount`, `criticalCount`, `highCount`, `verifiedEvidenceCount`) trace strictly to backend query results.
+  * Preserved 88 total findings for authenticated user scope; updated presentation label to "TOTAL FINDINGS" ("Audited policy controls") to resolve ambiguity regarding compliant PASS controls.
+  * Maintained critical distinction where a CRITICAL control may legitimately be PASS with 0.0 risk contribution and "HARDENED / SECURED" status.
+  * Verified exact AST evidence line provenance (e.g. `05_JUNIPER_HARDENED.set` line 4 for telnet deletion).
+
 
 

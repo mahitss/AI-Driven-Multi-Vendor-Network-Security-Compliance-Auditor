@@ -544,29 +544,27 @@ function AuditsPageContent() {
                 </span>
               </div>
             )}
-          </div>
-
-          {/* Compliance Posture Overview Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          </div>          {/* Compliance Posture Overview Grid: 5 equal-width columns on desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Overall Score Card */}
-            <div className="p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col justify-between relative overflow-hidden">
+            <div className="p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col justify-between relative overflow-hidden h-full min-h-[140px]">
               <div className="space-y-1">
-                <div className="text-xs font-semibold text-[#555555] uppercase tracking-wider font-mono">
-                  NetVigil Compliance Score
+                <div className="text-[11px] font-semibold text-[#555555] uppercase tracking-wider font-mono">
+                  NetVigil Score
                 </div>
-                <div className="text-xs text-[#555555] font-mono">Deterministic Multi-Framework Average</div>
+                <div className="text-[10px] text-[#555555] font-mono truncate">Multi-Framework Average</div>
               </div>
 
-              <div className="my-4 flex items-baseline gap-2 font-mono">
+              <div className="my-3 flex items-baseline gap-1.5 font-mono">
                 <span
                   className={cn(
-                    "text-4xl font-bold tracking-tight",
+                    "text-3xl font-bold tracking-tight",
                     currentScore >= 80 ? "text-[#10B981]" : currentScore >= 60 ? "text-[#F59E0B]" : "text-[#EF4444]"
                   )}
                 >
                   {currentScore.toFixed(1)}
                 </span>
-                <span className="text-[#555555] text-sm font-semibold">/ 100</span>
+                <span className="text-[#555555] text-xs font-semibold">/ 100</span>
               </div>
 
               <div className="w-full bg-[#141414] rounded-full h-1.5 overflow-hidden border border-[#1F1F1F]">
@@ -575,75 +573,73 @@ function AuditsPageContent() {
                     "h-full transition-all duration-500",
                     currentScore >= 80 ? "bg-[#10B981]" : currentScore >= 60 ? "bg-[#F59E0B]" : "bg-[#EF4444]"
                   )}
-                  style={{ width: `${currentScore}%` }}
+                  style={{ width: `${Math.min(100, Math.max(0, currentScore))}%` }}
                 />
               </div>
             </div>
 
-            {/* Framework Breakdown Cards (3 cols) */}
-            <div className="md:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { key: "CIS", label: "CIS Benchmark", sub: "v2.0.0 Consensus" },
-                { key: "NIST", label: "NIST SP 800-53", sub: "Rev 5 Federal" },
-                { key: "STIG", label: "DISA STIG", sub: "DoD Hardening" },
-                { key: "ISO", label: "ISO 27001", sub: "Annex A Controls" },
-              ].map((fw) => {
-                const fwData = frameworkResults[fw.key];
-                const isEvaluated = Boolean(fwData && (fwData.total_evaluated > 0 || fwData.total_applicable > 0));
-                const scoreVal = fwData ? fwData.score : 0;
-                return (
-                  <div
-                    key={fw.key}
-                    onClick={() => setActiveFrameworkFilter(activeFrameworkFilter === fw.key ? "ALL" : fw.key)}
-                    className={cn(
-                      "p-4 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between",
-                      activeFrameworkFilter === fw.key
-                        ? "bg-[#141414] border-[#333333] shadow-xs"
-                        : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A] hover:bg-[#101010]"
-                    )}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#F2F2F2] font-mono">{fw.key}</span>
-                        {isEvaluated && fwData ? (
-                          <span
-                            className="text-[10px] font-mono text-[#555555]"
-                            title={`${fwData.passed_count} passed, ${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A (${fwData.total_applicable} applicable controls)`}
-                          >
-                            {fwData.passed_count}/{fwData.total_applicable} passed
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-mono text-[#555555]">Not Evaluated</span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-[#8E8E93] font-medium mt-0.5">{fw.label}</div>
+            {/* 4 Framework Breakdown Cards */}
+            {[
+              { key: "CIS", label: "CIS Benchmark", sub: "v2.0.0 Consensus" },
+              { key: "NIST", label: "NIST SP 800-53", sub: "Rev 5 Federal" },
+              { key: "STIG", label: "DISA STIG", sub: "DoD Hardening" },
+              { key: "ISO", label: "ISO 27001", sub: "Annex A Controls" },
+            ].map((fw) => {
+              const fwData = frameworkResults[fw.key];
+              const isEvaluated = Boolean(fwData && (fwData.total_evaluated > 0 || fwData.total_applicable > 0));
+              const scoreVal = fwData ? fwData.score : 0;
+              return (
+                <div
+                  key={fw.key}
+                  onClick={() => setActiveFrameworkFilter(activeFrameworkFilter === fw.key ? "ALL" : fw.key)}
+                  className={cn(
+                    "p-4 rounded-lg border transition-colors cursor-pointer flex flex-col justify-between h-full min-h-[140px]",
+                    activeFrameworkFilter === fw.key
+                      ? "bg-[#141414] border-[#333333] shadow-xs"
+                      : "bg-[#0B0B0B] border-[#1F1F1F] hover:border-[#2A2A2A] hover:bg-[#101010]"
+                  )}
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#F2F2F2] font-mono">{fw.key}</span>
+                      {isEvaluated && fwData ? (
+                        <span
+                          className="text-[10px] font-mono text-[#8E8E93]"
+                          title={`${fwData.passed_count} passed, ${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A (${fwData.total_applicable} applicable controls)`}
+                        >
+                          {fwData.passed_count}/{fwData.total_applicable} passed
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono text-[#555555]">Not Evaluated</span>
+                      )}
                     </div>
+                    <div className="text-[11px] text-[#8E8E93] font-medium mt-0.5 truncate">{fw.label}</div>
+                  </div>
 
-                    <div className="mt-3">
-                      <div className="text-xl font-bold font-mono text-[#F2F2F2]">
-                        {isEvaluated ? `${scoreVal.toFixed(1)}%` : "—"}
-                      </div>
-                      <div className="text-[10px] text-[#555555] font-mono mt-0.5 flex items-center justify-between">
-                        <span>{fw.sub}</span>
-                        {isEvaluated && fwData && (
-                          <span
-                            className="text-[#8E8E93]"
-                            title={`${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A`}
-                          >
-                            {fwData.failed_count} fail{fwData.unknown_count > 0 ? ` · ${fwData.unknown_count} unk` : ""}{fwData.not_applicable_count > 0 ? ` · ${fwData.not_applicable_count} N/A` : ""}
-                          </span>
-                        )}
-                      </div>
+                  <div className="mt-3">
+                    <div className="text-2xl font-bold font-mono text-[#F2F2F2]">
+                      {isEvaluated ? `${scoreVal.toFixed(1)}%` : "—"}
+                    </div>
+                    <div className="text-[10px] text-[#555555] font-mono mt-0.5 flex items-center justify-between gap-1">
+                      <span className="truncate">{fw.sub}</span>
+                      {isEvaluated && fwData && (
+                        <span
+                          className="text-[#8E8E93] shrink-0"
+                          title={`${fwData.failed_count} failed, ${fwData.unknown_count} unknown, ${fwData.not_applicable_count} N/A`}
+                        >
+                          {fwData.failed_count} fail{fwData.not_applicable_count > 0 ? ` · ${fwData.not_applicable_count} N/A` : ""}
+                        </span>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Severity Badges Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-            <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between">
+          {/* Severity Badges Bar: Equal 4-Column Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
                 <div className="text-[10px] text-[#EF4444] uppercase font-semibold">Critical Findings</div>
                 <div className="text-lg font-bold text-[#EF4444] mt-0.5">{sevStats.critical}</div>
@@ -651,7 +647,7 @@ function AuditsPageContent() {
               <ShieldAlert className="w-5 h-5 text-[#EF4444]" />
             </div>
 
-            <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between">
+            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
                 <div className="text-[10px] text-[#F59E0B] uppercase font-semibold">High Findings</div>
                 <div className="text-lg font-bold text-[#F59E0B] mt-0.5">{sevStats.high}</div>
@@ -659,7 +655,7 @@ function AuditsPageContent() {
               <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
             </div>
 
-            <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex items-center justify-between">
+            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
                 <div className="text-[10px] text-[#8E8E93] uppercase font-semibold">Medium Findings</div>
                 <div className="text-lg font-bold text-[#F2F2F2] mt-0.5">{sevStats.medium}</div>
@@ -667,7 +663,7 @@ function AuditsPageContent() {
               <Info className="w-5 h-5 text-[#8E8E93]" />
             </div>
 
-            <div className="p-3 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex items-center justify-between">
+            <div className="p-3.5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2A2A2A] transition-colors flex items-center justify-between h-full">
               <div>
                 <div className="text-[10px] text-[#555555] uppercase font-semibold">Low / Informational</div>
                 <div className="text-lg font-bold text-[#8E8E93] mt-0.5">{sevStats.low + sevStats.info}</div>
@@ -678,22 +674,23 @@ function AuditsPageContent() {
 
           {/* Findings Explorer */}
           <div className="p-5 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] space-y-4">
-            {/* Filter Toolbar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#1F1F1F]">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-[#F2F2F2] font-mono flex items-center gap-1.5">
+            {/* Filter Toolbar: Clean Two-Part Layout */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3.5 border-b border-[#1F1F1F]">
+              {/* LEFT: Count badge + Framework filters + Status filters */}
+              <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+                <span className="text-xs font-semibold text-[#F2F2F2] font-mono flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded bg-[#080808] border border-[#1F1F1F]">
                   <Filter className="w-3.5 h-3.5 text-[#8E8E93]" />
                   <span>Findings ({filteredFindings.length})</span>
                 </span>
 
                 {/* Framework Filters */}
-                <div className="flex items-center gap-1 bg-[#080808] border border-[#1F1F1F] p-1 rounded-md text-xs font-mono">
+                <div className="flex items-center gap-0.5 bg-[#080808] border border-[#1F1F1F] p-0.5 rounded-md text-xs font-mono shrink-0">
                   {["ALL", "CIS", "NIST", "STIG", "ISO"].map((fw) => (
                     <button
                       key={fw}
                       onClick={() => setActiveFrameworkFilter(fw)}
                       className={cn(
-                        "px-2.5 py-0.5 rounded text-[11px] font-semibold transition-colors",
+                        "px-2.5 py-1 rounded text-[11px] font-semibold transition-colors whitespace-nowrap",
                         activeFrameworkFilter === fw
                           ? "bg-[#161616] text-[#F2F2F2] border border-[#2E2E2E]"
                           : "text-[#8E8E93] hover:text-white"
@@ -705,13 +702,13 @@ function AuditsPageContent() {
                 </div>
 
                 {/* Status Filter */}
-                <div className="flex items-center gap-1 bg-[#080808] border border-[#1F1F1F] p-1 rounded-md text-xs font-mono">
+                <div className="flex items-center gap-0.5 bg-[#080808] border border-[#1F1F1F] p-0.5 rounded-md text-xs font-mono shrink-0">
                   {["ALL", "FAIL", "PASS", "NOT_APPLICABLE", "UNKNOWN"].map((st) => (
                     <button
                       key={st}
                       onClick={() => setActiveStatusFilter(st)}
                       className={cn(
-                        "px-2 py-0.5 rounded text-[10px] font-semibold uppercase transition-colors",
+                        "px-2 py-1 rounded text-[10px] font-semibold uppercase transition-colors whitespace-nowrap",
                         activeStatusFilter === st
                           ? st === "FAIL"
                             ? "bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30"
@@ -729,15 +726,15 @@ function AuditsPageContent() {
                 </div>
               </div>
 
-              {/* Search Box */}
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-[#555555] absolute left-2.5 top-1/2 -translate-y-1/2" />
+              {/* RIGHT: Search Field */}
+              <div className="relative shrink-0 w-full md:w-64">
+                <Search className="w-3.5 h-3.5 text-[#555555] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search finding or control..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 rounded-md bg-[#080808] border border-[#1F1F1F] text-xs text-[#F2F2F2] placeholder-[#555555] focus:outline-none focus:border-[#2E2E2E] w-full sm:w-64 font-mono"
+                  className="pl-8 pr-3 py-1.5 rounded-md bg-[#080808] border border-[#1F1F1F] text-xs text-[#F2F2F2] placeholder-[#555555] focus:outline-none focus:border-[#333333] w-full font-mono transition-colors"
                 />
               </div>
             </div>
@@ -757,16 +754,16 @@ function AuditsPageContent() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full min-w-[980px] text-left text-xs table-fixed">
                   <thead>
                     <tr className="border-b border-[#1F1F1F] text-[11px] font-mono text-[#555555] uppercase tracking-wider">
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3">Severity</th>
-                      <th className="py-2.5 px-3">Framework & Control</th>
-                      <th className="py-2.5 px-3">Title</th>
-                      <th className="py-2.5 px-3">Actual vs Expected</th>
-                      <th className="py-2.5 px-3 text-right">Actions</th>
+                      <th className="py-2.5 px-3 w-[115px] shrink-0">Status</th>
+                      <th className="py-2.5 px-3 w-[100px] shrink-0">Severity</th>
+                      <th className="py-2.5 px-3 w-[170px] shrink-0">Framework & Control</th>
+                      <th className="py-2.5 px-3 min-w-[240px]">Title</th>
+                      <th className="py-2.5 px-3 w-[210px] shrink-0">Actual vs Expected</th>
+                      <th className="py-2.5 px-3 w-[185px] shrink-0 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#181818]">
@@ -785,28 +782,28 @@ function AuditsPageContent() {
                           }}
                           className="hover:bg-[#101010] transition-colors cursor-pointer group"
                         >
-                          <td className="py-3 px-3">
+                          <td className="py-3 px-3 w-[115px] shrink-0">
                             <span
                               className={cn(
-                                "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border",
+                                "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border whitespace-nowrap",
                                 isPass && "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30",
                                 isFail && "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30",
                                 isNA && "bg-[#141414] text-[#8E8E93] border-[#242424]",
                                 isUnknown && "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
                               )}
                             >
-                              {isPass && <CheckCircle2 className="w-3 h-3" />}
-                              {isFail && <XCircle className="w-3 h-3" />}
-                              {isNA && <ShieldCheck className="w-3 h-3" />}
-                              {isUnknown && <HelpCircle className="w-3 h-3" />}
+                              {isPass && <CheckCircle2 className="w-3 h-3 shrink-0" />}
+                              {isFail && <XCircle className="w-3 h-3 shrink-0" />}
+                              {isNA && <ShieldCheck className="w-3 h-3 shrink-0" />}
+                              {isUnknown && <HelpCircle className="w-3 h-3 shrink-0" />}
                               <span>{f.status}</span>
                             </span>
                           </td>
 
-                          <td className="py-3 px-3 font-mono">
+                          <td className="py-3 px-3 w-[100px] shrink-0 font-mono">
                             <span
                               className={cn(
-                                "text-[10px] font-bold uppercase",
+                                "text-[10px] font-bold uppercase whitespace-nowrap",
                                 isNA && "text-[#555555]",
                                 !isNA && f.severity === "CRITICAL" && "text-[#EF4444]",
                                 !isNA && f.severity === "HIGH" && "text-[#F59E0B]",
@@ -819,20 +816,20 @@ function AuditsPageContent() {
                             </span>
                           </td>
 
-                          <td className="py-3 px-3 font-mono">
-                            <div className="flex items-center gap-1.5">
-                              <span className="px-1.5 py-0.2 rounded bg-[#080808] border border-[#1F1F1F] text-[#8E8E93] text-[10px] font-bold">
+                          <td className="py-3 px-3 w-[170px] shrink-0 font-mono">
+                            <div className="flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="px-1.5 py-0.2 rounded bg-[#080808] border border-[#1F1F1F] text-[#8E8E93] text-[10px] font-bold shrink-0">
                                 {f.framework}
                               </span>
-                              <span className="text-[#F2F2F2] font-semibold">{f.control_id}</span>
+                              <span className="text-[#F2F2F2] font-semibold truncate">{f.control_id}</span>
                             </div>
                             {f.category && (
-                              <div className="text-[10px] text-[#555555] mt-0.5">{f.category}</div>
+                              <div className="text-[10px] text-[#555555] mt-0.5 truncate">{f.category}</div>
                             )}
                           </td>
 
-                          <td className="py-3 px-3">
-                            <div className="font-medium text-[#F2F2F2] group-hover:text-white transition-colors">
+                          <td className="py-3 px-3 min-w-[240px]">
+                            <div className="font-medium text-[#F2F2F2] group-hover:text-white transition-colors line-clamp-1">
                               {f.title}
                             </div>
                             <div className="text-[10px] text-[#8E8E93] line-clamp-1 mt-0.5">
@@ -840,45 +837,49 @@ function AuditsPageContent() {
                             </div>
                           </td>
 
-                          <td className="py-3 px-3 font-mono text-[11px]">
+                          <td className="py-3 px-3 w-[210px] shrink-0 font-mono text-[11px]">
                             <div className="space-y-0.5">
-                              <div className="text-[#555555]">
+                              <div className="text-[#555555] truncate">
                                 Actual: <span className={cn(
                                   "font-semibold",
                                   isPass ? "text-[#10B981]" : isNA ? "text-[#8E8E93]" : "text-[#EF4444]"
                                 )}>{f.actual_value || "—"}</span>
                               </div>
-                              <div className="text-[#555555]">
+                              <div className="text-[#555555] truncate">
                                 Expected: <span className="text-[#8E8E93]">{f.expected_value || "—"}</span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="py-3 px-3 text-right space-x-1.5">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setInspectingFinding(f);
-                                setFindingExplanation(null);
-                                handleExplainFinding(f.id);
-                              }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#141414] hover:bg-[#1A1A1A] text-[#8E8E93] hover:text-[#F2F2F2] border border-[#242424] text-[11px] font-mono transition-colors"
-                            >
-                              <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
-                              <span>AI Explain</span>
-                            </button>
+                          <td className="py-3 px-3 w-[185px] shrink-0 text-right">
+                            <div className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setInspectingFinding(f);
+                                  setFindingExplanation(null);
+                                  handleExplainFinding(f.id);
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#141414] hover:bg-[#1A1A1A] text-[#8E8E93] hover:text-[#F2F2F2] border border-[#242424] text-[11px] font-mono transition-colors shrink-0"
+                                title="AI Explanation"
+                              >
+                                <Sparkles className="w-3 h-3 text-[#8B5CF6] shrink-0" />
+                                <span>AI Explain</span>
+                              </button>
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setInspectingFinding(f);
-                                setFindingExplanation(null);
-                              }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#080808] hover:bg-[#141414] text-[#8E8E93] hover:text-white border border-[#1F1F1F] text-[11px] font-mono transition-colors"
-                            >
-                              <Terminal className="w-3 h-3 text-[#888888]" />
-                              <span>Details</span>
-                            </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setInspectingFinding(f);
+                                  setFindingExplanation(null);
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#080808] hover:bg-[#141414] text-[#8E8E93] hover:text-white border border-[#1F1F1F] text-[11px] font-mono transition-colors shrink-0"
+                                title="Inspect Finding Details"
+                              >
+                                <Terminal className="w-3 h-3 text-[#888888] shrink-0" />
+                                <span>Details</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
