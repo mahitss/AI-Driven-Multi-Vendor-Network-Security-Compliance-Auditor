@@ -9,7 +9,7 @@ export default function MultiVendorProofSection() {
     <section id="multi-vendor" className="py-20 px-4 sm:px-6 max-w-[1440px] mx-auto space-y-10 font-sans">
       {/* Section Header */}
       <div className="text-center space-y-2 max-w-3xl mx-auto">
-        <div className="text-xs font-mono text-[#3B82F6] font-semibold uppercase tracking-wider">
+        <div className="text-xs font-mono text-[#D4D4D8] font-semibold uppercase tracking-wider">
           CROSS-OS EQUIVALENCE PROOF
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F2F2F2] tracking-tight">
@@ -25,9 +25,9 @@ export default function MultiVendorProofSection() {
         {/* Dialects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Cisco IOS */}
-          <div className="p-4 rounded-xl bg-[#080808] border border-[#3B82F6]/30 space-y-2">
+          <div className="p-4 rounded-xl bg-[#080808] border border-[#2A2A2A] space-y-2">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-[#3B82F6] font-bold">CISCO IOS</span>
+              <span className="text-[#D4D4D8] font-bold">CISCO IOS</span>
               <span className="text-[#636366]">CLI Native</span>
             </div>
             <code className="text-sm text-[#F2F2F2] block bg-black/50 p-2.5 rounded border border-[#1F1F1F]">
@@ -59,12 +59,12 @@ export default function MultiVendorProofSection() {
         </div>
 
         {/* Convergence Flow Indicator */}
-        <div className="flex items-center justify-center gap-3 text-xs text-[#3B82F6]">
-          <span className="h-px bg-gradient-to-r from-transparent via-[#3B82F6]/50 to-transparent flex-1" />
-          <span className="px-3 py-1 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/30 font-bold uppercase tracking-wider text-[10px]">
+        <div className="flex items-center justify-center gap-3 text-xs text-[#8E8E93]">
+          <span className="h-px bg-[#1F1F1F] flex-1" />
+          <span className="px-3 py-1 rounded-full bg-[#141414] border border-[#242424] text-[#D4D4D8] font-bold uppercase tracking-wider text-[10px]">
             CONVERGES TO CANONICAL SECURITY MODEL
           </span>
-          <span className="h-px bg-gradient-to-r from-transparent via-[#3B82F6]/50 to-transparent flex-1" />
+          <span className="h-px bg-[#1F1F1F] flex-1" />
         </div>
 
         {/* Normalized Model & Compliance Verdict */}
@@ -97,10 +97,10 @@ export default function MultiVendorProofSection() {
         <div className="pt-2 text-center">
           <Link
             href="/demo/multi-vendor"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#141414] border border-[#1F1F1F] hover:border-[#3B82F6] hover:bg-[#151E2D] text-[#F2F2F2] font-bold text-xs transition-all shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#141414] border border-[#1F1F1F] hover:border-[#2A2A2A] hover:bg-[#181818] text-[#F2F2F2] font-bold text-xs transition-all shadow-sm"
           >
             <span>OPEN MULTI-VENDOR PROOF →</span>
-            <ArrowRight className="w-4 h-4 text-[#3B82F6]" />
+            <ArrowRight className="w-4 h-4 text-[#D4D4D8]" />
           </Link>
         </div>
       </div>

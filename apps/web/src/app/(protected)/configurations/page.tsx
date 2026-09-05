@@ -656,7 +656,7 @@ function ConfigurationsPageContent() {
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                   DETERMINISTIC VERIFICATION
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#141414] text-[#D4D4D8] border border-[#242424]">
                   MULTI-VENDOR
                 </span>
               </div>
@@ -864,6 +864,12 @@ function ConfigurationsPageContent() {
                     <strong className="text-[#D4D4D8]">.json</strong> Universal Schema
                   </span>
                 </div>
+
+                {/* Automatic vendor detection indicator */}
+                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0E0E0E] border border-[#1F1F1F] text-[11px] font-mono text-[#A0A0A0]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                  <span>AUTOMATIC VENDOR DETECTION: Cisco IOS • Juniper JunOS • Fortinet FortiOS</span>
+                </div>
               </div>
             )}
 
@@ -1044,7 +1050,7 @@ function ConfigurationsPageContent() {
         <div className="p-6 rounded-lg bg-[#0B0B0B] border border-[#2C2C2E] space-y-4 font-mono shadow-2xl animate-fadeIn">
           <div className="flex items-center justify-between border-b border-[#1F1F1F] pb-3">
             <div className="flex items-center gap-2 text-xs font-bold text-white">
-              <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
+              <RefreshCw className="w-4 h-4 animate-spin text-[#10B981]" />
               <span>ANALYZING CONFIGURATION DETERMINISTICALLY</span>
             </div>
             <span className="text-[10px] text-[#636366]">ZERO SPECULATION ENGINE</span>
@@ -1150,12 +1156,12 @@ function ConfigurationsPageContent() {
                   "w-8 h-8 rounded-lg flex items-center justify-center border",
                   isAuditFullyComplete
                     ? "bg-[#10B981]/15 border-[#10B981]/30 text-[#10B981]"
-                    : "bg-[#3B82F6]/15 border-[#3B82F6]/30 text-[#3B82F6]"
+                    : "bg-[#141414] border-[#242424] text-[#D4D4D8]"
                 )}>
                   {isAuditFullyComplete ? (
                     <CheckCircle2 className="w-4 h-4" />
                   ) : (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#D4D4D8]" />
                   )}
                 </div>
                 <div>
@@ -1171,7 +1177,7 @@ function ConfigurationsPageContent() {
                         ? "AUDIT COMPLETE"
                         : "AWAITING AUDIT"}
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#141414] text-[#D4D4D8] border border-[#242424]">
                       {(analysisStatus?.vendor || detectedVendorState.vendor || "CISCO").toUpperCase()}
                     </span>
                   </div>
@@ -1190,7 +1196,7 @@ function ConfigurationsPageContent() {
                     const el = document.getElementById("panel-findings");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-[#3B82F6] font-bold transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-[#F2F2F2] font-bold transition-all flex items-center gap-1.5"
                 >
                   <Search className="w-3.5 h-3.5" />
                   <span>INVESTIGATE FINDINGS</span>
@@ -1202,7 +1208,7 @@ function ConfigurationsPageContent() {
                     const el = document.getElementById("panel-evidence");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-[#3B82F6] font-bold transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg bg-[#080808] hover:bg-[#141414] border border-[#1F1F1F] text-[#8E8E93] hover:text-[#F2F2F2] font-bold transition-all flex items-center gap-1.5"
                 >
                   <FileCode2 className="w-3.5 h-3.5" />
                   <span>VIEW EVIDENCE</span>

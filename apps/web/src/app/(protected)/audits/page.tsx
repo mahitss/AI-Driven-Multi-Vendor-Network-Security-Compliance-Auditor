@@ -34,6 +34,7 @@ import {
   Zap,
   Wrench,
   FileText,
+  UploadCloud,
 } from "lucide-react";
 import {
   fetchAudits,
@@ -461,30 +462,38 @@ function AuditsPageContent() {
           <span>Loading compliance audit sessions...</span>
         </div>
       ) : audits.length === 0 ? (
-        /* Empty State */
-        <div className="p-12 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center space-y-4 font-mono text-xs">
+        /* Onboarding State for First-Use / Empty Console */
+        <div className="p-10 sm:p-12 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center space-y-5 font-mono text-xs max-w-2xl mx-auto my-6">
           <div className="w-14 h-14 rounded-xl bg-[#141414] border border-[#242424] flex items-center justify-center text-[#F2F2F2] mx-auto">
-            <ShieldCheck className="w-7 h-7" />
+            <ShieldCheck className="w-7 h-7 text-[#10B981]" />
           </div>
-          <div className="space-y-1">
-            <h3 className="text-base font-semibold text-[#F2F2F2] font-sans">No Compliance Audits Executed</h3>
-            <p className="text-xs sm:text-sm text-[#8E8E93] max-w-md mx-auto font-sans">
-              Run a deterministic compliance audit against an ingested configuration to evaluate CIS, NIST, DISA STIG,
-              and ISO 27001 baseline checks.
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold text-[#F2F2F2] font-sans">Start your first security audit</h3>
+            <p className="text-xs sm:text-[13px] text-[#8E8E93] max-w-md mx-auto font-sans leading-relaxed">
+              Upload a network configuration and NetVigil will detect the vendor, parse the configuration, evaluate security controls, identify evidence-backed findings, and prioritize risk.
             </p>
           </div>
-          <button
-            onClick={() => {
-              if (configurations.length > 0) {
-                setSelectedConfigForAudit(configurations[0].id);
-              }
-              setIsLaunchModalOpen(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#161616] hover:bg-[#1F1F1F] border border-[#2E2E2E] text-[#F2F2F2] hover:text-white text-xs font-semibold transition-colors font-mono shadow-xs cursor-pointer"
-          >
-            <Play className="w-4 h-4 fill-current text-[#10B981]" />
-            <span>Launch Initial Audit</span>
-          </button>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/configurations"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#F2F2F2] hover:bg-white text-black font-bold text-xs tracking-wider transition-all duration-150 active:scale-[0.98] shadow-sm"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Upload Configuration</span>
+            </Link>
+            {configurations.length > 0 && (
+              <button
+                onClick={() => {
+                  setSelectedConfigForAudit(configurations[0].id);
+                  setIsLaunchModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#161616] hover:bg-[#1F1F1F] border border-[#2E2E2E] text-[#F2F2F2] hover:text-white text-xs font-semibold transition-colors font-mono shadow-xs cursor-pointer"
+              >
+                <Play className="w-4 h-4 fill-current text-[#10B981]" />
+                <span>Launch Existing Target</span>
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         /* Main Audit Workspace */

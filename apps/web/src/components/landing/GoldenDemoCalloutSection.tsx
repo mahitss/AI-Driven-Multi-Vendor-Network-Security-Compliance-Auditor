@@ -53,7 +53,7 @@ export default function GoldenDemoCalloutSection() {
         <div className="flex flex-col sm:flex-row lg:flex-col gap-3.5 w-full lg:w-auto font-mono text-xs">
           <Link
             href="/console"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold transition-all shadow-sm"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-[#F2F2F2] hover:bg-white text-black font-bold transition-all shadow-sm"
           >
             <span>GET STARTED →</span>
           </Link>

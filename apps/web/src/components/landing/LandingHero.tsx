@@ -26,8 +26,8 @@ export default function LandingHero() {
 
         {/* Institutional Status Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0B0B0B] border border-[#1F1F1F] text-[11px] font-mono text-[#8E8E93] shadow-sm mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
-          <span className="text-[#3B82F6] font-semibold tracking-wide">NETVIGIL SECURITY</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+          <span className="text-[#F2F2F2] font-semibold tracking-wide">NETVIGIL SECURITY</span>
           <span className="text-[#636366]">•</span>
           <span className="text-[#8E8E93] font-medium tracking-wide">DETERMINISTIC MULTI-VENDOR AUDITING</span>
         </div>
@@ -40,23 +40,23 @@ export default function LandingHero() {
           <span className="block text-4xl sm:text-5xl lg:text-[46px] xl:text-[52px] 2xl:text-[56px] leading-[1.02] mt-1.5 whitespace-nowrap">
             CONFIGURATION.
           </span>
-          <span className="block text-3xl sm:text-4xl lg:text-[38px] xl:text-[44px] 2xl:text-[48px] leading-[1.04] text-[#3B82F6] mt-3.5 whitespace-nowrap">
+          <span className="block text-3xl sm:text-4xl lg:text-[38px] xl:text-[44px] 2xl:text-[48px] leading-[1.04] text-[#E0E0E0] mt-3.5 whitespace-nowrap">
             TRUST EVERY DECISION.
           </span>
         </h1>
 
         {/* Supporting Architectural Copy */}
         <p className="max-w-[480px] text-[14.5px] sm:text-[15.5px] xl:text-[16.5px] text-[#8E8E93] leading-[1.6] font-sans font-normal mb-8">
-          Turn network configurations into evidence-backed security decisions. NetVigil transforms Cisco IOS, Juniper JunOS, and Fortinet FortiOS configurations into one Universal Security Model, evaluates shared compliance frameworks, and delivers deterministic line-level proof.
+          Multi-vendor network security compliance auditing with evidence-backed findings and controlled remediation.
         </p>
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-4 font-mono text-xs mb-8">
-          {/* Primary: Electric Blue Button */}
+          {/* Primary CTA */}
           <Link
             href={getStartedHref}
             id="hero-get-started-cta"
-            className="group relative inline-flex items-center justify-center gap-2.5 px-6 h-11 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-[12px] tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98] shadow-sm"
+            className="group relative inline-flex items-center justify-center gap-2.5 px-6 h-11 bg-[#F2F2F2] hover:bg-white text-black font-bold text-[12px] tracking-wider rounded-lg transition-all duration-200 active:scale-[0.98] shadow-sm"
           >
             <span>GET STARTED →</span>
           </Link>

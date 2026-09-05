@@ -35,12 +35,12 @@ export default function LandingNavbar() {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Brand Logo & Identifier */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-md bg-[#0B0B0B] border border-[#141414] flex items-center justify-center text-[#93C5FD] group-hover:border-[#2C2C2E] transition-colors duration-150">
-            <Shield className="w-3.5 h-3.5 text-[#38BDF8]" />
+          <div className="w-7 h-7 rounded-md bg-[#0B0B0B] border border-[#141414] flex items-center justify-center text-[#D4D4D8] group-hover:border-[#2C2C2E] transition-colors duration-150">
+            <Shield className="w-3.5 h-3.5 text-[#F2F2F2]" />
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="font-bold text-sm tracking-wider text-[#F2F2F2]">NETVIGIL</span>
-            <span className="text-[10px] text-[#93C5FD] font-semibold px-1.5 py-0.5 rounded bg-[#141414] border border-[#2C2C2E]">CORE</span>
+            <span className="text-[10px] text-[#A0A0A0] font-semibold px-1.5 py-0.5 rounded bg-[#141414] border border-[#2C2C2E]">CORE</span>
           </div>
         </Link>
 
@@ -68,7 +68,7 @@ export default function LandingNavbar() {
               <Link
                 href="/console"
                 id="landing-get-started-cta"
-                className="inline-flex items-center gap-1.5 h-8 px-4 rounded-md bg-[#141414] hover:bg-[#1A2230] text-[#F2F2F2] hover:text-white border border-[#2C2C2E] font-bold text-xs transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
+                className="inline-flex items-center gap-1.5 h-8 px-4 rounded-md bg-[#141414] hover:bg-[#1F1F1F] text-[#F2F2F2] hover:text-white border border-[#2C2C2E] font-bold text-xs transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
               >
                 <span>Get Started →</span>
               </Link>
@@ -81,7 +81,7 @@ export default function LandingNavbar() {
                   onClick={() => setIsAccountOpen(!isAccountOpen)}
                   className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-[#0B0B0B] border border-[#141414] hover:border-[#2C2C2E] text-[#F2F2F2] font-medium transition-colors"
                 >
-                  <User className="w-3.5 h-3.5 text-[#93C5FD]" />
+                  <User className="w-3.5 h-3.5 text-[#D4D4D8]" />
                   <span className="max-w-[100px] truncate">{displayName}</span>
                   <ChevronDown className="w-3 h-3 text-[#636366]" />
                 </button>
@@ -96,7 +96,7 @@ export default function LandingNavbar() {
                       onClick={() => setIsAccountOpen(false)}
                       className="flex items-center gap-2 px-3 py-2 text-[#8E8E93] hover:text-[#F2F2F2] hover:bg-[#141414] transition-colors"
                     >
-                      <Activity className="w-3.5 h-3.5 text-[#93C5FD]" />
+                      <Activity className="w-3.5 h-3.5 text-[#D4D4D8]" />
                       <span>Security Console</span>
                     </Link>
                     <Link
@@ -136,7 +136,7 @@ export default function LandingNavbar() {
               <Link
                 href={getStartedHref}
                 id="landing-get-started-cta"
-                className="inline-flex items-center gap-1.5 h-8 px-4 rounded-md bg-[#141414] hover:bg-[#1A2230] text-[#F2F2F2] hover:text-white border border-[#2C2C2E] font-bold text-xs transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
+                className="inline-flex items-center gap-1.5 h-8 px-4 rounded-md bg-[#F2F2F2] hover:bg-white text-black font-bold text-xs transition-all duration-150 active:translate-y-[0.5px] shadow-sm"
               >
                 <span>Get Started →</span>
               </Link>

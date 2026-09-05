@@ -10,8 +10,8 @@ export default function MetricStripSection() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-[#1F1F1F]">
           {/* Column 1: Security Engine */}
           <div className="pt-2 md:pt-0 md:px-6 space-y-1.5">
-            <div className="flex items-center gap-1.5 text-[10px] text-[#3B82F6] uppercase tracking-[0.14em] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+            <div className="flex items-center gap-1.5 text-[10px] text-[#A0A0A0] uppercase tracking-[0.14em] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
               <span className="text-[#636366]">SECURITY ENGINE</span>
             </div>
             <div className="text-lg sm:text-xl font-bold text-[#F2F2F2] tracking-tight">
@@ -25,8 +25,8 @@ export default function MetricStripSection() {
 
           {/* Column 2: Native Vendors */}
           <div className="pt-4 md:pt-0 md:px-6 space-y-1.5">
-            <div className="flex items-center gap-1.5 text-[10px] text-[#3B82F6] uppercase tracking-[0.14em] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+            <div className="flex items-center gap-1.5 text-[10px] text-[#A0A0A0] uppercase tracking-[0.14em] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D4D4D8]" />
               <span className="text-[#636366]">NATIVE VENDORS</span>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-[#F2F2F2] tracking-tight">
@@ -37,8 +37,8 @@ export default function MetricStripSection() {
 
           {/* Column 3: Security Frameworks */}
           <div className="pt-4 md:pt-0 md:px-6 space-y-1.5">
-            <div className="flex items-center gap-1.5 text-[10px] text-[#3B82F6] uppercase tracking-[0.14em] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+            <div className="flex items-center gap-1.5 text-[10px] text-[#A0A0A0] uppercase tracking-[0.14em] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D4D4D8]" />
               <span className="text-[#636366]">SECURITY FRAMEWORKS</span>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-[#F2F2F2] tracking-tight">
@@ -50,8 +50,8 @@ export default function MetricStripSection() {
           {/* Column 4: AI Boundary */}
           <div className="pt-4 md:pt-0 md:px-6 space-y-1.5 relative flex items-center justify-between">
             <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-[10px] text-[#3B82F6] uppercase tracking-[0.14em] font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+              <div className="flex items-center gap-1.5 text-[10px] text-[#A0A0A0] uppercase tracking-[0.14em] font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                 <span className="text-[#636366]">AI BOUNDARY</span>
               </div>
               <div className="text-lg sm:text-xl font-bold text-[#F2F2F2] tracking-tight">

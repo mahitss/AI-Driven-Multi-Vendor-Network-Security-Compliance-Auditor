@@ -16,6 +16,7 @@ import {
   Info,
   Wrench,
   ExternalLink,
+  UploadCloud,
 } from "lucide-react";
 import {
   fetchOverviewStats,
@@ -222,6 +223,33 @@ export default function SecurityPostureDashboard() {
           </Link>
         )}
       </div>
+
+      {/* Onboarding State for First-Use / Empty Console */}
+      {!hasCompletedAudits && !isStatsLoading && (
+        <div className="p-6 sm:p-8 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl animate-fadeIn font-mono">
+          <div className="space-y-2 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded text-[11px] font-bold bg-[#141414] border border-[#242424] text-[#D4D4D8]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+              <span>FIRST-USE ONBOARDING</span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-[#F2F2F2] tracking-tight">
+              Start your first security audit
+            </h2>
+            <p className="text-xs sm:text-[13px] text-[#8E8E93] leading-relaxed font-sans">
+              Upload a network configuration and NetVigil will detect the vendor, parse the configuration, evaluate security controls, identify evidence-backed findings, and prioritize risk.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <Link
+              href="/configurations"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#F2F2F2] hover:bg-white text-black font-bold text-xs tracking-wider transition-all duration-150 active:scale-[0.98] shadow-sm"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Upload Configuration</span>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* 2. Core Metrics (5 KPI Cards - Fleet Posture Aggregate) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-stretch">

@@ -69,16 +69,16 @@ export default function AIBoundarySplitSection() {
           </div>
         </div>
 
-        {/* Right Column: Grounded AI Advisory (Purple) */}
+        {/* Right Column: Grounded AI Advisory */}
         <div className="p-6 rounded-xl bg-[#0B0B0B] border border-[#1F1F1F] hover:border-[#2C2C2E] transition-colors space-y-5 shadow-sm">
           <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F]">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#8B5CF6]" />
+              <Sparkles className="w-4 h-4 text-[#D4D4D8]" />
               <span className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">
                 GROUNDED AI ADVISORY
               </span>
             </div>
-            <span className="px-2 py-0.5 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] font-bold text-[10px] border border-[#8B5CF6]/30">
+            <span className="px-2 py-0.5 rounded bg-[#1A1A1A] text-[#D4D4D8] font-bold text-[10px] border border-[#2E2E2E]">
               AI ≠ VERDICT
             </span>
           </div>
@@ -89,7 +89,7 @@ export default function AIBoundarySplitSection() {
 
           <div className="p-4 rounded-lg bg-[#080808] border border-[#1F1F1F] space-y-3">
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-[#8B5CF6] font-bold">WHY THIS MATTERS</span>
+              <span className="text-[#D4D4D8] font-bold">WHY THIS MATTERS</span>
               <span className="text-[#636366]">READ ONLY • EVIDENCE GROUNDED</span>
             </div>
 
@@ -97,7 +97,7 @@ export default function AIBoundarySplitSection() {
               "SSH Version 1 utilizes vulnerable CRC-32 compensation attacks and weak session key exchanges. An adversary intercepting traffic on the management network segment can decrypt credentials in transit."
             </p>
 
-            <div className="pt-2 flex items-center gap-4 text-[10px] text-[#8B5CF6]">
+            <div className="pt-2 flex items-center gap-4 text-[10px] text-[#D4D4D8]">
               <span className="flex items-center gap-1">
                 <Terminal className="w-3 h-3" /> Remediation Template Assist
               </span>
