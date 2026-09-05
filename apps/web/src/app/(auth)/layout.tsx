@@ -8,21 +8,20 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-[100dvh] bg-[#080808] text-[#F2F2F2] font-sans antialiased flex flex-col justify-between selection:bg-[#3B82F6]/20 selection:text-[#3B82F6] relative overflow-x-hidden">
-      {/* Subtle Background Accent Grid & Ambient Glow */}
+    <div className="min-h-[100dvh] bg-[#080808] text-[#F2F2F2] font-sans antialiased flex flex-col justify-between selection:bg-[#2A2A2A] selection:text-[#F2F2F2] relative overflow-x-hidden">
+      {/* Subtle Background Accent Grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1F1F1F10_1px,transparent_1px),linear-gradient(to_bottom,#1F1F1F10_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#3B82F6]/5 blur-[120px] rounded-full pointer-events-none" />
 
       {/* 1. Minimal Top Authentication Header */}
-      <header className="relative z-20 border-b border-[#1F1F1F]/80 bg-[#080808]/80 backdrop-blur-md flex-shrink-0">
+      <header className="relative z-20 border-b border-[#1F1F1F] bg-[#080808]/90 backdrop-blur-md flex-shrink-0">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-12 sm:h-14 flex items-center justify-between font-mono text-xs">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[#0B0B0B] border border-[#1F1F1F] flex items-center justify-center text-[#3B82F6] group-hover:border-[#3B82F6] transition-colors duration-150">
-              <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[#0D0D0D] border border-[#1F1F1F] flex items-center justify-center text-[#8E8E93] group-hover:text-[#F2F2F2] group-hover:border-[#2A2A2A] transition-colors duration-150">
+              <Shield className="w-3.5 h-3.5" />
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="font-bold text-xs sm:text-sm tracking-wider text-[#F2F2F2]">NETVIGIL</span>
-              <span className="text-[9px] sm:text-[10px] text-[#3B82F6] font-semibold px-1.5 py-0.5 rounded bg-[#3B82F6]/10 border border-[#3B82F6]/20">
+              <span className="text-[9px] sm:text-[10px] text-[#8E8E93] font-semibold px-1.5 py-0.5 rounded bg-[#141414] border border-[#242424]">
                 AUTH GATEWAY
               </span>
             </div>

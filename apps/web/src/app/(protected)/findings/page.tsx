@@ -597,18 +597,37 @@ function FindingsContent() {
 
           {/* Empty State */}
           {!isFindingsLoading && !isFindingsError && filteredFindings.length === 0 && (
-            <div className="p-8 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center space-y-3">
+            <div className="p-8 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-center space-y-3 font-mono">
               <ShieldCheck className="w-7 h-7 text-[#666666] mx-auto" />
-              <div className="text-xs font-bold text-[#F2F2F2] font-mono uppercase tracking-wider">NO FINDINGS RECORDED</div>
-              <p className="text-xs text-[#8E8E93] font-sans">
-                Audit a configuration to generate evidence-backed findings.
+              <div className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">
+                {findings.length === 0 ? "NO FINDINGS RECORDED" : "NO MATCHING FINDINGS FOUND"}
+              </div>
+              <p className="text-xs text-[#8E8E93] max-w-sm mx-auto font-sans leading-relaxed">
+                {findings.length === 0
+                  ? "Audit a network configuration to generate deterministic, evidence-backed findings."
+                  : "No findings match the current filter criteria (Framework, Severity, Status, or Search)."}
               </p>
-              <Link
-                href="/configurations?mode=ingest"
-                className="inline-block px-3.5 py-1.5 rounded-md bg-[#161616] hover:bg-[#222222] text-[#F2F2F2] border border-[#2A2A2A] text-xs font-mono font-medium shadow-xs"
-              >
-                AUDIT CONFIGURATION →
-              </Link>
+              {findings.length === 0 ? (
+                <Link
+                  href="/configurations?mode=ingest"
+                  className="inline-block px-3.5 py-1.5 rounded-md bg-[#161616] hover:bg-[#222222] text-[#F2F2F2] border border-[#2A2A2A] text-xs font-mono font-medium shadow-xs"
+                >
+                  AUDIT CONFIGURATION →
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedFramework("ALL");
+                    setSelectedSeverity("ALL");
+                    setSelectedStatus("ALL");
+                    setSearchQuery("");
+                  }}
+                  className="inline-block px-3.5 py-1.5 rounded-md bg-[#161616] hover:bg-[#222222] text-[#F2F2F2] border border-[#2A2A2A] text-xs font-mono font-medium shadow-xs cursor-pointer"
+                >
+                  RESET FILTERS
+                </button>
+              )}
             </div>
           )}
 

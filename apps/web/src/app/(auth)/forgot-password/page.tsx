@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
       <div className="text-center space-y-1.5">
         <Link
           href="/"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#141414] border border-[#3B82F6]/30 text-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:border-[#3B82F6] transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#141414] border border-[#2A2A2A] text-[#F2F2F2] hover:border-[#383838] transition-colors"
         >
           <Shield className="w-5 h-5" />
         </Link>
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
         <div className="space-y-0.5 pt-1">
           <div className="flex items-center justify-center gap-2">
             <h1 className="font-mono text-lg sm:text-xl font-bold tracking-wider text-[#F2F2F2]">NETVIGIL</h1>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#141414] text-[#3B82F6] font-mono font-semibold border border-[#3B82F6]/20">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#141414] text-[#8E8E93] font-mono font-semibold border border-[#242424]">
               CREDENTIAL RECOVERY
             </span>
           </div>
@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
                   required
                   autoFocus
                   disabled={isSubmitting}
-                  className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-sans"
+                  className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#242424] focus:border-[#444444] focus:ring-1 focus:ring-[#555555] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-hidden transition-colors disabled:opacity-50 font-sans"
                 />
               </div>
             </div>
@@ -124,11 +124,11 @@ export default function ForgotPasswordPage() {
               type="submit"
               id="forgot-password-submit-btn"
               disabled={isSubmitting}
-              className="w-full h-9 sm:h-10 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] uppercase tracking-wider !mt-3.5"
+              className="w-full h-9 sm:h-10 rounded-lg bg-[#F2F2F2] hover:bg-white text-black font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-xs active:scale-[0.99] uppercase tracking-wider !mt-3.5"
             >
               {isSubmitting ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-black" />
                   <span>DISPATCHING RECOVERY LINK...</span>
                 </>
               ) : (
@@ -143,7 +143,7 @@ export default function ForgotPasswordPage() {
       <div className="text-center text-xs font-mono text-[#8E8E93] !my-2 flex items-center justify-center gap-2">
         <Link
           href="/login"
-          className="text-[#3B82F6] hover:text-[#60A5FA] font-semibold hover:underline flex items-center gap-1"
+          className="text-[#F2F2F2] hover:underline font-semibold flex items-center gap-1"
         >
           <ArrowLeft className="w-3 h-3" />
           <span>Back to Sign in</span>

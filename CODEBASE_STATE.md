@@ -701,6 +701,34 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * 100% web regression tests passing (`npm test`, 38/38 tests).
   * 100% Next.js production build passing across all 35 App Router routes (`npm run build`).
 
+### Final Frontend Hardening Pass (September 2026)
+* **Settings Page Hardened (`settings/page.tsx`)**:
+  * Restructured into 5 enterprise sections: `Account`, `Security & Authentication`, `Workspace & Tenant`, `Application Preferences`, and `About & System Diagnostics`.
+  * Removed unbacked fake notification toggles; real client settings (`theme`, `density`, `reducedMotion`, `defaultFramework`, `resetPreferences`) derive strictly from `useSettings()`.
+  * Non-configurable architecture parameters (tenant isolation, read-only network push boundary, AST parsers, API endpoints) are presented truthfully as Read-Only System Policies with `SYSTEM POLICY` / `READ ONLY` badges.
+  * Locked palette strictly enforced: purged all blue/cyan `#38BDF8`/`#3B82F6` accents; matte-black surfaces, neutral borders, and clear typographic hierarchy.
+* **Authentication & Landing Flow Hardened**:
+  * Next.js 16 edge proxy (`proxy.ts` calling `lib/supabase/middleware.ts`) protects all console routes and unconditionally permits public landing (`/`), login, and signup routes without redirect loops.
+  * Added `"/ai-copilot"` to `PROTECTED_PREFIXES` in middleware.
+  * `ProtectedLayout` (`(protected)/layout.tsx`) enhanced with client-side session boundary verification and clean dark loading indicator, eliminating flash of protected content.
+* **Auth UI Polished (`(auth)/layout.tsx`, `login/page.tsx`, `signup/page.tsx`, `forgot-password/page.tsx`, `reset-password/page.tsx`)**:
+  * Purged blue glows and accent badges in `AuthLayout`.
+  * Replaced colorful submit buttons with high-contrast, solid enterprise controls (`bg-[#F2F2F2] hover:bg-white text-black font-semibold`).
+  * Inputs hardened with `#242424` borders, `#444444` focus states, and subtle focus rings.
+* **Global Loading & Error Boundaries**:
+  * Added `(protected)/loading.tsx`: Lightweight, matte-black skeleton matching standard header + 4-card metric grid + dual content card layout, eliminating layout shifts.
+  * Added `(protected)/error.tsx`: Runtime error boundary with sanitized error message, digest ID, and `RETRY OPERATION` + `RETURN TO DASHBOARD` actions.
+* **Empty States & Error Handling Refined**:
+  * In `devices/page.tsx`: Differentiates between 0 ingested devices ("Upload a configuration file") and 0 search-matched assets ("No assets match your search/filter") with a one-click Reset Filters action.
+  * In `findings/page.tsx`: Differentiates between 0 total findings and 0 filtered findings with a Reset Filters button.
+  * In `AppShell.tsx`: Neutralized connecting indicator from blue to grey.
+  * In `layout.tsx` & `page.tsx`: Updated text selection from blue to neutral `#2A2A2A`.
+* **Verification**:
+  * 100% TypeScript clean (`npx tsc --noEmit`).
+  * 100% web regression tests passing (`npm test`, 38/38 tests).
+  * 100% Next.js 16 production build passing across all 35 App Router routes with Edge Proxy active (`npm run build`).
+
+
 
 
 

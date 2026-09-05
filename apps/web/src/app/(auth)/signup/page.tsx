@@ -131,8 +131,8 @@ function SignupContent() {
   if (authLoading) {
     return (
       <div className="flex flex-col justify-center items-center p-8 font-mono text-[#8E8E93]">
-        <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-xs text-[#3B82F6]">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#3B82F6]" />
+        <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0B0B0B] border border-[#1F1F1F] text-xs text-[#8E8E93]">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#8E8E93]" />
           <span>VERIFYING SOC SESSION BOUNDARY...</span>
         </div>
       </div>
@@ -145,7 +145,7 @@ function SignupContent() {
       <div className="text-center space-y-1.5">
         <Link
           href="/"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#141414] border border-[#3B82F6]/30 text-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:border-[#3B82F6] transition-colors"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#141414] border border-[#2A2A2A] text-[#F2F2F2] hover:border-[#383838] transition-colors"
         >
           <Shield className="w-5 h-5" />
         </Link>
@@ -153,7 +153,7 @@ function SignupContent() {
         <div className="space-y-0.5 pt-1">
           <div className="flex items-center justify-center gap-2">
             <h1 className="font-mono text-lg sm:text-xl font-bold tracking-wider text-[#F2F2F2]">NETVIGIL</h1>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#141414] text-[#3B82F6] font-mono font-semibold border border-[#3B82F6]/20">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#141414] text-[#8E8E93] font-mono font-semibold border border-[#242424]">
               OPERATOR REGISTRATION
             </span>
           </div>
@@ -220,7 +220,7 @@ function SignupContent() {
               required
               autoFocus
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#242424] focus:border-[#444444] focus:ring-1 focus:ring-[#555555] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-hidden transition-colors disabled:opacity-50 font-mono"
             />
           </div>
         </div>
@@ -245,7 +245,7 @@ function SignupContent() {
               placeholder="operator@enterprise.mil"
               required
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-sans"
+              className="w-full h-9 sm:h-10 pl-9 pr-3 rounded-lg bg-[#080808] border border-[#242424] focus:border-[#444444] focus:ring-1 focus:ring-[#555555] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-hidden transition-colors disabled:opacity-50 font-sans"
             />
           </div>
         </div>
@@ -270,7 +270,7 @@ function SignupContent() {
               placeholder="••••••••••••"
               required
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#242424] focus:border-[#444444] focus:ring-1 focus:ring-[#555555] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-hidden transition-colors disabled:opacity-50 font-mono"
             />
             <button
               type="button"
@@ -304,7 +304,7 @@ function SignupContent() {
               placeholder="••••••••••••"
               required
               disabled={isSubmitting || isGoogleSubmitting}
-              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#1F1F1F] focus:border-[#3B82F6] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-none transition-colors disabled:opacity-50 font-mono"
+              className="w-full h-9 sm:h-10 pl-9 pr-10 rounded-lg bg-[#080808] border border-[#242424] focus:border-[#444444] focus:ring-1 focus:ring-[#555555] text-[#F2F2F2] text-xs placeholder-[#636366] focus:outline-hidden transition-colors disabled:opacity-50 font-mono"
             />
           </div>
         </div>
@@ -314,11 +314,11 @@ function SignupContent() {
           type="submit"
           id="signup-submit-btn"
           disabled={isSubmitting || isGoogleSubmitting}
-          className="w-full h-9 sm:h-10 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm active:scale-[0.99] uppercase tracking-wider !mt-3.5"
+          className="w-full h-9 sm:h-10 rounded-lg bg-[#F2F2F2] hover:bg-white text-black font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-xs active:scale-[0.99] uppercase tracking-wider !mt-3.5"
         >
           {isSubmitting ? (
             <>
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin text-black" />
               <span>CREATING OPERATOR IDENTITY...</span>
             </>
           ) : (
@@ -345,16 +345,16 @@ function SignupContent() {
           id="google-signup-btn"
           onClick={handleGoogleLogin}
           disabled={isSubmitting || isGoogleSubmitting || authLoading}
-          className="w-full h-9 sm:h-10 px-4 rounded-lg bg-[#141414] hover:bg-[#151E2D] border border-[#1F1F1F] hover:border-[#3B82F6]/50 text-[#F2F2F2] text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed group shadow-sm active:scale-[0.99]"
+          className="w-full h-9 sm:h-10 px-4 rounded-lg bg-[#141414] hover:bg-[#1A1A1A] border border-[#242424] hover:border-[#383838] text-[#F2F2F2] text-xs font-mono font-semibold transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed group shadow-xs active:scale-[0.99]"
         >
           {isGoogleSubmitting ? (
             <>
-              <RefreshCw className="w-4 h-4 text-[#3B82F6] animate-spin" />
-              <span className="text-[#3B82F6] tracking-wider">CONNECTING GOOGLE...</span>
+              <RefreshCw className="w-4 h-4 text-[#8E8E93] animate-spin" />
+              <span className="text-[#8E8E93] tracking-wider">CONNECTING GOOGLE...</span>
             </>
           ) : (
             <>
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#EA4335"
                   d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
@@ -373,18 +373,18 @@ function SignupContent() {
                 />
               </svg>
               <span>CONTINUE WITH GOOGLE</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#636366] group-hover:text-[#3B82F6] transition-colors" />
+              <ArrowRight className="w-3.5 h-3.5 text-[#636366] group-hover:text-[#F2F2F2] transition-colors" />
             </>
           )}
         </button>
       </div>
 
-      {/* Signin Switcher - Clean inline link without awkward wrap */}
+      {/* Signin Switcher */}
       <div className="text-center text-xs font-mono text-[#8E8E93] !my-2">
         Already have an operator account?{" "}
         <Link
           href={`/login${rawRedirect ? `?redirectTo=${encodeURIComponent(rawRedirect)}` : ""}`}
-          className="inline-flex items-center gap-1 text-[#3B82F6] hover:text-[#60A5FA] font-semibold hover:underline whitespace-nowrap"
+          className="inline-flex items-center gap-1 text-[#F2F2F2] hover:underline font-semibold whitespace-nowrap"
         >
           <span>Sign in</span>
           <span aria-hidden="true">→</span>
@@ -410,7 +410,7 @@ export default function SignupPage() {
     <Suspense
       fallback={
         <div className="flex justify-center items-center p-8 font-mono text-[#8E8E93]">
-          <RefreshCw className="w-5 h-5 animate-spin text-[#3B82F6]" />
+          <RefreshCw className="w-5 h-5 animate-spin text-[#8E8E93]" />
         </div>
       }
     >

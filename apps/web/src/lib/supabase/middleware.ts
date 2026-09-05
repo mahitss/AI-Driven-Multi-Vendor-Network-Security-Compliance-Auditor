@@ -23,6 +23,7 @@ const PROTECTED_PREFIXES = [
   "/adaptive-training",
   "/ai-boundary",
   "/ai-assistant",
+  "/ai-copilot",
   "/ai-security-briefing",
   "/compliance",
   "/settings",

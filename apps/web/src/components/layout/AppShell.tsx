@@ -182,7 +182,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   "w-1.5 h-1.5 rounded-full",
                   isOnline && "bg-[#10B981]",
                   isDegraded && "bg-[#F59E0B]",
-                  isConnecting && "bg-[#3B82F6] animate-pulse",
+                  isConnecting && "bg-[#8E8E93] animate-pulse",
                   isOffline && "bg-[#EF4444]"
                 )}
                 title={isOnline ? "Operational" : isDegraded ? "Degraded" : isConnecting ? "Connecting" : "Offline"}
@@ -509,7 +509,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     "w-1.5 h-1.5 rounded-full",
                     isOnline && "bg-[#10B981]",
                     isDegraded && "bg-[#F59E0B]",
-                    isConnecting && "bg-[#3B82F6] animate-pulse",
+                    isConnecting && "bg-[#8E8E93] animate-pulse",
                     isOffline && "bg-[#EF4444]"
                   )}
                 />
@@ -518,7 +518,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     "font-medium tracking-wider",
                     isOnline && "text-[#10B981]",
                     isDegraded && "text-[#F59E0B]",
-                    isConnecting && "text-[#3B82F6]",
+                    isConnecting && "text-[#8E8E93]",
                     isOffline && "text-[#EF4444]"
                   )}
                 >

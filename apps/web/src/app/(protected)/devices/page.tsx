@@ -261,18 +261,35 @@ export default function DevicesPage() {
             <span>Loading network inventory...</span>
           </div>
         ) : filteredDevices.length === 0 ? (
-          <div className="py-16 text-center text-[#666666] space-y-3 font-mono">
+          <div className="py-16 px-4 text-center text-[#666666] space-y-3 font-mono">
             <Server className="w-8 h-8 text-[#666666] mx-auto" />
-            <div className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">NO DEVICES INGESTED</div>
-            <p className="text-xs text-[#8E8E93] max-w-sm mx-auto font-sans">
-              Upload a configuration file or ingest devices to audit your network infrastructure.
+            <div className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">
+              {devices.length === 0 ? "NO DEVICES INGESTED" : "NO MATCHING ASSETS FOUND"}
+            </div>
+            <p className="text-xs text-[#8E8E93] max-w-md mx-auto font-sans leading-relaxed">
+              {devices.length === 0
+                ? "Your network device inventory is currently empty because no configurations have been ingested yet."
+                : `No assets match your search "${searchQuery}" or vendor filter "${selectedVendor}". Try clearing the filters.`}
             </p>
-            <Link
-              href="/configurations?mode=ingest"
-              className="inline-block px-3.5 py-1.5 rounded-md bg-[#141414] hover:bg-[#1C1C1C] text-[#F2F2F2] border border-[#2E2E2E] font-semibold text-xs mt-2"
-            >
-              Ingest Configuration →
-            </Link>
+            {devices.length === 0 ? (
+              <Link
+                href="/configurations?mode=ingest"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#141414] hover:bg-[#1C1C1C] text-[#F2F2F2] border border-[#2A2A2A] font-semibold text-xs mt-2 transition-colors"
+              >
+                <span>Ingest Configuration →</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedVendor("ALL");
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#141414] hover:bg-[#1C1C1C] text-[#F2F2F2] border border-[#2A2A2A] font-semibold text-xs mt-2 transition-colors"
+              >
+                <span>Reset Filters</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-[#1F1F1F] bg-[#080808]">

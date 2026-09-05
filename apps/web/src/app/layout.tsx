@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`dark ${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-[#050505] text-[#8E8E93] font-sans antialiased selection:bg-[#3B82F6]/20 selection:text-[#3B82F6]">
+      <body className="bg-[#050505] text-[#8E8E93] font-sans antialiased selection:bg-[#2A2A2A] selection:text-[#F2F2F2]">
         <QueryProvider>
           <AuthProvider>
             <SettingsProvider>
