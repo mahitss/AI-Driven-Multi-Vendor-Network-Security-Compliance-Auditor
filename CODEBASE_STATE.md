@@ -838,3 +838,23 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * Go Vet: 0 issues (`go vet ./...` in `services/worker-go`).
   * Real Data Flow & Tenant Isolation: 7/7 passing (`scripts/verify_real_data_flow.py`).
   * Final Status: SHIP READY / FROZEN.
+
+---
+
+### AI Copilot Grounded Question-Specific Response Hardening (September 2026)
+* **Problem**: Different questions in the AI Copilot returned the same static fallback paragraph when OpenRouter credits were low or in offline standby mode.
+* **Root Causes**:
+  1. `OfflineStandbyProvider` returned an identical static template string for all copilot queries, ignoring user query intent.
+  2. `OpenRouterGateway` requested up to 2500 tokens for chat queries, causing OpenRouter HTTP 402 credit cap failures on accounts with limited credits.
+  3. `context_data` in `security_briefing_service.py` omitted `evolution_deltas`, `priority_counts`, and `risks`.
+* **Minimal Targeted Fix**:
+  - `offline_provider.py`: Implemented `_generate_grounded_copilot_response` parsing user query intent (specific control lookup, critical/P0 findings, risk & attack surface analysis, remediation action plan, evolution & delta comparison, unresolved controls summary). Formats distinct, evidence-grounded answers citing exact configuration lines and attaching verified `EvidenceCitation`s.
+  - `openrouter_gateway.py`: Clamped `effective_max_tokens` to 750 for conversational tasks (`ANALYST_COPILOT` and `SECURITY_ASSISTANT`), preventing credit exhaustion, and added automatic 402 token reduction recovery.
+  - `security_briefing_service.py` & `audit_assistant_service.py`: Enriched `context_data` with complete audit findings, risk items, and time machine evolution deltas.
+* **Verification**:
+  - `test_copilot_distinct_responses.py`: 5/5 PASS (100% distinct answers across 6 query types).
+  - Real audit database verification: 5/5 questions return distinct, question-specific answers.
+  - Backend regression: 46/46 PASS across all 11 test suites.
+  - Frontend regression: 38/38 PASS across all 4 test suites.
+  - Real data flow & tenant isolation: 7/7 PASS.
+

@@ -340,7 +340,11 @@ class AISecurityBriefingService:
             "vendor": data["vendor"],
             "compliance_score": data["overall_score"],
             "risk_score": data["risk_score"],
+            "framework_scores": data.get("framework_scores", {}),
+            "priority_counts": data.get("priority_counts", {}),
             "findings": data["findings"],
+            "risks": data.get("risks", []),
+            "evolution_deltas": evolution_deltas,
         }
 
         response: CopilotChatResponse = await OpenRouterGateway.execute_task(

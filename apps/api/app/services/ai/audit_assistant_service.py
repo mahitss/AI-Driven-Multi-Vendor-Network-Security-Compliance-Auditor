@@ -104,6 +104,11 @@ class AuditAssistantService:
             "audit_id": audit_id,
             "findings_count": len(findings),
             "cited_controls": [f["control_id"] for f in findings[:5]],
+            "findings": findings,
+            "compliance_score": overall_score,
+            "framework_scores": fw_scores,
+            "severity_breakdown": sev_stats,
+            "status_counts": status_counts,
         }
 
         # 5. Dispatch through OpenRouter Multi-Model Gateway

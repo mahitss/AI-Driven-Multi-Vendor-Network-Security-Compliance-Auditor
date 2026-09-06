@@ -225,6 +225,12 @@ class OpenRouterGateway:
                 "Content-Type": "application/json",
             }
 
+            # Conversational copilot and assistant tasks produce concise answers; clamp max_tokens to 750
+            # to remain strictly within OpenRouter credit limits and prevent 402 rejection
+            effective_max_tokens = model.max_tokens
+            if task_type in (AITaskType.ANALYST_COPILOT, AITaskType.SECURITY_ASSISTANT):
+                effective_max_tokens = min(model.max_tokens, 750)
+
             payload: Dict[str, Any] = {
                 "model": model.model_id,
                 "messages": [
@@ -232,7 +238,7 @@ class OpenRouterGateway:
                     {"role": "user", "content": sanitized_user_prompt},
                 ],
                 "temperature": model.temperature,
-                "max_tokens": model.max_tokens,
+                "max_tokens": effective_max_tokens,
             }
 
             try:
@@ -248,6 +254,22 @@ class OpenRouterGateway:
                         ),
                         timeout=per_attempt_timeout,
                     )
+
+                    if resp.status_code == 402:
+                        err_body = resp.text[:300]
+                        afford_match = re.search(r"can only afford (\d+)", err_body)
+                        if afford_match:
+                            reduced_tokens = max(200, int(afford_match.group(1)) - 50)
+                            logger.info(f"OpenRouter credit cap detected. Retrying with reduced max_tokens={reduced_tokens}")
+                            payload["max_tokens"] = reduced_tokens
+                            resp = await asyncio.wait_for(
+                                client.post(
+                                    f"{base_url}/chat/completions",
+                                    headers=headers,
+                                    json=payload,
+                                ),
+                                timeout=per_attempt_timeout,
+                            )
 
                 latency_ms = (time.perf_counter() - start_time) * 1000
 
