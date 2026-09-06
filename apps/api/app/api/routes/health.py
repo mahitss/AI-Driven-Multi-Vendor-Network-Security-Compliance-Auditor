@@ -75,5 +75,6 @@ async def get_health(db: AsyncSession = Depends(get_db)) -> SystemHealthResponse
             "firestore_state": firestore_status,
             "cloud_run_environment": cloud_run_env,
             "storage_path": str(settings.resolved_storage_path),
+            "worker_go": "operational" if os.environ.get("WORKER_GO_ENABLED", "false").lower() == "true" else "standby_optional",
         },
     )

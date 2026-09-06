@@ -810,15 +810,31 @@ pytest apps/api/tests/test_audits_api.py apps/api/tests/test_audit_state_and_sum
   * Next.js Build: 35/35 routes generated cleanly (`npm run build`).
   * Real-Data E2E Flow: 7/7 checks passing (`verify_real_data_flow.py`).
 
+---
 
-
-
-
-
-
-
-
-
-
-
-
+### Phase 4 — Production Hardening + Go Worker Deployment (September 2026)
+* **Objective**: Complete production hardening, verify PostgreSQL persistence, ensure Go worker container and deployment readiness, and confirm zero regression across all core engines.
+* **Production Environment & Persistence Invariants**:
+  * Authoritative Python/FastAPI security engine: Parsers, normalizers, AST logic, rule evaluation (CIS/NIST/STIG/ISO), risk scoring, and remediation generation remain strictly in Python.
+  * PostgreSQL Persistence: Production rejects non-PostgreSQL / SQLite databases via `Settings.validate_production_database_url`.
+  * Configuration Storage: Ingested configuration content (`Configuration.raw_content`) is persisted durably as `Text` in PostgreSQL, removing reliance on container-ephemeral filesystems.
+  * Multi-Tenant Isolation: Row-level and tenant-keyed filtering verified across configurations, audits, findings, devices, and remediation.
+  * Zero Network Push: Read-only boundary strictly enforced; zero SSH/Telnet or remote device writes.
+* **Deployment & Containerization**:
+  * `docker-compose.yml`: Integrated `worker-go` service on port 8081 with environment configuration (`WORKER_ENV`, `WORKER_LOG_LEVEL`, `WORKER_INTERNAL_SECRET`).
+  * `apps/api/app/api/routes/health.py`: Added `worker_go` status to health components (`"operational"` if enabled, `"standby_optional"` if disabled/unconfigured).
+  * Go Worker Container: Multi-stage Docker build on `alpine:3.19` with non-root execution (`appuser:10001`), configurable `PORT`, and graceful SIGTERM handling.
+* **Go Fail-Safe & Boundary Protection**:
+  * Go worker is isolated internal infrastructure protected by `X-Internal-Worker-Secret`.
+  * FastAPI `WorkerClient` fails safely to deterministic Python algorithms when Go is disabled or unavailable (`test_worker_client_fail_safe.py` 4/4 PASS).
+  * All critical user flows (upload, audit, findings, remediation, verification, copilot) remain 100% operational without Go.
+* **Verification & Regression Results**:
+  * Frontend Unit/Regression Tests: 38/38 passing (`npm test`).
+  * Frontend Type Checking: 0 errors (`npx tsc --noEmit`).
+  * Frontend Linter: 0 errors (`npm run lint`).
+  * Frontend Production Build: 35/35 routes compiled successfully (`npm run build`).
+  * Backend Pytest: 41/41 passing across 10 targeted test suites (`pytest`).
+  * Go Unit Tests: 14/14 passing (`go test -v ./...` in `services/worker-go`).
+  * Go Vet: 0 issues (`go vet ./...` in `services/worker-go`).
+  * Real Data Flow & Tenant Isolation: 7/7 passing (`scripts/verify_real_data_flow.py`).
+  * Final Status: SHIP READY / FROZEN.

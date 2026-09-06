@@ -37,6 +37,9 @@ services:
       SYNC_DATABASE_URL: ${SYNC_DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD:-postgres_dev_password}@postgres:5432/netvigil}
       STORAGE_PATH: /app/storage/uploads
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://web:3000}
+      WORKER_GO_URL: ${WORKER_GO_URL:-http://worker-go:8081}
+      WORKER_GO_ENABLED: ${WORKER_GO_ENABLED:-false}
+      WORKER_INTERNAL_SECRET: ${WORKER_INTERNAL_SECRET:-}
     ports:
       - "8000:8000"
     volumes:
@@ -55,6 +58,22 @@ services:
       NEXT_PUBLIC_API_BASE_URL: http://api:8000
     ports:
       - "3000:3000"
+
+  # NetVigil Go Worker (Optional Background Infrastructure)
+  worker-go:
+    build:
+      context: services/worker-go
+      dockerfile: Dockerfile
+    container_name: netvigil-worker-go
+    restart: unless-stopped
+    environment:
+      PORT: 8081
+      WORKER_PORT: 8081
+      WORKER_ENV: ${ENVIRONMENT:-production}
+      WORKER_LOG_LEVEL: ${WORKER_LOG_LEVEL:-INFO}
+      WORKER_INTERNAL_SECRET: ${WORKER_INTERNAL_SECRET:-}
+    ports:
+      - "8081:8081"
 
 volumes:
   postgres_data:
